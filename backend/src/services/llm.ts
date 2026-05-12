@@ -72,7 +72,8 @@ ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
         ],
       }],
     })
-    return parseReplies((response.content[0] as { text: string }).text)
+    const textBlock = response.content.find(b => b.type === 'text')
+    return parseReplies(textBlock && 'text' in textBlock ? textBlock.text : '')
   }
 
   const client = new OpenAI({ apiKey: openaiKey })
@@ -94,6 +95,6 @@ export function parseReplies(text: string): string[] {
   return text
     .split('\n')
     .filter(line => /^\d+\./.test(line.trim()))
-    .map(line => line.replace(/^\d+\.\s*/, '').trim())
+    .map(line => line.trim().replace(/^\d+[.)]\s*/, '').trim())
     .filter(Boolean)
 }
