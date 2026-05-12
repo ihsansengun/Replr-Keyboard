@@ -27,7 +27,7 @@ struct ContentView: View {
         }
         .task {
             let txID = await SubscriptionManager.shared.currentTransactionID()
-            UserDefaults(suiteName: "group.com.yourname.replr")?.set(txID, forKey: "transaction_id")
+            UserDefaults(suiteName: Constants.appGroupID)?.set(txID, forKey: "transaction_id")
         }
     }
 }

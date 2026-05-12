@@ -4,7 +4,7 @@ final class SummariesViewModel: ObservableObject {
     @Published var summaries: [ConversationSummary] = []
 
     private let key = "summaries"
-    private let defaults = UserDefaults(suiteName: "group.com.yourname.replr")
+    private let defaults = UserDefaults(suiteName: Constants.appGroupID)
 
     func load() {
         guard
