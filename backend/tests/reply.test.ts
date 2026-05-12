@@ -20,6 +20,13 @@ import { checkRateLimit } from '../src/services/rateLimit'
 const mockGenerateReplies = vi.mocked(generateReplies)
 const mockCheckRateLimit = vi.mocked(checkRateLimit)
 
+const fakeEnv = {
+  RATE_LIMIT_KV: { get: vi.fn().mockResolvedValue(null), put: vi.fn() },
+  FREE_DAILY_LIMIT: '20',
+  ANTHROPIC_API_KEY: 'test-key',
+  OPENAI_API_KEY: 'test-key',
+}
+
 const validBody = {
   screenshotBase64: 'aGVsbG8=',
   tone: 'casual',
@@ -39,7 +46,7 @@ describe('POST /reply', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(validBody),
-    })
+    }, fakeEnv)
     expect(res.status).toBe(200)
     const json = await res.json() as { replies: string[] }
     expect(json.replies).toEqual(['Reply 1', 'Reply 2', 'Reply 3'])
@@ -51,7 +58,7 @@ describe('POST /reply', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    })
+    }, fakeEnv)
     expect(res.status).toBe(400)
   })
 
@@ -61,7 +68,7 @@ describe('POST /reply', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    })
+    }, fakeEnv)
     expect(res.status).toBe(400)
   })
 
@@ -71,7 +78,7 @@ describe('POST /reply', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    })
+    }, fakeEnv)
     expect(res.status).toBe(400)
   })
 
@@ -81,8 +88,30 @@ describe('POST /reply', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    })
+    }, fakeEnv)
     expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for malformed JSON body', async () => {
+    const res = await app.request('/reply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: 'not valid json{',
+    }, fakeEnv)
+    expect(res.status).toBe(400)
+    const json = await res.json() as { error: string }
+    expect(json.error).toContain('Invalid JSON')
+  })
+
+  it('returns 400 for invalid model value', async () => {
+    const res = await app.request('/reply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...validBody, model: 'badmodel' }),
+    }, fakeEnv)
+    expect(res.status).toBe(400)
+    const json = await res.json() as { error: string }
+    expect(json.error).toContain('Invalid model')
   })
 
   it('returns 429 when rate limit exceeded', async () => {
@@ -91,7 +120,7 @@ describe('POST /reply', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(validBody),
-    })
+    }, fakeEnv)
     expect(res.status).toBe(429)
     const json = await res.json() as { error: string }
     expect(json.error).toContain('Daily limit')
@@ -103,7 +132,7 @@ describe('POST /reply', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(validBody),
-    })
+    }, fakeEnv)
     expect(res.status).toBe(500)
   })
 
@@ -112,11 +141,10 @@ describe('POST /reply', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...validBody, transactionId: 'txn-abc' }),
-    })
+    }, fakeEnv)
     expect(res.status).toBe(200)
-    // c.env bindings are undefined in test; FREE_DAILY_LIMIT falls back to '20'
     expect(mockCheckRateLimit).toHaveBeenCalledWith(
-      undefined,
+      fakeEnv.RATE_LIMIT_KV,
       'test-user-123',
       'premium',
       20
