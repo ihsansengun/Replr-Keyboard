@@ -118,6 +118,13 @@ final class KeyboardView: UIView {
             card.onTap = { [weak self] text in self?.onReplySelected?(text) }
             stack.addArrangedSubview(card)
         }
+
+        let regenButton = UIButton(type: .system)
+        regenButton.setTitle("Try again ↺", for: .normal)
+        regenButton.titleLabel?.font = .systemFont(ofSize: 13)
+        regenButton.addAction(UIAction { [weak self] _ in self?.onCapture?() }, for: .touchUpInside)
+        stack.addArrangedSubview(regenButton)
+
         return stack
     }
 

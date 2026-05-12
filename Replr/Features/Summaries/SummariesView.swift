@@ -1,4 +1,5 @@
 import SwiftUI
+import CloudKit
 
 final class SummariesViewModel: ObservableObject {
     @Published var summaries: [ConversationSummary] = []
@@ -61,7 +62,33 @@ struct SummariesView: View {
             .sheet(isPresented: $showingAdd) {
                 AddSummaryView(onAdd: { vm.add($0); showingAdd = false })
             }
-            .onAppear { vm.load() }
+            .onAppear {
+                vm.load()
+                if SubscriptionManager.shared.isPremium {
+                    vm.syncToiCloud()
+                }
+            }
+        }
+    }
+}
+
+extension SummariesViewModel {
+    func syncToiCloud() {
+        guard !summaries.isEmpty else { return }
+        let container = CKContainer.default()
+        let db = container.privateCloudDatabase
+
+        for summary in summaries {
+            let record = CKRecord(recordType: "ConversationSummary",
+                recordID: CKRecord.ID(recordName: summary.id.uuidString))
+            record["personName"] = summary.personName
+            record["platform"] = summary.platform
+            record["notes"] = summary.notes
+            record["updatedAt"] = summary.updatedAt
+
+            db.save(record) { _, error in
+                if let error { print("iCloud sync error:", error) }
+            }
         }
     }
 }
