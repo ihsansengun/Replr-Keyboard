@@ -22,6 +22,7 @@ replyRoute.post('/', async (c) => {
     return c.json({ error: 'Invalid model. Must be "claude" or "gpt4o".' }, 400)
   }
 
+  // TODO: validate transactionId against Apple App Store Server API before trusting premium tier
   const tier = transactionId ? 'premium' : 'free'
   const limit = parseInt(c.env.FREE_DAILY_LIMIT ?? '20', 10)
   const allowed = await checkRateLimit(c.env.RATE_LIMIT_KV, userId, tier, limit)
@@ -36,6 +37,9 @@ replyRoute.post('/', async (c) => {
       anthropicKey: c.env.ANTHROPIC_API_KEY,
       openaiKey: c.env.OPENAI_API_KEY,
     })
+    if (replies.length === 0) {
+      return c.json({ error: 'Could not parse replies. Please try again.' }, 502)
+    }
     return c.json({ replies })
   } catch (err) {
     console.error('LLM error:', err)
@@ -74,6 +78,7 @@ replyRoute.post('/scroll', async (c) => {
     return c.json({ error: 'Too many screenshots. Maximum 6 allowed.' }, 400)
   }
 
+  // TODO: validate transactionId against Apple App Store Server API
   if (!transactionId) {
     return c.json({ error: 'Scroll capture requires premium.' }, 403)
   }
@@ -94,6 +99,9 @@ replyRoute.post('/scroll', async (c) => {
       anthropicKey: c.env.ANTHROPIC_API_KEY,
       openaiKey: c.env.OPENAI_API_KEY,
     })
+    if (replies.length === 0) {
+      return c.json({ error: 'Could not parse replies. Please try again.' }, 502)
+    }
     return c.json({ replies })
   } catch (err) {
     console.error('Scroll LLM error:', err)
