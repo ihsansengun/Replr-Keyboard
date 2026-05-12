@@ -91,6 +91,73 @@ ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
   return parseReplies(response.choices[0].message.content ?? '')
 }
 
+export interface GenerateMultipleParams {
+  screenshots: string[]
+  tone: string
+  summary?: string
+  model: Model
+  anthropicKey: string
+  openaiKey: string
+}
+
+export async function generateRepliesFromMultiple(params: GenerateMultipleParams): Promise<string[]> {
+  const { screenshots, tone, summary, model, anthropicKey, openaiKey } = params
+  const count = 5  // scroll capture is premium-only, always 5
+  const toneInstruction = TONE_PROMPTS[tone] ?? tone
+
+  const system = [
+    IDENTITY,
+    `ROLE: ${toneInstruction}`,
+    `Output exactly ${count} numbered reply options, nothing else.`,
+  ].join('\n\n')
+
+  const contextBlock = summary ? `CONVERSATION BACKGROUND:\n${summary}\n\n` : ''
+  const user = `${contextBlock}The following screenshots show a conversation scrolled through from bottom to top. Read all of them together to understand the full context.
+
+Reading guide:
+- Bubbles on the RIGHT = sent by the user
+- Bubbles on the LEFT = sent by the other person
+
+${DECISIONS}
+
+Reply format — output only this:
+${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
+
+  if (model === 'claude') {
+    const client = new Anthropic({ apiKey: anthropicKey })
+    const imageContent = screenshots.map(b64 => ({
+      type: 'image' as const,
+      source: { type: 'base64' as const, media_type: 'image/png' as const, data: b64 }
+    }))
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      system,
+      messages: [{
+        role: 'user',
+        content: [...imageContent, { type: 'text', text: user }]
+      }]
+    })
+    const textBlock = response.content.find(b => b.type === 'text')
+    return parseReplies(textBlock && 'text' in textBlock ? textBlock.text : '')
+  }
+
+  const client = new OpenAI({ apiKey: openaiKey })
+  const imageContent = screenshots.map(b64 => ({
+    type: 'image_url' as const,
+    image_url: { url: `data:image/png;base64,${b64}` }
+  }))
+  const response = await client.chat.completions.create({
+    model: 'gpt-4o',
+    max_tokens: 1024,
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: [...imageContent, { type: 'text', text: user }] as any }
+    ]
+  })
+  return parseReplies(response.choices[0].message.content ?? '')
+}
+
 export function parseReplies(text: string): string[] {
   return text
     .split('\n')

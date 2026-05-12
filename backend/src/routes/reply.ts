@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
-import { generateReplies } from '../services/llm'
+import { generateReplies, generateRepliesFromMultiple } from '../services/llm'
 import { checkRateLimit } from '../services/rateLimit'
-import type { Env, ReplyRequest } from '../types'
+import type { Env, ReplyRequest, Model } from '../types'
 
 export const replyRoute = new Hono<{ Bindings: Env }>()
 
@@ -39,6 +39,53 @@ replyRoute.post('/', async (c) => {
     return c.json({ replies })
   } catch (err) {
     console.error('LLM error:', err)
+    return c.json({ error: 'Failed to generate replies. Please try again.' }, 500)
+  }
+})
+
+interface ScrollRequest {
+  screenshots: string[]
+  tone: string
+  summary?: string
+  model: Model
+  userId: string
+  transactionId?: string
+}
+
+replyRoute.post('/scroll', async (c) => {
+  let body: Partial<ScrollRequest>
+  try {
+    body = await c.req.json<Partial<ScrollRequest>>()
+  } catch {
+    return c.json({ error: 'Invalid JSON body' }, 400)
+  }
+
+  const { screenshots, tone, model, userId, summary, transactionId } = body
+
+  if (!Array.isArray(screenshots) || screenshots.length === 0 || !tone || !model || !userId) {
+    return c.json({ error: 'Missing required fields: screenshots, tone, model, userId' }, 400)
+  }
+
+  if (model !== 'claude' && model !== 'gpt4o') {
+    return c.json({ error: 'Invalid model. Must be "claude" or "gpt4o".' }, 400)
+  }
+
+  if (!transactionId) {
+    return c.json({ error: 'Scroll capture requires premium.' }, 403)
+  }
+
+  try {
+    const replies = await generateRepliesFromMultiple({
+      screenshots: screenshots.slice(0, 6),
+      tone,
+      summary,
+      model,
+      anthropicKey: c.env.ANTHROPIC_API_KEY,
+      openaiKey: c.env.OPENAI_API_KEY,
+    })
+    return c.json({ replies })
+  } catch (err) {
+    console.error('Scroll LLM error:', err)
     return c.json({ error: 'Failed to generate replies. Please try again.' }, 500)
   }
 })
