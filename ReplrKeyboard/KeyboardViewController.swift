@@ -59,7 +59,6 @@ final class KeyboardViewController: UIInputViewController {
         Task {
             do {
                 let screenshots = try await ScrollCaptureService.shared.waitForScrollCapture()
-                ScrollCaptureService.shared.stopScrollMode()
                 let storedTxID = UserDefaults(suiteName: Constants.appGroupID)?.string(forKey: Constants.transactionIDKey)
                 let replies = try await ReplyService.shared.generateRepliesFromScroll(
                     screenshots: screenshots,
@@ -68,6 +67,7 @@ final class KeyboardViewController: UIInputViewController {
                     model: UserDefaults.standard.string(forKey: "preferredModel") ?? "claude",
                     transactionId: storedTxID
                 )
+                ScrollCaptureService.shared.stopScrollMode()
                 await MainActor.run { keyboardView.transition(to: .replies(replies)) }
             } catch {
                 ScrollCaptureService.shared.stopScrollMode()
