@@ -1,0 +1,3 @@
+# Copy to .dev.vars (gitignored) and fill in real keys for local dev
+ANTHROPIC_API_KEY=
+OPENAI_API_KEY=
