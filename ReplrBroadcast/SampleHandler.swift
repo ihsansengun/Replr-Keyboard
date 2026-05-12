@@ -3,6 +3,10 @@ import ReplayKit
 class SampleHandler: RPBroadcastSampleHandler {
     private var didCapture = false
 
+    override func broadcastStarted(withSetupInfo setupInfo: [String: NSObject]?) {}
+    override func broadcastPaused() {}
+    override func broadcastResumed() {}
+
     override func processSampleBuffer(_ sampleBuffer: CMSampleBuffer, with sampleBufferType: RPSampleBufferType) {
         guard sampleBufferType == .video, !didCapture else { return }
         didCapture = true
@@ -15,19 +19,16 @@ class SampleHandler: RPBroadcastSampleHandler {
 
         let ciImage = CIImage(cvPixelBuffer: imageBuffer)
         let context = CIContext()
-        guard
-            let cgImage = context.createCGImage(ciImage, from: ciImage.extent),
-            let pngData = UIImage(cgImage: cgImage).pngData()
-        else {
+        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else {
             finishBroadcastWithError(NSError(domain: "Replr", code: 2,
-                userInfo: [NSLocalizedDescriptionKey: "Image conversion failed"]))
+                userInfo: [NSLocalizedDescriptionKey: "CIContext failed"]))
             return
         }
 
+        let uiImage = UIImage(cgImage: cgImage)
         do {
-            let service = AppGroupService.shared
-            try service.writeScreenshot(UIImage(data: pngData)!)
-            service.isCaptureReady = true
+            try AppGroupService.shared.writeScreenshot(uiImage)
+            AppGroupService.shared.isCaptureReady = true
         } catch {
             finishBroadcastWithError(error)
             return
@@ -35,4 +36,6 @@ class SampleHandler: RPBroadcastSampleHandler {
 
         finishBroadcastWithError(nil)
     }
+
+    override func broadcastFinished() {}
 }

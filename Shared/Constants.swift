@@ -5,4 +5,5 @@ enum Constants {
     static let captureReadyKey = "capture_ready"
     static let tonesKey = "tones"
     static let userIDKey = "user_id"
+    static let broadcastExtensionID = "com.yourname.replr.broadcast"
 }
