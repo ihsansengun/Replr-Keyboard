@@ -27,6 +27,8 @@ const DECISIONS = `Before generating replies, assess:
 5. Whether to advance the conversation or simply respond
 6. For dating contexts: where are they in the relationship?`
 
+const PREMIUM_REPLY_COUNT = 5
+
 export interface GenerateParams {
   screenshotBase64: string
   tone: string
@@ -37,9 +39,62 @@ export interface GenerateParams {
   openaiKey: string
 }
 
+export interface GenerateMultipleParams {
+  screenshots: string[]
+  tone: string
+  summary?: string
+  model: Model
+  anthropicKey: string
+  openaiKey: string
+}
+
+interface LlmCallParams {
+  system: string
+  user: string
+  images: string[]  // base64 PNGs
+  model: Model
+  anthropicKey: string
+  openaiKey: string
+}
+
+async function callLlm(params: LlmCallParams): Promise<string[]> {
+  const { system, user, images, model, anthropicKey, openaiKey } = params
+
+  if (model === 'claude') {
+    const client = new Anthropic({ apiKey: anthropicKey })
+    const imageContent = images.map(b64 => ({
+      type: 'image' as const,
+      source: { type: 'base64' as const, media_type: 'image/png' as const, data: b64 }
+    }))
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      system,
+      messages: [{ role: 'user', content: [...imageContent, { type: 'text', text: user }] }],
+    })
+    const textBlock = response.content.find(b => b.type === 'text')
+    return parseReplies(textBlock && 'text' in textBlock ? textBlock.text : '')
+  }
+
+  const client = new OpenAI({ apiKey: openaiKey })
+  const imageContent = images.map(b64 => ({
+    type: 'image_url' as const,
+    image_url: { url: `data:image/png;base64,${b64}` }
+  }))
+  const response = await client.chat.completions.create({
+    model: 'gpt-4o',
+    max_tokens: 1024,
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: [...imageContent, { type: 'text', text: user }] as any },
+    ],
+  })
+  return parseReplies(response.choices[0].message.content ?? '')
+}
+
 export async function generateReplies(params: GenerateParams): Promise<string[]> {
   const { screenshotBase64, tone, summary, model, tier, anthropicKey, openaiKey } = params
-  const count = tier === 'premium' ? 5 : 3
+  const count = tier === 'premium' ? PREMIUM_REPLY_COUNT : 3
   const toneInstruction = TONE_PROMPTS[tone] ?? tone
 
   const system = [
@@ -58,51 +113,12 @@ ${DECISIONS}
 Reply format — output only this:
 ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
 
-  if (model === 'claude') {
-    const client = new Anthropic({ apiKey: anthropicKey })
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
-      system,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: 'image/png', data: screenshotBase64 } },
-          { type: 'text', text: user },
-        ],
-      }],
-    })
-    const textBlock = response.content.find(b => b.type === 'text')
-    return parseReplies(textBlock && 'text' in textBlock ? textBlock.text : '')
-  }
-
-  const client = new OpenAI({ apiKey: openaiKey })
-  const response = await client.chat.completions.create({
-    model: 'gpt-4o',
-    max_tokens: 1024,
-    messages: [
-      { role: 'system', content: system },
-      { role: 'user', content: [
-        { type: 'image_url', image_url: { url: `data:image/png;base64,${screenshotBase64}` } },
-        { type: 'text', text: user },
-      ] as any },
-    ],
-  })
-  return parseReplies(response.choices[0].message.content ?? '')
-}
-
-export interface GenerateMultipleParams {
-  screenshots: string[]
-  tone: string
-  summary?: string
-  model: Model
-  anthropicKey: string
-  openaiKey: string
+  return callLlm({ system, user, images: [screenshotBase64], model, anthropicKey, openaiKey })
 }
 
 export async function generateRepliesFromMultiple(params: GenerateMultipleParams): Promise<string[]> {
   const { screenshots, tone, summary, model, anthropicKey, openaiKey } = params
-  const count = 5  // scroll capture is premium-only, always 5
+  const count = PREMIUM_REPLY_COUNT
   const toneInstruction = TONE_PROMPTS[tone] ?? tone
 
   const system = [
@@ -123,39 +139,7 @@ ${DECISIONS}
 Reply format — output only this:
 ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
 
-  if (model === 'claude') {
-    const client = new Anthropic({ apiKey: anthropicKey })
-    const imageContent = screenshots.map(b64 => ({
-      type: 'image' as const,
-      source: { type: 'base64' as const, media_type: 'image/png' as const, data: b64 }
-    }))
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
-      system,
-      messages: [{
-        role: 'user',
-        content: [...imageContent, { type: 'text', text: user }]
-      }]
-    })
-    const textBlock = response.content.find(b => b.type === 'text')
-    return parseReplies(textBlock && 'text' in textBlock ? textBlock.text : '')
-  }
-
-  const client = new OpenAI({ apiKey: openaiKey })
-  const imageContent = screenshots.map(b64 => ({
-    type: 'image_url' as const,
-    image_url: { url: `data:image/png;base64,${b64}` }
-  }))
-  const response = await client.chat.completions.create({
-    model: 'gpt-4o',
-    max_tokens: 1024,
-    messages: [
-      { role: 'system', content: system },
-      { role: 'user', content: [...imageContent, { type: 'text', text: user }] as any }
-    ]
-  })
-  return parseReplies(response.choices[0].message.content ?? '')
+  return callLlm({ system, user, images: screenshots, model, anthropicKey, openaiKey })
 }
 
 export function parseReplies(text: string): string[] {

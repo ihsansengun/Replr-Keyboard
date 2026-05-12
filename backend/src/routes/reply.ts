@@ -70,13 +70,24 @@ replyRoute.post('/scroll', async (c) => {
     return c.json({ error: 'Invalid model. Must be "claude" or "gpt4o".' }, 400)
   }
 
+  if (screenshots.length > 6) {
+    return c.json({ error: 'Too many screenshots. Maximum 6 allowed.' }, 400)
+  }
+
   if (!transactionId) {
     return c.json({ error: 'Scroll capture requires premium.' }, 403)
   }
 
+  const tier: 'premium' = 'premium'
+  const limit = parseInt(c.env.FREE_DAILY_LIMIT ?? '20', 10)
+  const allowed = await checkRateLimit(c.env.RATE_LIMIT_KV, userId, tier, limit)
+  if (!allowed) {
+    return c.json({ error: 'Daily limit reached. Upgrade to premium for unlimited replies.' }, 429)
+  }
+
   try {
     const replies = await generateRepliesFromMultiple({
-      screenshots: screenshots.slice(0, 6),
+      screenshots,
       tone,
       summary,
       model,

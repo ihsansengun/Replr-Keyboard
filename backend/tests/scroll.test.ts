@@ -79,4 +79,45 @@ describe('POST /reply/scroll', () => {
     }, fakeEnv)
     expect(res.status).toBe(400)
   })
+
+  it('returns 500 when LLM throws', async () => {
+    anthropicMessagesCreate.mockRejectedValueOnce(new Error('API down'))
+    const res = await app.request('/reply/scroll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(validScrollBody),
+    }, fakeEnv)
+    expect(res.status).toBe(500)
+  })
+
+  it('returns 400 for too many screenshots', async () => {
+    const body = { ...validScrollBody, screenshots: Array(7).fill('aGVsbG8=') }
+    const res = await app.request('/reply/scroll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }, fakeEnv)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for invalid model', async () => {
+    const body = { ...validScrollBody, model: 'gpt5' }
+    const res = await app.request('/reply/scroll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }, fakeEnv)
+    expect(res.status).toBe(400)
+  })
+
+  it('sends all screenshots to LLM as image content', async () => {
+    await app.request('/reply/scroll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(validScrollBody), // has 2 screenshots
+    }, fakeEnv)
+    const callArgs = anthropicMessagesCreate.mock.calls[0][0]
+    const imageBlocks = callArgs.messages[0].content.filter((b: any) => b.type === 'image')
+    expect(imageBlocks).toHaveLength(2)
+  })
 })
