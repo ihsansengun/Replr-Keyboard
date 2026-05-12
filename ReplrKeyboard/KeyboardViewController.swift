@@ -23,6 +23,7 @@ final class KeyboardViewController: UIInputViewController {
         keyboardView.onCapture = { [weak self] in self?.startCapture() }
         keyboardView.onReplySelected = { [weak self] reply in self?.insert(reply) }
         keyboardView.onSwitchKeyboard = { [weak self] in self?.advanceToNextInputMode() }
+        keyboardView.onScrollCapture = { [weak self] in self?.startScrollCapture() }
     }
 
     private func startCapture() {
@@ -43,6 +44,33 @@ final class KeyboardViewController: UIInputViewController {
                 )
                 await MainActor.run { keyboardView.transition(to: .replies(replies)) }
             } catch {
+                await MainActor.run {
+                    keyboardView.transition(to: .error(error.localizedDescription))
+                }
+            }
+        }
+    }
+
+    private func startScrollCapture() {
+        ScrollCaptureService.shared.startScrollMode()
+        keyboardView.transition(to: .loading)
+        triggerBroadcast()
+
+        Task {
+            do {
+                let screenshots = try await ScrollCaptureService.shared.waitForScrollCapture()
+                ScrollCaptureService.shared.stopScrollMode()
+                let storedTxID = UserDefaults(suiteName: Constants.appGroupID)?.string(forKey: Constants.transactionIDKey)
+                let replies = try await ReplyService.shared.generateRepliesFromScroll(
+                    screenshots: screenshots,
+                    tone: keyboardView.selectedTone,
+                    summary: nil,
+                    model: UserDefaults.standard.string(forKey: "preferredModel") ?? "claude",
+                    transactionId: storedTxID
+                )
+                await MainActor.run { keyboardView.transition(to: .replies(replies)) }
+            } catch {
+                ScrollCaptureService.shared.stopScrollMode()
                 await MainActor.run {
                     keyboardView.transition(to: .error(error.localizedDescription))
                 }

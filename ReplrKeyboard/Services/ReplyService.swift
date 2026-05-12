@@ -59,6 +59,39 @@ final class ReplyService {
 
         return try JSONDecoder().decode(ReplyResponse.self, from: data).replies
     }
+
+    func generateRepliesFromScroll(
+        screenshots: [UIImage],
+        tone: Tone,
+        summary: String?,
+        model: String,
+        transactionId: String?
+    ) async throws -> [String] {
+        let frames = screenshots.prefix(6).compactMap { $0.pngData()?.base64EncodedString() }
+        guard !frames.isEmpty else { throw ReplyError.encodingFailed }
+
+        let scrollURL = URL(string: Constants.backendURL + "/reply/scroll")!
+        var request = URLRequest(url: scrollURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 45
+
+        let payload: [String: Any?] = [
+            "screenshots": frames,
+            "tone": tone.instruction,
+            "summary": summary,
+            "model": model,
+            "userId": AppGroupService.shared.userID(),
+            "transactionId": transactionId,
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload.compactMapValues { $0 })
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw ReplyError.invalidResponse }
+        if http.statusCode == 429 { throw ReplyError.rateLimitReached }
+        guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
+        return try JSONDecoder().decode(ReplyResponse.self, from: data).replies
+    }
 }
 
 enum ReplyError: LocalizedError {

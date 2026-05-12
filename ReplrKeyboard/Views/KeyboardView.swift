@@ -13,9 +13,11 @@ final class KeyboardView: UIView {
     var onReplySelected: ((String) -> Void)?
     var onSwitchKeyboard: (() -> Void)?
     var onToneChanged: ((Tone) -> Void)?
+    var onScrollCapture: (() -> Void)?
 
     private let toolbar = UIView()
     private let captureButton = UIButton(type: .system)
+    private let scrollButton = UIButton(type: .system)
     private let toneSelector: ToneSelectorView
     private let switchButton = UIButton(type: .system)
     private let contentContainer = UIView()
@@ -45,6 +47,11 @@ final class KeyboardView: UIView {
         switchButton.setImage(UIImage(systemName: "globe"), for: .normal)
         switchButton.addTarget(self, action: #selector(switchTapped), for: .touchUpInside)
 
+        scrollButton.setImage(UIImage(systemName: "scroll"), for: .normal)
+        scrollButton.addTarget(self, action: #selector(scrollCaptureTapped), for: .touchUpInside)
+        scrollButton.translatesAutoresizingMaskIntoConstraints = false
+        toolbar.addSubview(scrollButton)
+
         [captureButton, toneSelector, switchButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             toolbar.addSubview($0)
@@ -65,6 +72,11 @@ final class KeyboardView: UIView {
             captureButton.centerYAnchor.constraint(equalTo: toolbar.centerYAnchor),
             captureButton.widthAnchor.constraint(equalToConstant: 44),
             captureButton.heightAnchor.constraint(equalToConstant: 44),
+
+            scrollButton.leadingAnchor.constraint(equalTo: captureButton.trailingAnchor, constant: 8),
+            scrollButton.centerYAnchor.constraint(equalTo: toolbar.centerYAnchor),
+            scrollButton.widthAnchor.constraint(equalToConstant: 44),
+            scrollButton.heightAnchor.constraint(equalToConstant: 44),
 
             toneSelector.centerXAnchor.constraint(equalTo: toolbar.centerXAnchor),
             toneSelector.centerYAnchor.constraint(equalTo: toolbar.centerYAnchor),
@@ -140,4 +152,5 @@ final class KeyboardView: UIView {
 
     @objc private func captureTapped() { onCapture?() }
     @objc private func switchTapped() { onSwitchKeyboard?() }
+    @objc private func scrollCaptureTapped() { onScrollCapture?() }
 }
