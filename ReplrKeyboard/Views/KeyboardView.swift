@@ -694,39 +694,107 @@ struct ReplyCardButtonStyle: ButtonStyle {
     }
 }
 
+// MARK: - Step Row (B2 idle design)
+
+struct StepRow<Trailing: View>: View {
+    let number: String
+    let isActive: Bool
+    let label: String
+    let trailing: Trailing
+
+    init(number: String, isActive: Bool, label: String, @ViewBuilder trailing: () -> Trailing) {
+        self.number = number
+        self.isActive = isActive
+        self.label = label
+        self.trailing = trailing()
+    }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Text(number)
+                .font(.system(size: 10, weight: .heavy))
+                .foregroundColor(isActive ? KBColors.amber : KBColors.textDim)
+                .frame(minWidth: 10)
+            Text(label)
+                .font(.system(size: 12))
+                .foregroundColor(isActive ? KBColors.amberText : KBColors.textDim)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            trailing
+        }
+        .padding(.horizontal, 11)
+        .padding(.vertical, 9)
+        .background(isActive ? KBColors.surfaceActive : KBColors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+        .overlay(alignment: .leading) {
+            Rectangle()
+                .fill(isActive ? KBColors.amber : KBColors.borderDim)
+                .frame(width: 2)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+    }
+}
+
 // MARK: - Static State Views
 
 struct IdleStateView: View {
     @ObservedObject var model: KeyboardModel
+
+    private var contextIsSet: Bool { !model.pendingContext.isEmpty }
+
     var body: some View {
-        VStack(spacing: 12) {
-            VStack(spacing: 6) {
-                Text("✦").font(.system(size: 18)).foregroundColor(Color(UIColor.quaternaryLabel))
-                Text("Triple-tap to generate replies")
-                    .font(.system(size: 13)).foregroundColor(Color(UIColor.tertiaryLabel))
+        VStack(spacing: 5) {
+            StepRow(number: "1", isActive: true, label: "Context") {
+                if contextIsSet {
+                    contextChip
+                } else {
+                    addHintButton
+                }
             }
-            if model.pendingContext.isEmpty {
-                Button { model.enterContextCapture() } label: {
-                    Text("+ Add context").font(.system(size: 12)).foregroundColor(Color(UIColor.tertiaryLabel))
-                }
-                .buttonStyle(.plain).transition(.opacity)
-            } else {
-                HStack(spacing: 4) {
-                    Text(model.pendingContext)
-                        .font(.system(size: 12)).foregroundColor(Color(UIColor.secondaryLabel))
-                        .lineLimit(1).truncationMode(.tail)
-                    Button { model.clearContext() } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 12)).foregroundColor(Color(UIColor.tertiaryLabel))
-                    }
-                    .buttonStyle(.plain)
-                }
-                .padding(.horizontal, 10).padding(.vertical, 5)
-                .background(Color(UIColor.tertiarySystemFill)).clipShape(Capsule())
-                .transition(.opacity.combined(with: .scale(scale: 0.9)))
+            .contentShape(Rectangle())
+            .onTapGesture { model.enterContextCapture() }
+
+            StepRow(number: "2", isActive: contextIsSet, label: "Pick a tone below") {
+                EmptyView()
+            }
+
+            StepRow(number: "3", isActive: false, label: "Triple-tap back of phone") {
+                EmptyView()
             }
         }
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: model.pendingContext.isEmpty)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .animation(.easeInOut(duration: 0.18), value: contextIsSet)
+    }
+
+    private var contextChip: some View {
+        HStack(spacing: 4) {
+            Text(model.pendingContext)
+                .font(.system(size: 11))
+                .foregroundColor(KBColors.amberText)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(maxWidth: 120, alignment: .leading)
+            Button {
+                model.clearContext()
+            } label: {
+                Text("✕")
+                    .font(.system(size: 9))
+                    .foregroundColor(KBColors.amberSubtle)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.leading, 7).padding(.trailing, 5).padding(.vertical, 2)
+        .background(KBColors.amberBg)
+        .overlay(
+            Capsule().stroke(KBColors.amberBgBorder, lineWidth: 1)
+        )
+        .clipShape(Capsule())
+    }
+
+    private var addHintButton: some View {
+        Text("+ Add hint…")
+            .font(.system(size: 11))
+            .foregroundColor(KBColors.amberSubtle)
     }
 }
 
