@@ -26,6 +26,7 @@ final class AppGroupService {
         guard let data = try? JSONEncoder().encode(replies) else { return }
         defaults.set(data, forKey: Constants.pendingRepliesKey)
         defaults.set(true, forKey: Constants.hasNewRepliesKey)
+        saveCachedReplies(replies)
         defaults.synchronize()
         NSLog("[Replr][AppGroup] saveReplies: wrote to UserDefaults + synchronize()")
     }
@@ -56,6 +57,32 @@ final class AppGroupService {
         defaults.removeObject(forKey: Constants.pendingErrorKey)
         defaults.synchronize()
         return msg
+    }
+
+    // MARK: - Reply persistence (restore on keyboard reopen)
+
+    var persistReplies: Bool {
+        get { defaults.object(forKey: Constants.persistRepliesKey) as? Bool ?? true }
+        set { defaults.set(newValue, forKey: Constants.persistRepliesKey); defaults.synchronize() }
+    }
+
+    func saveCachedReplies(_ replies: [String]) {
+        guard let data = try? JSONEncoder().encode(replies) else { return }
+        defaults.set(data, forKey: Constants.cachedRepliesKey)
+        defaults.synchronize()
+    }
+
+    func readCachedReplies() -> [String]? {
+        defaults.synchronize()
+        guard let data = defaults.data(forKey: Constants.cachedRepliesKey),
+              let replies = try? JSONDecoder().decode([String].self, from: data),
+              !replies.isEmpty else { return nil }
+        return replies
+    }
+
+    func clearCachedReplies() {
+        defaults.removeObject(forKey: Constants.cachedRepliesKey)
+        defaults.synchronize()
     }
 
     // MARK: - Selected tone (keyboard writes, intent reads)

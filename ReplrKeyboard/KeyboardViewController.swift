@@ -56,6 +56,11 @@ final class KeyboardViewController: UIInputViewController {
         super.viewWillAppear(animated)
         model.needsGlobeKey = needsInputModeSwitchKey
         model.pendingContext = AppGroupService.shared.readPendingContext() ?? ""
+        if AppGroupService.shared.persistReplies,
+           let cached = AppGroupService.shared.readCachedReplies() {
+            model.currentReplies = cached
+            model.state = .replies(cached)
+        }
         startCapturePoll()
     }
 

@@ -12,6 +12,8 @@ enum Constants {
     static let userIDKey              = "user_id"
     static let transactionIDKey       = "transaction_id"
     static let pendingContextKey      = "pending_context"
+    static let persistRepliesKey      = "persist_replies"
+    static let cachedRepliesKey       = "cached_replies"
 
     // File-based keys (broadcast/scroll capture only)
     static let screenshotFilename     = "screenshot.png"

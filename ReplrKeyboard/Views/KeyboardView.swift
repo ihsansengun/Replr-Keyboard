@@ -106,7 +106,10 @@ final class KeyboardModel: ObservableObject {
 
     func selectTone(_ tone: Tone) { selectedTone = tone; onToneChanged?(tone) }
     func selectReply(_ text: String) { onReplySelected?(text) }
-    func regenerate() { withAnimation(.easeInOut(duration: 0.2)) { state = .idle } }
+    func regenerate() {
+        AppGroupService.shared.clearCachedReplies()
+        withAnimation(.easeInOut(duration: 0.2)) { state = .idle }
+    }
 }
 
 // MARK: - Root View
