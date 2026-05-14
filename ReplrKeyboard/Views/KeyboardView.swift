@@ -891,12 +891,16 @@ struct SkeletonLine: View {
 
 struct ErrorStateView: View {
     let message: String
+
     var body: some View {
         VStack(spacing: 8) {
-            Image(systemName: "exclamationmark.circle")
-                .font(.system(size: 18, weight: .light)).foregroundColor(Color(UIColor.quaternaryLabel))
-            Text(message).font(.system(size: 12)).foregroundColor(Color(UIColor.secondaryLabel))
-                .multilineTextAlignment(.center).padding(.horizontal, 24)
+            Text(message)
+                .font(.system(size: 12))
+                .foregroundColor(KBColors.textDim)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
     }
 }
