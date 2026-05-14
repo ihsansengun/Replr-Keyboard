@@ -254,20 +254,20 @@ struct KBColors {
     }
 
     // Design system tokens — used by state views, not key components
-    static let kbBackground   = Color(red: 0.067, green: 0.067, blue: 0.067) // #111
-    static let kbDeep         = Color(red: 0.051, green: 0.051, blue: 0.051) // #0D0D0D
-    static let surface        = Color(red: 0.086, green: 0.086, blue: 0.086) // #161616
-    static let surfaceActive  = Color(red: 0.102, green: 0.086, blue: 0.000) // #1A1600
-    static let borderHair     = Color(red: 0.118, green: 0.118, blue: 0.118) // #1E1E1E
-    static let borderDim      = Color(red: 0.165, green: 0.165, blue: 0.165) // #2A2A2A
-    static let amber          = Color(red: 0.961, green: 0.651, blue: 0.137) // #F5A623
-    static let amberText      = Color(red: 0.784, green: 0.627, blue: 0.376) // #C8A060
-    static let amberSubtle    = Color(red: 0.353, green: 0.282, blue: 0.125) // #5A4820
-    static let amberBg        = Color(red: 0.165, green: 0.125, blue: 0.000) // #2A2000
-    static let amberBgBorder  = Color(red: 0.227, green: 0.188, blue: 0.063) // #3A3010
-    static let textPrimary    = Color(red: 0.878, green: 0.878, blue: 0.878) // #E0E0E0
-    static let textDim        = Color(red: 0.333, green: 0.333, blue: 0.333) // #555555
-    static let textGhost      = Color(red: 0.165, green: 0.165, blue: 0.165) // #2A2A2A
+    static let background    = Color(red: 0.067, green: 0.067, blue: 0.067) // #111111
+    static let deep          = Color(red: 0.051, green: 0.051, blue: 0.051) // #0D0D0D
+    static let surface       = Color(red: 0.086, green: 0.086, blue: 0.086) // #161616
+    static let surfaceActive = Color(red: 0.102, green: 0.086, blue: 0.000) // #1A1600
+    static let borderHair    = Color(red: 0.118, green: 0.118, blue: 0.118) // #1E1E1E
+    static let borderDim     = Color(red: 0.165, green: 0.165, blue: 0.165) // #2A2A2A
+    static let amber         = Color(red: 0.961, green: 0.651, blue: 0.137) // #F5A623
+    static let amberText     = Color(red: 0.784, green: 0.627, blue: 0.376) // #C8A060
+    static let amberSubtle   = Color(red: 0.353, green: 0.282, blue: 0.125) // #5A4820
+    static let amberBg       = Color(red: 0.165, green: 0.125, blue: 0.000) // #2A2000
+    static let amberBgBorder = Color(red: 0.227, green: 0.188, blue: 0.063) // #3A3010
+    static let textPrimary   = Color(red: 0.878, green: 0.878, blue: 0.878) // #E0E0E0
+    static let textDim       = Color(red: 0.333, green: 0.333, blue: 0.333) // #555555
+    static let textGhost     = borderDim
 }
 
 // MARK: - Keyboard Input Area
