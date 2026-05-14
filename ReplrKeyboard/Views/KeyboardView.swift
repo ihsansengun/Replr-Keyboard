@@ -218,7 +218,7 @@ struct TonePill: View {
         Button(action: action) {
             Text(name)
                 .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
-                .foregroundColor(isSelected ? Color(red: 0.067, green: 0.067, blue: 0.067) : KBColors.textDim)
+                .foregroundColor(isSelected ? KBColors.background : KBColors.textDim)
                 .padding(.horizontal, 9).padding(.vertical, 3)
                 .background(isSelected ? KBColors.amber : Color.clear)
                 .clipShape(Capsule())
