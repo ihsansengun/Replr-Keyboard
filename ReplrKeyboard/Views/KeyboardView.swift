@@ -751,7 +751,7 @@ struct IdleStateView: View {
                 }
             }
             .contentShape(Rectangle())
-            .onTapGesture { model.enterContextCapture() }
+            .simultaneousGesture(TapGesture().onEnded { _ in model.enterContextCapture() })
 
             StepRow(number: "2", isActive: contextIsSet, label: "Pick a tone below") {
                 EmptyView()
@@ -779,7 +779,7 @@ struct IdleStateView: View {
             } label: {
                 Text("✕")
                     .font(.system(size: 9))
-                    .foregroundColor(KBColors.amberSubtle)
+                    .foregroundColor(KBColors.amberText)
             }
             .buttonStyle(.plain)
         }
