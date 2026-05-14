@@ -799,11 +799,54 @@ struct IdleStateView: View {
 }
 
 struct LoadingStateView: View {
+    @State private var pulse = false
+
     var body: some View {
-        VStack(spacing: 10) {
-            ProgressView().tint(Color(UIColor.tertiaryLabel)).scaleEffect(0.85)
-            Text("Generating…").font(.system(size: 13)).foregroundColor(Color(UIColor.tertiaryLabel))
+        VStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 8) {
+                SkeletonLine(fraction: 1.0, pulse: pulse)
+                SkeletonLine(fraction: 0.75, pulse: pulse)
+                SkeletonLine(fraction: 0.5, pulse: pulse)
+                Spacer().frame(height: 4)
+                HStack {
+                    SkeletonLine(fraction: 0.35, pulse: pulse)
+                    Spacer()
+                    SkeletonLine(fraction: 0.18, pulse: pulse).frame(maxWidth: 50)
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.top, 14)
+            .padding(.bottom, 14)
+            .background(KBColors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            HStack(spacing: 5) {
+                Circle().fill(KBColors.amber).frame(width: 5, height: 5)
+                Circle().fill(KBColors.surface).frame(width: 5, height: 5)
+                Circle().fill(KBColors.surface).frame(width: 5, height: 5)
+            }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                pulse = true
+            }
+        }
+    }
+}
+
+struct SkeletonLine: View {
+    let fraction: CGFloat
+    let pulse: Bool
+
+    var body: some View {
+        GeometryReader { geo in
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                .fill(Color(white: pulse ? 0.18 : 0.13))
+                .frame(width: geo.size.width * fraction, height: 10)
+        }
+        .frame(height: 10)
     }
 }
 
