@@ -632,6 +632,7 @@ struct ReplyCarousel: View {
                         .fill(KBColors.surface)
                         .opacity(0.6)
                         .padding(.leading, 10)
+                        .padding(.trailing, 8)
                 }
 
                 TabView(selection: $currentPage) {
@@ -666,7 +667,7 @@ struct PageDots: View {
         HStack(spacing: 5) {
             ForEach(0..<count, id: \.self) { i in
                 Circle()
-                    .fill(i == current ? KBColors.amber : KBColors.borderDim)
+                    .fill(i == current ? KBColors.amber : KBColors.textDim)
                     .frame(width: 5, height: 5)
                     .animation(.easeInOut(duration: 0.2), value: current)
             }
