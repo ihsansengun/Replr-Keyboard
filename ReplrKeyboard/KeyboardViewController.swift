@@ -11,7 +11,7 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        heightConstraint = view.heightAnchor.constraint(equalToConstant: 220)
+        heightConstraint = view.heightAnchor.constraint(equalToConstant: 256)
         heightConstraint.priority = UILayoutPriority(999)
         heightConstraint.isActive = true
 
@@ -20,6 +20,10 @@ final class KeyboardViewController: UIInputViewController {
         model.onReplySelected = { [weak self] reply in self?.insert(reply) }
         model.onToneChanged = { tone in AppGroupService.shared.saveSelectedTone(tone) }
         model.onSwitchKeyboard = { [weak self] in self?.advanceToNextInputMode() }
+        model.onTypeChar   = { [weak self] c in self?.textDocumentProxy.insertText(c) }
+        model.onDeleteChar = { [weak self] in self?.textDocumentProxy.deleteBackward() }
+        model.onSpaceChar  = { [weak self] in self?.textDocumentProxy.insertText(" ") }
+        model.onReturnChar = { [weak self] in self?.textDocumentProxy.insertText("\n") }
 
         let hostingVC = UIHostingController(rootView: KeyboardRootView(model: model))
         hostingVC.view.backgroundColor = .clear
@@ -41,9 +45,10 @@ final class KeyboardViewController: UIInputViewController {
                 guard let self else { return }
                 let newHeight: CGFloat
                 switch state {
-                case .editReply: newHeight = 248
-                case .loading, .replies:          newHeight = 320
-                default:                          newHeight = 220
+                case .idle:              newHeight = 256
+                case .editReply:         newHeight = 256
+                case .loading, .replies: newHeight = 320
+                default:                 newHeight = 220  // error
                 }
                 if self.heightConstraint.constant != newHeight {
                     self.heightConstraint.constant = newHeight

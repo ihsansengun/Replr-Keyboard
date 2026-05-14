@@ -31,6 +31,10 @@ final class KeyboardModel: ObservableObject {
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
     var onSwitchKeyboard: (() -> Void)?
+    var onTypeChar: ((String) -> Void)?
+    var onDeleteChar: (() -> Void)?
+    var onSpaceChar: (() -> Void)?
+    var onReturnChar: (() -> Void)?
 
     init(initialTone: Tone) {
         self.selectedTone = initialTone
@@ -40,19 +44,24 @@ final class KeyboardModel: ObservableObject {
     // MARK: - Input
 
     func type(_ char: String) {
-        inputText += isShifted ? char.uppercased() : char
+        let out = isShifted ? char.uppercased() : char
+        if case .editReply = state { inputText += out } else { onTypeChar?(out) }
         if isShifted, kbMode == .alpha { isShifted = false }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
     func backspace() {
-        guard !inputText.isEmpty else { return }
-        inputText.removeLast()
+        if case .editReply = state {
+            guard !inputText.isEmpty else { return }
+            inputText.removeLast()
+        } else {
+            onDeleteChar?()
+        }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
     func space() {
-        inputText += " "
+        if case .editReply = state { inputText += " " } else { onSpaceChar?() }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
@@ -66,7 +75,8 @@ final class KeyboardModel: ObservableObject {
         case .editReply:
             if !inputText.isEmpty { onReplySelected?(inputText) }
             withAnimation(.easeInOut(duration: 0.18)) { state = .idle }
-        default: break
+        default:
+            onReturnChar?()
         }
     }
 
@@ -98,16 +108,18 @@ final class KeyboardModel: ObservableObject {
 struct KeyboardRootView: View {
     @ObservedObject var model: KeyboardModel
 
-    private var isKBActive: Bool {
-        if case .editReply = model.state { return true }
-        return false
+    private var showToneBar: Bool {
+        switch model.state {
+        case .loading, .replies, .error: return true
+        default: return false
+        }
     }
 
     var body: some View {
         VStack(spacing: 0) {
             Divider().opacity(0.4)
             contentArea.frame(maxWidth: .infinity, maxHeight: .infinity)
-            if !isKBActive { toneBar }
+            if showToneBar { toneBar }
         }
         .background(KBColors.background)
         .ignoresSafeArea()
@@ -118,7 +130,7 @@ struct KeyboardRootView: View {
         ZStack {
             switch model.state {
             case .idle:
-                IdleStateView(model: model).transition(.opacity)
+                IdleWithKeyboard(model: model).transition(.opacity)
             case .loading:
                 LoadingStateView().transition(.opacity)
             case .replies(let replies):
@@ -748,6 +760,77 @@ struct StepRow<Trailing: View>: View {
                 .frame(width: 2)
         }
         .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+    }
+}
+
+// MARK: - Idle + Always-On Keyboard
+
+struct ReplrStrip: View {
+    @ObservedObject var model: KeyboardModel
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Text(model.pendingContext.isEmpty ? "Context…" : model.pendingContext)
+                .font(.system(size: 11))
+                .foregroundColor(model.pendingContext.isEmpty ? KBColors.textGhost : KBColors.amberText)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .padding(.horizontal, 10)
+                .frame(width: 110, alignment: .leading)
+
+            KBColors.borderDim.frame(width: 0.5, height: 16)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 2) {
+                    ForEach(model.tones) { tone in
+                        TonePill(name: tone.name,
+                                 isSelected: tone.name == model.selectedTone.name,
+                                 action: { model.selectTone(tone) })
+                    }
+                }
+                .padding(.horizontal, 8)
+            }
+
+            if model.needsGlobeKey {
+                KBColors.borderDim.frame(width: 0.5, height: 16)
+                Button { model.onSwitchKeyboard?() } label: {
+                    Image(systemName: "globe")
+                        .font(.system(size: 14))
+                        .foregroundColor(KBColors.textDim)
+                        .frame(width: 36, height: 36)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .frame(height: 36)
+        .background(
+            KBColors.deep
+                .overlay(alignment: .bottom) { KBColors.borderHair.frame(height: 1) }
+        )
+    }
+}
+
+struct IdleWithKeyboard: View {
+    @ObservedObject var model: KeyboardModel
+    @Environment(\.colorScheme) private var cs
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ReplrStrip(model: model)
+            ReplrKeyboard(
+                isShifted: model.isShifted,
+                kbMode: model.kbMode,
+                doneLabel: "return",
+                onChar: { model.type($0) },
+                onSpace: { model.space() },
+                onBackspace: { model.backspace() },
+                onShift: { model.toggleShift() },
+                onMode: { model.toggleMode() },
+                onDone: { model.confirmInput() }
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(KBColors.from(cs).bg)
+        }
     }
 }
 
