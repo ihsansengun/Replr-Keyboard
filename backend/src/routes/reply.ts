@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { generateReplies, generateRepliesFromMultiple } from '../services/llm'
+import { generateReplies, generateRepliesFromEmail, generateRepliesFromMultiple } from '../services/llm'
 import { checkRateLimit } from '../services/rateLimit'
 import type { Env, ReplyRequest, Model } from '../types'
 
@@ -12,10 +12,10 @@ replyRoute.post('/', async (c) => {
   } catch {
     return c.json({ error: 'Invalid JSON body' }, 400)
   }
-  const { screenshotBase64, tone, summary, model, userId, transactionId } = body
+  const { screenshotBase64, emailText, tone, summary, model, userId, transactionId } = body
 
-  if (!screenshotBase64 || !tone || !model || !userId) {
-    return c.json({ error: 'Missing required fields: screenshotBase64, tone, model, userId' }, 400)
+  if ((!screenshotBase64 && !emailText) || !tone || !model || !userId) {
+    return c.json({ error: 'Missing required fields: screenshotBase64 or emailText, tone, model, userId' }, 400)
   }
 
   if (model !== 'claude' && model !== 'gpt4o') {
@@ -32,11 +32,17 @@ replyRoute.post('/', async (c) => {
   }
 
   try {
-    const replies = await generateReplies({
-      screenshotBase64, tone, summary, model, tier,
-      anthropicKey: c.env.ANTHROPIC_API_KEY,
-      openaiKey: c.env.OPENAI_API_KEY,
-    })
+    const replies = emailText
+      ? await generateRepliesFromEmail({
+          emailText, tone, summary, model, tier,
+          anthropicKey: c.env.ANTHROPIC_API_KEY,
+          openaiKey: c.env.OPENAI_API_KEY,
+        })
+      : await generateReplies({
+          screenshotBase64: screenshotBase64!, tone, summary, model, tier,
+          anthropicKey: c.env.ANTHROPIC_API_KEY,
+          openaiKey: c.env.OPENAI_API_KEY,
+        })
     if (replies.length === 0) {
       return c.json({ error: 'Could not parse replies. Please try again.' }, 502)
     }

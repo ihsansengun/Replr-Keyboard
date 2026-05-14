@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AdAttributionKitConfigurations</key>
+	<dict>
+		<key>AttributionCooldown</key>
+		<dict>
+			<key>install-cooldown-hours</key>
+			<integer>0</integer>
+			<key>re-engagement-cooldown-hours</key>
+			<integer>0</integer>
+		</dict>
+		<key>AttributionWindows</key>
+		<dict>
+			<key>global</key>
+			<dict>
+				<key>install</key>
+				<dict>
+					<key>click</key>
+					<integer>0</integer>
+					<key>view</key>
+					<integer>0</integer>
+				</dict>
+			</dict>
+		</dict>
+	</dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.replr.capture</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>replr</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

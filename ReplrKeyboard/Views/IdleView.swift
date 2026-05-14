@@ -17,7 +17,7 @@ final class IdleView: UIView {
         icon.contentMode = .scaleAspectFit
 
         let label = UILabel()
-        label.text = "Capture a screenshot\nto generate a reply"
+        label.text = "Triple-tap the back of your phone\nwhile in your chat to get AI replies"
         label.textAlignment = .center
         label.numberOfLines = 2
         label.font = .systemFont(ofSize: 14, weight: .regular)

@@ -8,7 +8,7 @@ final class CaptureService {
         AppGroupService.shared.isCaptureReady = false
     }
 
-    func waitForCapture(timeout: TimeInterval = 10) async throws -> UIImage {
+    func waitForCapture(timeout: TimeInterval = 25) async throws -> UIImage {
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
             if AppGroupService.shared.isCaptureReady {

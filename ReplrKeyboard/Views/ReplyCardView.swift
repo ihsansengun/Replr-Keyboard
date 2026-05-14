@@ -2,7 +2,8 @@ import UIKit
 
 final class ReplyCardView: UIView {
     var onTap: ((String) -> Void)?
-    private let label = UILabel()
+    private let textLabel = UILabel()
+    private let sendIcon = UIImageView()
     private let reply: String
 
     init(reply: String) {
@@ -13,27 +14,54 @@ final class ReplyCardView: UIView {
     required init?(coder: NSCoder) { fatalError() }
 
     private func setup() {
-        backgroundColor = .secondarySystemBackground
-        layer.cornerRadius = 10
-        layer.borderWidth = 0.5
-        layer.borderColor = UIColor.separator.cgColor
+        backgroundColor = .secondarySystemGroupedBackground
+        layer.cornerRadius = 18
+        layer.cornerCurve = .continuous
 
-        label.text = reply
-        label.font = .systemFont(ofSize: 15)
-        label.numberOfLines = 3
-        label.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(label)
+        textLabel.text = reply
+        textLabel.font = .systemFont(ofSize: 15)
+        textLabel.numberOfLines = 0
+        textLabel.textColor = .label
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let cfg = UIImage.SymbolConfiguration(pointSize: 20, weight: .light)
+        sendIcon.image = UIImage(systemName: "arrow.up.circle.fill", withConfiguration: cfg)
+        sendIcon.tintColor = .tertiaryLabel
+        sendIcon.contentMode = .scaleAspectFit
+        sendIcon.translatesAutoresizingMaskIntoConstraints = false
+
+        addSubview(textLabel)
+        addSubview(sendIcon)
 
         NSLayoutConstraint.activate([
-            label.topAnchor.constraint(equalTo: topAnchor, constant: 10),
-            label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
-            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
+            textLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            textLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            textLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            textLabel.bottomAnchor.constraint(lessThanOrEqualTo: sendIcon.topAnchor, constant: -8),
+
+            sendIcon.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
+            sendIcon.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -14),
+            sendIcon.widthAnchor.constraint(equalToConstant: 22),
+            sendIcon.heightAnchor.constraint(equalToConstant: 22),
         ])
 
-        let tap = UITapGestureRecognizer(target: self, action: #selector(tapped))
-        addGestureRecognizer(tap)
         isUserInteractionEnabled = true
+        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapped)))
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        UIView.animate(withDuration: 0.08) { self.alpha = 0.6 }
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        UIView.animate(withDuration: 0.2) { self.alpha = 1 }
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        UIView.animate(withDuration: 0.1) { self.alpha = 1 }
     }
 
     @objc private func tapped() { onTap?(reply) }

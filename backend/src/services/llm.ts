@@ -13,10 +13,13 @@ Rules:
 
 const TONE_PROMPTS: Record<string, string> = {
   casual:       'Relaxed, warm, natural. Contractions always. Match their energy exactly.',
+  friendly:     'Warm, positive, and genuine. Light energy without being over-the-top.',
   dating:       'Confident and genuine. Light wit when it fits. Never desperate, never try-hard.',
   professional: 'Clear, competent, respectful. Formal but not stiff.',
-  email:        'Structured reply. Appropriate formality read from the screenshot.',
+  formal:       'Polished and structured. Appropriate for official or high-stakes messages.',
+  email:        'Structured email reply. Match the formality of the email. Clear, purposeful, no fluff.',
   bold:         'Short, direct, punchy. No filler. Gets to the point.',
+  witty:        'Smart and playful. A touch of dry humor. Never forced.',
 }
 
 const DECISIONS = `Before generating replies, assess:
@@ -28,6 +31,43 @@ const DECISIONS = `Before generating replies, assess:
 6. For dating contexts: where are they in the relationship?`
 
 const PREMIUM_REPLY_COUNT = 5
+
+async function callLlmText(params: LlmTextParams): Promise<string[]> {
+  const { system, user, model, anthropicKey, openaiKey } = params
+
+  if (model === 'claude') {
+    const client = new Anthropic({ apiKey: anthropicKey })
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      system,
+      messages: [{ role: 'user', content: user }],
+    })
+    const textBlock = response.content.find(b => b.type === 'text')
+    return parseReplies(textBlock && 'text' in textBlock ? textBlock.text : '')
+  }
+
+  const client = new OpenAI({ apiKey: openaiKey })
+  const response = await client.chat.completions.create({
+    model: 'gpt-4o',
+    max_tokens: 1024,
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ],
+  })
+  return parseReplies(response.choices[0].message.content ?? '')
+}
+
+export interface GenerateEmailParams {
+  emailText: string
+  tone: string
+  summary?: string
+  model: Model
+  tier: Tier
+  anthropicKey: string
+  openaiKey: string
+}
 
 export interface GenerateParams {
   screenshotBase64: string
@@ -52,6 +92,14 @@ interface LlmCallParams {
   system: string
   user: string
   images: string[]  // base64 PNGs
+  model: Model
+  anthropicKey: string
+  openaiKey: string
+}
+
+interface LlmTextParams {
+  system: string
+  user: string
   model: Model
   anthropicKey: string
   openaiKey: string
@@ -140,6 +188,23 @@ Reply format — output only this:
 ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
 
   return callLlm({ system, user, images: screenshots, model, anthropicKey, openaiKey })
+}
+
+export async function generateRepliesFromEmail(params: GenerateEmailParams): Promise<string[]> {
+  const { emailText, tone, summary, model, tier, anthropicKey, openaiKey } = params
+  const count = tier === 'premium' ? PREMIUM_REPLY_COUNT : 3
+  const toneInstruction = TONE_PROMPTS[tone.toLowerCase()] ?? tone
+
+  const system = [
+    IDENTITY,
+    `ROLE: ${toneInstruction}`,
+    `Output exactly ${count} numbered reply options, nothing else.`,
+  ].join('\n\n')
+
+  const contextBlock = summary ? `CONVERSATION BACKGROUND:\n${summary}\n\n` : ''
+  const user = `${contextBlock}EMAIL TO REPLY TO:\n${emailText}\n\n${DECISIONS}\n\nReply format — output only this:\n${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
+
+  return callLlmText({ system, user, model, anthropicKey, openaiKey })
 }
 
 export function parseReplies(text: string): string[] {

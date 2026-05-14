@@ -1,5 +1,6 @@
 import SwiftUI
 import CloudKit
+import Combine
 
 final class SummariesViewModel: ObservableObject {
     @Published var summaries: [ConversationSummary] = []

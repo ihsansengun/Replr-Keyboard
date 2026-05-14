@@ -1,5 +1,6 @@
 import StoreKit
 import Foundation
+import Combine
 
 @MainActor
 final class SubscriptionManager: ObservableObject {
@@ -9,8 +10,8 @@ final class SubscriptionManager: ObservableObject {
     @Published var products: [Product] = []
 
     private let productIDs = [
-        "com.yourname.replr.premium.monthly",
-        "com.yourname.replr.premium.yearly",
+        "Theory-of-Web.Replr.premium.monthly",
+        "Theory-of-Web.Replr.premium.yearly",
     ]
 
     func load() async {

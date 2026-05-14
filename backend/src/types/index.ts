@@ -9,7 +9,8 @@ export interface Env {
 }
 
 export interface ReplyRequest {
-  screenshotBase64: string
+  screenshotBase64?: string
+  emailText?: string
   tone: string
   summary?: string
   model: Model
