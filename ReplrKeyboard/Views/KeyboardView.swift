@@ -6,7 +6,6 @@ import UIKit
 
 enum KeyboardState: Equatable {
     case idle
-    case contextCapture
     case loading
     case replies([String])
     case editReply(String)
@@ -36,7 +35,6 @@ final class KeyboardModel: ObservableObject {
     init(initialTone: Tone) {
         self.selectedTone = initialTone
         self.tones = AppGroupService.shared.readTones()
-        self.pendingContext = AppGroupService.shared.readPendingContext() ?? ""
     }
 
     // MARK: - Input
@@ -65,13 +63,6 @@ final class KeyboardModel: ObservableObject {
     func confirmInput() {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         switch state {
-        case .contextCapture:
-            let trimmed = inputText.trimmingCharacters(in: .whitespaces)
-            if !trimmed.isEmpty {
-                pendingContext = trimmed
-                AppGroupService.shared.savePendingContext(trimmed)
-            }
-            withAnimation(.easeInOut(duration: 0.18)) { state = .idle }
         case .editReply:
             if !inputText.isEmpty { onReplySelected?(inputText) }
             withAnimation(.easeInOut(duration: 0.18)) { state = .idle }
@@ -89,19 +80,9 @@ final class KeyboardModel: ObservableObject {
         }
     }
 
-    func enterContextCapture() {
-        inputText = ""; isShifted = true; kbMode = .alpha
-        withAnimation(.easeInOut(duration: 0.18)) { state = .contextCapture }
-    }
-
     func enterEditReply(_ text: String) {
         inputText = text; isShifted = false; kbMode = .alpha
         withAnimation(.easeInOut(duration: 0.18)) { state = .editReply(text) }
-    }
-
-    func clearContext() {
-        pendingContext = ""
-        AppGroupService.shared.savePendingContext("")
     }
 
     func selectTone(_ tone: Tone) { selectedTone = tone; onToneChanged?(tone) }
@@ -118,10 +99,8 @@ struct KeyboardRootView: View {
     @ObservedObject var model: KeyboardModel
 
     private var isKBActive: Bool {
-        switch model.state {
-        case .contextCapture, .editReply: return true
-        default: return false
-        }
+        if case .editReply = model.state { return true }
+        return false
     }
 
     var body: some View {
@@ -140,8 +119,6 @@ struct KeyboardRootView: View {
             switch model.state {
             case .idle:
                 IdleStateView(model: model).transition(.opacity)
-            case .contextCapture:
-                KBInputArea(model: model, mode: .context).transition(.opacity)
             case .loading:
                 LoadingStateView().transition(.opacity)
             case .replies(let replies):
@@ -174,7 +151,7 @@ struct KeyboardRootView: View {
                 HStack(spacing: 2) {
                     ForEach(model.tones) { tone in
                         TonePill(name: tone.name,
-                                 isSelected: tone.id == model.selectedTone.id,
+                                 isSelected: tone.name == model.selectedTone.name,
                                  action: { model.selectTone(tone) })
                     }
                 }
@@ -207,7 +184,7 @@ struct KeyboardRootView: View {
     private var stateTag: Int {
         switch model.state {
         case .idle: return 0; case .loading: return 1; case .replies: return 2
-        case .error: return 3; case .contextCapture: return 4; case .editReply: return 5
+        case .error: return 3; case .editReply: return 4
         }
     }
 }
@@ -779,19 +756,22 @@ struct StepRow<Trailing: View>: View {
 struct IdleStateView: View {
     @ObservedObject var model: KeyboardModel
 
-    private var contextIsSet: Bool { !model.pendingContext.isEmpty }
-
     var body: some View {
         VStack(spacing: 5) {
             StepRow(number: "1", isActive: true, label: "Context") {
-                if contextIsSet {
-                    contextChip
+                if model.pendingContext.isEmpty {
+                    Text("Start typing in chat…")
+                        .font(.system(size: 11))
+                        .foregroundColor(KBColors.amberSubtle)
                 } else {
-                    addHintButton
+                    Text(model.pendingContext)
+                        .font(.system(size: 11))
+                        .foregroundColor(KBColors.amberText)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .frame(maxWidth: 140, alignment: .trailing)
                 }
             }
-            .contentShape(Rectangle())
-            .simultaneousGesture(TapGesture().onEnded { _ in model.enterContextCapture() })
 
             StepRow(number: "2", isActive: true, label: "Pick a tone below") {
                 EmptyView()
@@ -808,38 +788,6 @@ struct IdleStateView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .animation(.easeInOut(duration: 0.18), value: contextIsSet)
-    }
-
-    private var contextChip: some View {
-        HStack(spacing: 4) {
-            Text(model.pendingContext)
-                .font(.system(size: 11))
-                .foregroundColor(KBColors.amberText)
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .frame(maxWidth: 120, alignment: .leading)
-            Button {
-                model.clearContext()
-            } label: {
-                Text("✕")
-                    .font(.system(size: 9))
-                    .foregroundColor(KBColors.amberText)
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.leading, 7).padding(.trailing, 5).padding(.vertical, 2)
-        .background(KBColors.amberBg)
-        .overlay(
-            Capsule().stroke(KBColors.amberBgBorder, lineWidth: 1)
-        )
-        .clipShape(Capsule())
-    }
-
-    private var addHintButton: some View {
-        Text("+ Add hint…")
-            .font(.system(size: 11))
-            .foregroundColor(KBColors.amberSubtle)
     }
 }
 

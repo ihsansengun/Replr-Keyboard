@@ -41,7 +41,7 @@ final class KeyboardViewController: UIInputViewController {
                 guard let self else { return }
                 let newHeight: CGFloat
                 switch state {
-                case .contextCapture, .editReply: newHeight = 248
+                case .editReply: newHeight = 248
                 case .loading, .replies:          newHeight = 320
                 default:                          newHeight = 220
                 }
@@ -55,13 +55,21 @@ final class KeyboardViewController: UIInputViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         model.needsGlobeKey = needsInputModeSwitchKey
-        model.pendingContext = AppGroupService.shared.readPendingContext() ?? ""
+        let draft = textDocumentProxy.documentContextBeforeInput ?? ""
+        model.pendingContext = draft
+        AppGroupService.shared.savePendingContext(draft)
         if AppGroupService.shared.persistReplies,
            let cached = AppGroupService.shared.readCachedReplies() {
             model.currentReplies = cached
             model.state = .replies(cached)
         }
         startCapturePoll()
+    }
+
+    override func textDidChange(_ textInput: UITextInput?) {
+        let draft = textDocumentProxy.documentContextBeforeInput ?? ""
+        model.pendingContext = draft
+        AppGroupService.shared.savePendingContext(draft)
     }
 
     override func viewWillLayoutSubviews() {
