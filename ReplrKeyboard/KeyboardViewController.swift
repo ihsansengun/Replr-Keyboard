@@ -11,7 +11,7 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        heightConstraint = view.heightAnchor.constraint(equalToConstant: 260)
+        heightConstraint = view.heightAnchor.constraint(equalToConstant: 250)
         heightConstraint.priority = UILayoutPriority(999)
         heightConstraint.isActive = true
 
@@ -39,15 +39,15 @@ final class KeyboardViewController: UIInputViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
                 guard let self else { return }
-                let needsKeyboard: Bool
+                let newHeight: CGFloat
                 switch state {
-                case .contextCapture, .editReply: needsKeyboard = true
-                default: needsKeyboard = false
+                case .contextCapture, .editReply: newHeight = 248
+                case .loading, .replies:          newHeight = 320
+                default:                          newHeight = 250
                 }
-                let newHeight: CGFloat = needsKeyboard ? 248 : 260
                 if self.heightConstraint.constant != newHeight {
                     self.heightConstraint.constant = newHeight
-                    UIView.animate(withDuration: 0.2) { self.view.layoutIfNeeded() }
+                    UIView.animate(withDuration: 0.25) { self.view.layoutIfNeeded() }
                 }
             }
     }
@@ -100,8 +100,6 @@ final class KeyboardViewController: UIInputViewController {
 
     private func insert(_ text: String) {
         textDocumentProxy.insertText(text)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            self.advanceToNextInputMode()
-        }
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 }
