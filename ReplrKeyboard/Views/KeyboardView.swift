@@ -629,18 +629,16 @@ struct ReplyCarousel: View {
             ZStack(alignment: .bottomTrailing) {
                 if replies.count > 1 {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color(white: 0.094))
+                        .fill(KBColors.surface)
                         .opacity(0.6)
                         .padding(.leading, 10)
-                        .padding(.trailing, -3)
-                        .padding(.bottom, -3)
                 }
 
                 TabView(selection: $currentPage) {
                     ForEach(Array(replies.enumerated()), id: \.offset) { index, reply in
                         ReplyCard(
                             text: reply,
-                            showSwipeHint: replies.count > 1,
+                            showSwipeHint: index < replies.count - 1,
                             onTap: { onSelect(reply) },
                             onEdit: { onEdit(reply) }
                         )
@@ -648,6 +646,8 @@ struct ReplyCarousel: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
+                .padding(.trailing, 8)
+                .padding(.bottom, 6)
             }
             .frame(height: 130)
 
@@ -666,7 +666,7 @@ struct PageDots: View {
         HStack(spacing: 5) {
             ForEach(0..<count, id: \.self) { i in
                 Circle()
-                    .fill(i == current ? KBColors.amber : KBColors.surface)
+                    .fill(i == current ? KBColors.amber : KBColors.borderDim)
                     .frame(width: 5, height: 5)
                     .animation(.easeInOut(duration: 0.2), value: current)
             }
@@ -688,6 +688,8 @@ struct ReplyCard: View {
                     .foregroundColor(KBColors.textPrimary)
                     .lineSpacing(3)
                     .multilineTextAlignment(.leading)
+                    .lineLimit(4)
+                    .truncationMode(.tail)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .padding(.horizontal, 14)
                     .padding(.top, 13)
