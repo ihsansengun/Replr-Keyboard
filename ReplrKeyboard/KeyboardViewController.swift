@@ -11,7 +11,7 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        heightConstraint = view.heightAnchor.constraint(equalToConstant: 250)
+        heightConstraint = view.heightAnchor.constraint(equalToConstant: 220)
         heightConstraint.priority = UILayoutPriority(999)
         heightConstraint.isActive = true
 
@@ -43,7 +43,7 @@ final class KeyboardViewController: UIInputViewController {
                 switch state {
                 case .contextCapture, .editReply: newHeight = 248
                 case .loading, .replies:          newHeight = 320
-                default:                          newHeight = 250
+                default:                          newHeight = 220
                 }
                 if self.heightConstraint.constant != newHeight {
                     self.heightConstraint.constant = newHeight

@@ -793,13 +793,18 @@ struct IdleStateView: View {
             .contentShape(Rectangle())
             .simultaneousGesture(TapGesture().onEnded { _ in model.enterContextCapture() })
 
-            StepRow(number: "2", isActive: contextIsSet, label: "Pick a tone below") {
+            StepRow(number: "2", isActive: true, label: "Pick a tone below") {
                 EmptyView()
             }
 
-            StepRow(number: "3", isActive: false, label: "Triple-tap back of phone") {
-                EmptyView()
+            HStack {
+                Spacer()
+                Text("Triple-tap to generate →")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(KBColors.amber)
             }
+            .padding(.horizontal, 14)
+            .padding(.top, 2)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
