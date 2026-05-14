@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @AppStorage("preferredModel") var preferredModel = "claude"
+    @State private var persistReplies = AppGroupService.shared.persistReplies
 
     var body: some View {
         NavigationStack {
@@ -13,6 +14,18 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.inline)
                 }
+
+                Section {
+                    Toggle("Keep replies between sessions", isOn: $persistReplies)
+                        .onChange(of: persistReplies) { newValue in
+                            AppGroupService.shared.persistReplies = newValue
+                        }
+                } header: {
+                    Text("Keyboard")
+                } footer: {
+                    Text("When enabled, your last generated replies stay visible the next time you open the keyboard.")
+                }
+
                 Section("Account") {
                     NavigationLink("Subscription") { SubscriptionView() }
                 }
