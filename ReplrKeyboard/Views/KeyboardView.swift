@@ -625,19 +625,38 @@ struct ReplyCarousel: View {
     @State private var currentPage = 0
 
     var body: some View {
-        TabView(selection: $currentPage) {
-            ForEach(Array(replies.enumerated()), id: \.offset) { index, reply in
-                VStack(spacing: 10) {
-                    ReplyCard(text: reply, onTap: { onSelect(reply) }, onEdit: { onEdit(reply) })
-                        .fixedSize(horizontal: false, vertical: true)
-                    if replies.count > 1 { PageDots(count: replies.count, current: currentPage) }
+        VStack(spacing: 6) {
+            ZStack(alignment: .bottomTrailing) {
+                if replies.count > 1 {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color(white: 0.094))
+                        .opacity(0.6)
+                        .padding(.leading, 10)
+                        .padding(.trailing, -3)
+                        .padding(.bottom, -3)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, 12).padding(.vertical, 10)
-                .tag(index)
+
+                TabView(selection: $currentPage) {
+                    ForEach(Array(replies.enumerated()), id: \.offset) { index, reply in
+                        ReplyCard(
+                            text: reply,
+                            showSwipeHint: replies.count > 1,
+                            onTap: { onSelect(reply) },
+                            onEdit: { onEdit(reply) }
+                        )
+                        .tag(index)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+            }
+            .frame(height: 130)
+
+            if replies.count > 1 {
+                PageDots(count: replies.count, current: currentPage)
             }
         }
-        .tabViewStyle(.page(indexDisplayMode: .never))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
     }
 }
 
@@ -647,7 +666,7 @@ struct PageDots: View {
         HStack(spacing: 5) {
             ForEach(0..<count, id: \.self) { i in
                 Circle()
-                    .fill(i == current ? Color(UIColor.secondaryLabel) : Color(UIColor.quaternaryLabel))
+                    .fill(i == current ? KBColors.amber : KBColors.surface)
                     .frame(width: 5, height: 5)
                     .animation(.easeInOut(duration: 0.2), value: current)
             }
@@ -656,32 +675,47 @@ struct PageDots: View {
 }
 
 struct ReplyCard: View {
-    let text: String; let onTap: () -> Void; let onEdit: () -> Void
+    let text: String
+    let showSwipeHint: Bool
+    let onTap: () -> Void
+    let onEdit: () -> Void
+
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
+        ZStack(alignment: .bottomLeading) {
             Button(action: onTap) {
                 Text(text)
-                    .font(.system(size: 15))
-                    .foregroundColor(Color(UIColor.label))
+                    .font(.system(size: 14))
+                    .foregroundColor(KBColors.textPrimary)
                     .lineSpacing(3)
                     .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 14).padding(.top, 14).padding(.bottom, 32)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding(.horizontal, 14)
+                    .padding(.top, 13)
+                    .padding(.bottom, 32)
             }
             .buttonStyle(ReplyCardButtonStyle())
 
-            Button(action: onEdit) {
-                HStack(spacing: 3) {
-                    Image(systemName: "pencil").font(.system(size: 10))
-                    Text("Edit").font(.system(size: 11))
+            HStack(spacing: 0) {
+                if showSwipeHint {
+                    Text("← swipe")
+                        .font(.system(size: 10))
+                        .foregroundColor(KBColors.textGhost)
                 }
-                .foregroundColor(Color(UIColor.tertiaryLabel))
-                .padding(.horizontal, 8).padding(.vertical, 5)
+                Spacer()
+                Button(action: onEdit) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "pencil").font(.system(size: 10))
+                        Text("Edit").font(.system(size: 11))
+                    }
+                    .foregroundColor(KBColors.amber)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
+            .padding(.horizontal, 14)
+            .padding(.bottom, 9)
         }
-        .background(Color(UIColor.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(KBColors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 
