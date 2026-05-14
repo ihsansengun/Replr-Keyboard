@@ -127,7 +127,7 @@ struct KeyboardRootView: View {
             contentArea.frame(maxWidth: .infinity, maxHeight: .infinity)
             if !isKBActive { toneBar }
         }
-        .background(Color(UIColor.systemGroupedBackground))
+        .background(KBColors.background)
         .ignoresSafeArea()
     }
 
@@ -161,8 +161,8 @@ struct KeyboardRootView: View {
                 Button { model.onSwitchKeyboard?() } label: {
                     Image(systemName: "globe")
                         .font(.system(size: 14))
-                        .foregroundColor(Color(UIColor.tertiaryLabel))
-                        .frame(width: 40, height: 44)
+                        .foregroundColor(KBColors.textDim)
+                        .frame(width: 40, height: 36)
                 }
                 .buttonStyle(.plain)
             }
@@ -175,25 +175,29 @@ struct KeyboardRootView: View {
                                  action: { model.selectTone(tone) })
                     }
                 }
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 10)
             }
 
             if case .replies = model.state {
-                Color(UIColor.separator).frame(width: 0.5, height: 20).padding(.horizontal, 2)
+                KBColors.borderDim.frame(width: 0.5, height: 16).padding(.horizontal, 2)
                 Button { model.regenerate() } label: {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Color(UIColor.tertiaryLabel))
-                        .frame(width: 40, height: 44)
+                        .foregroundColor(KBColors.textDim)
+                        .frame(width: 40, height: 36)
                 }
                 .buttonStyle(.plain)
                 .padding(.trailing, 2)
                 .transition(.opacity.combined(with: .scale(scale: 0.8)))
             }
         }
-        .frame(height: 44)
-        .background(Color(UIColor.secondarySystemGroupedBackground)
-            .overlay(alignment: .top) { Color(UIColor.separator).frame(height: 0.5).opacity(0.35) })
+        .frame(height: 36)
+        .background(
+            KBColors.deep
+                .overlay(alignment: .top) {
+                    KBColors.borderHair.frame(height: 1)
+                }
+        )
         .animation(.easeInOut(duration: 0.18), value: stateTag)
     }
 
@@ -209,13 +213,14 @@ struct KeyboardRootView: View {
 
 struct TonePill: View {
     let name: String; let isSelected: Bool; let action: () -> Void
+
     var body: some View {
         Button(action: action) {
             Text(name)
-                .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                .foregroundColor(isSelected ? .white : Color(UIColor.secondaryLabel))
-                .padding(.horizontal, 12).padding(.vertical, 6)
-                .background(isSelected ? Color.accentColor : Color.clear)
+                .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
+                .foregroundColor(isSelected ? Color(red: 0.067, green: 0.067, blue: 0.067) : KBColors.textDim)
+                .padding(.horizontal, 9).padding(.vertical, 3)
+                .background(isSelected ? KBColors.amber : Color.clear)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
