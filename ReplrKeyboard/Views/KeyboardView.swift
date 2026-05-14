@@ -807,7 +807,7 @@ struct LoadingStateView: View {
                 SkeletonLine(fraction: 1.0, pulse: pulse)
                 SkeletonLine(fraction: 0.75, pulse: pulse)
                 SkeletonLine(fraction: 0.5, pulse: pulse)
-                Spacer().frame(height: 4)
+                Color.clear.frame(height: 4)
                 HStack {
                     SkeletonLine(fraction: 0.35, pulse: pulse)
                     Spacer()
@@ -841,12 +841,11 @@ struct SkeletonLine: View {
     let pulse: Bool
 
     var body: some View {
-        GeometryReader { geo in
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .fill(Color(white: pulse ? 0.18 : 0.13))
-                .frame(width: geo.size.width * fraction, height: 10)
-        }
-        .frame(height: 10)
+        RoundedRectangle(cornerRadius: 4, style: .continuous)
+            .fill(Color(white: pulse ? 0.18 : 0.13))
+            .frame(height: 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .scaleEffect(x: fraction, anchor: .leading)
     }
 }
 
