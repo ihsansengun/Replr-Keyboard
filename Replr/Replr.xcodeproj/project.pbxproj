@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		57BB31B72FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
+		9716598EFAAC4EDEB2269AA3 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
+		B6C4868C80B147D5B844BA70 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
+		543F9DDB49F94FF79619573B /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
+		86D9D25E85BA4CEB8F652700 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
 		57BB31B82FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
 		57BB31B92FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
 		57BB31BA2FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
@@ -25,7 +29,6 @@
 		57CF48012FB390BF0034657F /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F62FB38FA40034657F /* LoadingView.swift */; };
 		57CF48022FB390BF0034657F /* ReplyCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F72FB38FA40034657F /* ReplyCardView.swift */; };
 		57CF48032FB390BF0034657F /* ToneSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F82FB38FA40034657F /* ToneSelectorView.swift */; };
-		7EB7B6EE2C964E498C8B62D0 /* ReplyCardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E3287202AF4E5B887D5293 /* ReplyCardsView.swift */; };
 		57CF48042FB390BF0034657F /* ConversationSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CA2FB38B860034657F /* ConversationSummary.swift */; };
 		57CF48052FB390BF0034657F /* Tone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CB2FB38B860034657F /* Tone.swift */; };
 		57CF48062FB390BF0034657F /* AppGroupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CD2FB38B860034657F /* AppGroupService.swift */; };
@@ -43,6 +46,7 @@
 		57CF48362FB394B40034657F /* Tone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CB2FB38B860034657F /* Tone.swift */; };
 		57CF48372FB394B40034657F /* AppGroupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CD2FB38B860034657F /* AppGroupService.swift */; };
 		57CF48382FB394B40034657F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CE2FB38B860034657F /* Constants.swift */; };
+		7EB7B6EE2C964E498C8B62D0 /* ReplyCardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E3287202AF4E5B887D5293 /* ReplyCardsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -100,6 +104,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		16E3287202AF4E5B887D5293 /* ReplyCardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyCardsView.swift; sourceTree = "<group>"; };
 		57BB31B62FB5414D00CE9E4D /* ReplyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyService.swift; sourceTree = "<group>"; };
 		57BB31BD2FB54B8D00CE9E4D /* GenerateReplyIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateReplyIntent.swift; sourceTree = "<group>"; };
 		57BB31C62FB6112700CE9E4D /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
@@ -116,6 +121,7 @@
 		57CF47C72FB3895F0034657F /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		57CF47C82FB3895F0034657F /* SubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionView.swift; sourceTree = "<group>"; };
 		57CF47CA2FB38B860034657F /* ConversationSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationSummary.swift; sourceTree = "<group>"; };
+		901023AA25EF4F65B91E4A72 /* CaptureSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSession.swift; sourceTree = "<group>"; };
 		57CF47CB2FB38B860034657F /* Tone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tone.swift; sourceTree = "<group>"; };
 		57CF47CD2FB38B860034657F /* AppGroupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupService.swift; sourceTree = "<group>"; };
 		57CF47CE2FB38B860034657F /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -127,7 +133,6 @@
 		57CF47F62FB38FA40034657F /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		57CF47F72FB38FA40034657F /* ReplyCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyCardView.swift; sourceTree = "<group>"; };
 		57CF47F82FB38FA40034657F /* ToneSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToneSelectorView.swift; sourceTree = "<group>"; };
-		16E3287202AF4E5B887D5293 /* ReplyCardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyCardsView.swift; sourceTree = "<group>"; };
 		57CF47FA2FB38FA40034657F /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KeyboardViewController.swift; path = ../ReplrKeyboard/KeyboardViewController.swift; sourceTree = "<group>"; };
 		57CF480C2FB390E50034657F /* ReplrBroadcast.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ReplrBroadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		57CF480E2FB390E50034657F /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
@@ -366,6 +371,7 @@
 			children = (
 				57CF47CA2FB38B860034657F /* ConversationSummary.swift */,
 				57CF47CB2FB38B860034657F /* Tone.swift */,
+				901023AA25EF4F65B91E4A72 /* CaptureSession.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -669,6 +675,7 @@
 				57CF47D12FB38B860034657F /* AppGroupService.swift in Sources */,
 				57CF47D22FB38B860034657F /* ConversationSummary.swift in Sources */,
 				57CF47D32FB38B860034657F /* Tone.swift in Sources */,
+				9716598EFAAC4EDEB2269AA3 /* CaptureSession.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -704,6 +711,7 @@
 				57CF48052FB390BF0034657F /* Tone.swift in Sources */,
 				57CF48062FB390BF0034657F /* AppGroupService.swift in Sources */,
 				57CF48072FB390BF0034657F /* Constants.swift in Sources */,
+				B6C4868C80B147D5B844BA70 /* CaptureSession.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -716,6 +724,7 @@
 				57CF48362FB394B40034657F /* Tone.swift in Sources */,
 				57CF48372FB394B40034657F /* AppGroupService.swift in Sources */,
 				57CF48382FB394B40034657F /* Constants.swift in Sources */,
+				543F9DDB49F94FF79619573B /* CaptureSession.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -728,6 +737,7 @@
 				57CF482F2FB3913E0034657F /* Tone.swift in Sources */,
 				57CF48302FB3913E0034657F /* AppGroupService.swift in Sources */,
 				57CF48312FB3913E0034657F /* Constants.swift in Sources */,
+				86D9D25E85BA4CEB8F652700 /* CaptureSession.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
