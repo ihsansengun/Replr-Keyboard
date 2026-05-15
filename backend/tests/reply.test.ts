@@ -48,8 +48,9 @@ describe('POST /reply', () => {
       body: JSON.stringify(validBody),
     }, fakeEnv)
     expect(res.status).toBe(200)
-    const json = await res.json() as { replies: string[] }
+    const json = await res.json() as { replies: string[], contactName: string }
     expect(json.replies).toEqual(['Reply 1', 'Reply 2', 'Reply 3'])
+    expect(json.contactName).toBe('Test Contact')
   })
 
   it('returns 400 when screenshotBase64 is missing', async () => {
