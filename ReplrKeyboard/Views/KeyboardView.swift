@@ -427,8 +427,10 @@ struct EditContactView: View {
                     .foregroundColor(KBColors.textDim)
                     .frame(maxWidth: .infinity)
                     .frame(height: 36)
+                    .opacity(model.inputText.isEmpty ? 0.4 : 1.0)
             }
             .buttonStyle(.plain)
+            .disabled(model.inputText.isEmpty)
             .background(Color(UIColor.secondarySystemGroupedBackground))
             .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
 
@@ -456,6 +458,26 @@ struct DisambiguateView: View {
     let candidates: [Contact]
     var onSelectContact: ((Contact) -> Void)?
     var onCreateNew: ((String) -> Void)?
+
+    private let thumbnails: [UUID: UIImage]
+
+    init(name: String, candidates: [Contact],
+         onSelectContact: ((Contact) -> Void)? = nil,
+         onCreateNew: ((String) -> Void)? = nil) {
+        self.name = name
+        self.candidates = candidates
+        self.onSelectContact = onSelectContact
+        self.onCreateNew = onCreateNew
+        var map: [UUID: UIImage] = [:]
+        for contact in candidates {
+            if let data = AppGroupService.shared.sessions(forContactID: contact.id)
+                    .last?.thumbnailData,
+               let img = UIImage(data: data) {
+                map[contact.id] = img
+            }
+        }
+        self.thumbnails = map
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -520,9 +542,7 @@ struct DisambiguateView: View {
 
     @ViewBuilder
     private func thumbnailView(for contact: Contact) -> some View {
-        let thumb = AppGroupService.shared.sessions(forContactID: contact.id)
-            .last?.thumbnailData.flatMap { UIImage(data: $0) }
-        if let img = thumb {
+        if let img = thumbnails[contact.id] {
             Image(uiImage: img)
                 .resizable()
                 .scaledToFill()
@@ -1177,72 +1197,26 @@ struct IdleStateView: View {
 
 // Compact 50px strip shown while the intent is generating — keeps conversation visible
 struct GeneratingView: View {
-    @State private var phase = 0
+    @State private var phase: Int = 0
 
     var body: some View {
         HStack(spacing: 8) {
-            HStack(spacing: 5) {
-                ForEach(0..<3, id: \.self) { i in
-                    Circle()
-                        .fill(phase == i ? KBColors.amber : KBColors.amber.opacity(0.25))
-                        .frame(width: 6, height: 6)
-                        .animation(.easeInOut(duration: 0.4).delay(Double(i) * 0.15), value: phase)
-                }
+            ForEach(0..<3, id: \.self) { i in
+                Circle()
+                    .fill(KBColors.amber)
+                    .frame(width: 6, height: 6)
+                    .scaleEffect(phase == i ? 1.4 : 1.0)
+                    .animation(.easeInOut(duration: 0.4).delay(Double(i) * 0.15), value: phase)
             }
-            Text("Generating reply…")
-                .font(.system(size: 12))
-                .foregroundColor(KBColors.amberText)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(KBColors.background)
-        .onAppear { startCycle() }
-    }
-
-    private func startCycle() {
-        Task { @MainActor in
-            while true {
+        .task {
+            while !Task.isCancelled {
                 for i in 0..<3 {
                     phase = i
                     try? await Task.sleep(nanoseconds: 500_000_000)
+                    if Task.isCancelled { return }
                 }
-            }
-        }
-    }
-}
-
-struct LoadingStateView: View {
-    @State private var pulse = false
-
-    var body: some View {
-        VStack(spacing: 8) {
-            VStack(alignment: .leading, spacing: 8) {
-                SkeletonLine(fraction: 1.0, pulse: pulse)
-                SkeletonLine(fraction: 0.75, pulse: pulse)
-                SkeletonLine(fraction: 0.5, pulse: pulse)
-                Color.clear.frame(height: 4)
-                HStack {
-                    SkeletonLine(fraction: 0.35, pulse: pulse)
-                    Spacer()
-                    SkeletonLine(fraction: 0.18, pulse: pulse).frame(maxWidth: 50)
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.top, 14)
-            .padding(.bottom, 14)
-            .background(KBColors.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-
-            HStack(spacing: 5) {
-                Circle().fill(KBColors.amber).frame(width: 5, height: 5)
-                Circle().fill(KBColors.surface).frame(width: 5, height: 5)
-                Circle().fill(KBColors.surface).frame(width: 5, height: 5)
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .onAppear {
-            withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
-                pulse = true
             }
         }
     }
