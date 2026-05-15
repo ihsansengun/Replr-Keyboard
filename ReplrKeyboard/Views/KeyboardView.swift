@@ -6,10 +6,13 @@ import UIKit
 
 enum KeyboardState: Equatable {
     case idle
+    case collapsed
     case loading
     case replies([String])
     case editReply(String)
     case error(String)
+    case editContact(String)                                // current name pre-filled
+    case disambiguate(name: String, candidates: [Contact]) // same-name contact picker
 }
 
 enum KBMode { case alpha, numeric }
@@ -27,6 +30,7 @@ final class KeyboardModel: ObservableObject {
     @Published var isShifted: Bool = false
     @Published var kbMode: KBMode = .alpha
     @Published var currentReplies: [String] = []
+    @Published var contactName: String? = nil
 
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
@@ -35,6 +39,11 @@ final class KeyboardModel: ObservableObject {
     var onDeleteChar: (() -> Void)?
     var onSpaceChar: (() -> Void)?
     var onReturnChar: (() -> Void)?
+    var onUseAsContext: (() -> Void)?
+    var onConfirmContact: ((String) -> Void)?
+    var onDifferentPerson: ((String) -> Void)?
+    var onSelectContact: ((Contact) -> Void)?
+    var onCreateNewContact: ((String) -> Void)?
 
     init(initialTone: Tone) {
         self.selectedTone = initialTone
@@ -45,23 +54,30 @@ final class KeyboardModel: ObservableObject {
 
     func type(_ char: String) {
         let out = isShifted ? char.uppercased() : char
-        if case .editReply = state { inputText += out } else { onTypeChar?(out) }
+        switch state {
+        case .editReply, .editContact: inputText += out
+        default: onTypeChar?(out)
+        }
         if isShifted, kbMode == .alpha { isShifted = false }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
     func backspace() {
-        if case .editReply = state {
+        switch state {
+        case .editReply, .editContact:
             guard !inputText.isEmpty else { return }
             inputText.removeLast()
-        } else {
+        default:
             onDeleteChar?()
         }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
     func space() {
-        if case .editReply = state { inputText += " " } else { onSpaceChar?() }
+        switch state {
+        case .editReply, .editContact: inputText += " "
+        default: onSpaceChar?()
+        }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
@@ -75,6 +91,8 @@ final class KeyboardModel: ObservableObject {
         case .editReply:
             if !inputText.isEmpty { onReplySelected?(inputText) }
             withAnimation(.easeInOut(duration: 0.18)) { state = .idle }
+        case .editContact:
+            if !inputText.isEmpty { onConfirmContact?(inputText) }
         default:
             onReturnChar?()
         }
@@ -82,9 +100,14 @@ final class KeyboardModel: ObservableObject {
 
     func cancelInput() {
         withAnimation(.easeInOut(duration: 0.18)) {
-            if case .editReply = state, !currentReplies.isEmpty {
-                state = .replies(currentReplies)
-            } else {
+            switch state {
+            case .editReply, .editContact:
+                if !currentReplies.isEmpty {
+                    state = .replies(currentReplies)
+                } else {
+                    state = .idle
+                }
+            default:
                 state = .idle
             }
         }
@@ -93,6 +116,21 @@ final class KeyboardModel: ObservableObject {
     func enterEditReply(_ text: String) {
         inputText = text; isShifted = false; kbMode = .alpha
         withAnimation(.easeInOut(duration: 0.18)) { state = .editReply(text) }
+    }
+
+    func enterEditContact(_ name: String) {
+        inputText = name; isShifted = false; kbMode = .alpha
+        withAnimation(.easeInOut(duration: 0.18)) { state = .editContact(name) }
+    }
+
+    func collapse() {
+        withAnimation(.easeInOut(duration: 0.2)) { state = .collapsed }
+    }
+
+    func useAsContext() {
+        onUseAsContext?()
+        pendingContext = ""
+        collapse()
     }
 
     func selectTone(_ tone: Tone) { selectedTone = tone; onToneChanged?(tone) }
@@ -110,7 +148,7 @@ struct KeyboardRootView: View {
 
     private var showToneBar: Bool {
         switch model.state {
-        case .loading, .replies, .error: return true
+        case .replies, .error: return true
         default: return false
         }
     }
@@ -131,17 +169,50 @@ struct KeyboardRootView: View {
             switch model.state {
             case .idle:
                 IdleWithKeyboard(model: model).transition(.opacity)
+            case .collapsed:
+                CollapsedBar(model: model).transition(.opacity)
             case .loading:
-                LoadingStateView().transition(.opacity)
+                GeneratingView().transition(.opacity)
             case .replies(let replies):
-                ReplyCarousel(replies: replies,
-                              onSelect: { model.selectReply($0) },
-                              onEdit: { model.enterEditReply($0) })
-                    .transition(.opacity)
+                VStack(spacing: 0) {
+                    if let name = model.contactName {
+                        Button { model.enterEditContact(name) } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 9, weight: .medium))
+                                Text(name)
+                                    .font(.system(size: 11))
+                                    .lineLimit(1)
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 9))
+                            }
+                            .foregroundColor(KBColors.amberText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 4)
+                        }
+                        .buttonStyle(.plain)
+                        KBColors.borderHair.frame(height: 0.5)
+                    }
+                    ReplyCarousel(replies: replies,
+                                  onSelect: { model.selectReply($0) },
+                                  onEdit: { model.enterEditReply($0) })
+                }
+                .transition(.opacity)
             case .editReply:
                 KBInputArea(model: model, mode: .edit).transition(.opacity)
             case .error(let msg):
                 ErrorStateView(message: msg).transition(.opacity)
+            case .editContact:
+                EditContactView(model: model).transition(.opacity)
+            case .disambiguate(let name, let candidates):
+                DisambiguateView(
+                    name: name,
+                    candidates: candidates,
+                    onSelectContact: { model.onSelectContact?($0) },
+                    onCreateNew: { model.onCreateNewContact?($0) }
+                )
+                .transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.2), value: stateTag)
@@ -195,8 +266,14 @@ struct KeyboardRootView: View {
 
     private var stateTag: Int {
         switch model.state {
-        case .idle: return 0; case .loading: return 1; case .replies: return 2
-        case .error: return 3; case .editReply: return 4
+        case .idle:         return 0
+        case .loading:      return 1
+        case .replies:      return 2
+        case .error:        return 3
+        case .editReply:    return 4
+        case .collapsed:    return 5
+        case .editContact:  return 6
+        case .disambiguate: return 7
         }
     }
 }
@@ -233,12 +310,12 @@ struct KBColors {
     static func from(_ cs: ColorScheme) -> KBColors {
         cs == .dark
         ? KBColors(
-            alpha:   Color(white: 0.33),
-            fn:      Color(white: 0.22),
+            alpha:   Color(white: 0.30),
+            fn:      Color(white: 0.20),
             text:    .white,
-            subtext: Color(white: 0.65),
+            subtext: Color(white: 0.55),
             shadow:  .clear,
-            bg:      Color(white: 0.19)
+            bg:      Color(red: 0.067, green: 0.067, blue: 0.067) // matches KBColors.background
           )
         : KBColors(
             alpha:   .white,
@@ -316,6 +393,154 @@ struct KBInputArea: View {
     private var placeholder: String { mode == .context ? "Type context…" : "Edit reply…" }
 }
 
+// MARK: - Edit Contact View
+
+struct EditContactView: View {
+    @ObservedObject var model: KeyboardModel
+    @Environment(\.colorScheme) private var cs
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                Text(model.inputText.isEmpty ? "Contact name" : model.inputText)
+                    .font(.system(size: 15))
+                    .foregroundColor(model.inputText.isEmpty
+                                     ? Color(UIColor.placeholderText)
+                                     : Color(UIColor.label))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Button("Done") { model.confirmInput() }
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(KBColors.amber)
+                    .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 42)
+            .background(Color(UIColor.secondarySystemGroupedBackground))
+            .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
+
+            Button {
+                model.onDifferentPerson?(model.inputText)
+            } label: {
+                Text("Different person")
+                    .font(.system(size: 13))
+                    .foregroundColor(KBColors.textDim)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 36)
+            }
+            .buttonStyle(.plain)
+            .background(Color(UIColor.secondarySystemGroupedBackground))
+            .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
+
+            ReplrKeyboard(
+                isShifted: model.isShifted,
+                kbMode: model.kbMode,
+                doneLabel: "Done",
+                onChar: { model.type($0) },
+                onSpace: { model.space() },
+                onBackspace: { model.backspace() },
+                onShift: { model.toggleShift() },
+                onMode: { model.toggleMode() },
+                onDone: { model.confirmInput() }
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(KBColors.from(cs).bg)
+        }
+    }
+}
+
+// MARK: - Disambiguate View
+
+struct DisambiguateView: View {
+    let name: String
+    let candidates: [Contact]
+    var onSelectContact: ((Contact) -> Void)?
+    var onCreateNew: ((String) -> Void)?
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text("Which \(name)?")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(KBColors.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(KBColors.deep)
+
+            KBColors.borderHair.frame(height: 0.5)
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(candidates) { contact in
+                        Button { onSelectContact?(contact) } label: {
+                            HStack(spacing: 10) {
+                                thumbnailView(for: contact)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(contact.displayName)
+                                        .font(.system(size: 13))
+                                        .foregroundColor(KBColors.textPrimary)
+                                    if let summary = AppGroupService.shared
+                                            .recentSummaries(forContactID: contact.id, limit: 1).first {
+                                        Text(summary)
+                                            .font(.system(size: 11))
+                                            .foregroundColor(KBColors.textDim)
+                                            .lineLimit(1)
+                                    }
+                                }
+                                Spacer()
+                            }
+                            .padding(.horizontal, 14)
+                            .frame(minHeight: 52)
+                        }
+                        .buttonStyle(.plain)
+                        .background(KBColors.surface)
+                        .overlay(alignment: .bottom) {
+                            KBColors.borderHair.frame(height: 0.5)
+                        }
+                    }
+
+                    Button { onCreateNew?(name) } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus.circle")
+                                .font(.system(size: 13))
+                            Text("New contact named \(name)")
+                                .font(.system(size: 13))
+                        }
+                        .foregroundColor(KBColors.amber)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 14)
+                        .frame(height: 44)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .background(KBColors.background)
+    }
+
+    @ViewBuilder
+    private func thumbnailView(for contact: Contact) -> some View {
+        let thumb = AppGroupService.shared.sessions(forContactID: contact.id)
+            .last?.thumbnailData.flatMap { UIImage(data: $0) }
+        if let img = thumb {
+            Image(uiImage: img)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 32, height: 32)
+                .clipShape(Circle())
+        } else {
+            Circle()
+                .fill(KBColors.surface)
+                .frame(width: 32, height: 32)
+                .overlay(
+                    Image(systemName: "person")
+                        .font(.system(size: 12))
+                        .foregroundColor(KBColors.textDim)
+                )
+        }
+    }
+}
+
 // MARK: - QWERTY Keyboard
 
 struct ReplrKeyboard: View {
@@ -346,7 +571,8 @@ struct ReplrKeyboard: View {
             // exactly fill the available space without overflowing.
             let hPad: CGFloat = 3
             let gap: CGFloat  = 5
-            let kH:  CGFloat  = 42
+            // kH fills available height: 4 rows, 3 gaps, 2×7pt vertical padding
+            let kH  = max(36, floor((geo.size.height - 14 - 3 * gap) / 4))
             let w   = geo.size.width - 2 * hPad
             let kW  = floor((w - 9 * gap) / 10)
             // row 3 has 9 items → 8 HStack gaps; fnW sized so row exactly fills w
@@ -591,13 +817,13 @@ private struct DoneKey: View {
     var body: some View {
         Text(label)
             .font(.system(size: 13, weight: .semibold))
-            .foregroundColor(.white)
+            .foregroundColor(KBColors.background)
             .frame(width: width, height: height)
             .background(
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    .fill(Color.accentColor)
+                    .fill(KBColors.amber)
                     .opacity(pressed ? 0.75 : 1.0)
-                    .shadow(color: Color.accentColor.opacity(0.4), radius: 0, y: 1)
+                    .shadow(color: KBColors.amber.opacity(0.3), radius: 0, y: 1)
             )
             .scaleEffect(pressed ? 0.94 : 1.0)
             .gesture(
@@ -763,46 +989,121 @@ struct StepRow<Trailing: View>: View {
     }
 }
 
+// MARK: - Collapsed Bar (full conversation visible for screenshot)
+
+struct CollapsedBar: View {
+    @ObservedObject var model: KeyboardModel
+
+    var body: some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) { model.state = .idle }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(KBColors.amber)
+                Text("Screenshot now · triple-tap to generate")
+                    .font(.system(size: 12))
+                    .foregroundColor(KBColors.amberText)
+                Spacer()
+            }
+            .padding(.horizontal, 14)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .buttonStyle(.plain)
+        .background(KBColors.deep)
+    }
+}
+
 // MARK: - Idle + Always-On Keyboard
 
 struct ReplrStrip: View {
     @ObservedObject var model: KeyboardModel
 
     var body: some View {
-        HStack(spacing: 0) {
-            Text(model.pendingContext.isEmpty ? "Context…" : model.pendingContext)
-                .font(.system(size: 11))
-                .foregroundColor(model.pendingContext.isEmpty ? KBColors.textGhost : KBColors.amberText)
-                .lineLimit(1)
-                .truncationMode(.middle)
-                .padding(.horizontal, 10)
-                .frame(width: 110, alignment: .leading)
+        VStack(spacing: 0) {
+            // Row 1: entire row taps to collapse; "Use as context" captures its own sub-tap
+            HStack(spacing: 0) {
+                Text(model.pendingContext.isEmpty ? "Screenshot → triple-tap" : model.pendingContext)
+                    .font(.system(size: 12))
+                    .foregroundColor(model.pendingContext.isEmpty ? KBColors.amber.opacity(0.7) : KBColors.textDim)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-            KBColors.borderDim.frame(width: 0.5, height: 16)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 2) {
-                    ForEach(model.tones) { tone in
-                        TonePill(name: tone.name,
-                                 isSelected: tone.name == model.selectedTone.name,
-                                 action: { model.selectTone(tone) })
+                if !model.pendingContext.isEmpty {
+                    Button { model.useAsContext() } label: {
+                        Text("Use as context")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(KBColors.amber)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(KBColors.amberBg)
+                            .clipShape(Capsule())
                     }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 6)
+                    .transition(.opacity.combined(with: .scale(scale: 0.85)))
                 }
-                .padding(.horizontal, 8)
-            }
 
-            if model.needsGlobeKey {
-                KBColors.borderDim.frame(width: 0.5, height: 16)
-                Button { model.onSwitchKeyboard?() } label: {
-                    Image(systemName: "globe")
-                        .font(.system(size: 14))
-                        .foregroundColor(KBColors.textDim)
-                        .frame(width: 36, height: 36)
-                }
-                .buttonStyle(.plain)
+                // Visual affordance only — row tap handles collapse
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(KBColors.textDim)
+                    .frame(width: 36, height: 28)
             }
+            .padding(.leading, 12)
+            .frame(height: 28)
+            .contentShape(Rectangle())
+            .onTapGesture { model.collapse() }
+            .animation(.easeInOut(duration: 0.15), value: model.pendingContext.isEmpty)
+
+            KBColors.borderHair.frame(height: 0.5)
+
+            // Row 2: tone pills + contact chip + optional globe key
+            HStack(spacing: 0) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 2) {
+                        ForEach(model.tones) { tone in
+                            TonePill(name: tone.name,
+                                     isSelected: tone.name == model.selectedTone.name,
+                                     action: { model.selectTone(tone) })
+                        }
+                    }
+                    .padding(.horizontal, 8)
+                }
+
+                if let name = model.contactName {
+                    KBColors.borderDim.frame(width: 0.5, height: 16)
+                    Button { model.enterEditContact(name) } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 9, weight: .medium))
+                            Text(name)
+                                .font(.system(size: 11))
+                                .lineLimit(1)
+                            Image(systemName: "pencil")
+                                .font(.system(size: 9))
+                        }
+                        .foregroundColor(KBColors.amberText)
+                        .padding(.trailing, 8)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                if model.needsGlobeKey {
+                    KBColors.borderDim.frame(width: 0.5, height: 16)
+                    Button { model.onSwitchKeyboard?() } label: {
+                        Image(systemName: "globe")
+                            .font(.system(size: 14))
+                            .foregroundColor(KBColors.textDim)
+                            .frame(width: 36, height: 32)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .frame(height: 32)
         }
-        .frame(height: 36)
         .background(
             KBColors.deep
                 .overlay(alignment: .bottom) { KBColors.borderHair.frame(height: 1) }
@@ -871,6 +1172,41 @@ struct IdleStateView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
+    }
+}
+
+// Compact 50px strip shown while the intent is generating — keeps conversation visible
+struct GeneratingView: View {
+    @State private var phase = 0
+
+    var body: some View {
+        HStack(spacing: 8) {
+            HStack(spacing: 5) {
+                ForEach(0..<3, id: \.self) { i in
+                    Circle()
+                        .fill(phase == i ? KBColors.amber : KBColors.amber.opacity(0.25))
+                        .frame(width: 6, height: 6)
+                        .animation(.easeInOut(duration: 0.4).delay(Double(i) * 0.15), value: phase)
+                }
+            }
+            Text("Generating reply…")
+                .font(.system(size: 12))
+                .foregroundColor(KBColors.amberText)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(KBColors.background)
+        .onAppear { startCycle() }
+    }
+
+    private func startCycle() {
+        Task { @MainActor in
+            while true {
+                for i in 0..<3 {
+                    phase = i
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                }
+            }
+        }
     }
 }
 
