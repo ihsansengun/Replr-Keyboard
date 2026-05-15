@@ -172,7 +172,7 @@ export interface GenerateMultipleParams {
 function buildContextBlock(summary?: string, previousContext?: string): string {
   const parts: string[] = []
   if (previousContext) {
-    parts.push(`CONVERSATION MEMORY (earlier in this same conversation):\n${previousContext}`)
+    parts.push(`PREVIOUS CONVERSATIONS WITH THIS CONTACT (summaries of past sessions, oldest first):\n${previousContext}`)
   }
   if (summary) {
     parts.push(`CONVERSATION BACKGROUND (from user):\n${summary}`)
