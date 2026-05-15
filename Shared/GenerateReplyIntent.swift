@@ -96,11 +96,12 @@ struct GenerateReplyIntent: AppIntent {
             ) { image, info in
                 if let image, (info?[PHImageResultIsDegradedKey] as? Bool) != true {
                     continuation.resume(returning: image)
-                } else if let image {
-                    _ = image
-                } else {
+                } else if image != nil {
+                    // degraded delivery — Photos will call back with full quality, discard this
+                } else if (info?[PHImageErrorKey] as? Error) != nil || (info?[PHImageResultIsDegradedKey] as? Bool) != true {
                     continuation.resume(throwing: GenerateReplyError.imageLoadFailed)
                 }
+                // else: nil with degraded flag — mid-flight, wait for next callback
             }
         }
 
@@ -144,7 +145,9 @@ struct GenerateReplyIntent: AppIntent {
         guard image.size.width > 0 else { return nil }
         let scale = targetWidth / image.size.width
         let size = CGSize(width: targetWidth, height: image.size.height * scale)
-        let renderer = UIGraphicsImageRenderer(size: size)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
         let thumb = renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
         return thumb.jpegData(compressionQuality: 0.4)
     }
