@@ -3,6 +3,17 @@ import SwiftUI
 
 final class CaptureLogViewModel: ObservableObject {
     @Published var sessions: [CaptureSession] = []
+    @Published var selectedContactID: UUID? = nil  // nil = "All"
+
+    var allContacts: [Contact] {
+        let ids = Set(sessions.compactMap(\.contactID))
+        return AppGroupService.shared.loadContacts().filter { ids.contains($0.id) }
+    }
+
+    var filteredSessions: [CaptureSession] {
+        guard let id = selectedContactID else { return sessions }
+        return sessions.filter { $0.contactID == id }
+    }
 
     func load() {
         sessions = AppGroupService.shared.loadCaptureSessions().reversed()
@@ -11,16 +22,21 @@ final class CaptureLogViewModel: ObservableObject {
     func clearAll() {
         AppGroupService.shared.clearCaptureSessions()
         sessions = []
+        selectedContactID = nil
     }
 
     func delete(at offsets: IndexSet) {
-        // offsets are into the reversed array; map back, remove, re-save
+        let source = filteredSessions
         var all = AppGroupService.shared.loadCaptureSessions()
-        let totalCount = all.count
-        let allOffsets = IndexSet(offsets.map { totalCount - 1 - $0 })
-        all.remove(atOffsets: allOffsets)
+        let idsToRemove = Set(offsets.map { source[$0].id })
+        all.removeAll { idsToRemove.contains($0.id) }
         AppGroupService.shared.saveCaptureSessions(all)
-        sessions.remove(atOffsets: offsets)
+        load()
+    }
+
+    func clearMemory(for contact: Contact) {
+        AppGroupService.shared.clearMemory(forContactID: contact.id)
+        load()
     }
 }
 
@@ -44,13 +60,37 @@ struct CaptureLogView: View {
                             .padding(.horizontal)
                     }
                 } else {
-                    List {
-                        ForEach(vm.sessions) { session in
-                            NavigationLink(destination: CaptureDetailView(session: session)) {
-                                CaptureRowView(session: session)
+                    VStack(spacing: 0) {
+                        // Contact filter chips
+                        if !vm.allContacts.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    filterChip(label: "All", id: nil)
+                                    ForEach(vm.allContacts) { contact in
+                                        filterChip(label: contact.displayName, id: contact.id)
+                                            .contextMenu {
+                                                Button(role: .destructive) {
+                                                    vm.clearMemory(for: contact)
+                                                } label: {
+                                                    Label("Clear Memory", systemImage: "brain.slash")
+                                                }
+                                            }
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
                             }
+                            Divider()
                         }
-                        .onDelete(perform: vm.delete)
+
+                        List {
+                            ForEach(vm.filteredSessions) { session in
+                                NavigationLink(destination: CaptureDetailView(session: session)) {
+                                    CaptureRowView(session: session)
+                                }
+                            }
+                            .onDelete(perform: vm.delete)
+                        }
                     }
                 }
             }
@@ -64,6 +104,21 @@ struct CaptureLogView: View {
             }
         }
         .onAppear { vm.load() }
+    }
+
+    @ViewBuilder
+    private func filterChip(label: String, id: UUID?) -> some View {
+        let isSelected = vm.selectedContactID == id
+        Button { vm.selectedContactID = id } label: {
+            Text(label)
+                .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 5)
+                .background(isSelected ? Color.accentColor : Color(.secondarySystemGroupedBackground))
+                .foregroundStyle(isSelected ? Color.white : Color.primary)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -87,9 +142,18 @@ struct CaptureRowView: View {
             }
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(session.timestamp, style: .relative)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack {
+                    Text(session.timestamp, style: .relative)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    if let name = session.contactName {
+                        Text(name)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
 
                 if let summary = session.llmSummary {
                     Text(summary)
