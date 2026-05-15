@@ -156,7 +156,7 @@ struct KeyboardRootView: View {
 
     private var showToneBar: Bool {
         switch model.state {
-        case .replies, .error: return true
+        case .replies, .error, .loading: return true
         default: return false
         }
     }
@@ -180,7 +180,7 @@ struct KeyboardRootView: View {
             case .collapsed:
                 CollapsedBar(model: model).transition(.opacity)
             case .loading:
-                GeneratingView().transition(.opacity)
+                IdleWithKeyboard(model: model).transition(.opacity)
             case .replies(let replies):
                 VStack(spacing: 0) {
                     if let name = model.contactName {
@@ -209,8 +209,8 @@ struct KeyboardRootView: View {
                 .transition(.opacity)
             case .editReply:
                 KBInputArea(model: model, mode: .edit).transition(.opacity)
-            case .error(let msg):
-                ErrorStateView(message: msg).transition(.opacity)
+            case .error:
+                IdleWithKeyboard(model: model).transition(.opacity)
             case .editContact:
                 EditContactView(model: model).transition(.opacity)
             case .disambiguate(let name, let candidates):

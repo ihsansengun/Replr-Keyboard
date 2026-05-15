@@ -118,10 +118,11 @@ final class KeyboardViewController: UIInputViewController {
                 case .collapsed:     newHeight = 44
                 case .editReply:     newHeight = 280
                 case .editContact:   newHeight = 280
-                case .loading:       newHeight = 50
+                case .loading:       newHeight = 280
+                case .error:         newHeight = 280
                 case .replies:       newHeight = 320
                 case .disambiguate:  newHeight = 320
-                default:             newHeight = 220  // error state
+                default:             newHeight = 280
                 }
                 if self.heightConstraint.constant != newHeight {
                     self.heightConstraint.constant = newHeight
