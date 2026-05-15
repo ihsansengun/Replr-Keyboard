@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 final class CaptureLogViewModel: ObservableObject {
@@ -150,7 +151,7 @@ struct CaptureDetailView: View {
                 }
             }
         }
-        .navigationTitle(session.timestamp, style: .date)
+        .navigationTitle(session.timestamp.formatted(date: .abbreviated, time: .omitted))
         .navigationBarTitleDisplayMode(.inline)
     }
 }
