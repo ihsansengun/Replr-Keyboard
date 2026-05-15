@@ -31,6 +31,8 @@ final class KeyboardModel: ObservableObject {
     @Published var kbMode: KBMode = .alpha
     @Published var currentReplies: [String] = []
     @Published var contactName: String? = nil
+    @Published var lastInsertedReply: String? = nil
+    @Published var hasAnySessions: Bool = false
 
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
@@ -44,6 +46,7 @@ final class KeyboardModel: ObservableObject {
     var onDifferentPerson: ((String) -> Void)?
     var onSelectContact: ((Contact) -> Void)?
     var onCreateNewContact: ((String) -> Void)?
+    var onUndoInsert: (() -> Void)?
 
     init(initialTone: Tone) {
         self.selectedTone = initialTone
@@ -890,7 +893,6 @@ struct ReplyCarousel: View {
                 .padding(.trailing, 8)
                 .padding(.bottom, 6)
             }
-            .frame(height: 130)
 
             if replies.count > 1 {
                 PageDots(count: replies.count, current: currentPage)
@@ -930,7 +932,7 @@ struct ReplyCard: View {
                     .multilineTextAlignment(.leading)
                     .lineLimit(4)
                     .truncationMode(.tail)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
                     .padding(.horizontal, 14)
                     .padding(.top, 13)
                     .padding(.bottom, 32)
@@ -1055,7 +1057,24 @@ struct ReplrStrip: View {
                     .truncationMode(.middle)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                if !model.pendingContext.isEmpty {
+                if model.lastInsertedReply != nil {
+                    Button { model.onUndoInsert?() } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.uturn.backward")
+                                .font(.system(size: 9, weight: .medium))
+                            Text("Undo")
+                                .font(.system(size: 10, weight: .medium))
+                        }
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color(red: 0.961, green: 0.651, blue: 0.137))
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 6)
+                    .transition(.opacity.combined(with: .scale(scale: 0.85)))
+                } else if !model.pendingContext.isEmpty {
                     Button { model.useAsContext() } label: {
                         Text("Use as context")
                             .font(.system(size: 10, weight: .medium))
@@ -1081,6 +1100,7 @@ struct ReplrStrip: View {
             .contentShape(Rectangle())
             .onTapGesture { model.collapse() }
             .animation(.easeInOut(duration: 0.15), value: model.pendingContext.isEmpty)
+            .animation(.easeInOut(duration: 0.15), value: model.lastInsertedReply == nil)
 
             KBColors.borderHair.frame(height: 0.5)
 

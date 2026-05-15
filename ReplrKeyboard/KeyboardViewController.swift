@@ -79,6 +79,8 @@ final class KeyboardViewController: UIInputViewController {
             }
         }
 
+        model.onUndoInsert = { [weak self] in self?.undoLastInsert() }
+
         model.onCreateNewContact = { [weak self] name in
             guard let self else { return }
             let newContact = AppGroupService.shared.createContact(displayName: name)
@@ -138,6 +140,7 @@ final class KeyboardViewController: UIInputViewController {
         } else {
             model.contactName = nil
         }
+        model.hasAnySessions = !AppGroupService.shared.loadCaptureSessions().isEmpty
 
         if AppGroupService.shared.isGenerating {
             model.state = .loading
@@ -202,6 +205,7 @@ final class KeyboardViewController: UIInputViewController {
                         } else {
                             self.model.contactName = nil
                         }
+                        self.model.hasAnySessions = true
                         withAnimation(.easeInOut(duration: 0.2)) {
                             self.model.state = .replies(replies)
                         }
@@ -226,6 +230,17 @@ final class KeyboardViewController: UIInputViewController {
         model.pendingContext = ""
         AppGroupService.shared.savePendingContext("")
         AppGroupService.shared.markLastSessionReplySelected(text)
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        model.lastInsertedReply = text
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
+            self?.model.lastInsertedReply = nil
+        }
+    }
+
+    private func undoLastInsert() {
+        guard let text = model.lastInsertedReply else { return }
+        for _ in text { textDocumentProxy.deleteBackward() }
+        model.lastInsertedReply = nil
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 }
