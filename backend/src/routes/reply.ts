@@ -45,7 +45,7 @@ replyRoute.post('/', async (c) => {
     if (result.replies.length === 0) {
       return c.json({ error: 'Could not parse replies. Please try again.' }, 502)
     }
-    return c.json({ replies: result.replies, summary: result.summary })
+    return c.json({ replies: result.replies, summary: result.summary, contactName: result.contactName })
   } catch (err) {
     console.error('LLM error:', err)
     return c.json({ error: 'Failed to generate replies. Please try again.' }, 500)
@@ -104,7 +104,7 @@ replyRoute.post('/scroll', async (c) => {
     if (result.replies.length === 0) {
       return c.json({ error: 'Could not parse replies. Please try again.' }, 502)
     }
-    return c.json({ replies: result.replies, summary: result.summary })
+    return c.json({ replies: result.replies, summary: result.summary, contactName: result.contactName })
   } catch (err) {
     console.error('Scroll LLM error:', err)
     return c.json({ error: 'Failed to generate replies. Please try again.' }, 500)

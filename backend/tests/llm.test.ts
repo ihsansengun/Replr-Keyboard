@@ -1,10 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { parseReplies, generateReplies } from '../src/services/llm'
-
-// Module-level mocks (hoisted by Vitest).
-// The mock factories must use regular functions (not arrow functions) so that
-// `new Anthropic()` / `new OpenAI()` work correctly — arrow functions cannot
-// be used as constructors.
+import { parseReplies, parseLlmOutput, generateReplies } from '../src/services/llm'
 
 const anthropicMessagesCreate = vi.fn()
 const openaiChatCreate = vi.fn()
@@ -46,17 +41,52 @@ describe('parseReplies', () => {
   })
 })
 
+describe('parseLlmOutput', () => {
+  it('extracts CONTACT, SUMMARY, and replies', () => {
+    const raw = `CONTACT: Alexis\nSUMMARY: Discussing weekend plans\n1. Sounds fun!\n2. I'm in\n3. Let's do it`
+    const result = parseLlmOutput(raw)
+    expect(result.contactName).toBe('Alexis')
+    expect(result.summary).toBe('Discussing weekend plans')
+    expect(result.replies).toEqual(["Sounds fun!", "I'm in", "Let's do it"])
+  })
+
+  it('returns empty string for contactName when CONTACT line is missing', () => {
+    const raw = `SUMMARY: Just chatting\n1. Hey\n2. Sure\n3. Cool`
+    const result = parseLlmOutput(raw)
+    expect(result.contactName).toBe('')
+    expect(result.summary).toBe('Just chatting')
+  })
+
+  it('returns "Unknown" as contactName when value is Unknown', () => {
+    const raw = `CONTACT: Unknown\nSUMMARY: Chat\n1. Hi`
+    const result = parseLlmOutput(raw)
+    expect(result.contactName).toBe('Unknown')
+  })
+
+  it('handles group chat prefix', () => {
+    const raw = `CONTACT: Group: Weekend Plans\nSUMMARY: Planning trip\n1. Sounds good`
+    const result = parseLlmOutput(raw)
+    expect(result.contactName).toBe('Group: Weekend Plans')
+  })
+
+  it('is case-insensitive for CONTACT: prefix', () => {
+    const raw = `contact: Sam\nSUMMARY: Work stuff\n1. Noted`
+    const result = parseLlmOutput(raw)
+    expect(result.contactName).toBe('Sam')
+  })
+})
+
 describe('generateReplies', () => {
   beforeEach(() => {
     vi.resetAllMocks()
   })
 
-  it('calls Claude with correct model and returns parsed replies', async () => {
+  it('calls Claude with correct model and returns parsed LlmResult', async () => {
     anthropicMessagesCreate.mockResolvedValue({
-      content: [{ type: 'text', text: '1. Hey\n2. Sure\n3. Cool' }],
+      content: [{ type: 'text', text: 'CONTACT: Dana\nSUMMARY: Work chat\n1. Hey\n2. Sure\n3. Cool' }],
     })
 
-    const replies = await generateReplies({
+    const result = await generateReplies({
       screenshotBase64: 'abc',
       tone: 'casual',
       model: 'claude',
@@ -65,19 +95,21 @@ describe('generateReplies', () => {
       openaiKey: 'key',
     })
 
-    expect(replies).toEqual(['Hey', 'Sure', 'Cool'])
+    expect(result.replies).toEqual(['Hey', 'Sure', 'Cool'])
+    expect(result.summary).toBe('Work chat')
+    expect(result.contactName).toBe('Dana')
     expect(anthropicMessagesCreate).toHaveBeenCalledWith(expect.objectContaining({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
     }))
   })
 
-  it('calls GPT-4o with correct model and returns parsed replies', async () => {
+  it('calls GPT-4o with correct model and returns parsed LlmResult', async () => {
     openaiChatCreate.mockResolvedValue({
-      choices: [{ message: { content: '1. Yes\n2. No\n3. Maybe' } }],
+      choices: [{ message: { content: 'CONTACT: Pat\nSUMMARY: Weekend plans\n1. Yes\n2. No\n3. Maybe' } }],
     })
 
-    const replies = await generateReplies({
+    const result = await generateReplies({
       screenshotBase64: 'abc',
       tone: 'casual',
       model: 'gpt4o',
@@ -86,7 +118,8 @@ describe('generateReplies', () => {
       openaiKey: 'key',
     })
 
-    expect(replies).toEqual(['Yes', 'No', 'Maybe'])
+    expect(result.replies).toEqual(['Yes', 'No', 'Maybe'])
+    expect(result.contactName).toBe('Pat')
     expect(openaiChatCreate).toHaveBeenCalledWith(expect.objectContaining({
       model: 'gpt-4o',
       max_tokens: 1024,
@@ -95,10 +128,10 @@ describe('generateReplies', () => {
 
   it('returns 5 replies for premium tier', async () => {
     anthropicMessagesCreate.mockResolvedValue({
-      content: [{ type: 'text', text: '1. A\n2. B\n3. C\n4. D\n5. E' }],
+      content: [{ type: 'text', text: 'CONTACT: Sam\nSUMMARY: Chat\n1. A\n2. B\n3. C\n4. D\n5. E' }],
     })
 
-    const replies = await generateReplies({
+    const result = await generateReplies({
       screenshotBase64: 'abc',
       tone: 'casual',
       model: 'claude',
@@ -107,6 +140,6 @@ describe('generateReplies', () => {
       openaiKey: 'key',
     })
 
-    expect(replies).toHaveLength(5)
+    expect(result.replies).toHaveLength(5)
   })
 })

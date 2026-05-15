@@ -21,5 +21,6 @@ export interface ReplyRequest {
 
 export interface ReplyResponse {
   replies: string[]
-  summary: string            // one-line LLM-extracted summary of this session
+  summary: string
+  contactName: string
 }

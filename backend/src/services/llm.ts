@@ -35,23 +35,27 @@ const PREMIUM_REPLY_COUNT = 5
 export interface LlmResult {
   replies: string[]
   summary: string
+  contactName: string
 }
 
-/** Parse LLM output that starts with an optional SUMMARY: line followed by numbered replies. */
+/** Parse LLM output: optional CONTACT: line, optional SUMMARY: line, numbered replies. */
 export function parseLlmOutput(text: string): LlmResult {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
   let summary = ''
+  let contactName = ''
   const replies: string[] = []
 
   for (const line of lines) {
-    if (!summary && line.startsWith('SUMMARY:')) {
-      summary = line.replace(/^SUMMARY:\s*/i, '').trim()
+    if (!contactName && /^contact:/i.test(line)) {
+      contactName = line.replace(/^contact:\s*/i, '').trim()
+    } else if (!summary && /^summary:/i.test(line)) {
+      summary = line.replace(/^summary:\s*/i, '').trim()
     } else if (/^\d+[.)]\s/.test(line)) {
       replies.push(line.replace(/^\d+[.)]\s*/, '').trim())
     }
   }
 
-  return { replies, summary }
+  return { replies, summary, contactName }
 }
 
 interface LlmCallParams {
@@ -178,6 +182,7 @@ function buildContextBlock(summary?: string, previousContext?: string): string {
 
 function buildReplyFormat(count: number): string {
   return `Output format — exactly this, no other text:
+CONTACT: [display name of the person you are replying TO, exactly as shown in the chat header. "Group: [name]" for group chats. "Unknown" if not visible.]
 SUMMARY: [one sentence: topic of conversation and what was last said]
 ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
 }
