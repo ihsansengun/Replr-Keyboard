@@ -39,15 +39,16 @@ struct AnalyzeScreenshotIntent: AppIntent {
         NSLog("[Replr][Intent] calling API: tone=%@ txID=%@", tone.name, txID ?? "nil")
 
         do {
-            let replies = try await ReplyService.shared.generateReplies(
+            let result = try await ReplyService.shared.generateReplies(
                 screenshot: image,
                 tone: tone,
                 summary: nil,
+                previousContext: nil,
                 model: "claude",
                 transactionId: txID
             )
-            NSLog("[Replr][Intent] got %d replies, saving to App Group", replies.count)
-            AppGroupService.shared.saveReplies(replies)
+            NSLog("[Replr][Intent] got %d replies, saving to App Group", result.replies.count)
+            AppGroupService.shared.saveReplies(result.replies)
         } catch {
             NSLog("[Replr][Intent] API error: %@", error.localizedDescription)
             AppGroupService.shared.saveError(error.localizedDescription)
