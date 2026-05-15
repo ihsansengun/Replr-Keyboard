@@ -1080,7 +1080,7 @@ struct ReplrStrip: View {
 
             KBColors.borderHair.frame(height: 0.5)
 
-            // Row 2: tone pills + contact chip + optional globe key
+            // Row 2: tone pills + optional globe key
             HStack(spacing: 0) {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 2) {
@@ -1091,24 +1091,6 @@ struct ReplrStrip: View {
                         }
                     }
                     .padding(.horizontal, 8)
-                }
-
-                if let name = model.contactName {
-                    KBColors.borderDim.frame(width: 0.5, height: 16)
-                    Button { model.enterEditContact(name) } label: {
-                        HStack(spacing: 3) {
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 9, weight: .medium))
-                            Text(name)
-                                .font(.system(size: 11))
-                                .lineLimit(1)
-                            Image(systemName: "pencil")
-                                .font(.system(size: 9))
-                        }
-                        .foregroundColor(KBColors.amberText)
-                        .padding(.trailing, 8)
-                    }
-                    .buttonStyle(.plain)
                 }
 
                 if model.needsGlobeKey {
