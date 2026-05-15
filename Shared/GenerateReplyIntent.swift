@@ -98,7 +98,7 @@ struct GenerateReplyIntent: AppIntent {
                     continuation.resume(returning: image)
                 } else if image != nil {
                     // degraded delivery — Photos will call back with full quality, discard this
-                } else if (info?[PHImageErrorKey] as? Error) != nil || (info?[PHImageResultIsDegradedKey] as? Bool) != true {
+                } else if (info?[PHImageErrorKey] as? Error) != nil && (info?[PHImageResultIsDegradedKey] as? Bool) != true {
                     continuation.resume(throwing: GenerateReplyError.imageLoadFailed)
                 }
                 // else: nil with degraded flag — mid-flight, wait for next callback
