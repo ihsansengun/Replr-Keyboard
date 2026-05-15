@@ -59,6 +59,61 @@ final class AppGroupService {
         return msg
     }
 
+    // MARK: - Generation in-flight flag
+
+    var isGenerating: Bool {
+        get { defaults.bool(forKey: Constants.isGeneratingKey) }
+        set { defaults.set(newValue, forKey: Constants.isGeneratingKey); defaults.synchronize() }
+    }
+
+    // MARK: - Capture sessions
+
+    private static let maxSessions = 50
+    private static let conversationWindowSeconds: TimeInterval = 4 * 60 * 60  // 4 hours
+
+    func saveCaptureSessions(_ sessions: [CaptureSession]) {
+        guard let data = try? JSONEncoder().encode(sessions) else { return }
+        defaults.set(data, forKey: Constants.captureSessionsKey)
+        defaults.synchronize()
+    }
+
+    func loadCaptureSessions() -> [CaptureSession] {
+        defaults.synchronize()
+        guard let data = defaults.data(forKey: Constants.captureSessionsKey),
+              let sessions = try? JSONDecoder().decode([CaptureSession].self, from: data)
+        else { return [] }
+        return sessions
+    }
+
+    func appendCaptureSession(_ session: CaptureSession) {
+        var sessions = loadCaptureSessions()
+        sessions.append(session)
+        if sessions.count > Self.maxSessions {
+            sessions.removeFirst(sessions.count - Self.maxSessions)
+        }
+        saveCaptureSessions(sessions)
+    }
+
+    func markLastSessionReplySelected(_ reply: String) {
+        var sessions = loadCaptureSessions()
+        guard !sessions.isEmpty else { return }
+        sessions[sessions.count - 1].selectedReply = reply
+        saveCaptureSessions(sessions)
+    }
+
+    /// Summaries from sessions within the last 4 hours, oldest first.
+    func activeSessionSummaries() -> [String] {
+        let cutoff = Date().addingTimeInterval(-Self.conversationWindowSeconds)
+        return loadCaptureSessions()
+            .filter { $0.timestamp > cutoff }
+            .compactMap { $0.llmSummary }
+    }
+
+    func clearCaptureSessions() {
+        defaults.removeObject(forKey: Constants.captureSessionsKey)
+        defaults.synchronize()
+    }
+
     // MARK: - Reply persistence (restore on keyboard reopen)
 
     var persistReplies: Bool {

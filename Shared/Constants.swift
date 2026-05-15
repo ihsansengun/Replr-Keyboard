@@ -14,6 +14,8 @@ enum Constants {
     static let pendingContextKey      = "pending_context"
     static let persistRepliesKey      = "persist_replies"
     static let cachedRepliesKey       = "cached_replies"
+    static let isGeneratingKey        = "is_generating"
+    static let captureSessionsKey     = "capture_sessions"
 
     // File-based keys (broadcast/scroll capture only)
     static let screenshotFilename     = "screenshot.png"
