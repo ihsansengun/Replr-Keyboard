@@ -106,6 +106,22 @@ final class AppGroupServiceTests: XCTestCase {
         XCTAssertNil(after?.llmSummary)
     }
 
+    func testSessionsForContactIDFiltersCorrectly() {
+        service.saveContacts([])
+        service.clearCaptureSessions()
+        let id = UUID()
+        let match = CaptureSession(id: UUID(), timestamp: Date(), thumbnailData: nil,
+                                   contextHint: nil, generatedReplies: [], selectedReply: nil,
+                                   llmSummary: nil, contactID: id, contactName: "Test")
+        let other = CaptureSession(id: UUID(), timestamp: Date(), thumbnailData: nil,
+                                   contextHint: nil, generatedReplies: [], selectedReply: nil,
+                                   llmSummary: nil, contactID: UUID(), contactName: "Other")
+        service.saveCaptureSessions([match, other])
+        let result = service.sessions(forContactID: id)
+        XCTAssertEqual(result.count, 1)
+        XCTAssertEqual(result.first?.id, match.id)
+    }
+
     func testCurrentContactIDRoundtrip() {
         let uuid = UUID()
         service.currentContactID = uuid
