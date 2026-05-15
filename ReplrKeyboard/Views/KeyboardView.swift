@@ -938,6 +938,14 @@ struct ReplyCard: View {
             .buttonStyle(ReplyCardButtonStyle())
 
             HStack(spacing: 0) {
+                Button(action: onTap) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "arrow.up").font(.system(size: 10))
+                        Text("Send").font(.system(size: 11))
+                    }
+                    .foregroundColor(KBColors.amber)
+                }
+                .buttonStyle(.plain)
                 Spacer()
                 Button(action: onEdit) {
                     HStack(spacing: 3) {
