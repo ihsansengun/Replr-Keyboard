@@ -216,3 +216,67 @@ struct OnboardingStep: View {
         }
     }
 }
+
+// MARK: - BackTap Setup Full View (presented from replr://setup deep link)
+
+struct BackTapSetupFullView: View {
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    Image(systemName: "iphone.gen3")
+                        .font(.system(size: 56))
+                        .foregroundStyle(Color.accentColor)
+                        .padding(.top, 16)
+
+                    Text("Set up BackTap")
+                        .font(.title2.bold())
+
+                    Text("Triple-tapping the back of your iPhone triggers Replr to capture a screenshot and generate replies.")
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        SetupRow(number: "1", text: "Settings → Accessibility → Touch → Back Tap")
+                        SetupRow(number: "2", text: "Tap \"Triple Tap\" (or \"Double Tap\")")
+                        SetupRow(number: "3", text: "Scroll down and choose Shortcuts → Replr")
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
+
+                    Label("First time you triple-tap, iOS will ask to share the screenshot with Replr. Tap \"Allow Always\".", systemImage: "info.circle")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+
+                    Button {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        Label("Open Settings", systemImage: "gearshape")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .padding(.horizontal)
+
+                    Spacer(minLength: 24)
+                }
+            }
+            .navigationTitle("BackTap Setup")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { isPresented = false }
+                }
+            }
+        }
+    }
+}

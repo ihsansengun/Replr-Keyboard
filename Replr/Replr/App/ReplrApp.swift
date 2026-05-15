@@ -6,6 +6,7 @@ import AppIntents
 struct ReplrApp: App {
     @AppStorage("onboardingComplete") var onboardingComplete = false
     @State private var showCapture = false
+    @State private var showSetup = false
 
     init() {
         NSLog("[Replr][Shortcuts] App init — calling updateAppShortcutParameters")
@@ -20,9 +21,19 @@ struct ReplrApp: App {
                     .fullScreenCover(isPresented: $showCapture) {
                         CaptureView(isPresented: $showCapture)
                     }
+                    .sheet(isPresented: $showSetup) {
+                        BackTapSetupFullView(isPresented: $showSetup)
+                    }
                     .onOpenURL { url in
-                        guard url.scheme == "replr", url.host == "capture" else { return }
-                        showCapture = true
+                        guard url.scheme == "replr" else { return }
+                        switch url.host {
+                        case "capture":
+                            showCapture = true
+                        case "setup":
+                            showSetup = true
+                        default:
+                            break
+                        }
                     }
             } else {
                 OnboardingView(onComplete: { onboardingComplete = true })
