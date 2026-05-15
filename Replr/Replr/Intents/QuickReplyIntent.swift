@@ -61,16 +61,30 @@ struct QuickReplyIntent: AppIntent {
         let txID = UserDefaults(suiteName: Constants.appGroupID)?.string(forKey: Constants.transactionIDKey)
         NSLog("[Replr][QuickReply] Calling API: tone=%@", tone.name)
 
+        let recentSummaries = AppGroupService.shared.activeSessionSummaries()
+        let previousContext: String? = recentSummaries.isEmpty ? nil : recentSummaries.joined(separator: "\n")
+
         do {
             let result = try await ReplyService.shared.generateReplies(
                 screenshot: image,
                 tone: tone,
                 summary: nil,
-                previousContext: nil,
+                previousContext: previousContext,
                 model: "claude",
                 transactionId: txID
             )
             NSLog("[Replr][QuickReply] Got %d replies — saving to App Group", result.replies.count)
+            let thumbnail = makeThumbnail(image)
+            let session = CaptureSession(
+                id: UUID(),
+                timestamp: Date(),
+                thumbnailData: thumbnail,
+                contextHint: nil,
+                generatedReplies: result.replies,
+                selectedReply: nil,
+                llmSummary: result.summary
+            )
+            AppGroupService.shared.appendCaptureSession(session)
             AppGroupService.shared.saveReplies(result.replies)
         } catch {
             NSLog("[Replr][QuickReply] API error: %@", error.localizedDescription)
@@ -78,6 +92,18 @@ struct QuickReplyIntent: AppIntent {
         }
 
         return .result()
+    }
+
+    private func makeThumbnail(_ image: UIImage) -> Data? {
+        let targetWidth: CGFloat = 80
+        guard image.size.width > 0 else { return nil }
+        let scale = targetWidth / image.size.width
+        let size = CGSize(width: targetWidth, height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
+        let thumb = renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
+        return thumb.jpegData(compressionQuality: 0.4)
     }
 }
 
