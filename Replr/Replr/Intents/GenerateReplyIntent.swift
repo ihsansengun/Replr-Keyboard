@@ -52,22 +52,31 @@ struct GenerateReplyIntent: AppIntent {
             )
             NSLog("[Replr][Intent] Got %d replies — saving to App Group", result.replies.count)
 
-            // Resolve or create contact (only on first capture when currentContactID is nil)
+            // Resolve or create contact
             let resolvedContactID: UUID?
             let resolvedContactName: String?
-            if let existingID = AppGroupService.shared.currentContactID {
-                resolvedContactID = existingID
-                resolvedContactName = result.contactName
-            } else if let name = result.contactName, !name.isEmpty, name != "Unknown",
-                      !name.hasPrefix("Group:") {
-                let existing = AppGroupService.shared.findContacts(named: name)
-                let contact = existing.first ?? AppGroupService.shared.createContact(displayName: name)
-                AppGroupService.shared.currentContactID = contact.id
-                resolvedContactID = contact.id
-                resolvedContactName = name
-            } else {
+            let isGroupOrUnknown = result.contactName == nil
+                || result.contactName == "Unknown"
+                || result.contactName?.isEmpty == true
+                || result.contactName?.hasPrefix("Group:") == true
+            if isGroupOrUnknown {
                 resolvedContactID = nil
                 resolvedContactName = result.contactName
+            } else if let existingID = AppGroupService.shared.currentContactID {
+                // Keep existing contact; store canonical display name
+                let canonical = AppGroupService.shared.loadContacts()
+                    .first(where: { $0.id == existingID })?.displayName
+                resolvedContactID = existingID
+                resolvedContactName = canonical ?? result.contactName
+            } else if let name = result.contactName {
+                let contact = AppGroupService.shared.findContacts(named: name).first
+                    ?? AppGroupService.shared.createContact(displayName: name)
+                AppGroupService.shared.currentContactID = contact.id
+                resolvedContactID = contact.id
+                resolvedContactName = contact.displayName
+            } else {
+                resolvedContactID = nil
+                resolvedContactName = nil
             }
 
             let thumbnail = makeThumbnail(image)
