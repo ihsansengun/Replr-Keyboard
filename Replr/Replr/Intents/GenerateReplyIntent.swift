@@ -32,8 +32,14 @@ struct GenerateReplyIntent: AppIntent {
         let txID = UserDefaults(suiteName: Constants.appGroupID)?.string(forKey: Constants.transactionIDKey)
         NSLog("[Replr][Intent] Calling API: tone=%@, hasContext=%d", tone.rawValue, context != nil ? 1 : 0)
 
-        let recentSummaries = AppGroupService.shared.activeSessionSummaries()
-        let previousContext: String? = recentSummaries.isEmpty ? nil : recentSummaries.joined(separator: "\n")
+        // Fetch memories for the current confirmed contact
+        let previousContext: String?
+        if let contactID = AppGroupService.shared.currentContactID {
+            let summaries = AppGroupService.shared.recentSummaries(forContactID: contactID, limit: 10)
+            previousContext = summaries.isEmpty ? nil : summaries.joined(separator: "\n")
+        } else {
+            previousContext = nil
+        }
 
         do {
             let result = try await ReplyService.shared.generateReplies(
@@ -45,6 +51,24 @@ struct GenerateReplyIntent: AppIntent {
                 transactionId: txID
             )
             NSLog("[Replr][Intent] Got %d replies — saving to App Group", result.replies.count)
+
+            // Resolve or create contact (only on first capture when currentContactID is nil)
+            let resolvedContactID: UUID?
+            let resolvedContactName: String?
+            if let existingID = AppGroupService.shared.currentContactID {
+                resolvedContactID = existingID
+                resolvedContactName = result.contactName
+            } else if let name = result.contactName, !name.isEmpty, name != "Unknown",
+                      !name.hasPrefix("Group:") {
+                let contact = AppGroupService.shared.createContact(displayName: name)
+                AppGroupService.shared.currentContactID = contact.id
+                resolvedContactID = contact.id
+                resolvedContactName = name
+            } else {
+                resolvedContactID = nil
+                resolvedContactName = result.contactName
+            }
+
             let thumbnail = makeThumbnail(image)
             let session = CaptureSession(
                 id: UUID(),
@@ -53,7 +77,9 @@ struct GenerateReplyIntent: AppIntent {
                 contextHint: context,
                 generatedReplies: result.replies,
                 selectedReply: nil,
-                llmSummary: result.summary
+                llmSummary: result.summary,
+                contactID: resolvedContactID,
+                contactName: resolvedContactName
             )
             AppGroupService.shared.appendCaptureSession(session)
             AppGroupService.shared.saveReplies(result.replies)

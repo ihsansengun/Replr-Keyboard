@@ -24,11 +24,13 @@ struct ReplyEmailRequest: Codable {
 struct ReplyResponse: Codable {
     let replies: [String]
     let summary: String?
+    let contactName: String?
 }
 
 struct ReplyResult {
     let replies: [String]
     let summary: String?
+    let contactName: String?
 }
 
 final class ReplyService {
@@ -77,7 +79,7 @@ final class ReplyService {
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
         let decoded = try JSONDecoder().decode(ReplyResponse.self, from: data)
-        return ReplyResult(replies: decoded.replies, summary: decoded.summary)
+        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName)
     }
 
     func generateRepliesFromEmail(
@@ -110,7 +112,7 @@ final class ReplyService {
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
         let decoded = try JSONDecoder().decode(ReplyResponse.self, from: data)
-        return ReplyResult(replies: decoded.replies, summary: decoded.summary)
+        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName)
     }
 
     func generateRepliesFromScroll(
@@ -147,7 +149,7 @@ final class ReplyService {
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
         let decoded = try JSONDecoder().decode(ReplyResponse.self, from: data)
-        return ReplyResult(replies: decoded.replies, summary: decoded.summary)
+        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName)
     }
 }
 
