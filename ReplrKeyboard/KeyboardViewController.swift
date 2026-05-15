@@ -31,6 +31,66 @@ final class KeyboardViewController: UIInputViewController {
             for _ in draft.unicodeScalars { self.textDocumentProxy.deleteBackward() }
         }
 
+        model.onConfirmContact = { [weak self] newName in
+            guard let self else { return }
+            if let id = AppGroupService.shared.currentContactID {
+                var contacts = AppGroupService.shared.loadContacts()
+                if let i = contacts.firstIndex(where: { $0.id == id }) {
+                    contacts[i].displayName = newName
+                    AppGroupService.shared.saveContacts(contacts)
+                }
+            }
+            self.model.contactName = newName
+            withAnimation(.easeInOut(duration: 0.18)) {
+                self.model.state = self.model.currentReplies.isEmpty
+                    ? .idle
+                    : .replies(self.model.currentReplies)
+            }
+        }
+
+        model.onDifferentPerson = { [weak self] currentName in
+            guard let self else { return }
+            let others = AppGroupService.shared.findContacts(named: currentName)
+                .filter { $0.id != AppGroupService.shared.currentContactID }
+            if others.isEmpty {
+                let newContact = AppGroupService.shared.createContact(displayName: currentName)
+                AppGroupService.shared.currentContactID = newContact.id
+                self.model.contactName = currentName
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    self.model.state = self.model.currentReplies.isEmpty
+                        ? .idle
+                        : .replies(self.model.currentReplies)
+                }
+            } else {
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    self.model.state = .disambiguate(name: currentName, candidates: others)
+                }
+            }
+        }
+
+        model.onSelectContact = { [weak self] contact in
+            guard let self else { return }
+            AppGroupService.shared.currentContactID = contact.id
+            self.model.contactName = contact.displayName
+            withAnimation(.easeInOut(duration: 0.18)) {
+                self.model.state = self.model.currentReplies.isEmpty
+                    ? .idle
+                    : .replies(self.model.currentReplies)
+            }
+        }
+
+        model.onCreateNewContact = { [weak self] name in
+            guard let self else { return }
+            let newContact = AppGroupService.shared.createContact(displayName: name)
+            AppGroupService.shared.currentContactID = newContact.id
+            self.model.contactName = name
+            withAnimation(.easeInOut(duration: 0.18)) {
+                self.model.state = self.model.currentReplies.isEmpty
+                    ? .idle
+                    : .replies(self.model.currentReplies)
+            }
+        }
+
         let hostingVC = UIHostingController(rootView: KeyboardRootView(model: model))
         hostingVC.view.backgroundColor = .clear
         hostingVC.view.insetsLayoutMarginsFromSafeArea = false
@@ -51,12 +111,14 @@ final class KeyboardViewController: UIInputViewController {
                 guard let self else { return }
                 let newHeight: CGFloat
                 switch state {
-                case .idle:      newHeight = 280
-                case .collapsed: newHeight = 44
-                case .editReply: newHeight = 280
-                case .loading:   newHeight = 50
-                case .replies:   newHeight = 320
-                default:         newHeight = 220  // error
+                case .idle:          newHeight = 280
+                case .collapsed:     newHeight = 44
+                case .editReply:     newHeight = 280
+                case .editContact:   newHeight = 280
+                case .loading:       newHeight = 50
+                case .replies:       newHeight = 320
+                case .disambiguate:  newHeight = 320
+                default:             newHeight = 220  // error state
                 }
                 if self.heightConstraint.constant != newHeight {
                     self.heightConstraint.constant = newHeight
@@ -68,6 +130,15 @@ final class KeyboardViewController: UIInputViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         model.needsGlobeKey = needsInputModeSwitchKey
+
+        // Resolve contact display name from App Group
+        if let id = AppGroupService.shared.currentContactID,
+           let contact = AppGroupService.shared.loadContacts().first(where: { $0.id == id }) {
+            model.contactName = contact.displayName
+        } else {
+            model.contactName = nil
+        }
+
         if AppGroupService.shared.isGenerating {
             model.state = .loading
         } else if AppGroupService.shared.persistReplies,
