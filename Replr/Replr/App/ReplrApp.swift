@@ -34,6 +34,8 @@ struct ReplrApp: App {
 struct ContentView: View {
     var body: some View {
         TabView {
+            CaptureLogView()
+                .tabItem { Label("Captures", systemImage: "camera.viewfinder") }
             SummariesView()
                 .tabItem { Label("Summaries", systemImage: "bubble.left.and.bubble.right") }
             TonesView()
