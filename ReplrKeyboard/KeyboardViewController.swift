@@ -80,6 +80,7 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         model.onUndoInsert = { [weak self] in self?.undoLastInsert() }
+        model.retryTrigger = { [weak self] in self?.triggerRetry() }
 
         model.onCreateNewContact = { [weak self] name in
             guard let self else { return }
@@ -242,5 +243,11 @@ final class KeyboardViewController: UIInputViewController {
         for _ in text { textDocumentProxy.deleteBackward() }
         model.lastInsertedReply = nil
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+    }
+
+    private func triggerRetry() {
+        capturePollingTask?.cancel()
+        capturePollingTask = nil
+        startCapturePoll()
     }
 }

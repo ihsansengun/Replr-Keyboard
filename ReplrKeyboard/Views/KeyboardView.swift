@@ -47,6 +47,7 @@ final class KeyboardModel: ObservableObject {
     var onSelectContact: ((Contact) -> Void)?
     var onCreateNewContact: ((String) -> Void)?
     var onUndoInsert: (() -> Void)?
+    var retryTrigger: (() -> Void)?
 
     init(initialTone: Tone) {
         self.selectedTone = initialTone
@@ -141,6 +142,10 @@ final class KeyboardModel: ObservableObject {
     func regenerate() {
         AppGroupService.shared.clearCachedReplies()
         withAnimation(.easeInOut(duration: 0.2)) { state = .idle }
+    }
+
+    func retryGeneration() {
+        retryTrigger?()
     }
 }
 
@@ -1048,46 +1053,10 @@ struct ReplrStrip: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Row 1: entire row taps to collapse; "Use as context" captures its own sub-tap
+            // Row 1: smart action bar — adapts to state
             HStack(spacing: 0) {
-                Text(model.pendingContext.isEmpty ? "Screenshot → triple-tap" : model.pendingContext)
-                    .font(.system(size: 12))
-                    .foregroundColor(model.pendingContext.isEmpty ? KBColors.amber.opacity(0.7) : KBColors.textDim)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
+                stripCentreContent
                     .frame(maxWidth: .infinity, alignment: .leading)
-
-                if model.lastInsertedReply != nil {
-                    Button { model.onUndoInsert?() } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.uturn.backward")
-                                .font(.system(size: 9, weight: .medium))
-                            Text("Undo")
-                                .font(.system(size: 10, weight: .medium))
-                        }
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Color(red: 0.961, green: 0.651, blue: 0.137))
-                        .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.trailing, 6)
-                    .transition(.opacity.combined(with: .scale(scale: 0.85)))
-                } else if !model.pendingContext.isEmpty {
-                    Button { model.useAsContext() } label: {
-                        Text("Use as context")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(KBColors.amber)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background(KBColors.amberBg)
-                            .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.trailing, 6)
-                    .transition(.opacity.combined(with: .scale(scale: 0.85)))
-                }
 
                 // Visual affordance only — row tap handles collapse
                 Image(systemName: "chevron.down")
@@ -1099,7 +1068,7 @@ struct ReplrStrip: View {
             .frame(height: 28)
             .contentShape(Rectangle())
             .onTapGesture { model.collapse() }
-            .animation(.easeInOut(duration: 0.15), value: model.pendingContext.isEmpty)
+            .animation(.easeInOut(duration: 0.15), value: model.hasAnySessions)
             .animation(.easeInOut(duration: 0.15), value: model.lastInsertedReply == nil)
 
             KBColors.borderHair.frame(height: 0.5)
@@ -1134,6 +1103,97 @@ struct ReplrStrip: View {
             KBColors.deep
                 .overlay(alignment: .bottom) { KBColors.borderHair.frame(height: 1) }
         )
+    }
+
+    // MARK: - Smart centre content
+
+    @ViewBuilder
+    private var stripCentreContent: some View {
+        // Undo chip takes priority over all other states
+        if model.lastInsertedReply != nil {
+            Button { model.onUndoInsert?() } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.uturn.backward")
+                        .font(.system(size: 9, weight: .medium))
+                    Text("Undo")
+                        .font(.system(size: 10, weight: .medium))
+                }
+                .foregroundColor(.black)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(Color(red: 0.961, green: 0.651, blue: 0.137))
+                .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .transition(.opacity.combined(with: .scale(scale: 0.85)))
+        } else {
+            switch model.state {
+            case .idle where !model.hasAnySessions:
+                // No sessions yet — static hint label
+                Text("Set up triple-tap →")
+                    .font(.system(size: 12))
+                    .foregroundColor(.white.opacity(0.55))
+
+            case .idle:
+                // Has sessions — CTA to collapse and capture
+                Button { model.collapse() } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.down.to.line")
+                            .font(.system(size: 9, weight: .medium))
+                        Text("Capture replies")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 3)
+                    .background(KBColors.amber)
+                    .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .transition(.opacity.combined(with: .scale(scale: 0.85)))
+
+            case .loading:
+                HStack(spacing: 5) {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .scaleEffect(0.65)
+                        .tint(.white.opacity(0.7))
+                    Text("Generating…")
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.7))
+                }
+
+            case .error:
+                HStack(spacing: 6) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 9, weight: .medium))
+                        Text("Failed")
+                            .font(.system(size: 11))
+                    }
+                    .foregroundColor(.white.opacity(0.6))
+
+                    Button { model.retryGeneration() } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.system(size: 9, weight: .medium))
+                            Text("Retry")
+                                .font(.system(size: 10, weight: .medium))
+                        }
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(KBColors.amber)
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+
+            default:
+                // .replies, .editReply, .editContact, .disambiguate, .collapsed — empty
+                Spacer()
+            }
+        }
     }
 }
 
