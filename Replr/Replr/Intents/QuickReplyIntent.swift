@@ -89,7 +89,7 @@ struct QuickReplyIntent: AppIntent {
                 || result.contactName?.hasPrefix("Group:") == true
             if isGroupOrUnknown {
                 resolvedContactID = nil
-                resolvedContactName = result.contactName
+                resolvedContactName = result.contactName?.hasPrefix("Group:") == true ? result.contactName : nil
             } else if let existingID = AppGroupService.shared.currentContactID,
                       let existingContact = AppGroupService.shared.loadContacts()
                           .first(where: { $0.id == existingID }),
