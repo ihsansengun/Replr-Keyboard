@@ -80,7 +80,7 @@ struct QuickReplyIntent: AppIntent {
             )
             NSLog("[Replr][QuickReply] Got %d replies — saving to App Group", result.replies.count)
 
-            // Resolve or create contact
+            // Resolve or create contact — auto-switch if LLM detects a different person
             let resolvedContactID: UUID?
             let resolvedContactName: String?
             let isGroupOrUnknown = result.contactName == nil
@@ -90,13 +90,17 @@ struct QuickReplyIntent: AppIntent {
             if isGroupOrUnknown {
                 resolvedContactID = nil
                 resolvedContactName = result.contactName
-            } else if let existingID = AppGroupService.shared.currentContactID {
-                // Keep existing contact; store canonical display name
-                let canonical = AppGroupService.shared.loadContacts()
-                    .first(where: { $0.id == existingID })?.displayName
+            } else if let existingID = AppGroupService.shared.currentContactID,
+                      let existingContact = AppGroupService.shared.loadContacts()
+                          .first(where: { $0.id == existingID }),
+                      let llmName = result.contactName,
+                      existingContact.displayName.trimmingCharacters(in: .whitespaces).lowercased()
+                          == llmName.trimmingCharacters(in: .whitespaces).lowercased() {
+                // Same contact — reuse canonical display name
                 resolvedContactID = existingID
-                resolvedContactName = canonical ?? result.contactName
+                resolvedContactName = existingContact.displayName
             } else if let name = result.contactName {
+                // Different contact or no existing contact — find or create, switch currentContactID
                 let contact = AppGroupService.shared.findContacts(named: name).first
                     ?? AppGroupService.shared.createContact(displayName: name)
                 AppGroupService.shared.currentContactID = contact.id
