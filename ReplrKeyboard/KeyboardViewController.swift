@@ -195,6 +195,13 @@ final class KeyboardViewController: UIInputViewController {
                     AppGroupService.shared.savePendingContext("")  // context consumed, reset for next use
                     await MainActor.run {
                         self.model.currentReplies = replies
+                        // Refresh contact chip — intent may have switched contact during this capture
+                        if let id = AppGroupService.shared.currentContactID,
+                           let contact = AppGroupService.shared.loadContacts().first(where: { $0.id == id }) {
+                            self.model.contactName = contact.displayName
+                        } else {
+                            self.model.contactName = nil
+                        }
                         withAnimation(.easeInOut(duration: 0.2)) {
                             self.model.state = .replies(replies)
                         }
