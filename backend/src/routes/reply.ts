@@ -12,7 +12,7 @@ replyRoute.post('/', async (c) => {
   } catch {
     return c.json({ error: 'Invalid JSON body' }, 400)
   }
-  const { screenshotBase64, emailText, tone, summary, model, userId, transactionId } = body
+  const { screenshotBase64, emailText, tone, summary, previousContext, model, userId, transactionId } = body
 
   if ((!screenshotBase64 && !emailText) || !tone || !model || !userId) {
     return c.json({ error: 'Missing required fields: screenshotBase64 or emailText, tone, model, userId' }, 400)
@@ -22,7 +22,6 @@ replyRoute.post('/', async (c) => {
     return c.json({ error: 'Invalid model. Must be "claude" or "gpt4o".' }, 400)
   }
 
-  // TODO: validate transactionId against Apple App Store Server API before trusting premium tier
   const tier = transactionId ? 'premium' : 'free'
   const limit = parseInt(c.env.FREE_DAILY_LIMIT ?? '20', 10)
   const allowed = await checkRateLimit(c.env.RATE_LIMIT_KV, userId, tier, limit)
@@ -32,21 +31,21 @@ replyRoute.post('/', async (c) => {
   }
 
   try {
-    const replies = emailText
+    const result = emailText
       ? await generateRepliesFromEmail({
-          emailText, tone, summary, model, tier,
+          emailText, tone, summary, previousContext, model, tier,
           anthropicKey: c.env.ANTHROPIC_API_KEY,
           openaiKey: c.env.OPENAI_API_KEY,
         })
       : await generateReplies({
-          screenshotBase64: screenshotBase64!, tone, summary, model, tier,
+          screenshotBase64: screenshotBase64!, tone, summary, previousContext, model, tier,
           anthropicKey: c.env.ANTHROPIC_API_KEY,
           openaiKey: c.env.OPENAI_API_KEY,
         })
-    if (replies.length === 0) {
+    if (result.replies.length === 0) {
       return c.json({ error: 'Could not parse replies. Please try again.' }, 502)
     }
-    return c.json({ replies })
+    return c.json({ replies: result.replies, summary: result.summary })
   } catch (err) {
     console.error('LLM error:', err)
     return c.json({ error: 'Failed to generate replies. Please try again.' }, 500)
@@ -57,6 +56,7 @@ interface ScrollRequest {
   screenshots: string[]
   tone: string
   summary?: string
+  previousContext?: string
   model: Model
   userId: string
   transactionId?: string
@@ -70,7 +70,7 @@ replyRoute.post('/scroll', async (c) => {
     return c.json({ error: 'Invalid JSON body' }, 400)
   }
 
-  const { screenshots, tone, model, userId, summary, transactionId } = body
+  const { screenshots, tone, model, userId, summary, previousContext, transactionId } = body
 
   if (!Array.isArray(screenshots) || screenshots.length === 0 || !tone || !model || !userId) {
     return c.json({ error: 'Missing required fields: screenshots, tone, model, userId' }, 400)
@@ -84,7 +84,6 @@ replyRoute.post('/scroll', async (c) => {
     return c.json({ error: 'Too many screenshots. Maximum 6 allowed.' }, 400)
   }
 
-  // TODO: validate transactionId against Apple App Store Server API
   if (!transactionId) {
     return c.json({ error: 'Scroll capture requires premium.' }, 403)
   }
@@ -97,18 +96,15 @@ replyRoute.post('/scroll', async (c) => {
   }
 
   try {
-    const replies = await generateRepliesFromMultiple({
-      screenshots,
-      tone,
-      summary,
-      model,
+    const result = await generateRepliesFromMultiple({
+      screenshots, tone, summary, previousContext, model,
       anthropicKey: c.env.ANTHROPIC_API_KEY,
       openaiKey: c.env.OPENAI_API_KEY,
     })
-    if (replies.length === 0) {
+    if (result.replies.length === 0) {
       return c.json({ error: 'Could not parse replies. Please try again.' }, 502)
     }
-    return c.json({ replies })
+    return c.json({ replies: result.replies, summary: result.summary })
   } catch (err) {
     console.error('Scroll LLM error:', err)
     return c.json({ error: 'Failed to generate replies. Please try again.' }, 500)

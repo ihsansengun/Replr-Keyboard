@@ -37,7 +37,7 @@ const validBody = {
 describe('POST /reply', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGenerateReplies.mockResolvedValue(['Reply 1', 'Reply 2', 'Reply 3'])
+    mockGenerateReplies.mockResolvedValue({ replies: ['Reply 1', 'Reply 2', 'Reply 3'], summary: 'Test summary' })
     mockCheckRateLimit.mockResolvedValue(true)
   })
 

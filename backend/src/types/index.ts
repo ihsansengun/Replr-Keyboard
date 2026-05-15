@@ -13,6 +13,7 @@ export interface ReplyRequest {
   emailText?: string
   tone: string
   summary?: string
+  previousContext?: string   // accumulated conversation summaries from prior sessions
   model: Model
   userId: string
   transactionId?: string
@@ -20,4 +21,5 @@ export interface ReplyRequest {
 
 export interface ReplyResponse {
   replies: string[]
+  summary: string            // one-line LLM-extracted summary of this session
 }
