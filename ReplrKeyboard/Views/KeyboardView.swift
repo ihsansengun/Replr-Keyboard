@@ -895,6 +895,7 @@ struct ReplyCarousel: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(height: 120)
                 .padding(.trailing, 8)
                 .padding(.bottom, 6)
             }
