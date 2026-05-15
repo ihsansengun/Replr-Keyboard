@@ -1,127 +1,171 @@
-import SwiftUI
-import CloudKit
 import Combine
+import SwiftUI
 
-final class SummariesViewModel: ObservableObject {
-    @Published var summaries: [ConversationSummary] = []
+// MARK: - View Model
 
-    private let key = "summaries"
-    private let defaults = UserDefaults(suiteName: Constants.appGroupID)
+struct ContactMemoryEntry: Identifiable {
+    let contact: Contact
+    let sessionCount: Int
+    let lastSummary: String?
+    let thumbnail: UIImage?
+
+    var id: UUID { contact.id }
+}
+
+final class ContactMemoryViewModel: ObservableObject {
+    @Published var entries: [ContactMemoryEntry] = []
 
     func load() {
-        guard
-            let data = defaults?.data(forKey: key),
-            let decoded = try? JSONDecoder().decode([ConversationSummary].self, from: data)
-        else { return }
-        summaries = decoded
-    }
-
-    func save() {
-        guard let data = try? JSONEncoder().encode(summaries) else { return }
-        defaults?.set(data, forKey: key)
-    }
-
-    func add(_ summary: ConversationSummary) {
-        summaries.append(summary)
-        save()
-    }
-
-    func update(_ summary: ConversationSummary) {
-        if let idx = summaries.firstIndex(where: { $0.id == summary.id }) {
-            summaries[idx] = summary
-            save()
+        let contacts = AppGroupService.shared.loadContacts()
+        entries = contacts.compactMap { contact in
+            let sessions = AppGroupService.shared.sessions(forContactID: contact.id)
+            let summaries = sessions.compactMap(\.llmSummary)
+            guard !summaries.isEmpty else { return nil }
+            let thumbnail = sessions.last?.thumbnailData.flatMap { UIImage(data: $0) }
+            return ContactMemoryEntry(
+                contact: contact,
+                sessionCount: sessions.count,
+                lastSummary: summaries.last,
+                thumbnail: thumbnail
+            )
         }
     }
 
-    func delete(at offsets: IndexSet) {
-        summaries.remove(atOffsets: offsets)
-        save()
+    func clearMemory(for contact: Contact) {
+        AppGroupService.shared.clearMemory(forContactID: contact.id)
+        load()
     }
 }
 
+// MARK: - Main View
+
 struct SummariesView: View {
-    @StateObject private var vm = SummariesViewModel()
-    @State private var showingAdd = false
+    @StateObject private var vm = ContactMemoryViewModel()
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(vm.summaries) { summary in
-                    NavigationLink(destination: SummaryDetailView(summary: summary, onSave: vm.update)) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(summary.personName).font(.headline)
-                            Text(summary.platform).font(.caption).foregroundStyle(.secondary)
+            Group {
+                if vm.entries.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "brain")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.secondary)
+                        Text("No memory yet")
+                            .font(.headline)
+                        Text("Replr builds a memory of each contact as you generate replies.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                } else {
+                    List {
+                        ForEach(vm.entries) { entry in
+                            NavigationLink(destination: ContactMemoryDetailView(
+                                contact: entry.contact,
+                                onClearMemory: { vm.clearMemory(for: entry.contact) }
+                            )) {
+                                ContactMemoryRow(entry: entry)
+                            }
                         }
                     }
                 }
-                .onDelete(perform: vm.delete)
             }
-            .navigationTitle("Summaries")
-            .toolbar {
-                Button { showingAdd = true } label: { Image(systemName: "plus") }
-            }
-            .sheet(isPresented: $showingAdd) {
-                AddSummaryView(onAdd: { vm.add($0); showingAdd = false })
-            }
-            .onAppear {
-                vm.load()
-                if SubscriptionManager.shared.isPremium {
-                    vm.syncToiCloud()
-                }
-            }
+            .navigationTitle("Memory")
         }
+        .onAppear { vm.load() }
     }
 }
 
-extension SummariesViewModel {
-    func syncToiCloud() {
-        guard !summaries.isEmpty else { return }
-        let container = CKContainer.default()
-        let db = container.privateCloudDatabase
+// MARK: - Row
 
-        for summary in summaries {
-            let record = CKRecord(recordType: "ConversationSummary",
-                recordID: CKRecord.ID(recordName: summary.id.uuidString))
-            record["personName"] = summary.personName
-            record["platform"] = summary.platform
-            record["notes"] = summary.notes
-            record["updatedAt"] = summary.updatedAt
-
-            db.save(record) { _, error in
-                if let error { print("iCloud sync error:", error) }
-            }
-        }
-    }
-}
-
-struct AddSummaryView: View {
-    var onAdd: (ConversationSummary) -> Void
-    @State private var name = ""
-    @State private var platform = "iMessage"
-    @State private var notes = ""
-    @Environment(\.dismiss) private var dismiss
-
-    let platforms = ["iMessage", "WhatsApp", "Tinder", "Hinge", "Gmail", "Instagram"]
+struct ContactMemoryRow: View {
+    let entry: ContactMemoryEntry
 
     var body: some View {
-        NavigationStack {
-            Form {
-                TextField("Name", text: $name)
-                Picker("Platform", selection: $platform) {
-                    ForEach(platforms, id: \.self) { Text($0) }
+        HStack(spacing: 12) {
+            if let img = entry.thumbnail {
+                Image(uiImage: img)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 44, height: 44)
+                    .clipShape(Circle())
+            } else {
+                Circle()
+                    .fill(Color.secondary.opacity(0.15))
+                    .frame(width: 44, height: 44)
+                    .overlay(
+                        Text(String(entry.contact.displayName.prefix(1)).uppercased())
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    )
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(entry.contact.displayName)
+                        .font(.headline)
+                    Spacer()
+                    Text("\(entry.sessionCount) capture\(entry.sessionCount == 1 ? "" : "s")")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-                Section("Notes") {
-                    TextEditor(text: $notes).frame(minHeight: 80)
+                if let summary = entry.lastSummary {
+                    Text(summary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
                 }
             }
-            .navigationTitle("New Summary")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Add") {
-                        onAdd(ConversationSummary(id: UUID(), personName: name, platform: platform, notes: notes, updatedAt: .now))
-                    }.disabled(name.isEmpty)
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Detail View
+
+struct ContactMemoryDetailView: View {
+    let contact: Contact
+    var onClearMemory: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var showClearConfirm = false
+
+    private var sessions: [CaptureSession] {
+        AppGroupService.shared.sessions(forContactID: contact.id)
+            .filter { $0.llmSummary != nil }
+            .reversed()
+    }
+
+    var body: some View {
+        List {
+            ForEach(sessions) { session in
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(session.timestamp, style: .relative)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    if let summary = session.llmSummary {
+                        Text(summary)
+                            .font(.subheadline)
+                    }
                 }
+                .padding(.vertical, 4)
+            }
+        }
+        .navigationTitle(contact.displayName)
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            Button(role: .destructive) { showClearConfirm = true } label: {
+                Text("Clear Memory")
+            }
+        }
+        .confirmationDialog(
+            "Clear all memory for \(contact.displayName)?",
+            isPresented: $showClearConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Clear Memory", role: .destructive) {
+                onClearMemory()
+                dismiss()
             }
         }
     }
