@@ -88,7 +88,8 @@ struct QuickReplyIntent: AppIntent {
                 resolvedContactName = result.contactName
             } else if let name = result.contactName, !name.isEmpty, name != "Unknown",
                       !name.hasPrefix("Group:") {
-                let contact = AppGroupService.shared.createContact(displayName: name)
+                let existing = AppGroupService.shared.findContacts(named: name)
+                let contact = existing.first ?? AppGroupService.shared.createContact(displayName: name)
                 AppGroupService.shared.currentContactID = contact.id
                 resolvedContactID = contact.id
                 resolvedContactName = name
