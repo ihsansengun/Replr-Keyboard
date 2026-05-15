@@ -235,6 +235,87 @@ final class AppGroupService {
             else { try? FileManager.default.removeItem(at: url) }
         }
     }
+
+    // MARK: - Contacts
+
+    private static let maxContacts = 200
+
+    func saveContacts(_ contacts: [Contact]) {
+        guard let data = try? JSONEncoder().encode(contacts) else { return }
+        defaults.set(data, forKey: Constants.contactsKey)
+        defaults.synchronize()
+    }
+
+    func loadContacts() -> [Contact] {
+        defaults.synchronize()
+        guard let data = defaults.data(forKey: Constants.contactsKey),
+              let contacts = try? JSONDecoder().decode([Contact].self, from: data)
+        else { return [] }
+        return contacts
+    }
+
+    @discardableResult
+    func createContact(displayName: String) -> Contact {
+        var contacts = loadContacts()
+        let contact = Contact(id: UUID(), displayName: displayName)
+        contacts.append(contact)
+        if contacts.count > Self.maxContacts {
+            contacts.removeFirst(contacts.count - Self.maxContacts)
+        }
+        saveContacts(contacts)
+        return contact
+    }
+
+    func updateContact(_ contact: Contact) {
+        var contacts = loadContacts()
+        if let i = contacts.firstIndex(where: { $0.id == contact.id }) {
+            contacts[i] = contact
+            saveContacts(contacts)
+        }
+    }
+
+    func findContacts(named name: String) -> [Contact] {
+        let needle = name.trimmingCharacters(in: .whitespaces).lowercased()
+        return loadContacts().filter {
+            $0.displayName.trimmingCharacters(in: .whitespaces).lowercased() == needle
+        }
+    }
+
+    var currentContactID: UUID? {
+        get {
+            defaults.synchronize()
+            guard let str = defaults.string(forKey: Constants.currentContactIDKey) else { return nil }
+            return UUID(uuidString: str)
+        }
+        set {
+            if let id = newValue {
+                defaults.set(id.uuidString, forKey: Constants.currentContactIDKey)
+            } else {
+                defaults.removeObject(forKey: Constants.currentContactIDKey)
+            }
+            defaults.synchronize()
+        }
+    }
+
+    func recentSummaries(forContactID id: UUID, limit: Int) -> [String] {
+        let all = loadCaptureSessions()
+            .filter { $0.contactID == id }
+            .compactMap { $0.llmSummary }
+        let start = max(0, all.count - limit)
+        return Array(all[start...])
+    }
+
+    func sessions(forContactID id: UUID) -> [CaptureSession] {
+        loadCaptureSessions().filter { $0.contactID == id }
+    }
+
+    func clearMemory(forContactID id: UUID) {
+        var all = loadCaptureSessions()
+        for i in all.indices where all[i].contactID == id {
+            all[i].llmSummary = nil
+        }
+        saveCaptureSessions(all)
+    }
 }
 
 enum AppGroupError: Error {

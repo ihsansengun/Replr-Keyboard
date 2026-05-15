@@ -16,6 +16,8 @@ enum Constants {
     static let cachedRepliesKey       = "cached_replies"
     static let isGeneratingKey        = "is_generating"
     static let captureSessionsKey     = "capture_sessions"
+    static let contactsKey            = "contacts"
+    static let currentContactIDKey    = "current_contact_id"
 
     // File-based keys (broadcast/scroll capture only)
     static let screenshotFilename     = "screenshot.png"

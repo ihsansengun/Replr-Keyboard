@@ -12,6 +12,10 @@
 		B6C4868C80B147D5B844BA70 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
 		543F9DDB49F94FF79619573B /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
 		86D9D25E85BA4CEB8F652700 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
+		EDDF87B5A9DC4E6582E13968 /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */; };
+		485BF568190040E6894A4AEC /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */; };
+		BA77ACE356C940B2ACEF3AD8 /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */; };
+		1F38788925D348DB949BC2ED /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */; };
 		57BB31B82FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
 		57BB31B92FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
 		57BB31BA2FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
@@ -122,6 +126,7 @@
 		57CF47C82FB3895F0034657F /* SubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionView.swift; sourceTree = "<group>"; };
 		57CF47CA2FB38B860034657F /* ConversationSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationSummary.swift; sourceTree = "<group>"; };
 		901023AA25EF4F65B91E4A72 /* CaptureSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSession.swift; sourceTree = "<group>"; };
+		7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contact.swift; sourceTree = "<group>"; };
 		57CF47CB2FB38B860034657F /* Tone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tone.swift; sourceTree = "<group>"; };
 		57CF47CD2FB38B860034657F /* AppGroupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupService.swift; sourceTree = "<group>"; };
 		57CF47CE2FB38B860034657F /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -372,6 +377,7 @@
 				57CF47CA2FB38B860034657F /* ConversationSummary.swift */,
 				57CF47CB2FB38B860034657F /* Tone.swift */,
 				901023AA25EF4F65B91E4A72 /* CaptureSession.swift */,
+				7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -676,6 +682,7 @@
 				57CF47D22FB38B860034657F /* ConversationSummary.swift in Sources */,
 				57CF47D32FB38B860034657F /* Tone.swift in Sources */,
 				9716598EFAAC4EDEB2269AA3 /* CaptureSession.swift in Sources */,
+				EDDF87B5A9DC4E6582E13968 /* Contact.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -712,6 +719,7 @@
 				57CF48062FB390BF0034657F /* AppGroupService.swift in Sources */,
 				57CF48072FB390BF0034657F /* Constants.swift in Sources */,
 				B6C4868C80B147D5B844BA70 /* CaptureSession.swift in Sources */,
+				485BF568190040E6894A4AEC /* Contact.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -725,6 +733,7 @@
 				57CF48372FB394B40034657F /* AppGroupService.swift in Sources */,
 				57CF48382FB394B40034657F /* Constants.swift in Sources */,
 				543F9DDB49F94FF79619573B /* CaptureSession.swift in Sources */,
+				BA77ACE356C940B2ACEF3AD8 /* Contact.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -738,6 +747,7 @@
 				57CF48302FB3913E0034657F /* AppGroupService.swift in Sources */,
 				57CF48312FB3913E0034657F /* Constants.swift in Sources */,
 				86D9D25E85BA4CEB8F652700 /* CaptureSession.swift in Sources */,
+				1F38788925D348DB949BC2ED /* Contact.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
