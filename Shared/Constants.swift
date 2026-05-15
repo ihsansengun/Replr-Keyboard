@@ -18,6 +18,8 @@ enum Constants {
     static let captureSessionsKey     = "capture_sessions"
     static let contactsKey            = "contacts"
     static let currentContactIDKey    = "current_contact_id"
+    static let memoryWindowDaysKey    = "memory_window_days"   // Int, 0 = all time
+    static let memoryDepthKey         = "memory_depth"         // Int, default 10, max 20
 
     // File-based keys (broadcast/scroll capture only)
     static let screenshotFilename     = "screenshot.png"

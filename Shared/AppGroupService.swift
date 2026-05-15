@@ -297,9 +297,30 @@ final class AppGroupService {
         }
     }
 
+    // MARK: - Memory settings
+
+    /// 0 means all time; any positive value is a day count.
+    var memoryWindowDays: Int {
+        get { defaults.integer(forKey: Constants.memoryWindowDaysKey) } // 0 if unset = all time
+        set { defaults.set(newValue, forKey: Constants.memoryWindowDaysKey); defaults.synchronize() }
+    }
+
+    /// Hard max is 20; default is 10 when unset.
+    var memoryDepth: Int {
+        get {
+            let v = defaults.integer(forKey: Constants.memoryDepthKey)
+            return v > 0 ? min(v, 20) : 10
+        }
+        set { defaults.set(min(newValue, 20), forKey: Constants.memoryDepthKey); defaults.synchronize() }
+    }
+
     func recentSummaries(forContactID id: UUID, limit: Int) -> [String] {
+        let cutoff: Date? = memoryWindowDays > 0
+            ? Calendar.current.date(byAdding: .day, value: -memoryWindowDays, to: Date())
+            : nil
         let all = loadCaptureSessions()
             .filter { $0.contactID == id }
+            .filter { cutoff == nil || $0.timestamp >= cutoff! }
             .compactMap { $0.llmSummary }
         let start = max(0, all.count - limit)
         return Array(all[start...])

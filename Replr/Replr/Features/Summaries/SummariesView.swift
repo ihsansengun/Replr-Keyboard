@@ -81,34 +81,44 @@ struct SummariesView: View {
 
 struct ContactMemoryRow: View {
     let entry: ContactMemoryEntry
+    private static let amber = Color(red: 0.961, green: 0.651, blue: 0.137)
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
+            // Avatar
             if let img = entry.thumbnail {
                 Image(uiImage: img)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 44, height: 44)
+                    .frame(width: 48, height: 48)
                     .clipShape(Circle())
             } else {
                 Circle()
-                    .fill(Color.secondary.opacity(0.15))
-                    .frame(width: 44, height: 44)
+                    .fill(LinearGradient(
+                        colors: [Self.amber.opacity(0.28), Self.amber.opacity(0.10)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 48, height: 48)
                     .overlay(
                         Text(String(entry.contact.displayName.prefix(1)).uppercased())
-                            .font(.system(size: 17, weight: .medium))
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(Self.amber)
                     )
             }
 
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(alignment: .center) {
                     Text(entry.contact.displayName)
                         .font(.headline)
+                        .lineLimit(1)
                     Spacer()
-                    Text("\(entry.sessionCount) capture\(entry.sessionCount == 1 ? "" : "s")")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Text("\(entry.sessionCount)")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Self.amber)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Self.amber.opacity(0.14))
+                        .clipShape(Capsule())
                 }
                 if let summary = entry.lastSummary {
                     Text(summary)
@@ -140,7 +150,7 @@ struct ContactMemoryDetailView: View {
         List {
             ForEach(sessions) { session in
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(session.timestamp, style: .relative)
+                    Text(formattedTimestamp(session.timestamp))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     if let summary = session.llmSummary {
@@ -167,6 +177,18 @@ struct ContactMemoryDetailView: View {
                 onClearMemory()
                 dismiss()
             }
+        }
+    }
+
+    private func formattedTimestamp(_ date: Date) -> String {
+        let cal = Calendar.current
+        let time = date.formatted(.dateTime.hour().minute())
+        if cal.isDateInToday(date) {
+            return "Today · \(time)"
+        } else if cal.isDateInYesterday(date) {
+            return "Yesterday · \(time)"
+        } else {
+            return date.formatted(.dateTime.month(.abbreviated).day().hour().minute())
         }
     }
 }

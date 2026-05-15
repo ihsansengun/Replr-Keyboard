@@ -178,10 +178,10 @@ struct KeyboardRootView: View {
                     if let name = model.contactName {
                         Button { model.enterEditContact(name) } label: {
                             HStack(spacing: 5) {
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 9, weight: .medium))
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 9))
                                 Text(name)
-                                    .font(.system(size: 11))
+                                    .font(.system(size: 12))
                                     .lineLimit(1)
                                 Image(systemName: "pencil")
                                     .font(.system(size: 9))
@@ -408,6 +408,9 @@ struct EditContactView: View {
                                      ? Color(UIColor.placeholderText)
                                      : Color(UIColor.label))
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .overlay(alignment: .bottom) {
+                        KBColors.amber.opacity(0.5).frame(height: 1)
+                    }
 
                 Button("Done") { model.confirmInput() }
                     .font(.system(size: 13, weight: .semibold))
@@ -877,7 +880,6 @@ struct ReplyCarousel: View {
                     ForEach(Array(replies.enumerated()), id: \.offset) { index, reply in
                         ReplyCard(
                             text: reply,
-                            showSwipeHint: index < replies.count - 1,
                             onTap: { onSelect(reply) },
                             onEdit: { onEdit(reply) }
                         )
@@ -915,7 +917,6 @@ struct PageDots: View {
 
 struct ReplyCard: View {
     let text: String
-    let showSwipeHint: Bool
     let onTap: () -> Void
     let onEdit: () -> Void
 
@@ -937,11 +938,6 @@ struct ReplyCard: View {
             .buttonStyle(ReplyCardButtonStyle())
 
             HStack(spacing: 0) {
-                if showSwipeHint {
-                    Text("← swipe")
-                        .font(.system(size: 10))
-                        .foregroundColor(KBColors.textGhost)
-                }
                 Spacer()
                 Button(action: onEdit) {
                     HStack(spacing: 3) {

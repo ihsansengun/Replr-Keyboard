@@ -63,7 +63,7 @@ struct QuickReplyIntent: AppIntent {
         // Fetch memories for the current confirmed contact
         let previousContext: String?
         if let contactID = AppGroupService.shared.currentContactID {
-            let summaries = AppGroupService.shared.recentSummaries(forContactID: contactID, limit: 10)
+            let summaries = AppGroupService.shared.recentSummaries(forContactID: contactID, limit: AppGroupService.shared.memoryDepth)
             previousContext = summaries.isEmpty ? nil : summaries.joined(separator: "\n")
         } else {
             previousContext = nil

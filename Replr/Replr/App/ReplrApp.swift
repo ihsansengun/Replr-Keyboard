@@ -43,6 +43,7 @@ struct ContentView: View {
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape") }
         }
+        .tint(Color(red: 0.961, green: 0.651, blue: 0.137))
         .task {
             let txID = await SubscriptionManager.shared.currentTransactionID()
             UserDefaults(suiteName: Constants.appGroupID)?.set(txID, forKey: "transaction_id")
