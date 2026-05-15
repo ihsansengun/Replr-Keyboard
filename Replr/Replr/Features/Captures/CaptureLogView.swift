@@ -5,10 +5,7 @@ final class CaptureLogViewModel: ObservableObject {
     @Published var sessions: [CaptureSession] = []
     @Published var selectedContactID: UUID? = nil  // nil = "All"
 
-    var allContacts: [Contact] {
-        let ids = Set(sessions.compactMap(\.contactID))
-        return AppGroupService.shared.loadContacts().filter { ids.contains($0.id) }
-    }
+    @Published var allContacts: [Contact] = []
 
     var filteredSessions: [CaptureSession] {
         guard let id = selectedContactID else { return sessions }
@@ -17,6 +14,12 @@ final class CaptureLogViewModel: ObservableObject {
 
     func load() {
         sessions = AppGroupService.shared.loadCaptureSessions().reversed()
+        let ids = Set(sessions.compactMap(\.contactID))
+        allContacts = AppGroupService.shared.loadContacts().filter { ids.contains($0.id) }
+        // Reset stale filter if selected contact no longer has sessions
+        if let sel = selectedContactID, !ids.contains(sel) {
+            selectedContactID = nil
+        }
     }
 
     func clearAll() {
