@@ -11,7 +11,7 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        heightConstraint = view.heightAnchor.constraint(equalToConstant: 256)
+        heightConstraint = view.heightAnchor.constraint(equalToConstant: 280)
         heightConstraint.priority = UILayoutPriority(999)
         heightConstraint.isActive = true
 
@@ -24,6 +24,12 @@ final class KeyboardViewController: UIInputViewController {
         model.onDeleteChar = { [weak self] in self?.textDocumentProxy.deleteBackward() }
         model.onSpaceChar  = { [weak self] in self?.textDocumentProxy.insertText(" ") }
         model.onReturnChar = { [weak self] in self?.textDocumentProxy.insertText("\n") }
+        model.onUseAsContext = { [weak self] in
+            guard let self else { return }
+            AppGroupService.shared.savePendingContext(self.model.pendingContext)
+            let draft = self.textDocumentProxy.documentContextBeforeInput ?? ""
+            for _ in draft.unicodeScalars { self.textDocumentProxy.deleteBackward() }
+        }
 
         let hostingVC = UIHostingController(rootView: KeyboardRootView(model: model))
         hostingVC.view.backgroundColor = .clear
@@ -45,10 +51,12 @@ final class KeyboardViewController: UIInputViewController {
                 guard let self else { return }
                 let newHeight: CGFloat
                 switch state {
-                case .idle:              newHeight = 256
-                case .editReply:         newHeight = 256
-                case .loading, .replies: newHeight = 320
-                default:                 newHeight = 220  // error
+                case .idle:      newHeight = 280
+                case .collapsed: newHeight = 44
+                case .editReply: newHeight = 280
+                case .loading:   newHeight = 50
+                case .replies:   newHeight = 320
+                default:         newHeight = 220  // error
                 }
                 if self.heightConstraint.constant != newHeight {
                     self.heightConstraint.constant = newHeight
@@ -60,21 +68,31 @@ final class KeyboardViewController: UIInputViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         model.needsGlobeKey = needsInputModeSwitchKey
-        let draft = textDocumentProxy.documentContextBeforeInput ?? ""
-        model.pendingContext = draft
-        AppGroupService.shared.savePendingContext(draft)
-        if AppGroupService.shared.persistReplies,
-           let cached = AppGroupService.shared.readCachedReplies() {
+        if AppGroupService.shared.isGenerating {
+            model.state = .loading
+        } else if AppGroupService.shared.persistReplies,
+                  let cached = AppGroupService.shared.readCachedReplies() {
             model.currentReplies = cached
             model.state = .replies(cached)
         }
         startCapturePoll()
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // documentContextBeforeInput is unreliable until the proxy fully connects;
+        // a short delay ensures we read the actual pre-existing draft text.
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 80_000_000) // 0.08 s
+            guard let self else { return }
+            let draft = self.textDocumentProxy.documentContextBeforeInput ?? ""
+            self.model.pendingContext = draft
+        }
+    }
+
     override func textDidChange(_ textInput: UITextInput?) {
         let draft = textDocumentProxy.documentContextBeforeInput ?? ""
-        model.pendingContext = draft
-        AppGroupService.shared.savePendingContext(draft)
+        model.pendingContext = draft   // display only — not saved to App Group
     }
 
     override func viewWillLayoutSubviews() {
@@ -95,8 +113,15 @@ final class KeyboardViewController: UIInputViewController {
         capturePollingTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
-                if let replies = AppGroupService.shared.consumeReplies() {
+                if AppGroupService.shared.isGenerating {
+                    await MainActor.run {
+                        if self.model.state != .loading {
+                            withAnimation(.easeInOut(duration: 0.2)) { self.model.state = .loading }
+                        }
+                    }
+                } else if let replies = AppGroupService.shared.consumeReplies() {
                     NSLog("[Replr][Keyboard] poll: %d replies", replies.count)
+                    AppGroupService.shared.savePendingContext("")  // context consumed, reset for next use
                     await MainActor.run {
                         self.model.currentReplies = replies
                         withAnimation(.easeInOut(duration: 0.2)) {
@@ -117,7 +142,12 @@ final class KeyboardViewController: UIInputViewController {
     // MARK: - Insert reply then hand back to previous keyboard
 
     private func insert(_ text: String) {
+        let ctx = textDocumentProxy.documentContextBeforeInput ?? ""
+        for _ in ctx.unicodeScalars { textDocumentProxy.deleteBackward() }
         textDocumentProxy.insertText(text)
+        model.pendingContext = ""
+        AppGroupService.shared.savePendingContext("")
+        AppGroupService.shared.markLastSessionReplySelected(text)
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 }
