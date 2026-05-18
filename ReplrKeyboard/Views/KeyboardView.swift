@@ -1446,8 +1446,21 @@ struct ReplrStrip: View {
                     .buttonStyle(.plain)
                 }
 
+            case .replies:
+                Button { model.regenerate() } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 10, weight: .medium))
+                        Text("Regenerate")
+                            .font(.system(size: 10, weight: .medium))
+                    }
+                    .foregroundColor(KBColors.textDim)
+                }
+                .buttonStyle(.plain)
+                .transition(.opacity.combined(with: .scale(scale: 0.85)))
+
             default:
-                // .replies, .editReply, .editContact, .disambiguate, .collapsed — empty
+                // .editReply, .editContact, .disambiguate, .collapsed — empty
                 Spacer()
             }
         }
