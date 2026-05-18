@@ -322,7 +322,7 @@ struct KBColors {
             fn:      Color(white: 0.93),
             text:    Color(white: 0.06),                           // near-black label
             subtext: Color(white: 0.06).opacity(0.60),
-            shadow:  Color.black.opacity(0.25),
+            shadow:  Color.white.opacity(0.22),                    // white rim visible on dark bg
             bg:      Color(white: 0.067)                           // #111111 — same as background
           )
         : KBColors(
