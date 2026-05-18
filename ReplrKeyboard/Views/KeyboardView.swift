@@ -53,6 +53,7 @@ final class KeyboardModel: ObservableObject {
     var onCreateNewContact: ((String) -> Void)?
     var onUndoInsert: (() -> Void)?
     var retryTrigger: (() -> Void)?
+    var readTextProxy: (() -> String?)?   // reads documentContextBeforeInput from VC
 
     init(initialTone: Tone) {
         self.selectedTone = initialTone
@@ -137,9 +138,18 @@ final class KeyboardModel: ObservableObject {
         withAnimation(.easeInOut(duration: 0.18)) { state = .editContact(name) }
     }
 
-    func enterEditIntent() {
-        inputText = intentHint ?? ""; isShifted = false; kbMode = .alpha
-        withAnimation(.easeInOut(duration: 0.18)) { state = .editIntent }
+    func captureIntent() {
+        // Reads whatever the user typed in the host app's text field and saves it as intent
+        guard let raw = readTextProxy?(),
+              !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        intentHint = trimmed
+        AppGroupService.shared.saveIntentHint(trimmed)
+    }
+
+    func clearIntent() {
+        AppGroupService.shared.saveIntentHint(nil)
+        intentHint = nil
     }
 
     func generateEmailReply() {
@@ -295,7 +305,8 @@ struct KeyboardRootView: View {
                 }
                 .transition(.opacity)
             case .editIntent:
-                EditIntentView(model: model).transition(.opacity)
+                // Unreachable — intent capture now reads from text proxy
+                IdleWithKeyboard(model: model).transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.2), value: stateTag)
@@ -1186,7 +1197,7 @@ struct ReplrStrip: View {
 
     private var canSwitchMode: Bool {
         switch model.state {
-        case .idle, .loading, .error: return true
+        case .idle, .loading, .error, .replies: return true
         default: return false
         }
     }
@@ -1196,7 +1207,10 @@ struct ReplrStrip: View {
             // Mode row: Chat / Email tabs + collapse chevron
             HStack(spacing: 0) {
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) { model.inputMode = .chat }
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        if case .replies = model.state { model.regenerate() }
+                        model.inputMode = .chat
+                    }
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "message")
@@ -1215,6 +1229,7 @@ struct ReplrStrip: View {
 
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
+                        if case .replies = model.state { model.regenerate() }
                         if model.selectedTone.name == "Dating" {
                             model.selectedTone = model.tones.first { $0.name != "Dating" } ?? model.selectedTone
                         }
@@ -1404,36 +1419,44 @@ struct ReplrStrip: View {
 
     @ViewBuilder
     private var intentChip: some View {
-        Button { model.enterEditIntent() } label: {
-            Group {
-                if let hint = model.intentHint {
-                    HStack(spacing: 3) {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 8, weight: .bold))
-                        Text(hint)
-                            .font(.system(size: 10, weight: .medium))
-                            .lineLimit(1)
-                    }
-                    .foregroundColor(KBColors.accentFg)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 3)
-                    .background(KBColors.accent)
-                    .clipShape(Capsule())
-                } else {
-                    Text("+ intent")
+        if let hint = model.intentHint {
+            // Filled — tap to clear
+            Button { model.clearIntent() } label: {
+                HStack(spacing: 3) {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 8, weight: .bold))
+                    Text(hint)
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(KBColors.textDim)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 3)
-                        .overlay(
-                            Capsule()
-                                .stroke(KBColors.textDim.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [3]))
-                        )
+                        .lineLimit(1)
                 }
+                .foregroundColor(KBColors.accentFg)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 3)
+                .background(KBColors.accent)
+                .clipShape(Capsule())
             }
-            .animation(.easeInOut(duration: 0.15), value: model.intentHint)
+            .buttonStyle(.plain)
+            .transition(.opacity.combined(with: .scale(scale: 0.85)))
+        } else {
+            // Empty — tap to capture whatever is in the text field
+            Button { model.captureIntent() } label: {
+                HStack(spacing: 3) {
+                    Image(systemName: "arrow.up.square")
+                        .font(.system(size: 9, weight: .medium))
+                    Text("intent")
+                        .font(.system(size: 10, weight: .medium))
+                }
+                .foregroundColor(KBColors.textDim)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 3)
+                .overlay(
+                    Capsule()
+                        .stroke(KBColors.textDim.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [3]))
+                )
+            }
+            .buttonStyle(.plain)
+            .transition(.opacity.combined(with: .scale(scale: 0.85)))
         }
-        .buttonStyle(.plain)
     }
 }
 

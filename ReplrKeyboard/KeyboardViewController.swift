@@ -82,6 +82,7 @@ final class KeyboardViewController: UIInputViewController {
 
         model.onUndoInsert = { [weak self] in self?.undoLastInsert() }
         model.retryTrigger = { [weak self] in self?.triggerRetry() }
+        model.readTextProxy = { [weak self] in self?.textDocumentProxy.documentContextBeforeInput }
 
         model.onCreateNewContact = { [weak self] name in
             guard let self else { return }
