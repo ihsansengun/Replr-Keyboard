@@ -1172,7 +1172,57 @@ struct ReplrStrip: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Row 1: full-width CTA when idle with sessions; normal strip otherwise
+            // Mode row: Chat / Email tabs + collapse chevron
+            HStack(spacing: 0) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) { model.inputMode = .chat }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "message")
+                            .font(.system(size: 10, weight: .medium))
+                        Text("Chat")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundColor(model.inputMode == .chat ? KBColors.accentFg : KBColors.textDim)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(model.inputMode == .chat ? KBColors.accent : Color.clear)
+                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) { model.inputMode = .email }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "envelope")
+                            .font(.system(size: 10, weight: .medium))
+                        Text("Email")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundColor(model.inputMode == .email ? KBColors.accentFg : KBColors.textDim)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(model.inputMode == .email ? KBColors.accent : Color.clear)
+                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(KBColors.textDim)
+                    .frame(width: 36, height: 28)
+            }
+            .padding(.leading, 8)
+            .frame(height: 28)
+            .contentShape(Rectangle())
+            .onTapGesture { model.collapse() }
+
+            KBColors.borderHair.frame(height: 0.5)
+
+            // Action bar: capture CTA / loading / error / undo
             Group {
                 if isCaptureIdleState {
                     Button { model.collapse() } label: {
@@ -1192,15 +1242,9 @@ struct ReplrStrip: View {
                     HStack(spacing: 0) {
                         stripCentreContent
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(KBColors.textDim)
-                            .frame(width: 36, height: 28)
                     }
-                    .padding(.leading, 12)
+                    .padding(.horizontal, 12)
                     .frame(height: 28)
-                    .contentShape(Rectangle())
-                    .onTapGesture { model.collapse() }
                 }
             }
             .animation(.easeInOut(duration: 0.15), value: model.hasAnySessions)
@@ -1208,11 +1252,11 @@ struct ReplrStrip: View {
 
             KBColors.borderHair.frame(height: 0.5)
 
-            // Row 2: tone pills + optional globe key
+            // Tone row: pills + intent chip + optional globe
             HStack(spacing: 0) {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 2) {
-                        ForEach(model.tones) { tone in
+                        ForEach(model.tones.filter { model.inputMode == .chat || $0.name != "Dating" }) { tone in
                             TonePill(name: tone.name,
                                      isSelected: tone.name == model.selectedTone.name,
                                      action: { model.selectTone(tone) })
@@ -1220,6 +1264,41 @@ struct ReplrStrip: View {
                     }
                     .padding(.horizontal, 8)
                 }
+
+                KBColors.borderDim.frame(width: 0.5, height: 16)
+
+                // Intent hint chip
+                Button { model.enterEditIntent() } label: {
+                    Group {
+                        if let hint = model.intentHint {
+                            HStack(spacing: 3) {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 8, weight: .bold))
+                                Text(hint)
+                                    .font(.system(size: 10, weight: .medium))
+                                    .lineLimit(1)
+                            }
+                            .foregroundColor(KBColors.accentFg)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(KBColors.accent)
+                            .clipShape(Capsule())
+                        } else {
+                            Text("+ intent")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(KBColors.textDim)
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 3)
+                                .overlay(
+                                    Capsule()
+                                        .stroke(KBColors.textDim.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [3]))
+                                )
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 6)
+                .animation(.easeInOut(duration: 0.15), value: model.intentHint == nil)
 
                 if model.needsGlobeKey {
                     KBColors.borderDim.frame(width: 0.5, height: 16)
