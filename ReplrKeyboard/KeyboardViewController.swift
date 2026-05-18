@@ -116,7 +116,7 @@ final class KeyboardViewController: UIInputViewController {
                 switch state {
                 case .idle:          newHeight = 308
                 case .collapsed:     newHeight = 44
-                case .editReply:     newHeight = 308
+                case .editReply:     newHeight = inputMode == .email ? 366 : 308
                 case .editContact:   newHeight = 308
                 case .editIntent:    newHeight = 308
                 case .loading:       newHeight = 308

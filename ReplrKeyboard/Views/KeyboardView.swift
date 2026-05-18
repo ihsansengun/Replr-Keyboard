@@ -463,27 +463,63 @@ struct KBInputArea: View {
     let mode: KBInputMode
     @Environment(\.colorScheme) private var cs
 
+    // Email edit needs a scrollable, taller preview — chat replies fit in 2 lines
+    private var isEmailEdit: Bool { mode == .edit && model.inputMode == .email }
+
     var body: some View {
         VStack(spacing: 0) {
             ReplrStrip(model: model)
-            // Text display
-            HStack(spacing: 8) {
-                Text(model.inputText.isEmpty ? placeholder : model.inputText)
-                    .font(.system(size: 15))
-                    .foregroundColor(model.inputText.isEmpty ? Color(UIColor.placeholderText) : Color(UIColor.label))
-                    .lineLimit(mode == .edit ? 2 : 1)
-                    .truncationMode(.tail)
-                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                Button(mode == .context ? "Cancel" : "Back") { model.cancelInput() }
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(UIColor.tertiaryLabel))
-                    .buttonStyle(.plain)
+            if isEmailEdit {
+                // Scrollable text preview — auto-scrolls to bottom as user types
+                HStack(alignment: .top, spacing: 8) {
+                    ScrollViewReader { proxy in
+                        ScrollView(.vertical, showsIndicators: false) {
+                            Text(model.inputText.isEmpty ? placeholder : model.inputText)
+                                .font(.system(size: 13))
+                                .foregroundColor(model.inputText.isEmpty
+                                    ? Color(UIColor.placeholderText)
+                                    : Color(UIColor.label))
+                                .lineLimit(nil)
+                                .frame(maxWidth: .infinity, alignment: .topLeading)
+                                .id("bottom")
+                        }
+                        .frame(height: 80)
+                        .onChange(of: model.inputText) { _ in
+                            proxy.scrollTo("bottom", anchor: .bottom)
+                        }
+                    }
+
+                    Button("Back") { model.cancelInput() }
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(UIColor.tertiaryLabel))
+                        .buttonStyle(.plain)
+                        .padding(.top, 2)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(Color(UIColor.secondarySystemGroupedBackground))
+                .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
+            } else {
+                // Single/two-line display for chat replies and context
+                HStack(spacing: 8) {
+                    Text(model.inputText.isEmpty ? placeholder : model.inputText)
+                        .font(.system(size: 15))
+                        .foregroundColor(model.inputText.isEmpty ? Color(UIColor.placeholderText) : Color(UIColor.label))
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Button(mode == .context ? "Cancel" : "Back") { model.cancelInput() }
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(UIColor.tertiaryLabel))
+                        .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 14)
+                .frame(height: 42)
+                .background(Color(UIColor.secondarySystemGroupedBackground))
+                .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
             }
-            .padding(.horizontal, 14)
-            .frame(height: 42)
-            .background(Color(UIColor.secondarySystemGroupedBackground))
-            .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
 
             ReplrKeyboard(
                 isShifted: model.isShifted,
@@ -497,7 +533,7 @@ struct KBInputArea: View {
                 onDone: { model.confirmInput() }
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(KBColors.from(cs).bg)  // fill gaps between keys
+            .background(KBColors.from(cs).bg)
         }
     }
 
