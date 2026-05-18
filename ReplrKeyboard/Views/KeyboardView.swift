@@ -186,8 +186,8 @@ final class KeyboardModel: ObservableObject {
                 )
                 AppGroupService.shared.appendCaptureSession(session)
                 AppGroupService.shared.saveReplies(result.replies)
-                intentHint = nil
                 AppGroupService.shared.saveIntentHint(nil)
+                intentHint = nil
                 currentReplies = result.replies
                 hasAnySessions = true
                 withAnimation(.easeInOut(duration: 0.2)) { state = .replies(result.replies) }
