@@ -273,13 +273,12 @@ struct KeyboardRootView: View {
                         KBColors.borderHair.frame(height: 0.5)
                     }
                     ReplyCarousel(replies: replies,
-                                  isEmail: model.inputMode == .email,
-                                  onSelect: { model.selectReply($0) },
-                                  onEdit: { model.enterEditReply($0) })
+                                  onSelect: { model.selectReply($0) })
                 }
                 .transition(.opacity)
             case .editReply:
-                KBInputArea(model: model, mode: .edit).transition(.opacity)
+                // Edit inline removed — unreachable, guard as fallback
+                IdleWithKeyboard(model: model).transition(.opacity)
             case .error:
                 IdleWithKeyboard(model: model).transition(.opacity)
             case .editContact:
@@ -463,63 +462,27 @@ struct KBInputArea: View {
     let mode: KBInputMode
     @Environment(\.colorScheme) private var cs
 
-    // Email edit needs a scrollable, taller preview — chat replies fit in 2 lines
-    private var isEmailEdit: Bool { mode == .edit && model.inputMode == .email }
-
     var body: some View {
         VStack(spacing: 0) {
             ReplrStrip(model: model)
 
-            if isEmailEdit {
-                // Scrollable text preview — auto-scrolls to bottom as user types
-                HStack(alignment: .top, spacing: 8) {
-                    ScrollViewReader { proxy in
-                        ScrollView(.vertical, showsIndicators: false) {
-                            Text(model.inputText.isEmpty ? placeholder : model.inputText)
-                                .font(.system(size: 13))
-                                .foregroundColor(model.inputText.isEmpty
-                                    ? Color(UIColor.placeholderText)
-                                    : Color(UIColor.label))
-                                .lineLimit(nil)
-                                .frame(maxWidth: .infinity, alignment: .topLeading)
-                                .id("bottom")
-                        }
-                        .frame(height: 80)
-                        .onChange(of: model.inputText) { _ in
-                            proxy.scrollTo("bottom", anchor: .bottom)
-                        }
-                    }
+            HStack(spacing: 8) {
+                Text(model.inputText.isEmpty ? placeholder : model.inputText)
+                    .font(.system(size: 15))
+                    .foregroundColor(model.inputText.isEmpty ? Color(UIColor.placeholderText) : Color(UIColor.label))
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Button("Back") { model.cancelInput() }
-                        .font(.system(size: 13))
-                        .foregroundColor(Color(UIColor.tertiaryLabel))
-                        .buttonStyle(.plain)
-                        .padding(.top, 2)
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(Color(UIColor.secondarySystemGroupedBackground))
-                .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
-            } else {
-                // Single/two-line display for chat replies and context
-                HStack(spacing: 8) {
-                    Text(model.inputText.isEmpty ? placeholder : model.inputText)
-                        .font(.system(size: 15))
-                        .foregroundColor(model.inputText.isEmpty ? Color(UIColor.placeholderText) : Color(UIColor.label))
-                        .lineLimit(2)
-                        .truncationMode(.tail)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Button(mode == .context ? "Cancel" : "Back") { model.cancelInput() }
-                        .font(.system(size: 13))
-                        .foregroundColor(Color(UIColor.tertiaryLabel))
-                        .buttonStyle(.plain)
-                }
-                .padding(.horizontal, 14)
-                .frame(height: 42)
-                .background(Color(UIColor.secondarySystemGroupedBackground))
-                .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
+                Button(mode == .context ? "Cancel" : "Back") { model.cancelInput() }
+                    .font(.system(size: 13))
+                    .foregroundColor(Color(UIColor.tertiaryLabel))
+                    .buttonStyle(.plain)
             }
+            .padding(.horizontal, 14)
+            .frame(height: 42)
+            .background(Color(UIColor.secondarySystemGroupedBackground))
+            .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
 
             ReplrKeyboard(
                 isShifted: model.isShifted,
@@ -1060,47 +1023,29 @@ private struct DoneKey: View {
 
 struct ReplyCarousel: View {
     let replies: [String]
-    var isEmail: Bool = false
     let onSelect: (String) -> Void
-    let onEdit: (String) -> Void
     @State private var currentPage = 0
 
-    private var cardHeight: CGFloat { isEmail ? 190 : 130 }
-
     var body: some View {
-        VStack(spacing: 6) {
-            ZStack(alignment: .bottomTrailing) {
-                if replies.count > 1 {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(KBColors.surface)
-                        .opacity(0.6)
-                        .padding(.leading, 10)
-                        .padding(.trailing, 8)
-                }
-
-                TabView(selection: $currentPage) {
-                    ForEach(Array(replies.enumerated()), id: \.offset) { index, reply in
-                        ReplyCard(
-                            text: reply,
-                            isEmail: isEmail,
-                            onTap: { onSelect(reply) },
-                            onEdit: { onEdit(reply) }
-                        )
+        VStack(spacing: 0) {
+            TabView(selection: $currentPage) {
+                ForEach(Array(replies.enumerated()), id: \.offset) { index, reply in
+                    ReplyCard(text: reply, onTap: { onSelect(reply) })
+                        .padding(.horizontal, 4)
                         .tag(index)
-                    }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: cardHeight)
-                .padding(.trailing, 8)
-                .padding(.bottom, 6)
             }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             if replies.count > 1 {
                 PageDots(count: replies.count, current: currentPage)
+                    .padding(.vertical, 8)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 8)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
     }
 }
 
@@ -1120,49 +1065,34 @@ struct PageDots: View {
 
 struct ReplyCard: View {
     let text: String
-    var isEmail: Bool = false
     let onTap: () -> Void
-    let onEdit: () -> Void
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            Button(action: onTap) {
+        Button(action: onTap) {
+            VStack(spacing: 0) {
                 Text(text)
-                    .font(.system(size: isEmail ? 13 : 14))
+                    .font(.system(size: 14))
                     .foregroundColor(KBColors.textPrimary)
-                    .lineSpacing(isEmail ? 4 : 3)
+                    .lineSpacing(3)
                     .multilineTextAlignment(.leading)
-                    .lineLimit(isEmail ? 9 : 5)
-                    .truncationMode(.tail)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                    .lineLimit(nil)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .padding(.horizontal, 14)
                     .padding(.top, 13)
-                    .padding(.bottom, 32)
-            }
-            .buttonStyle(ReplyCardButtonStyle())
 
-            HStack(spacing: 0) {
-                Button(action: onTap) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "arrow.up").font(.system(size: 10))
-                        Text("Send").font(.system(size: 11))
-                    }
-                    .foregroundColor(KBColors.accent)
+                Divider().opacity(0.15)
+
+                HStack(spacing: 3) {
+                    Image(systemName: "arrow.up").font(.system(size: 10))
+                    Text("Send").font(.system(size: 11, weight: .medium))
                 }
-                .buttonStyle(.plain)
-                Spacer()
-                Button(action: onEdit) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "pencil").font(.system(size: 10))
-                        Text("Edit").font(.system(size: 11))
-                    }
-                    .foregroundColor(KBColors.accent)
-                }
-                .buttonStyle(.plain)
+                .foregroundColor(KBColors.accent)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 9)
             }
-            .padding(.horizontal, 14)
-            .padding(.bottom, 9)
         }
+        .buttonStyle(ReplyCardButtonStyle())
         .background(KBColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }

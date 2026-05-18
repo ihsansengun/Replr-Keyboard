@@ -7,6 +7,7 @@ final class KeyboardViewController: UIInputViewController {
     private var capturePollingTask: Task<Void, Never>?
     private var heightConstraint: NSLayoutConstraint!
     private var stateCancellable: AnyCancellable?
+    private var hostingVC: UIHostingController<KeyboardRootView>!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -94,7 +95,7 @@ final class KeyboardViewController: UIInputViewController {
             }
         }
 
-        let hostingVC = UIHostingController(rootView: KeyboardRootView(model: model))
+        hostingVC = UIHostingController(rootView: KeyboardRootView(model: model))
         hostingVC.view.backgroundColor = .clear
         hostingVC.view.insetsLayoutMarginsFromSafeArea = false
         addChild(hostingVC)
@@ -112,21 +113,24 @@ final class KeyboardViewController: UIInputViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state, inputMode in
                 guard let self else { return }
-                let newHeight: CGFloat
                 switch state {
-                case .idle:          newHeight = 308
-                case .collapsed:     newHeight = 44
-                case .editReply:     newHeight = inputMode == .email ? 366 : 308
-                case .editContact:   newHeight = 308
-                case .editIntent:    newHeight = 308
-                case .loading:       newHeight = 308
-                case .error:         newHeight = 308
-                case .replies:       newHeight = inputMode == .email ? 390 : 348
-                case .disambiguate:  newHeight = 348
-                }
-                if self.heightConstraint.constant != newHeight {
-                    self.heightConstraint.constant = newHeight
-                    UIView.animate(withDuration: 0.25) { self.view.layoutIfNeeded() }
+                case .replies:
+                    // Measure natural content height so the card fills exactly what it needs
+                    self.updateHeightFromContent()
+                default:
+                    let newHeight: CGFloat
+                    switch state {
+                    case .idle:          newHeight = 308
+                    case .collapsed:     newHeight = 44
+                    case .editReply:     newHeight = 308
+                    case .editContact:   newHeight = 308
+                    case .editIntent:    newHeight = 308
+                    case .loading:       newHeight = 308
+                    case .error:        newHeight = 308
+                    case .disambiguate:  newHeight = 348
+                    case .replies:       newHeight = 348  // unreachable — handled above
+                    }
+                    self.setHeight(newHeight)
                 }
             }
     }
@@ -253,5 +257,28 @@ final class KeyboardViewController: UIInputViewController {
         capturePollingTask?.cancel()
         capturePollingTask = nil
         startCapturePoll()
+    }
+
+    private func setHeight(_ height: CGFloat) {
+        guard heightConstraint.constant != height else { return }
+        heightConstraint.constant = height
+        UIView.animate(withDuration: 0.25) { self.view.layoutIfNeeded() }
+    }
+
+    // Picks a replies height based on content: email replies are longer so get more space.
+    // The card uses maxHeight:.infinity so it fills whatever height we allocate here.
+    private func updateHeightFromContent() {
+        // Strip (89) + optional contact row (28) + carousel padding/dots (~32)
+        let chrome: CGFloat = 89 + (model.contactName != nil ? 28 : 0) + 32
+        let longestReply = model.currentReplies.map(\.count).max() ?? 0
+        let cardHeight: CGFloat
+        if model.inputMode == .email {
+            // Email bodies: scale from 200px (short) up to 340px (long)
+            cardHeight = min(340, max(200, CGFloat(longestReply) * 0.8))
+        } else {
+            // Chat replies are short — scale from 110px up to 200px
+            cardHeight = min(200, max(110, CGFloat(longestReply) * 1.2))
+        }
+        setHeight(chrome + cardHeight)
     }
 }
