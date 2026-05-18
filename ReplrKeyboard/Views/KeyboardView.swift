@@ -1093,23 +1093,45 @@ struct CollapsedBar: View {
 struct ReplrStrip: View {
     @ObservedObject var model: KeyboardModel
 
+    private var isCaptureIdleState: Bool {
+        guard model.lastInsertedReply == nil else { return false }
+        if case .idle = model.state { return model.hasAnySessions }
+        return false
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            // Row 1: smart action bar — adapts to state
-            HStack(spacing: 0) {
-                stripCentreContent
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                // Visual affordance only — row tap handles collapse
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(KBColors.textDim)
-                    .frame(width: 36, height: 28)
+            // Row 1: full-width CTA when idle with sessions; normal strip otherwise
+            Group {
+                if isCaptureIdleState {
+                    Button { model.collapse() } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.down.to.line")
+                                .font(.system(size: 11, weight: .medium))
+                            Text("Capture replies")
+                                .font(.system(size: 13, weight: .semibold))
+                        }
+                        .foregroundColor(KBColors.accentFg)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 28)
+                        .background(KBColors.accent)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    HStack(spacing: 0) {
+                        stripCentreContent
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(KBColors.textDim)
+                            .frame(width: 36, height: 28)
+                    }
+                    .padding(.leading, 12)
+                    .frame(height: 28)
+                    .contentShape(Rectangle())
+                    .onTapGesture { model.collapse() }
+                }
             }
-            .padding(.leading, 12)
-            .frame(height: 28)
-            .contentShape(Rectangle())
-            .onTapGesture { model.collapse() }
             .animation(.easeInOut(duration: 0.15), value: model.hasAnySessions)
             .animation(.easeInOut(duration: 0.15), value: model.lastInsertedReply == nil)
 
@@ -1175,24 +1197,6 @@ struct ReplrStrip: View {
                 Text("Set up triple-tap →")
                     .font(.system(size: 12))
                     .foregroundColor(KBColors.textDim)
-
-            case .idle:
-                // Has sessions — CTA to collapse and capture
-                Button { model.collapse() } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.down.to.line")
-                            .font(.system(size: 9, weight: .medium))
-                        Text("Capture replies")
-                            .font(.system(size: 10, weight: .semibold))
-                    }
-                    .foregroundColor(KBColors.accentFg)
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 3)
-                    .background(KBColors.accent)
-                    .clipShape(Capsule())
-                }
-                .buttonStyle(.plain)
-                .transition(.opacity.combined(with: .scale(scale: 0.85)))
 
             case .loading:
                 HStack(spacing: 5) {
