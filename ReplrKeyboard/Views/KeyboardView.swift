@@ -194,7 +194,7 @@ struct KeyboardRootView: View {
                                 Image(systemName: "pencil")
                                     .font(.system(size: 9))
                             }
-                            .foregroundColor(KBColors.amberText)
+                            .foregroundColor(KBColors.accent)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 4)
@@ -297,7 +297,7 @@ struct TonePill: View {
                 .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
                 .foregroundColor(isSelected ? KBColors.background : KBColors.textDim)
                 .padding(.horizontal, 9).padding(.vertical, 3)
-                .background(isSelected ? KBColors.amber : Color.clear)
+                .background(isSelected ? KBColors.accent : Color.clear)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -458,12 +458,12 @@ struct EditContactView: View {
                                      : Color(UIColor.label))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .overlay(alignment: .bottom) {
-                        KBColors.amber.opacity(0.5).frame(height: 1)
+                        KBColors.accent.opacity(0.5).frame(height: 1)
                     }
 
                 Button("Done") { model.confirmInput() }
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(KBColors.amber)
+                    .foregroundColor(KBColors.accent)
                     .buttonStyle(.plain)
             }
             .padding(.horizontal, 14)
@@ -580,7 +580,7 @@ struct DisambiguateView: View {
                             Text("New contact named \(name)")
                                 .font(.system(size: 13))
                         }
-                        .foregroundColor(KBColors.amber)
+                        .foregroundColor(KBColors.accent)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 14)
                         .frame(height: 44)
@@ -889,13 +889,13 @@ private struct DoneKey: View {
     var body: some View {
         Text(label)
             .font(.system(size: 13, weight: .semibold))
-            .foregroundColor(KBColors.background)
+            .foregroundColor(KBColors.accentFg)
             .frame(width: width, height: height)
             .background(
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(KBColors.amber)
+                    .fill(KBColors.accent)
                     .opacity(pressed ? 0.75 : 1.0)
-                    .shadow(color: KBColors.amber.opacity(0.3), radius: 0, y: 1)
+                    .shadow(color: KBColors.accent.opacity(0.3), radius: 0, y: 1)
             )
             .scaleEffect(pressed ? 0.94 : 1.0)
             .gesture(
@@ -956,7 +956,7 @@ struct PageDots: View {
         HStack(spacing: 5) {
             ForEach(0..<count, id: \.self) { i in
                 Circle()
-                    .fill(i == current ? KBColors.amber : KBColors.textDim)
+                    .fill(i == current ? KBColors.accent : KBColors.textDim)
                     .frame(width: 5, height: 5)
                     .animation(.easeInOut(duration: 0.2), value: current)
             }
@@ -992,7 +992,7 @@ struct ReplyCard: View {
                         Image(systemName: "arrow.up").font(.system(size: 10))
                         Text("Send").font(.system(size: 11))
                     }
-                    .foregroundColor(KBColors.amber)
+                    .foregroundColor(KBColors.accent)
                 }
                 .buttonStyle(.plain)
                 Spacer()
@@ -1001,7 +1001,7 @@ struct ReplyCard: View {
                         Image(systemName: "pencil").font(.system(size: 10))
                         Text("Edit").font(.system(size: 11))
                     }
-                    .foregroundColor(KBColors.amber)
+                    .foregroundColor(KBColors.accent)
                 }
                 .buttonStyle(.plain)
             }
@@ -1041,11 +1041,11 @@ struct StepRow<Trailing: View>: View {
         HStack(spacing: 10) {
             Text(number)
                 .font(.system(size: 10, weight: .heavy))
-                .foregroundColor(isActive ? KBColors.amber : KBColors.textDim)
+                .foregroundColor(isActive ? KBColors.accent : KBColors.textDim)
                 .frame(minWidth: 10)
             Text(label)
                 .font(.system(size: 12))
-                .foregroundColor(isActive ? KBColors.amberText : KBColors.textDim)
+                .foregroundColor(isActive ? KBColors.accent : KBColors.textDim)
                 .frame(maxWidth: .infinity, alignment: .leading)
             trailing
         }
@@ -1055,7 +1055,7 @@ struct StepRow<Trailing: View>: View {
         .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
         .overlay(alignment: .leading) {
             Rectangle()
-                .fill(isActive ? KBColors.amber : KBColors.borderDim)
+                .fill(isActive ? KBColors.accent : KBColors.borderDim)
                 .frame(width: 2)
         }
         .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
@@ -1074,10 +1074,10 @@ struct CollapsedBar: View {
             HStack(spacing: 10) {
                 Image(systemName: "chevron.up")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(KBColors.amber)
+                    .foregroundColor(KBColors.accent)
                 Text("Screenshot now · triple-tap to generate")
                     .font(.system(size: 12))
-                    .foregroundColor(KBColors.amberText)
+                    .foregroundColor(KBColors.accent)
                 Spacer()
             }
             .padding(.horizontal, 14)
@@ -1160,10 +1160,10 @@ struct ReplrStrip: View {
                     Text("Undo")
                         .font(.system(size: 10, weight: .medium))
                 }
-                .foregroundColor(.black)
+                .foregroundColor(KBColors.accentFg)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(Color(red: 0.961, green: 0.651, blue: 0.137))
+                .background(KBColors.accent)
                 .clipShape(Capsule())
             }
             .buttonStyle(.plain)
@@ -1174,7 +1174,7 @@ struct ReplrStrip: View {
                 // No sessions yet — static hint label
                 Text("Set up triple-tap →")
                     .font(.system(size: 12))
-                    .foregroundColor(.white.opacity(0.55))
+                    .foregroundColor(KBColors.textDim)
 
             case .idle:
                 // Has sessions — CTA to collapse and capture
@@ -1185,10 +1185,10 @@ struct ReplrStrip: View {
                         Text("Capture replies")
                             .font(.system(size: 10, weight: .semibold))
                     }
-                    .foregroundColor(.black)
+                    .foregroundColor(KBColors.accentFg)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 3)
-                    .background(KBColors.amber)
+                    .background(KBColors.accent)
                     .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -1199,10 +1199,10 @@ struct ReplrStrip: View {
                     ProgressView()
                         .progressViewStyle(.circular)
                         .scaleEffect(0.65)
-                        .tint(.white.opacity(0.7))
+                        .tint(KBColors.textDim)
                     Text("Generating…")
                         .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.7))
+                        .foregroundColor(KBColors.textDim)
                 }
 
             case .error:
@@ -1213,7 +1213,7 @@ struct ReplrStrip: View {
                         Text("Failed")
                             .font(.system(size: 11))
                     }
-                    .foregroundColor(.white.opacity(0.6))
+                    .foregroundColor(KBColors.textDim)
 
                     Button { model.retryGeneration() } label: {
                         HStack(spacing: 4) {
@@ -1222,10 +1222,10 @@ struct ReplrStrip: View {
                             Text("Retry")
                                 .font(.system(size: 10, weight: .medium))
                         }
-                        .foregroundColor(.black)
+                        .foregroundColor(KBColors.accentFg)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .background(KBColors.amber)
+                        .background(KBColors.accent)
                         .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
@@ -1274,11 +1274,11 @@ struct IdleStateView: View {
                 if model.pendingContext.isEmpty {
                     Text("Start typing in chat…")
                         .font(.system(size: 11))
-                        .foregroundColor(KBColors.amberSubtle)
+                        .foregroundColor(KBColors.accentSubtle)
                 } else {
                     Text(model.pendingContext)
                         .font(.system(size: 11))
-                        .foregroundColor(KBColors.amberText)
+                        .foregroundColor(KBColors.accent)
                         .lineLimit(1)
                         .truncationMode(.middle)
                         .frame(maxWidth: 140, alignment: .trailing)
@@ -1293,7 +1293,7 @@ struct IdleStateView: View {
                 Spacer()
                 Text("Triple-tap to generate →")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(KBColors.amber)
+                    .foregroundColor(KBColors.accent)
             }
             .padding(.horizontal, 14)
             .padding(.top, 2)
@@ -1311,7 +1311,7 @@ struct GeneratingView: View {
         HStack(spacing: 8) {
             ForEach(0..<3, id: \.self) { i in
                 Circle()
-                    .fill(KBColors.amber)
+                    .fill(KBColors.accent)
                     .frame(width: 6, height: 6)
                     .scaleEffect(phase == i ? 1.4 : 1.0)
                     .animation(.easeInOut(duration: 0.4).delay(Double(i) * 0.15), value: phase)
