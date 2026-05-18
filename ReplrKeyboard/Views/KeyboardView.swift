@@ -1454,20 +1454,56 @@ struct IdleWithKeyboard: View {
     var body: some View {
         VStack(spacing: 0) {
             ReplrStrip(model: model)
-            ReplrKeyboard(
-                isShifted: model.isShifted,
-                kbMode: model.kbMode,
-                doneLabel: "return",
-                onChar: { model.type($0) },
-                onSpace: { model.space() },
-                onBackspace: { model.backspace() },
-                onShift: { model.toggleShift() },
-                onMode: { model.toggleMode() },
-                onDone: { model.confirmInput() }
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(KBColors.from(cs).bg)
+            if model.inputMode == .email {
+                emailIdleBody
+            } else {
+                ReplrKeyboard(
+                    isShifted: model.isShifted,
+                    kbMode: model.kbMode,
+                    doneLabel: "return",
+                    onChar: { model.type($0) },
+                    onSpace: { model.space() },
+                    onBackspace: { model.backspace() },
+                    onShift: { model.toggleShift() },
+                    onMode: { model.toggleMode() },
+                    onDone: { model.confirmInput() }
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(KBColors.from(cs).bg)
+            }
         }
+    }
+
+    private var emailIdleBody: some View {
+        VStack(spacing: 12) {
+            Spacer()
+            Image(systemName: "envelope.open")
+                .font(.system(size: 28))
+                .foregroundColor(KBColors.textDim)
+            Button {
+                model.generateEmailReply()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "doc.on.clipboard")
+                        .font(.system(size: 14, weight: .medium))
+                    Text("Paste & Generate")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .foregroundColor(KBColors.accentFg)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(KBColors.accent)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 24)
+            Text("Reads email from clipboard")
+                .font(.caption)
+                .foregroundColor(KBColors.textDim)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(KBColors.from(cs).bg)
     }
 }
 
