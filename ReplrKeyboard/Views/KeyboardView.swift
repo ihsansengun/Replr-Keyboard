@@ -291,6 +291,8 @@ struct KeyboardRootView: View {
                     onCreateNew: { model.onCreateNewContact?($0) }
                 )
                 .transition(.opacity)
+            case .editIntent:
+                EditIntentView(model: model).transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.2), value: stateTag)
@@ -561,6 +563,57 @@ struct EditContactView: View {
                 isShifted: model.isShifted,
                 kbMode: model.kbMode,
                 doneLabel: "Done",
+                onChar: { model.type($0) },
+                onSpace: { model.space() },
+                onBackspace: { model.backspace() },
+                onShift: { model.toggleShift() },
+                onMode: { model.toggleMode() },
+                onDone: { model.confirmInput() }
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(KBColors.from(cs).bg)
+        }
+    }
+}
+
+// MARK: - Edit Intent View
+
+struct EditIntentView: View {
+    @ObservedObject var model: KeyboardModel
+    @Environment(\.colorScheme) private var cs
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                Text(model.inputText.isEmpty ? "What do you want to say…" : model.inputText)
+                    .font(.system(size: 15))
+                    .foregroundColor(model.inputText.isEmpty
+                                     ? Color(UIColor.placeholderText)
+                                     : Color(UIColor.label))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .overlay(alignment: .bottom) {
+                        KBColors.accent.opacity(0.5).frame(height: 1)
+                    }
+
+                Button("Set") { model.confirmInput() }
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(KBColors.accent)
+                    .buttonStyle(.plain)
+
+                Button("Cancel") { model.cancelInput() }
+                    .font(.system(size: 13))
+                    .foregroundColor(KBColors.textDim)
+                    .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 42)
+            .background(Color(UIColor.secondarySystemGroupedBackground))
+            .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
+
+            ReplrKeyboard(
+                isShifted: model.isShifted,
+                kbMode: model.kbMode,
+                doneLabel: "Set",
                 onChar: { model.type($0) },
                 onSpace: { model.space() },
                 onBackspace: { model.backspace() },
