@@ -1190,6 +1190,7 @@ struct ReplrStrip: View {
     @ObservedObject var model: KeyboardModel
 
     private var isCaptureIdleState: Bool {
+        guard model.inputMode == .chat else { return false }  // email mode never shows capture CTA
         guard model.lastInsertedReply == nil else { return false }
         if case .idle = model.state { return model.hasAnySessions }
         return false
