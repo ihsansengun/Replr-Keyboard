@@ -326,12 +326,12 @@ struct KBColors {
             bg:      Color(red: 0.067, green: 0.067, blue: 0.067) // matches KBColors.background
           )
         : KBColors(
-            alpha:   .white,
-            fn:      Color(red: 0.68, green: 0.70, blue: 0.73),
-            text:    .black,
-            subtext: Color(UIColor.secondaryLabel),
-            shadow:  Color.black.opacity(0.28),
-            bg:      Color(red: 0.82, green: 0.83, blue: 0.85)
+            alpha:   Color(red: 0.102, green: 0.106, blue: 0.165), // #1A1B2A — suave white dark key
+            fn:      Color(red: 0.102, green: 0.106, blue: 0.165), // same as alpha — all keys unified
+            text:    .white,
+            subtext: Color.white.opacity(0.65),
+            shadow:  Color.black.opacity(0.20),
+            bg:      Color(red: 0.933, green: 0.945, blue: 0.969)  // #EEF1F7 — soft blue-white
           )
     }
 
@@ -698,7 +698,7 @@ private struct CharKey: View {
             .foregroundColor(c.text)
             .frame(width: width, height: height)
             .background(
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
                     .fill(c.alpha)
                     .opacity(pressed ? 0.6 : 1.0)
                     .shadow(color: c.shadow, radius: 0, y: 1)
@@ -726,7 +726,7 @@ private struct ShiftKey: View {
             .foregroundColor(isShifted ? Color.accentColor : c.text)
             .frame(width: width, height: height)
             .background(
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
                     .fill(isShifted ? c.alpha : c.fn)
                     .opacity(pressed ? 0.7 : 1.0)
                     .shadow(color: c.shadow, radius: 0, y: 1)
@@ -767,7 +767,7 @@ private struct DeleteKey: View {
             .foregroundColor(c.text)
             .frame(width: width, height: height)
             .background(
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
                     .fill(c.fn)
                     .opacity(pressed ? 0.7 : 1.0)
                     .shadow(color: c.shadow, radius: 0, y: 1)
@@ -796,7 +796,7 @@ private struct SpaceKey: View {
             .foregroundColor(c.subtext)
             .frame(maxWidth: .infinity, minHeight: height)
             .background(
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
                     .fill(c.alpha)
                     .opacity(pressed ? 0.6 : 1.0)
                     .shadow(color: c.shadow, radius: 0, y: 1)
@@ -824,7 +824,7 @@ private struct ModeKey: View {
             .foregroundColor(c.text)
             .frame(width: width, height: height)
             .background(
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
                     .fill(c.fn)
                     .opacity(pressed ? 0.7 : 1.0)
                     .shadow(color: c.shadow, radius: 0, y: 1)
@@ -851,7 +851,7 @@ private struct DoneKey: View {
             .foregroundColor(KBColors.background)
             .frame(width: width, height: height)
             .background(
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
                     .fill(KBColors.amber)
                     .opacity(pressed ? 0.75 : 1.0)
                     .shadow(color: KBColors.amber.opacity(0.3), radius: 0, y: 1)
