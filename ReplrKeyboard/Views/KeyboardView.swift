@@ -318,12 +318,12 @@ struct KBColors {
     static func from(_ cs: ColorScheme) -> KBColors {
         cs == .dark
         ? KBColors(
-            alpha:   Color(white: 0.93),                           // near-white key on black bg
-            fn:      Color(white: 0.93),
-            text:    Color(white: 0.06),                           // near-black label
-            subtext: Color(white: 0.06).opacity(0.60),
-            shadow:  Color.white.opacity(0.22),                    // white rim visible on dark bg
-            bg:      Color(white: 0.067)                           // #111111 — same as background
+            alpha:   Color(red: 0.22, green: 0.23, blue: 0.31),   // #383B4F — elevated navy
+            fn:      Color(red: 0.22, green: 0.23, blue: 0.31),
+            text:    Color(white: 0.93),
+            subtext: Color(white: 0.93).opacity(0.55),
+            shadow:  Color.black.opacity(0.55),                    // visible on navy bg
+            bg:      Color(red: 0.102, green: 0.106, blue: 0.165)  // #1A1B2A — deep navy (same as light-mode key)
           )
         : KBColors(
             alpha:   Color(red: 0.102, green: 0.106, blue: 0.165), // #1A1B2A — suave dark key
