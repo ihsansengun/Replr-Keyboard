@@ -20,6 +20,7 @@ enum Constants {
     static let currentContactIDKey    = "current_contact_id"
     static let memoryWindowDaysKey    = "memory_window_days"   // Int, 0 = all time
     static let memoryDepthKey         = "memory_depth"         // Int, default 10, max 20
+    static let intentHintKey          = "intent_hint"
 
     // File-based keys (broadcast/scroll capture only)
     static let screenshotFilename     = "screenshot.png"

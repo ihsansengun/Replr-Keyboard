@@ -337,6 +337,23 @@ final class AppGroupService {
         }
         saveCaptureSessions(all)
     }
+
+    // MARK: - Intent hint (keyboard writes, keyboard reads, cleared after generation)
+
+    func saveIntentHint(_ text: String?) {
+        if let text, !text.isEmpty {
+            defaults.set(text, forKey: Constants.intentHintKey)
+        } else {
+            defaults.removeObject(forKey: Constants.intentHintKey)
+        }
+        defaults.synchronize()
+    }
+
+    func readIntentHint() -> String? {
+        defaults.synchronize()
+        guard let text = defaults.string(forKey: Constants.intentHintKey), !text.isEmpty else { return nil }
+        return text
+    }
 }
 
 enum AppGroupError: Error {
