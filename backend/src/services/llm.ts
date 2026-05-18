@@ -38,20 +38,33 @@ export interface LlmResult {
   contactName: string
 }
 
-/** Parse LLM output: optional CONTACT: line, optional SUMMARY: line, numbered replies. */
+/** Parse LLM output: optional CONTACT: line, optional SUMMARY: line, numbered replies.
+ *  Replies may span multiple lines (e.g. email bodies). */
 export function parseLlmOutput(text: string): LlmResult {
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+  const lines = text.split('\n')
   let summary = ''
   let contactName = ''
   const replies: string[] = []
 
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (!line) continue
+
     if (!contactName && /^contact:/i.test(line)) {
       contactName = line.replace(/^contact:\s*/i, '').trim()
     } else if (!summary && /^summary:/i.test(line)) {
       summary = line.replace(/^summary:\s*/i, '').trim()
     } else if (/^\d+[.)]\s/.test(line)) {
-      replies.push(line.replace(/^\d+[.)]\s*/, '').trim())
+      // Collect this line and all continuation lines until next numbered item or header.
+      // Preserve blank lines so multi-paragraph email replies keep their structure.
+      const replyLines = [line.replace(/^\d+[.)]\s*/, '').trim()]
+      while (i + 1 < lines.length) {
+        const next = lines[i + 1].trim()
+        if (/^contact:/i.test(next) || /^summary:/i.test(next) || /^\d+[.)]\s/.test(next)) break
+        i++
+        replyLines.push(next) // blank lines become '' — preserved as paragraph breaks
+      }
+      replies.push(replyLines.join('\n').trimEnd())
     }
   }
 

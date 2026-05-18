@@ -74,6 +74,16 @@ describe('parseLlmOutput', () => {
     const result = parseLlmOutput(raw)
     expect(result.contactName).toBe('Sam')
   })
+
+  it('collects multi-line replies (email bodies)', () => {
+    const raw = `CONTACT: Nina\nSUMMARY: Email about project\n1. Dear Nina,\n\nThank you for reaching out.\n\nBest regards\n2. Hi Nina,\n\nSounds good to me!\n3. Got it, will follow up.`
+    const result = parseLlmOutput(raw)
+    expect(result.contactName).toBe('Nina')
+    expect(result.replies).toHaveLength(3)
+    expect(result.replies[0]).toBe('Dear Nina,\n\nThank you for reaching out.\n\nBest regards')
+    expect(result.replies[1]).toBe('Hi Nina,\n\nSounds good to me!')
+    expect(result.replies[2]).toBe('Got it, will follow up.')
+  })
 })
 
 describe('generateReplies', () => {
