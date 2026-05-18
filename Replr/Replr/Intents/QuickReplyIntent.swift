@@ -80,36 +80,9 @@ struct QuickReplyIntent: AppIntent {
             )
             NSLog("[Replr][QuickReply] Got %d replies — saving to App Group", result.replies.count)
 
-            // Resolve or create contact — auto-switch if LLM detects a different person
-            let resolvedContactID: UUID?
-            let resolvedContactName: String?
-            let isGroupOrUnknown = result.contactName == nil
-                || result.contactName == "Unknown"
-                || result.contactName?.isEmpty == true
-                || result.contactName?.hasPrefix("Group:") == true
-            if isGroupOrUnknown {
-                resolvedContactID = nil
-                resolvedContactName = result.contactName?.hasPrefix("Group:") == true ? result.contactName : nil
-            } else if let existingID = AppGroupService.shared.currentContactID,
-                      let existingContact = AppGroupService.shared.loadContacts()
-                          .first(where: { $0.id == existingID }),
-                      let llmName = result.contactName,
-                      existingContact.displayName.trimmingCharacters(in: .whitespaces).lowercased()
-                          == llmName.trimmingCharacters(in: .whitespaces).lowercased() {
-                // Same contact — reuse canonical display name
-                resolvedContactID = existingID
-                resolvedContactName = existingContact.displayName
-            } else if let name = result.contactName {
-                // Different contact or no existing contact — find or create, switch currentContactID
-                let contact = AppGroupService.shared.findContacts(named: name).first
-                    ?? AppGroupService.shared.createContact(displayName: name)
-                AppGroupService.shared.currentContactID = contact.id
-                resolvedContactID = contact.id
-                resolvedContactName = contact.displayName
-            } else {
-                resolvedContactID = nil
-                resolvedContactName = nil
-            }
+            let resolved = resolveContact(from: result)
+            let resolvedContactID = resolved.id
+            let resolvedContactName = resolved.name
 
             let thumbnail = makeThumbnail(image)
             let session = CaptureSession(
