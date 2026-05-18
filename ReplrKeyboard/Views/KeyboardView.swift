@@ -13,9 +13,12 @@ enum KeyboardState: Equatable {
     case error(String)
     case editContact(String)                                // current name pre-filled
     case disambiguate(name: String, candidates: [Contact]) // same-name contact picker
+    case editIntent                                         // intent hint text entry
 }
 
 enum KBMode { case alpha, numeric }
+
+enum KeyboardInputMode { case chat, email }
 
 // MARK: - Model
 
@@ -33,6 +36,8 @@ final class KeyboardModel: ObservableObject {
     @Published var contactName: String? = nil
     @Published var lastInsertedReply: String? = nil
     @Published var hasAnySessions: Bool = false
+    @Published var inputMode: KeyboardInputMode = .chat
+    @Published var intentHint: String? = nil
 
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
@@ -59,7 +64,7 @@ final class KeyboardModel: ObservableObject {
     func type(_ char: String) {
         let out = isShifted ? char.uppercased() : char
         switch state {
-        case .editReply, .editContact: inputText += out
+        case .editReply, .editContact, .editIntent: inputText += out
         default: onTypeChar?(out)
         }
         if isShifted, kbMode == .alpha { isShifted = false }
@@ -68,7 +73,7 @@ final class KeyboardModel: ObservableObject {
 
     func backspace() {
         switch state {
-        case .editReply, .editContact:
+        case .editReply, .editContact, .editIntent:
             guard !inputText.isEmpty else { return }
             inputText.removeLast()
         default:
@@ -79,7 +84,7 @@ final class KeyboardModel: ObservableObject {
 
     func space() {
         switch state {
-        case .editReply, .editContact: inputText += " "
+        case .editReply, .editContact, .editIntent: inputText += " "
         default: onSpaceChar?()
         }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -97,6 +102,11 @@ final class KeyboardModel: ObservableObject {
             withAnimation(.easeInOut(duration: 0.18)) { state = .idle }
         case .editContact:
             if !inputText.isEmpty { onConfirmContact?(inputText) }
+        case .editIntent:
+            let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+            intentHint = trimmed.isEmpty ? nil : trimmed
+            AppGroupService.shared.saveIntentHint(trimmed.isEmpty ? nil : trimmed)
+            withAnimation(.easeInOut(duration: 0.18)) { state = .idle }
         default:
             onReturnChar?()
         }
@@ -105,7 +115,7 @@ final class KeyboardModel: ObservableObject {
     func cancelInput() {
         withAnimation(.easeInOut(duration: 0.18)) {
             switch state {
-            case .editReply, .editContact:
+            case .editReply, .editContact, .editIntent:
                 if !currentReplies.isEmpty {
                     state = .replies(currentReplies)
                 } else {
@@ -125,6 +135,66 @@ final class KeyboardModel: ObservableObject {
     func enterEditContact(_ name: String) {
         inputText = name; isShifted = false; kbMode = .alpha
         withAnimation(.easeInOut(duration: 0.18)) { state = .editContact(name) }
+    }
+
+    func enterEditIntent() {
+        inputText = intentHint ?? ""; isShifted = false; kbMode = .alpha
+        withAnimation(.easeInOut(duration: 0.18)) { state = .editIntent }
+    }
+
+    func generateEmailReply() {
+        guard case .idle = state else { return }
+        guard let emailText = UIPasteboard.general.string,
+              !emailText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            withAnimation { state = .error("No text on clipboard. Copy the email first.") }
+            return
+        }
+        withAnimation(.easeInOut(duration: 0.2)) { state = .loading }
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            let txID = UserDefaults(suiteName: Constants.appGroupID)?
+                .string(forKey: Constants.transactionIDKey)
+            let previousContext: String?
+            if let contactID = AppGroupService.shared.currentContactID {
+                let summaries = AppGroupService.shared.recentSummaries(
+                    forContactID: contactID, limit: AppGroupService.shared.memoryDepth)
+                previousContext = summaries.isEmpty ? nil : summaries.joined(separator: "\n")
+            } else {
+                previousContext = nil
+            }
+            do {
+                let result = try await ReplyService.shared.generateRepliesFromEmail(
+                    emailText: emailText,
+                    tone: selectedTone,
+                    summary: intentHint,
+                    previousContext: previousContext,
+                    model: "claude",
+                    transactionId: txID
+                )
+                let resolved = resolveContact(from: result)
+                contactName = resolved.name
+                let session = CaptureSession(
+                    id: UUID(),
+                    timestamp: Date(),
+                    thumbnailData: nil,
+                    contextHint: intentHint,
+                    generatedReplies: result.replies,
+                    selectedReply: nil,
+                    llmSummary: result.summary,
+                    contactID: resolved.id,
+                    contactName: resolved.name
+                )
+                AppGroupService.shared.appendCaptureSession(session)
+                AppGroupService.shared.saveReplies(result.replies)
+                intentHint = nil
+                AppGroupService.shared.saveIntentHint(nil)
+                currentReplies = result.replies
+                hasAnySessions = true
+                withAnimation(.easeInOut(duration: 0.2)) { state = .replies(result.replies) }
+            } catch {
+                withAnimation { state = .error(error.localizedDescription) }
+            }
+        }
     }
 
     func collapse() {
@@ -282,6 +352,7 @@ struct KeyboardRootView: View {
         case .collapsed:    return 5
         case .editContact:  return 6
         case .disambiguate: return 7
+        case .editIntent:   return 8
         }
     }
 }
