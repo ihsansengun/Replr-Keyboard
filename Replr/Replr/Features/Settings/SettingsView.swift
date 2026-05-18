@@ -6,7 +6,7 @@ struct SettingsView: View {
     @State private var memoryWindowDays = AppGroupService.shared.memoryWindowDays
     @State private var memoryDepth = AppGroupService.shared.memoryDepth
 
-    private static let amber = Color(red: 0.961, green: 0.651, blue: 0.137)
+    private static let accent = Color.primary
 
     var body: some View {
         NavigationStack {
@@ -14,7 +14,7 @@ struct SettingsView: View {
                 Section {
                     HStack(spacing: 14) {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Self.amber)
+                            .fill(Self.accent)
                             .frame(width: 56, height: 56)
                             .overlay(
                                 Image(systemName: "arrowshape.turn.up.left.fill")

@@ -81,7 +81,7 @@ struct SummariesView: View {
 
 struct ContactMemoryRow: View {
     let entry: ContactMemoryEntry
-    private static let amber = Color(red: 0.961, green: 0.651, blue: 0.137)
+    private static let accent = Color.primary
 
     var body: some View {
         HStack(spacing: 14) {
@@ -95,14 +95,14 @@ struct ContactMemoryRow: View {
             } else {
                 Circle()
                     .fill(LinearGradient(
-                        colors: [Self.amber.opacity(0.28), Self.amber.opacity(0.10)],
+                        colors: [Self.accent.opacity(0.28), Self.accent.opacity(0.10)],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     ))
                     .frame(width: 48, height: 48)
                     .overlay(
                         Text(String(entry.contact.displayName.prefix(1)).uppercased())
                             .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(Self.amber)
+                            .foregroundStyle(Self.accent)
                     )
             }
 
@@ -114,10 +114,10 @@ struct ContactMemoryRow: View {
                     Spacer()
                     Text("\(entry.sessionCount)")
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Self.amber)
+                        .foregroundStyle(Self.accent)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .background(Self.amber.opacity(0.14))
+                        .background(Self.accent.opacity(0.14))
                         .clipShape(Capsule())
                 }
                 if let summary = entry.lastSummary {

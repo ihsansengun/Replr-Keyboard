@@ -130,7 +130,7 @@ struct CaptureLogView: View {
 
 struct CaptureRowView: View {
     let session: CaptureSession
-    private static let amber = Color(red: 0.961, green: 0.651, blue: 0.137)
+    private static let accent = Color.primary
 
     var body: some View {
         HStack(spacing: 14) {
@@ -160,7 +160,7 @@ struct CaptureRowView: View {
                     if let name = session.contactName {
                         Text(name)
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(Self.amber)
+                            .foregroundStyle(Self.accent)
                             .lineLimit(1)
                     }
                     Spacer()
@@ -211,7 +211,7 @@ struct CaptureRowView: View {
 struct CaptureDetailView: View {
     let session: CaptureSession
     @State private var copiedReply: String? = nil
-    private static let amber = Color(red: 0.961, green: 0.651, blue: 0.137)
+    private static let accent = Color.primary
 
     var body: some View {
         List {
@@ -252,7 +252,7 @@ struct CaptureDetailView: View {
                             } label: {
                                 Image(systemName: copiedReply == reply ? "checkmark" : "doc.on.doc")
                                     .font(.system(size: 14))
-                                    .foregroundStyle(copiedReply == reply ? Color.green : Self.amber)
+                                    .foregroundStyle(copiedReply == reply ? Color.green : Self.accent)
                                     .animation(.spring(response: 0.25), value: copiedReply)
                             }
                             .buttonStyle(.plain)

@@ -53,8 +53,7 @@ struct ToneRow: View {
     var body: some View {
         HStack(spacing: 12) {
             RoundedRectangle(cornerRadius: 2, style: .continuous)
-                .fill(Color(red: 0.961, green: 0.651, blue: 0.137)
-                    .opacity(tone.isPreset ? 1.0 : 0.45))
+                .fill(Color.primary.opacity(tone.isPreset ? 0.85 : 0.35))
                 .frame(width: 3, height: 34)
             VStack(alignment: .leading, spacing: 2) {
                 Text(tone.name).font(.headline)
