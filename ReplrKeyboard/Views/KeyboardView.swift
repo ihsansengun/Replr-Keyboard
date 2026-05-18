@@ -273,6 +273,7 @@ struct KeyboardRootView: View {
                         KBColors.borderHair.frame(height: 0.5)
                     }
                     ReplyCarousel(replies: replies,
+                                  isEmail: model.inputMode == .email,
                                   onSelect: { model.selectReply($0) },
                                   onEdit: { model.enterEditReply($0) })
                 }
@@ -413,31 +414,15 @@ struct KBColors {
 
     // MARK: - Design tokens (all adaptive — dark / light)
 
-    // Primary interactive accent — replaces amber throughout
-    static let accent = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? .white
-            : UIColor(red: 0.08, green: 0.08, blue: 0.08, alpha: 1) // near-black
-    })
-    // Foreground on top of accent background
-    static let accentFg = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark ? .black : .white
-    })
-    static let accentSubtle = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? UIColor(white: 1.0, alpha: 0.45)
-            : UIColor(white: 0.08, alpha: 0.45)
-    })
-    static let accentBg = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? UIColor(white: 1.0, alpha: 0.10)
-            : UIColor(white: 0.08, alpha: 0.08)
-    })
-    static let accentBgBorder = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? UIColor(white: 1.0, alpha: 0.18)
-            : UIColor(white: 0.08, alpha: 0.15)
-    })
+    // Mustard yellow — primary accent across all states and color schemes
+    private static let mustard = UIColor(red: 0.831, green: 0.627, blue: 0.090, alpha: 1)
+
+    static let accent = Color(mustard)
+    // Dark text sits on mustard without losing contrast
+    static let accentFg = Color(UIColor(white: 0.06, alpha: 1))
+    static let accentSubtle = Color(UIColor(red: 0.831, green: 0.627, blue: 0.090, alpha: 0.50))
+    static let accentBg = Color(UIColor(red: 0.831, green: 0.627, blue: 0.090, alpha: 0.13))
+    static let accentBgBorder = Color(UIColor(red: 0.831, green: 0.627, blue: 0.090, alpha: 0.28))
 
     // Backgrounds
     static let background = Color(UIColor { tc in
@@ -1039,9 +1024,12 @@ private struct DoneKey: View {
 
 struct ReplyCarousel: View {
     let replies: [String]
+    var isEmail: Bool = false
     let onSelect: (String) -> Void
     let onEdit: (String) -> Void
     @State private var currentPage = 0
+
+    private var cardHeight: CGFloat { isEmail ? 190 : 130 }
 
     var body: some View {
         VStack(spacing: 6) {
@@ -1058,6 +1046,7 @@ struct ReplyCarousel: View {
                     ForEach(Array(replies.enumerated()), id: \.offset) { index, reply in
                         ReplyCard(
                             text: reply,
+                            isEmail: isEmail,
                             onTap: { onSelect(reply) },
                             onEdit: { onEdit(reply) }
                         )
@@ -1065,7 +1054,7 @@ struct ReplyCarousel: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 120)
+                .frame(height: cardHeight)
                 .padding(.trailing, 8)
                 .padding(.bottom, 6)
             }
@@ -1095,6 +1084,7 @@ struct PageDots: View {
 
 struct ReplyCard: View {
     let text: String
+    var isEmail: Bool = false
     let onTap: () -> Void
     let onEdit: () -> Void
 
@@ -1102,11 +1092,11 @@ struct ReplyCard: View {
         ZStack(alignment: .bottomLeading) {
             Button(action: onTap) {
                 Text(text)
-                    .font(.system(size: 14))
+                    .font(.system(size: isEmail ? 13 : 14))
                     .foregroundColor(KBColors.textPrimary)
-                    .lineSpacing(3)
+                    .lineSpacing(isEmail ? 4 : 3)
                     .multilineTextAlignment(.leading)
-                    .lineLimit(4)
+                    .lineLimit(isEmail ? 9 : 5)
                     .truncationMode(.tail)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                     .padding(.horizontal, 14)
@@ -1312,9 +1302,10 @@ struct ReplrStrip: View {
                     }
                     .buttonStyle(.plain)
                 } else {
-                    HStack(spacing: 0) {
+                    HStack(spacing: 8) {
                         stripCentreContent
                             .frame(maxWidth: .infinity, alignment: .leading)
+                        intentChip
                     }
                     .padding(.horizontal, 12)
                     .frame(height: 28)
@@ -1325,7 +1316,7 @@ struct ReplrStrip: View {
 
             KBColors.borderHair.frame(height: 0.5)
 
-            // Tone row: pills + intent chip + optional globe
+            // Tone row: pills + optional globe
             HStack(spacing: 0) {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 2) {
@@ -1337,41 +1328,6 @@ struct ReplrStrip: View {
                     }
                     .padding(.horizontal, 8)
                 }
-
-                KBColors.borderDim.frame(width: 0.5, height: 16)
-
-                // Intent hint chip
-                Button { model.enterEditIntent() } label: {
-                    Group {
-                        if let hint = model.intentHint {
-                            HStack(spacing: 3) {
-                                Image(systemName: "checkmark")
-                                    .font(.system(size: 8, weight: .bold))
-                                Text(hint)
-                                    .font(.system(size: 10, weight: .medium))
-                                    .lineLimit(1)
-                            }
-                            .foregroundColor(KBColors.accentFg)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background(KBColors.accent)
-                            .clipShape(Capsule())
-                        } else {
-                            Text("+ intent")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(KBColors.textDim)
-                                .padding(.horizontal, 7)
-                                .padding(.vertical, 3)
-                                .overlay(
-                                    Capsule()
-                                        .stroke(KBColors.textDim.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [3]))
-                                )
-                        }
-                    }
-                    .animation(.easeInOut(duration: 0.15), value: model.intentHint)
-                }
-                .buttonStyle(.plain)
-                .padding(.horizontal, 6)
 
                 if model.needsGlobeKey {
                     KBColors.borderDim.frame(width: 0.5, height: 16)
@@ -1476,6 +1432,42 @@ struct ReplrStrip: View {
                 Spacer()
             }
         }
+    }
+
+    // MARK: - Intent chip (right side of action bar)
+
+    @ViewBuilder
+    private var intentChip: some View {
+        Button { model.enterEditIntent() } label: {
+            Group {
+                if let hint = model.intentHint {
+                    HStack(spacing: 3) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 8, weight: .bold))
+                        Text(hint)
+                            .font(.system(size: 10, weight: .medium))
+                            .lineLimit(1)
+                    }
+                    .foregroundColor(KBColors.accentFg)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(KBColors.accent)
+                    .clipShape(Capsule())
+                } else {
+                    Text("+ intent")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(KBColors.textDim)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .overlay(
+                            Capsule()
+                                .stroke(KBColors.textDim.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [3]))
+                        )
+                }
+            }
+            .animation(.easeInOut(duration: 0.15), value: model.intentHint)
+        }
+        .buttonStyle(.plain)
     }
 }
 

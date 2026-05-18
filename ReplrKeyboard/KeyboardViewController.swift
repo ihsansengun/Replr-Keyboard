@@ -108,9 +108,9 @@ final class KeyboardViewController: UIInputViewController {
         ])
         hostingVC.didMove(toParent: self)
 
-        stateCancellable = model.$state
+        stateCancellable = Publishers.CombineLatest(model.$state, model.$inputMode)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] state in
+            .sink { [weak self] state, inputMode in
                 guard let self else { return }
                 let newHeight: CGFloat
                 switch state {
@@ -121,7 +121,7 @@ final class KeyboardViewController: UIInputViewController {
                 case .editIntent:    newHeight = 308
                 case .loading:       newHeight = 308
                 case .error:         newHeight = 308
-                case .replies:       newHeight = 348
+                case .replies:       newHeight = inputMode == .email ? 390 : 348
                 case .disambiguate:  newHeight = 348
                 }
                 if self.heightConstraint.constant != newHeight {
