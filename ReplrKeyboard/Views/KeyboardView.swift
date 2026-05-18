@@ -226,7 +226,7 @@ struct KeyboardRootView: View {
 
     private var showToneBar: Bool {
         switch model.state {
-        case .replies, .error, .loading: return true
+        case .error, .loading: return true
         default: return false
         }
     }
@@ -253,6 +253,7 @@ struct KeyboardRootView: View {
                 IdleWithKeyboard(model: model).transition(.opacity)
             case .replies(let replies):
                 VStack(spacing: 0) {
+                    ReplrStrip(model: model)
                     if let name = model.contactName {
                         Button { model.enterEditContact(name) } label: {
                             HStack(spacing: 5) {
@@ -284,12 +285,15 @@ struct KeyboardRootView: View {
             case .editContact:
                 EditContactView(model: model).transition(.opacity)
             case .disambiguate(let name, let candidates):
-                DisambiguateView(
-                    name: name,
-                    candidates: candidates,
-                    onSelectContact: { model.onSelectContact?($0) },
-                    onCreateNew: { model.onCreateNewContact?($0) }
-                )
+                VStack(spacing: 0) {
+                    ReplrStrip(model: model)
+                    DisambiguateView(
+                        name: name,
+                        candidates: candidates,
+                        onSelectContact: { model.onSelectContact?($0) },
+                        onCreateNew: { model.onCreateNewContact?($0) }
+                    )
+                }
                 .transition(.opacity)
             case .editIntent:
                 EditIntentView(model: model).transition(.opacity)
@@ -477,6 +481,7 @@ struct KBInputArea: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            ReplrStrip(model: model)
             // Text display
             HStack(spacing: 8) {
                 Text(model.inputText.isEmpty ? placeholder : model.inputText)
@@ -523,6 +528,7 @@ struct EditContactView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            ReplrStrip(model: model)
             HStack(spacing: 8) {
                 Text(model.inputText.isEmpty ? "Contact name" : model.inputText)
                     .font(.system(size: 15))
@@ -584,6 +590,7 @@ struct EditIntentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            ReplrStrip(model: model)
             HStack(spacing: 8) {
                 Text(model.inputText.isEmpty ? "What do you want to say…" : model.inputText)
                     .font(.system(size: 15))
