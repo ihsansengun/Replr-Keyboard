@@ -318,38 +318,79 @@ struct KBColors {
     static func from(_ cs: ColorScheme) -> KBColors {
         cs == .dark
         ? KBColors(
-            alpha:   Color(white: 0.30),
-            fn:      Color(white: 0.20),
-            text:    .white,
-            subtext: Color(white: 0.55),
-            shadow:  .clear,
-            bg:      Color(red: 0.067, green: 0.067, blue: 0.067) // matches KBColors.background
+            alpha:   Color(white: 0.93),                           // near-white key on black bg
+            fn:      Color(white: 0.93),
+            text:    Color(white: 0.06),                           // near-black label
+            subtext: Color(white: 0.06).opacity(0.60),
+            shadow:  Color.black.opacity(0.25),
+            bg:      Color(white: 0.067)                           // #111111 — same as background
           )
         : KBColors(
-            alpha:   Color(red: 0.102, green: 0.106, blue: 0.165), // #1A1B2A — suave white dark key
-            fn:      Color(red: 0.102, green: 0.106, blue: 0.165), // same as alpha — all keys unified
+            alpha:   Color(red: 0.102, green: 0.106, blue: 0.165), // #1A1B2A — suave dark key
+            fn:      Color(red: 0.102, green: 0.106, blue: 0.165),
             text:    .white,
             subtext: Color.white.opacity(0.65),
             shadow:  Color.black.opacity(0.20),
-            bg:      Color(red: 0.933, green: 0.945, blue: 0.969)  // #EEF1F7 — soft blue-white
+            bg:      Color(red: 0.933, green: 0.945, blue: 0.969)  // #EEF1F7 — soft white
           )
     }
 
-    // Design system tokens — used by state views, not key components
-    static let background    = Color(red: 0.067, green: 0.067, blue: 0.067) // #111111
-    static let deep          = Color(red: 0.051, green: 0.051, blue: 0.051) // #0D0D0D
-    static let surface       = Color(red: 0.086, green: 0.086, blue: 0.086) // #161616
-    static let surfaceActive = Color(red: 0.102, green: 0.086, blue: 0.000) // #1A1600
-    static let borderHair    = Color(red: 0.118, green: 0.118, blue: 0.118) // #1E1E1E
-    static let borderDim     = Color(red: 0.165, green: 0.165, blue: 0.165) // #2A2A2A
-    static let amber         = Color(red: 0.961, green: 0.651, blue: 0.137) // #F5A623
-    static let amberText     = Color(red: 0.784, green: 0.627, blue: 0.376) // #C8A060
-    static let amberSubtle   = Color(red: 0.353, green: 0.282, blue: 0.125) // #5A4820
-    static let amberBg       = Color(red: 0.165, green: 0.125, blue: 0.000) // #2A2000
-    static let amberBgBorder = Color(red: 0.227, green: 0.188, blue: 0.063) // #3A3010
-    static let textPrimary   = Color(red: 0.878, green: 0.878, blue: 0.878) // #E0E0E0
-    static let textDim       = Color(red: 0.333, green: 0.333, blue: 0.333) // #555555
-    static let textGhost     = borderDim
+    // MARK: - Design tokens (all adaptive — dark / light)
+
+    // Primary interactive accent — replaces amber throughout
+    static let accent = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? .white
+            : UIColor(red: 0.08, green: 0.08, blue: 0.08, alpha: 1) // near-black
+    })
+    // Foreground on top of accent background
+    static let accentFg = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark ? .black : .white
+    })
+    static let accentSubtle = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(white: 1.0, alpha: 0.45)
+            : UIColor(white: 0.08, alpha: 0.45)
+    })
+    static let accentBg = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(white: 1.0, alpha: 0.10)
+            : UIColor(white: 0.08, alpha: 0.08)
+    })
+    static let accentBgBorder = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(white: 1.0, alpha: 0.18)
+            : UIColor(white: 0.08, alpha: 0.15)
+    })
+
+    // Backgrounds
+    static let background = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(white: 0.067, alpha: 1) // #111111
+            : .systemBackground               // white
+    })
+    static let deep = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(white: 0.051, alpha: 1) // #0D0D0D
+            : UIColor(white: 0.960, alpha: 1) // #F5F5F5
+    })
+    static let surface = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(white: 0.086, alpha: 1) // #161616
+            : UIColor(white: 0.925, alpha: 1) // #ECECEC
+    })
+    static let surfaceActive = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark
+            ? UIColor(white: 0.13, alpha: 1)
+            : UIColor(white: 0.87, alpha: 1)
+    })
+
+    // Text & borders — use system adaptive values
+    static let borderHair  = Color(UIColor.separator)
+    static let borderDim   = Color(UIColor.opaqueSeparator)
+    static let textPrimary = Color(UIColor.label)
+    static let textDim     = Color(UIColor.secondaryLabel)
+    static let textGhost   = Color(UIColor.opaqueSeparator)
 }
 
 // MARK: - Keyboard Input Area
