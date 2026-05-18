@@ -186,8 +186,6 @@ final class KeyboardModel: ObservableObject {
                 )
                 AppGroupService.shared.appendCaptureSession(session)
                 AppGroupService.shared.saveReplies(result.replies)
-                AppGroupService.shared.saveIntentHint(nil)
-                intentHint = nil
                 currentReplies = result.replies
                 hasAnySessions = true
                 withAnimation(.easeInOut(duration: 0.2)) { state = .replies(result.replies) }
@@ -211,6 +209,7 @@ final class KeyboardModel: ObservableObject {
     func selectReply(_ text: String) { onReplySelected?(text) }
     func regenerate() {
         AppGroupService.shared.clearCachedReplies()
+        currentReplies = []
         withAnimation(.easeInOut(duration: 0.2)) { state = .idle }
     }
 
@@ -590,7 +589,6 @@ struct EditIntentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ReplrStrip(model: model)
             HStack(spacing: 8) {
                 Text(model.inputText.isEmpty ? "What do you want to say…" : model.inputText)
                     .font(.system(size: 15))
@@ -1230,6 +1228,13 @@ struct ReplrStrip: View {
         return false
     }
 
+    private var canSwitchMode: Bool {
+        switch model.state {
+        case .idle, .loading, .error: return true
+        default: return false
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Mode row: Chat / Email tabs + collapse chevron
@@ -1250,9 +1255,15 @@ struct ReplrStrip: View {
                     .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
                 }
                 .buttonStyle(.plain)
+                .disabled(!canSwitchMode)
 
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) { model.inputMode = .email }
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        if model.selectedTone.name == "Dating" {
+                            model.selectedTone = model.tones.first { $0.name != "Dating" } ?? model.selectedTone
+                        }
+                        model.inputMode = .email
+                    }
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "envelope")
@@ -1267,6 +1278,7 @@ struct ReplrStrip: View {
                     .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
                 }
                 .buttonStyle(.plain)
+                .disabled(!canSwitchMode)
 
                 Spacer()
 

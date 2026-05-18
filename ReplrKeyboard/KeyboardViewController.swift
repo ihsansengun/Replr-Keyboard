@@ -143,6 +143,7 @@ final class KeyboardViewController: UIInputViewController {
             model.contactName = nil
         }
         model.hasAnySessions = !AppGroupService.shared.loadCaptureSessions().isEmpty
+        model.intentHint = AppGroupService.shared.readIntentHint()
 
         if AppGroupService.shared.isGenerating {
             model.state = .loading
@@ -232,6 +233,8 @@ final class KeyboardViewController: UIInputViewController {
         model.pendingContext = ""
         AppGroupService.shared.savePendingContext("")
         AppGroupService.shared.markLastSessionReplySelected(text)
+        AppGroupService.shared.saveIntentHint(nil)
+        model.intentHint = nil
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         model.lastInsertedReply = text
         DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
