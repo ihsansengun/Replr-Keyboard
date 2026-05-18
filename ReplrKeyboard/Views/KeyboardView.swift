@@ -1210,15 +1210,16 @@ struct ReplrStrip: View {
 
                 Spacer()
 
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(KBColors.textDim)
-                    .frame(width: 36, height: 28)
+                Button { model.collapse() } label: {
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(KBColors.textDim)
+                        .frame(width: 36, height: 28)
+                }
+                .buttonStyle(.plain)
             }
             .padding(.leading, 8)
             .frame(height: 28)
-            .contentShape(Rectangle())
-            .onTapGesture { model.collapse() }
 
             KBColors.borderHair.frame(height: 0.5)
 
@@ -1295,10 +1296,10 @@ struct ReplrStrip: View {
                                 )
                         }
                     }
+                    .animation(.easeInOut(duration: 0.15), value: model.intentHint)
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, 6)
-                .animation(.easeInOut(duration: 0.15), value: model.intentHint == nil)
 
                 if model.needsGlobeKey {
                     KBColors.borderDim.frame(width: 0.5, height: 16)
