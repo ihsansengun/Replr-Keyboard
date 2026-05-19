@@ -1107,16 +1107,17 @@ struct CollapsedBar: View {
     }
 }
 
-// MARK: - Idle + Always-On Keyboard
+// MARK: - Replr Strip (mode row + tone row = 60px)
 
 struct ReplrStrip: View {
     @ObservedObject var model: KeyboardModel
 
-    private var isCaptureIdleState: Bool {
-        guard model.inputMode == .chat else { return false }  // email mode never shows capture CTA
-        guard model.lastInsertedReply == nil else { return false }
-        if case .idle = model.state { return model.hasAnySessions }
-        return false
+    private enum IntentTabState: Equatable { case empty, ready, captured }
+
+    private var intentTabState: IntentTabState {
+        if model.intentHint != nil { return .captured }
+        if !model.pendingContext.isEmpty { return .ready }
+        return .empty
     }
 
     private var canSwitchMode: Bool {
@@ -1128,30 +1129,17 @@ struct ReplrStrip: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Mode row: Chat / Email tabs + collapse chevron
-            HStack(spacing: 0) {
-                Button {
+            // ── Mode row ──────────────────────────────────────────────────
+            HStack(spacing: 3) {
+                modeTab(symbol: "bubble.left", isActive: model.inputMode == .chat) {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         if case .replies = model.state { model.regenerate() }
                         model.inputMode = .chat
                     }
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "message")
-                            .font(.system(size: 10, weight: .medium))
-                        Text("Chat")
-                            .font(.system(size: 12, weight: .semibold))
-                    }
-                    .foregroundColor(model.inputMode == .chat ? KBColors.accentFg : KBColors.textDim)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(model.inputMode == .chat ? KBColors.accent : Color.clear)
-                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
                 }
-                .buttonStyle(.plain)
                 .disabled(!canSwitchMode)
 
-                Button {
+                modeTab(symbol: "envelope", isActive: model.inputMode == .email) {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         if case .replies = model.state { model.regenerate() }
                         if model.selectedTone.name == "Dating" {
@@ -1159,76 +1147,29 @@ struct ReplrStrip: View {
                         }
                         model.inputMode = .email
                     }
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "envelope")
-                            .font(.system(size: 10, weight: .medium))
-                        Text("Email")
-                            .font(.system(size: 12, weight: .semibold))
-                    }
-                    .foregroundColor(model.inputMode == .email ? KBColors.accentFg : KBColors.textDim)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(model.inputMode == .email ? KBColors.accent : Color.clear)
-                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
                 }
-                .buttonStyle(.plain)
                 .disabled(!canSwitchMode)
 
-                Spacer()
+                intentTab
 
-                Button { model.collapse() } label: {
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(KBColors.textDim)
-                        .frame(width: 36, height: 28)
-                }
-                .buttonStyle(.plain)
+                ctaButton
             }
-            .padding(.leading, 8)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 4)
             .frame(height: 28)
 
             KBColors.borderHair.frame(height: 0.5)
 
-            // Action bar: capture CTA / loading / error / undo
-            Group {
-                if isCaptureIdleState {
-                    Button { model.collapse() } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "arrow.down.to.line")
-                                .font(.system(size: 11, weight: .medium))
-                            Text("Capture replies")
-                                .font(.system(size: 13, weight: .semibold))
-                        }
-                        .foregroundColor(KBColors.accentFg)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 28)
-                        .background(KBColors.accent)
-                    }
-                    .buttonStyle(.plain)
-                } else {
-                    HStack(spacing: 8) {
-                        stripCentreContent
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        intentChip
-                    }
-                    .padding(.horizontal, 12)
-                    .frame(height: 28)
-                }
-            }
-            .animation(.easeInOut(duration: 0.15), value: model.hasAnySessions)
-            .animation(.easeInOut(duration: 0.15), value: model.lastInsertedReply == nil)
-
-            KBColors.borderHair.frame(height: 0.5)
-
-            // Tone row: pills + optional globe
+            // ── Tone row ──────────────────────────────────────────────────
             HStack(spacing: 0) {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 2) {
                         ForEach(model.tones.filter { model.inputMode == .chat || $0.name != "Dating" }) { tone in
-                            TonePill(name: tone.name,
-                                     isSelected: tone.name == model.selectedTone.name,
-                                     action: { model.selectTone(tone) })
+                            TonePill(
+                                name: tone.name,
+                                isSelected: tone.name == model.selectedTone.name,
+                                action: { model.selectTone(tone) }
+                            )
                         }
                     }
                     .padding(.horizontal, 8)
@@ -1247,139 +1188,197 @@ struct ReplrStrip: View {
             }
             .frame(height: 32)
         }
-        .background(
-            KBColors.deep
-                .overlay(alignment: .bottom) { KBColors.borderHair.frame(height: 1) }
-        )
+        .background(KBColors.deep)
+        .overlay(alignment: .bottom) { KBColors.borderHair.frame(height: 0.5) }
     }
 
-    // MARK: - Smart centre content
+    // MARK: - Mode Tab
 
     @ViewBuilder
-    private var stripCentreContent: some View {
-        // Undo chip takes priority over all other states
-        if model.lastInsertedReply != nil {
-            Button { model.onUndoInsert?() } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.uturn.backward")
-                        .font(.system(size: 9, weight: .medium))
-                    Text("Undo")
-                        .font(.system(size: 10, weight: .medium))
-                }
-                .foregroundColor(KBColors.accentFg)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(KBColors.accent)
-                .clipShape(Capsule())
+    private func modeTab(symbol: String, isActive: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 14, weight: .regular))
+                .symbolRenderingMode(.monochrome)
+                .foregroundColor(isActive ? KBColors.accentFg : KBColors.accent)
+                .frame(width: 28, height: 20)
+                .background(isActive ? KBColors.accent : Color.clear)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .stroke(isActive ? Color.clear : KBColors.accent, lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .opacity(isActive ? 1.0 : 0.35)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Intent Tab
+
+    @ViewBuilder
+    private var intentTab: some View {
+        Button {
+            switch intentTabState {
+            case .empty:    break
+            case .ready:    model.captureIntent()
+            case .captured: model.clearIntent()
             }
-            .buttonStyle(.plain)
-            .transition(.opacity.combined(with: .scale(scale: 0.85)))
-        } else {
-            switch model.state {
-            case .idle where !model.hasAnySessions:
-                // No sessions yet — static hint label
-                Text("Set up triple-tap →")
-                    .font(.system(size: 12))
-                    .foregroundColor(KBColors.textDim)
+        } label: {
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: "bookmark")
+                    .font(.system(size: 14, weight: .regular))
+                    .symbolRenderingMode(.monochrome)
+                    .foregroundColor(intentTabState == .captured ? KBColors.accentFg : KBColors.accent)
+                    .frame(width: 28, height: 20)
+                    .background(intentTabBg)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .stroke(intentTabBorder, lineWidth: 1)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .opacity(intentTabState == .empty ? 0.18 : 1.0)
 
-            case .loading:
-                HStack(spacing: 5) {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .scaleEffect(0.65)
-                        .tint(KBColors.textDim)
-                    Text("Generating…")
-                        .font(.system(size: 12))
-                        .foregroundColor(KBColors.textDim)
+                if intentTabState == .captured {
+                    Circle()
+                        .fill(KBColors.accentFg)
+                        .frame(width: 5, height: 5)
+                        .offset(x: 3, y: -3)
+                        .transition(.opacity)
                 }
-
-            case .error:
-                HStack(spacing: 6) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.system(size: 9, weight: .medium))
-                        Text("Failed")
-                            .font(.system(size: 11))
-                    }
-                    .foregroundColor(KBColors.textDim)
-
-                    Button { model.retryGeneration() } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.clockwise")
-                                .font(.system(size: 9, weight: .medium))
-                            Text("Retry")
-                                .font(.system(size: 10, weight: .medium))
-                        }
-                        .foregroundColor(KBColors.accentFg)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(KBColors.accent)
-                        .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                }
-
-            case .replies:
-                Button { model.regenerate() } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 10, weight: .medium))
-                        Text("Regenerate")
-                            .font(.system(size: 10, weight: .medium))
-                    }
-                    .foregroundColor(KBColors.textDim)
-                }
-                .buttonStyle(.plain)
-                .transition(.opacity.combined(with: .scale(scale: 0.85)))
-
-            default:
-                // .editReply, .editContact, .disambiguate, .collapsed — empty
-                Spacer()
             }
+        }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.2), value: intentTabState)
+    }
+
+    private var intentTabBg: Color {
+        switch intentTabState {
+        case .empty:    return Color.clear
+        case .ready:    return KBColors.accent.opacity(0.15)
+        case .captured: return KBColors.accent
         }
     }
 
-    // MARK: - Intent chip (right side of action bar)
+    private var intentTabBorder: Color {
+        intentTabState == .ready ? KBColors.accent.opacity(0.8) : Color.clear
+    }
+
+    // MARK: - CTA Button (fills remaining width)
 
     @ViewBuilder
-    private var intentChip: some View {
-        if let hint = model.intentHint {
-            // Filled — tap to clear
-            Button { model.clearIntent() } label: {
-                HStack(spacing: 3) {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 8, weight: .bold))
-                    Text(hint)
-                        .font(.system(size: 10, weight: .medium))
-                        .lineLimit(1)
+    private var ctaButton: some View {
+        Group {
+            if model.lastInsertedReply != nil {
+                Button { model.onUndoInsert?() } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.uturn.backward")
+                            .font(.system(size: 9, weight: .medium))
+                        Text("Undo")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundColor(KBColors.accentFg)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 20)
+                    .background(KBColors.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 }
-                .foregroundColor(KBColors.accentFg)
-                .padding(.horizontal, 7)
-                .padding(.vertical, 3)
-                .background(KBColors.accent)
-                .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
-            .transition(.opacity.combined(with: .scale(scale: 0.85)))
-        } else {
-            // Empty — tap to capture whatever is in the text field
-            Button { model.captureIntent() } label: {
-                HStack(spacing: 3) {
-                    Image(systemName: "arrow.up.square")
-                        .font(.system(size: 9, weight: .medium))
-                    Text("intent")
-                        .font(.system(size: 10, weight: .medium))
+                .buttonStyle(.plain)
+                .transition(.opacity.combined(with: .scale(scale: 0.9)))
+
+            } else {
+                switch model.state {
+                case .loading:
+                    HStack(spacing: 5) {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .scaleEffect(0.55)
+                            .tint(KBColors.accent)
+                        Text("Generating…")
+                            .font(.system(size: 11))
+                            .foregroundColor(KBColors.accent.opacity(0.6))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(height: 20)
+                    .padding(.leading, 4)
+
+                case .error:
+                    Button { model.retryGeneration() } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "exclamationmark.triangle")
+                                .font(.system(size: 9))
+                            Text("Failed · Retry")
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                        .foregroundColor(KBColors.textDim)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(height: 20)
+                        .padding(.leading, 4)
+                    }
+                    .buttonStyle(.plain)
+
+                case .replies:
+                    Text(model.inputMode == .email ? "↑ Generate from clipboard" : "↑ Capture replies")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(model.inputMode == .email
+                                         ? KBColors.accent.opacity(0.15)
+                                         : KBColors.textDim.opacity(0.15))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 20)
+
+                case .idle where !model.hasAnySessions && model.inputMode == .chat:
+                    Text("Set up triple-tap →")
+                        .font(.system(size: 11))
+                        .foregroundColor(KBColors.textDim)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(height: 20)
+                        .padding(.leading, 4)
+
+                default:
+                    if model.inputMode == .email {
+                        Button { model.generateEmailReply() } label: {
+                            Text("↑ Generate from clipboard")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(KBColors.accent)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 20)
+                                .background(KBColors.accent.opacity(0.12))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .stroke(KBColors.accent.opacity(0.38), lineWidth: 1)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Button { model.collapse() } label: {
+                            Text("↑ Capture replies")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(KBColors.textDim)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 20)
+                                .background(KBColors.textDim.opacity(0.18))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .stroke(KBColors.textDim.opacity(0.5), lineWidth: 1)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
-                .foregroundColor(KBColors.textDim)
-                .padding(.horizontal, 7)
-                .padding(.vertical, 3)
-                .overlay(
-                    Capsule()
-                        .stroke(KBColors.textDim.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [3]))
-                )
             }
-            .buttonStyle(.plain)
-            .transition(.opacity.combined(with: .scale(scale: 0.85)))
+        }
+        .animation(.easeInOut(duration: 0.15), value: model.lastInsertedReply == nil)
+        .animation(.easeInOut(duration: 0.15), value: ctaStateTag)
+    }
+
+    private var ctaStateTag: Int {
+        switch model.state {
+        case .idle:    return 0
+        case .loading: return 1
+        case .error:   return 2
+        case .replies: return 3
+        default:       return 4
         }
     }
 }
