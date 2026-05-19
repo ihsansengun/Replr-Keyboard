@@ -274,7 +274,7 @@ final class KeyboardViewController: UIInputViewController {
     // The card uses maxHeight:.infinity so it fills whatever height we allocate here.
     private func updateHeightFromContent() {
         // Strip (89) + optional contact row (28) + carousel padding/dots (~32)
-        let chrome: CGFloat = 89 + (model.contactName != nil ? 28 : 0) + 32
+        let chrome: CGFloat = 60 + (model.contactName != nil ? 28 : 0) + 32
         let longestReply = model.currentReplies.map(\.count).max() ?? 0
         let cardHeight: CGFloat
         if model.inputMode == .email {
