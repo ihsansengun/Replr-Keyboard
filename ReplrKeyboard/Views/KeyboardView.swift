@@ -2,6 +2,79 @@ import SwiftUI
 import Combine
 import UIKit
 
+// MARK: - Custom Mode Icons
+
+private struct ChatIcon: View {
+    let color: Color
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            var path = Path()
+            // Top wave — represents one side of a conversation
+            path.move(to: CGPoint(x: 0, y: h * 0.30))
+            path.addCurve(to: CGPoint(x: w * 0.50, y: h * 0.30),
+                         control1: CGPoint(x: w * 0.15, y: h * 0.05),
+                         control2: CGPoint(x: w * 0.35, y: h * 0.55))
+            path.addCurve(to: CGPoint(x: w, y: h * 0.30),
+                         control1: CGPoint(x: w * 0.65, y: h * 0.05),
+                         control2: CGPoint(x: w * 0.85, y: h * 0.55))
+            // Bottom wave — the other side, phase-shifted
+            path.move(to: CGPoint(x: 0, y: h * 0.72))
+            path.addCurve(to: CGPoint(x: w * 0.50, y: h * 0.72),
+                         control1: CGPoint(x: w * 0.15, y: h * 0.47),
+                         control2: CGPoint(x: w * 0.35, y: h * 0.97))
+            path.addCurve(to: CGPoint(x: w, y: h * 0.72),
+                         control1: CGPoint(x: w * 0.65, y: h * 0.47),
+                         control2: CGPoint(x: w * 0.85, y: h * 0.97))
+            ctx.stroke(path, with: .color(color),
+                      style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
+        }
+    }
+}
+
+private struct EmailIcon: View {
+    let color: Color
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            var path = Path()
+            // Paper airplane body
+            path.move(to: CGPoint(x: w * 0.92, y: h * 0.08))
+            path.addLine(to: CGPoint(x: w * 0.04, y: h * 0.52))
+            path.addLine(to: CGPoint(x: w * 0.36, y: h * 0.60))
+            path.addLine(to: CGPoint(x: w * 0.50, y: h * 0.92))
+            path.addLine(to: CGPoint(x: w * 0.92, y: h * 0.08))
+            // Fold crease
+            path.move(to: CGPoint(x: w * 0.36, y: h * 0.60))
+            path.addLine(to: CGPoint(x: w * 0.66, y: h * 0.40))
+            ctx.stroke(path, with: .color(color),
+                      style: StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
+        }
+    }
+}
+
+private struct IntentIcon: View {
+    let color: Color
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            let cx = w / 2, cy = h / 2
+            var path = Path()
+            // Outer ring
+            path.addEllipse(in: CGRect(x: cx - w * 0.44, y: cy - h * 0.44,
+                                       width: w * 0.88, height: h * 0.88))
+            // Middle ring
+            path.addEllipse(in: CGRect(x: cx - w * 0.27, y: cy - h * 0.27,
+                                       width: w * 0.54, height: h * 0.54))
+            // Centre dot
+            path.addEllipse(in: CGRect(x: cx - w * 0.10, y: cy - h * 0.10,
+                                       width: w * 0.20, height: h * 0.20))
+            ctx.stroke(path, with: .color(color),
+                      style: StrokeStyle(lineWidth: 1.2, lineCap: .round))
+        }
+    }
+}
+
 // MARK: - State
 
 enum KeyboardState: Equatable {
@@ -1173,15 +1246,17 @@ struct ReplrStrip: View {
         VStack(spacing: 0) {
             // ── Mode row ──────────────────────────────────────────────────
             HStack(spacing: 3) {
-                modeTab(symbol: "bubble.left", label: "Chat", isActive: model.inputMode == .chat) {
+                modeTab(isActive: model.inputMode == .chat) {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         if case .replies = model.state { model.regenerate() }
                         model.inputMode = .chat
                     }
+                } icon: { color in
+                    ChatIcon(color: color)
                 }
                 .disabled(!canSwitchMode)
 
-                modeTab(symbol: "envelope", label: "Email", isActive: model.inputMode == .email) {
+                modeTab(isActive: model.inputMode == .email) {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         if case .replies = model.state { model.regenerate() }
                         if model.selectedTone.name == "Dating" {
@@ -1189,6 +1264,8 @@ struct ReplrStrip: View {
                         }
                         model.inputMode = .email
                     }
+                } icon: { color in
+                    EmailIcon(color: color)
                 }
                 .disabled(!canSwitchMode)
 
@@ -1237,29 +1314,28 @@ struct ReplrStrip: View {
     // MARK: - Mode Tab
 
     @ViewBuilder
-    private func modeTab(symbol: String, label: String, isActive: Bool, action: @escaping () -> Void) -> some View {
-        let vintageFace  = Color(red: 0.310, green: 0.259, blue: 0.180)
-        let activeFace   = Color(red: 0.929, green: 0.898, blue: 0.816)
-        let activeText   = Color(red: 0.102, green: 0.078, blue: 0.031)
-        let inactiveText = Color(red: 0.929, green: 0.898, blue: 0.816).opacity(0.75)
-        let keyShadow    = Color(red: 0.039, green: 0.031, blue: 0.012)
-        let faceColor    = isActive ? activeFace : vintageFace
-        let textColor    = isActive ? activeText : inactiveText
+    private func modeTab<Icon: View>(
+        isActive: Bool,
+        action: @escaping () -> Void,
+        @ViewBuilder icon: (Color) -> Icon
+    ) -> some View {
+        let faceColor  = isActive
+            ? Color(red: 0.929, green: 0.898, blue: 0.816)   // activeFace — cream
+            : Color(red: 0.310, green: 0.259, blue: 0.180)   // vintageFace — dark warm brown
+        let iconColor: Color = isActive
+            ? Color(red: 0.102, green: 0.078, blue: 0.031)   // activeText — dark amber
+            : Color(red: 0.929, green: 0.898, blue: 0.816).opacity(0.75)  // inactiveText
+
         Button(action: action) {
-            VStack(spacing: 2) {
-                Image(systemName: symbol)
-                    .font(.system(size: 12, weight: .regular))
-                    .symbolRenderingMode(.monochrome)
-                Text(label)
-                    .font(.system(size: 8, weight: .medium))
-            }
-            .foregroundColor(textColor)
-            .frame(width: 34, height: 26)
-            .background(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(faceColor)
-                    .shadow(color: keyShadow, radius: 0, y: 1)
-            )
+            icon(iconColor)
+                .frame(width: 18, height: 14)
+                .frame(width: 34, height: 26)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(faceColor)
+                        .shadow(color: Color(red: 0.039, green: 0.031, blue: 0.012),
+                                radius: 0, y: 1)
+                )
         }
         .buttonStyle(.plain)
     }
@@ -1268,21 +1344,14 @@ struct ReplrStrip: View {
 
     @ViewBuilder
     private var intentTab: some View {
-        let vintageFace  = Color(red: 0.310, green: 0.259, blue: 0.180)
-        let activeFace   = Color(red: 0.929, green: 0.898, blue: 0.816)
-        let activeText   = Color(red: 0.102, green: 0.078, blue: 0.031)
-        let inactiveText = Color(red: 0.929, green: 0.898, blue: 0.816).opacity(0.75)
-        let keyShadow    = Color(red: 0.039, green: 0.031, blue: 0.012)
-        let faceColor: Color = {
-            switch intentTabState {
-            case .empty:    return vintageFace
-            case .ready:    return vintageFace
-            case .captured: return activeFace
-            }
-        }()
-        let textColor: Color  = intentTabState == .captured ? activeText : inactiveText
-        let borderColor: Color = intentTabState == .ready ? KBColors.accent.opacity(0.8) : Color.clear
-        let iconColor: Color   = intentTabState == .captured ? activeText : inactiveText
+        let faceColor: Color = intentTabState == .captured
+            ? Color(red: 0.929, green: 0.898, blue: 0.816)   // cream when captured
+            : Color(red: 0.310, green: 0.259, blue: 0.180)   // vintage otherwise
+        let iconColor: Color = intentTabState == .captured
+            ? Color(red: 0.102, green: 0.078, blue: 0.031)   // dark amber when captured
+            : Color(red: 0.929, green: 0.898, blue: 0.816).opacity(0.75)
+        let borderColor: Color = intentTabState == .ready
+            ? KBColors.accent.opacity(0.8) : Color.clear
 
         Button {
             switch intentTabState {
@@ -1291,32 +1360,24 @@ struct ReplrStrip: View {
             case .captured: model.clearIntent()
             }
         } label: {
-            VStack(spacing: 2) {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: "bookmark")
-                        .font(.system(size: 12, weight: .regular))
-                        .symbolRenderingMode(.monochrome)
-                        .foregroundColor(iconColor)
-                        .frame(width: 34, height: 20)
+            ZStack(alignment: .topTrailing) {
+                IntentIcon(color: iconColor)
+                    .frame(width: 18, height: 14)
+                    .frame(width: 34, height: 26)
 
-                    if intentTabState == .captured {
-                        Circle()
-                            .fill(activeText)
-                            .frame(width: 5, height: 5)
-                            .offset(x: 3, y: -3)
-                            .transition(.opacity)
-                    }
+                if intentTabState == .captured {
+                    Circle()
+                        .fill(Color(red: 0.102, green: 0.078, blue: 0.031))
+                        .frame(width: 5, height: 5)
+                        .offset(x: -2, y: 2)
+                        .transition(.opacity)
                 }
-
-                Text("Intent")
-                    .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(textColor)
             }
-            .frame(width: 34, height: 26)
             .background(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .fill(faceColor)
-                    .shadow(color: keyShadow, radius: 0, y: 1)
+                    .shadow(color: Color(red: 0.039, green: 0.031, blue: 0.012),
+                            radius: 0, y: 1)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
