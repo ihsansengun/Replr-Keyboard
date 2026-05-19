@@ -301,7 +301,46 @@ private struct FullAccessStep: View {
 
 private struct PhotosPermissionStep: View {
     let onNext: () -> Void
-    var body: some View { Text("TODO step 3") }
+    @State private var status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+
+    var body: some View {
+        DarkOnboardingScreen(
+            stepLabel: "STEP 3 OF 5",
+            currentStep: 3,
+            headline: "Allow photos",
+            body: "Replr reads your latest screenshot.\nNothing is stored.",
+            glowSize: 80
+        ) {
+            PaperPlaneIcon()
+        } cta: {
+            if status == .authorized || status == .limited {
+                GhostCTAButton(label: "Continue →", action: onNext)
+            } else if status == .denied || status == .restricted {
+                VStack(spacing: 10) {
+                    GhostCTAButton(label: "Open Settings →") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    Button("Skip", action: onNext)
+                        .font(.system(size: 13))
+                        .foregroundColor(OBColors.taupe)
+                        .buttonStyle(.plain)
+                }
+            } else {
+                GhostCTAButton(label: "Allow Photos →") {
+                    PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
+                        DispatchQueue.main.async {
+                            status = newStatus
+                            if newStatus == .authorized || newStatus == .limited {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { onNext() }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 private struct BackTapSetupStep: View {
