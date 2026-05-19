@@ -2,164 +2,187 @@
 
 ## Goal
 
-Redesign the email mode keyboard UX so it is nearly identical to chat mode — same QWERTY layout, same strip — with the only differences being a live intent row (checkbox), a Generate key, and Paste + Regenerate in the replies state. Remove all previously-built email-specific UI (paste button, EditIntentView wiring, explicit intent capture).
-
----
-
-## Core Mental Model
-
-- The user types their reply intent directly into the host text field, exactly like they would type in chat.
-- Whatever is in the text proxy at generate-time IS the intent. No explicit capture step.
-- "Generate" reads the email from the clipboard and optionally the typed intent.
-- The intent row is a live reflection of `pendingContext` — it appears and disappears automatically as the user types.
+Redesign the keyboard strip and email mode UX. Key outcomes: icon-based mode row with an explicit Intent capture button, email mode that reads from the native app's text proxy, warm dark keyboard palette, and Paste + Regenerate in email replies.
 
 ---
 
 ## Color Palette
 
-The keyboard adopts a warm dark theme that complements mustard yellow. Applied to all modes (chat and email share the same keyboard appearance).
+Replace the current `KBColors` block with warm dark tokens that complement mustard yellow.
 
 | Token | Hex | Usage |
 |---|---|---|
 | `kbBg` | `#171209` | Keyboard shell background |
-| `stripBg` | `#1E1912` | Mode row, action bar, tone row backgrounds |
+| `stripBg` | `#1E1912` | Mode row, tone row backgrounds |
 | `stripBorder` | `#2E2518` | Row separators |
 | `qwertyBg` | `#221D14` | QWERTY area background |
 | `keyLetter` | `#EDE5D0` | Letter key face (warm cream) |
 | `keyLetterFg` | `#1A1408` | Letter key text |
-| `keyFn` | `#6B6050` | Function key face (⇧ ⌫ 123, warm taupe) |
+| `keyFn` | `#6B6050` | Function key face (warm taupe) |
 | `keyFnFg` | `#EDE5D0` | Function key text |
-| `keySpace` | `#D8D0BC` | Space bar face |
+| `keySpace` | `#D8D0BC` | Space bar |
 | `keyShadow` | `#0A0803` | Key bottom shadow |
-| `accent` | `#D4A017` | Mustard — Generate/Send key, active tab, active tone, intent checkbox |
+| `accent` | `#D4A017` | Mustard — active tab, intent captured, Send/Generate key |
 | `accentFg` | `#120E00` | Text on mustard |
-| `accentShadow` | `#7A5A00` | Generate/Send key bottom shadow |
-
-Replace the current `KBColors` static block in `KeyboardView.swift` with these values.
+| `accentShadow` | `#7A5A00` | Send/Generate key shadow |
 
 ---
 
-## Strip (top 88px — identical in both modes)
+## Mode Row (28px) — Replaces current mode row + action bar
+
+Three icon-only square tabs on the left, one text CTA that fills all remaining space on the right. No divider between them — all siblings on the same `#1E1912` surface with uniform `5px` padding and `3px` gaps.
 
 ```
-┌─────────────────────────────────────┐  28px  mode row
-│  💬 Chat   [✉️ Email]               │
-├─────────────────────────────────────┤  28px  action bar
-│  [↑ Generate from clipboard]        │  ← email
-│  [↑ Capture replies]                │  ← chat
-├─────────────────────────────────────┤  32px  tone row
-│  [Casual] Friendly  Professional…   │
-└─────────────────────────────────────┘
+[💬] [✉️] [🔖]  [  ↑ Generate from clipboard  ]   ← email
+[💬] [✉️] [🔖]  [  ↑ Capture replies            ]   ← chat
 ```
 
-- **Email action bar**: full-width centered label "↑ Generate from clipboard" in mustard, no button (tapping it is not needed — Generate key handles it).
-- **Dating tone** is hidden when `inputMode == .email`. The filtered list is `Tone.presets.filter { $0.id != "dating" }`.
+### Icon tabs — SF Symbols
+
+| Element | SF Symbol | Role |
+|---|---|---|
+| Chat mode | `bubble.left` | Mode selector |
+| Email mode | `envelope` | Mode selector |
+| Intent | `bookmark` | Intent capture button |
+
+Tab shape: `border-radius: 6`, `width: 28pt`, `height: 20pt`, centered icon `14pt`, `stroke-width: 1.5`.
+
+### Icon tab states
+
+| Tab | State | Appearance |
+|---|---|---|
+| Active mode | Selected | Solid mustard fill, dark icon |
+| Inactive mode | Unselected | Same icon, 35% opacity |
+| Intent — empty | Nothing to capture | 18% opacity |
+| Intent — ready | Text proxy has content | Mustard outline + 15% mustard fill |
+| Intent — captured | Text saved | Solid mustard fill + small dark dot badge (top-right) |
+
+### CTA text button
+
+Fills remaining width (`flex: 1`). Same `border-radius: 6`, same `height: 20pt`. Text `11pt semibold`.
+
+| Mode | Label | Style |
+|---|---|---|
+| Email | ↑ Generate from clipboard | Mustard tinted: `accent @ 12%` bg + `accent @ 38%` border + mustard text |
+| Chat | ↑ Capture replies | Taupe tinted: `#6B6050 @ 18%` bg + taupe border + taupe text |
+| Either, during replies | (label unchanged) | Transparent bg, no border, near-invisible text |
+
+Tapping the email CTA triggers generation. Tapping the chat CTA is a hint only — Back Tap is the real capture trigger.
 
 ---
 
-## Intent Row (email mode only, 28px, conditional)
+## Intent Button — Capture Flow
 
-Sits between the tone row and the QWERTY area. Visible only when `pendingContext.trimmingCharacters(in: .whitespacesAndNewlines)` is non-empty AND `inputMode == .email`.
+Intent is an **explicit capture action**, not automatic. The user types in the native app's text field using the Replr keyboard (exactly like a system keyboard), then taps the bookmark icon to lock that text as intent.
 
-```
-┌──────────────────────────────────────┐
-│  [✓]  Ask Bob to review the timeline  ·  tap to exclude  │
-└──────────────────────────────────────┘
-```
+### Flow
 
-- **Checkbox checked (default)**: mustard fill, `✓` glyph, intent text in `#C8BFA8`, hint "tap to exclude" in taupe.
-- **Checkbox unchecked**: taupe border, intent text struck-through in `#3A3020`, hint "tap to include".
-- Tapping the row toggles `model.intentIncluded: Bool` (new property, default `true`).
-- The row's height is 28px. Adding it shifts QWERTY down — total keyboard height becomes 308 + 28 = 336px when visible.
-- `KeyboardViewController` must update `setHeight` when the intent row appears/disappears. Subscribe to `model.$pendingContext` and `model.$inputMode` to detect transitions.
+1. **Empty** — text proxy empty → Intent icon is near-invisible (18% opacity). Nothing to capture.
+2. **Ready** — user typed something in the host app's field → Intent icon lights up (mustard outline). Keyboard reads `textDocumentProxy.documentContextBeforeInput` on every `textDidChange`.
+3. **Capture** — user taps Intent icon → reads text proxy → saves to `AppGroupService.shared.saveIntentHint(text)` → deletes the captured text from the text proxy (same as `onUseAsContext`) → icon becomes solid mustard with dot badge.
+4. **Captured** — intent is locked. User can keep typing new text for other purposes. Tapping intent icon again clears it (`saveIntentHint(nil)`).
+5. **After generation** — intent is cleared after a reply is inserted (existing `insert()` behaviour).
+
+### KeyboardModel changes
+
+| Property / callback | Change |
+|---|---|
+| `intentHint: String?` | Already exists — keep |
+| `intentIncluded: Bool` | **Remove** — checkbox concept replaced by explicit capture |
+| `captureIntent()` | Already exists — keep |
+| `clearIntent()` | Already exists — keep |
+| Intent icon state | Derived: `pendingContext.isEmpty && intentHint == nil` → empty · `!pendingContext.isEmpty && intentHint == nil` → ready · `intentHint != nil` → captured |
+
+---
+
+## Tone Row (32px)
+
+Unchanged layout. One filter change: **Dating tone is hidden when `inputMode == .email`**.
+
+Filtered list: `Tone.presets.filter { inputMode == .chat || $0.id != "dating" }`
 
 ---
 
 ## QWERTY Keyboard
 
-Identical layout for both modes. Only the bottom-right key changes:
+Bottom-right key changes per mode:
 
-| Mode | Bottom-right key |
-|---|---|
-| Chat | **Send** (mustard, 48px wide) — inserts `\n` or submits |
-| Email | **Generate** (mustard, 64px wide) — triggers email generation |
+| Mode | Key | Style |
+|---|---|---|
+| Chat | **Send** (48pt wide) | Solid mustard, `accentShadow` |
+| Email | **return** (48pt wide) | Taupe fn key style — same as ⇧ and ⌫ |
 
-The `KBInputArea` bottom row switches key based on `model.inputMode`.
-
----
-
-## Generate Action (email mode)
-
-When the user taps Generate, `KeyboardViewController` executes:
-
-1. Read `textDocumentProxy.documentContextBeforeInput` → `intentText`.
-2. Read `UIPasteboard.general.string` → `emailText`. If nil/empty, transition to `.error("No email in clipboard")` and return.
-3. Clear the text proxy draft (delete chars, same as `onUseAsContext` today). Save `pendingContext = ""` to App Group.
-4. Transition to `.loading`.
-5. Fire a background `Task` that calls `ReplyService.shared.generateEmailReplies(emailText:intent:tone:...)` — a new method in `ReplyService` (companion app target, Shared/) that POSTs to `/reply` with `emailText` + optional `summary`. The keyboard extension calls this directly via `URLSession` in a background task; this is intentional — the keyboard owns the email generation flow since it holds the clipboard and intent context.
-6. On success: write replies to App Group (`AppGroupService.shared.saveReplies`). The existing poll loop in `startCapturePoll()` picks them up and transitions to `.replies`.
-7. On failure: write error to App Group or call the error path directly on `MainActor`.
-
-`onGenerateEmail: (() -> Void)?` callback added to `KeyboardModel`, wired in `KeyboardViewController`.
+Return key is preserved in email mode. Generation is triggered via the CTA button, not a keyboard key.
 
 ---
 
-## Replies State (email mode)
+## Email Generation — Trigger
 
-Card footer shows two buttons instead of one:
+When user taps **↑ Generate from clipboard** CTA:
+
+1. Read `UIPasteboard.general.string` → `emailText`. If nil/empty → `model.state = .error("No email in clipboard")`, return.
+2. Read `model.intentHint` → optional intent string.
+3. Clear text proxy draft and save `pendingContext = ""` to App Group (same as `onUseAsContext`).
+4. `model.state = .loading`.
+5. Background `Task` calls `ReplyService.shared.generateEmailReplies(emailText:intent:tone:...)` — a new method in `ReplyService` (Shared target) that POSTs to `/reply` with `emailText` + optional `summary`. The keyboard extension calls this directly via URLSession in a background Task.
+6. On success → save replies to App Group → poll loop picks them up → `.replies` state.
+7. On failure → `.error(message)`.
+
+`onGenerateEmail: (() -> Void)?` callback on `KeyboardModel`, wired in `KeyboardViewController`.
+
+---
+
+## Replies State
+
+### Email replies — card footer
+
+Two equal buttons separated by a hairline:
 
 ```
-┌──────────────────────────────────────┐
-│  Hi Bob,                             │
-│                                      │
-│  I've reviewed the timeline…         │
-├──────────┬───────────────────────────┤
-│  Paste   │  Regenerate               │
-└──────────┴───────────────────────────┘
+┌──────────┬────────────┐
+│  Paste   │ Regenerate │
+└──────────┴────────────┘
 ```
 
-- **Paste**: calls `model.onReplySelected(reply)` — inserts the reply text into the text proxy (same as Send in chat). Label: "Paste".
-- **Regenerate**: resets `model.state = .idle`, clears `model.currentReplies`. User is back at the QWERTY keyboard to adjust intent and tap Generate again. Label: "Regenerate".
-- In chat mode, the card footer remains a single "Send" button (unchanged).
+- **Paste** → `model.onReplySelected(reply)` — inserts text into text proxy, same as Send in chat.
+- **Regenerate** → `model.state = .idle`, `model.currentReplies = []`.
+
+### Chat replies — card footer
+
+Unchanged: single **Send** button.
 
 `ReplyCard` receives `inputMode` and renders the appropriate footer.
 
 ---
 
-## KeyboardModel Changes
+## Height Changes
 
-| Property / method | Change |
+| State | Height |
 |---|---|
-| `intentIncluded: Bool` | New `@Published` property, default `true`. Reset to `true` when `inputMode` switches. |
-| `onGenerateEmail: (() -> Void)?` | New callback, called when Generate key tapped in email mode. |
-| `regenerate()` | Existing — sets state to `.idle`, clears replies. Reused by Regenerate button. |
+| Idle (chat or email) | 308px — same as today |
+| Loading | 308px |
+| Error | 308px |
+| Collapsed | 44px |
+| Replies (chat) | Character-count heuristic, `chrome + cardHeight` |
+| Replies (email) | Same heuristic, email scale: `min(340, max(200, longestReply × 0.8))` |
 
----
-
-## KeyboardViewController Changes
-
-- Wire `model.onGenerateEmail` — reads clipboard, calls `AppGroupService` to queue an email generation request, same mechanism as `GenerateReplyIntent` but triggered from keyboard.
-- Subscribe to `model.$pendingContext.combineLatest(model.$inputMode)` to detect when intent row appears/disappears (email mode + non-empty context) and call `setHeight(336)` vs `setHeight(308)`.
+Strip is now 60px (mode row 28 + tone row 32) instead of 88px. The extra 28px is redistributed to card height, so total keyboard height stays the same.
 
 ---
 
 ## What Does NOT Change
 
-- Chat mode keyboard: no changes to behavior, layout, or Generate/Send semantics.
-- The `AppGroupService` poll loop and reply delivery mechanism.
-- `parseLlmOutput`, `generateRepliesFromEmail` on the backend.
-- Contact chip, tone persistence, undo chip, collapsed state.
-- The `.loading` and `.error` strip states.
+- App Group communication, poll loop, `startCapturePoll()`
+- Contact chip, contact disambiguation, undo chip
+- Collapsed state
+- `parseLlmOutput`, `generateRepliesFromEmail` on the backend
+- Chat mode generation flow (Back Tap → AppIntent)
 
 ---
 
-## States Not Affected
+## Removed
 
-`editReply`, `editContact`, `disambiguate`, `collapsed` — all unchanged.
-
----
-
-## Out of Scope
-
-- Persisting intent across keyboard sessions (the intent lives only in the text proxy during the session).
-- Multiple email generations with different intents in one session (user edits text proxy and taps Generate again).
+- Standalone action bar row (28px) — merged into mode row
+- `intentIncluded: Bool` property and checkbox UI
+- `EditIntentView` (already dead code)
+- `editIntent` keyboard state
