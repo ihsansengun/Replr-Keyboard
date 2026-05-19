@@ -1,0 +1,707 @@
+# Onboarding Redesign Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Replace the plain system-style onboarding with a full-screen dark atmospheric design matching the keyboard's warm dark palette, updating all triple-tap references to double tap.
+
+**Architecture:** All changes live in one file — `Replr/Replr/Features/Onboarding/OnboardingView.swift` — which is replaced entirely. A shared `DarkOnboardingScreen` wrapper holds the gradient background, amber glow, and progress dots; each of the 5 step views composes it. `BackTapSetupFullView` stays in the same file and gets copy-only updates.
+
+**Tech Stack:** SwiftUI, Photos framework (`PHPhotoLibrary`), UIKit (`UIApplication.openSettingsURLString`), SwiftUI `Canvas` for vector icons.
+
+---
+
+## File Map
+
+| File | Change |
+|---|---|
+| `Replr/Replr/Features/Onboarding/OnboardingView.swift` | Full replacement — new dark design |
+
+No other files change. (`AppShortcutsProvider.swift` has no triple-tap phrases — confirmed.)
+
+---
+
+### Task 1: Color palette + icon helpers + shared wrapper
+
+**Files:**
+- Modify (replace): `Replr/Replr/Features/Onboarding/OnboardingView.swift`
+
+- [ ] **Step 1: Replace the entire file with the new skeleton** — palette, icons, shared wrapper, button styles. Leave step views empty for now (they'll be filled in Tasks 2–4).
+
+```swift
+import SwiftUI
+import Photos
+
+// MARK: - Palette
+
+private enum OBColors {
+    static let accent   = Color(red: 0.831, green: 0.627, blue: 0.090) // #D4A017 mustard
+    static let cream    = Color(red: 0.929, green: 0.898, blue: 0.816) // #EDE5D0
+    static let taupe    = Color(red: 0.420, green: 0.376, blue: 0.314) // #6B6050
+    static let dotOff   = Color(red: 0.180, green: 0.145, blue: 0.094) // #2E2518
+    static let bg0      = Color(red: 0.118, green: 0.086, blue: 0.031) // #1E1608
+    static let bg1      = Color(red: 0.059, green: 0.047, blue: 0.020) // #0F0C05
+    static let accentFg = Color(red: 0.059, green: 0.047, blue: 0.020) // #0F0C05
+}
+
+// MARK: - Shared wrapper
+
+private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
+    let stepLabel: String   // "STEP 1 OF 5" or "READY"
+    let currentStep: Int    // 1-based; drives progress dot highlight
+    let headline: String
+    let body: String
+    let glowSize: CGFloat   // 80 for steps 1-4, 120 for done
+    @ViewBuilder var icon: () -> Icon
+    @ViewBuilder var cta: () -> CTA
+
+    private let totalSteps = 5
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [OBColors.bg0, OBColors.bg1],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Text(stepLabel)
+                    .font(.system(size: 10, weight: .medium))
+                    .tracking(1)
+                    .foregroundColor(
+                        currentStep == totalSteps
+                            ? OBColors.accent.opacity(0.56)
+                            : OBColors.taupe
+                    )
+                    .padding(.top, 72)
+
+                Spacer()
+
+                ZStack {
+                    RadialGradient(
+                        colors: [OBColors.accent.opacity(currentStep == totalSteps ? 0.22 : 0.16), .clear],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: glowSize / 2
+                    )
+                    .frame(width: glowSize, height: glowSize)
+
+                    icon()
+                }
+                .padding(.bottom, 32)
+
+                Text(headline)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(OBColors.cream)
+                    .multilineTextAlignment(.center)
+                    .tracking(-0.3)
+                    .padding(.horizontal, 40)
+
+                Text(body)
+                    .font(.system(size: 13))
+                    .foregroundColor(OBColors.taupe)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(3)
+                    .padding(.top, 12)
+                    .padding(.horizontal, 40)
+
+                Spacer()
+
+                VStack(spacing: 16) {
+                    cta()
+
+                    HStack(spacing: 7) {
+                        ForEach(1...totalSteps, id: \.self) { i in
+                            Circle()
+                                .fill(i == currentStep ? OBColors.accent : OBColors.dotOff)
+                                .frame(width: 6, height: 6)
+                        }
+                    }
+                }
+                .padding(.horizontal, 32)
+                .padding(.bottom, 56)
+            }
+        }
+    }
+}
+
+// MARK: - Button styles
+
+private struct GhostCTAButton: View {
+    let label: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(OBColors.accent)
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(OBColors.accent.opacity(0.35), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct SolidCTAButton: View {
+    let label: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundColor(OBColors.accentFg)
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .background(OBColors.accent)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Icons (Canvas-drawn, stroke-based)
+
+private struct KeyboardIcon: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            // Keyboard body outline
+            var body_ = Path()
+            body_.addRoundedRect(
+                in: CGRect(x: w*0.08, y: h*0.25, width: w*0.84, height: h*0.50),
+                cornerSize: CGSize(width: 4, height: 4)
+            )
+            ctx.stroke(body_, with: .color(OBColors.accent),
+                       style: StrokeStyle(lineWidth: 1.5))
+            // Key caps — top row (4 keys) + space bar
+            let kw = w * 0.09, kh = h * 0.14
+            var keys = Path()
+            let y1 = h * 0.34, y2 = h * 0.52
+            for i in 0..<4 {
+                let x = w * 0.14 + CGFloat(i) * (kw + w * 0.065)
+                keys.addRoundedRect(in: CGRect(x: x, y: y1, width: kw, height: kh),
+                                    cornerSize: CGSize(width: 1.5, height: 1.5))
+            }
+            keys.addRoundedRect(in: CGRect(x: w*0.24, y: y2, width: w*0.52, height: kh),
+                                cornerSize: CGSize(width: 1.5, height: 1.5))
+            ctx.fill(keys, with: .color(OBColors.accent.opacity(0.45)))
+        }
+        .frame(width: 52, height: 52)
+    }
+}
+
+private struct LockIcon: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            // Lock body
+            var body_ = Path()
+            body_.addRoundedRect(
+                in: CGRect(x: w*0.22, y: h*0.44, width: w*0.56, height: h*0.42),
+                cornerSize: CGSize(width: 4, height: 4)
+            )
+            ctx.stroke(body_, with: .color(OBColors.accent),
+                       style: StrokeStyle(lineWidth: 1.5))
+            // Shackle
+            var shackle = Path()
+            shackle.move(to: CGPoint(x: w*0.30, y: h*0.45))
+            shackle.addLine(to: CGPoint(x: w*0.30, y: h*0.28))
+            shackle.addArc(center: CGPoint(x: w*0.50, y: h*0.28),
+                           radius: w*0.20,
+                           startAngle: .degrees(180), endAngle: .degrees(0),
+                           clockwise: false)
+            shackle.addLine(to: CGPoint(x: w*0.70, y: h*0.45))
+            ctx.stroke(shackle, with: .color(OBColors.accent),
+                       style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
+            // Keyhole dot
+            var dot = Path()
+            dot.addEllipse(in: CGRect(x: w*0.44, y: h*0.60, width: w*0.12, height: h*0.12))
+            ctx.fill(dot, with: .color(OBColors.accent.opacity(0.65)))
+        }
+        .frame(width: 52, height: 52)
+    }
+}
+
+private struct PaperPlaneIcon: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            var path = Path()
+            path.move(to: CGPoint(x: w*0.88, y: h*0.12))
+            path.addLine(to: CGPoint(x: w*0.06, y: h*0.54))
+            path.addLine(to: CGPoint(x: w*0.38, y: h*0.62))
+            path.addLine(to: CGPoint(x: w*0.52, y: h*0.88))
+            path.addLine(to: CGPoint(x: w*0.88, y: h*0.12))
+            path.move(to: CGPoint(x: w*0.38, y: h*0.62))
+            path.addLine(to: CGPoint(x: w*0.65, y: h*0.43))
+            ctx.stroke(path, with: .color(OBColors.accent),
+                       style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
+        }
+        .frame(width: 52, height: 52)
+    }
+}
+
+private struct BullseyeIcon: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            let cx = w/2, cy = h/2
+            var rings = Path()
+            rings.addEllipse(in: CGRect(x: cx-w*0.44, y: cy-h*0.44, width: w*0.88, height: h*0.88))
+            rings.addEllipse(in: CGRect(x: cx-w*0.27, y: cy-h*0.27, width: w*0.54, height: h*0.54))
+            ctx.stroke(rings, with: .color(OBColors.accent),
+                       style: StrokeStyle(lineWidth: 1.4))
+            var dot = Path()
+            dot.addEllipse(in: CGRect(x: cx-w*0.10, y: cy-h*0.10, width: w*0.20, height: h*0.20))
+            ctx.fill(dot, with: .color(OBColors.accent.opacity(0.70)))
+        }
+        .frame(width: 52, height: 52)
+    }
+}
+
+private struct BullseyeDoneIcon: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            let cx = w/2, cy = h/2
+            var outer = Path()
+            outer.addEllipse(in: CGRect(x: cx-w*0.46, y: cy-h*0.46, width: w*0.92, height: h*0.92))
+            ctx.stroke(outer, with: .color(OBColors.accent.opacity(0.30)),
+                       style: StrokeStyle(lineWidth: 1.2))
+            var mid = Path()
+            mid.addEllipse(in: CGRect(x: cx-w*0.33, y: cy-h*0.33, width: w*0.66, height: h*0.66))
+            ctx.stroke(mid, with: .color(OBColors.accent.opacity(0.60)),
+                       style: StrokeStyle(lineWidth: 1.3))
+            var inner = Path()
+            inner.addEllipse(in: CGRect(x: cx-w*0.19, y: cy-h*0.19, width: w*0.38, height: h*0.38))
+            ctx.stroke(inner, with: .color(OBColors.accent),
+                       style: StrokeStyle(lineWidth: 1.5))
+            var dot = Path()
+            dot.addEllipse(in: CGRect(x: cx-w*0.075, y: cy-h*0.075, width: w*0.15, height: h*0.15))
+            ctx.fill(dot, with: .color(OBColors.accent))
+        }
+        .frame(width: 60, height: 60)
+    }
+}
+
+// MARK: - Step views (stubs — filled in Tasks 2-4)
+
+private struct AddKeyboardStep: View {
+    let onNext: () -> Void
+    var body: some View { Text("TODO step 1") }
+}
+
+private struct FullAccessStep: View {
+    let onNext: () -> Void
+    var body: some View { Text("TODO step 2") }
+}
+
+private struct PhotosPermissionStep: View {
+    let onNext: () -> Void
+    var body: some View { Text("TODO step 3") }
+}
+
+private struct BackTapSetupStep: View {
+    let onNext: () -> Void
+    var body: some View { Text("TODO step 4") }
+}
+
+private struct DoneStep: View {
+    let onComplete: () -> Void
+    var body: some View { Text("TODO step 5") }
+}
+
+// MARK: - Root coordinator
+
+struct OnboardingView: View {
+    var onComplete: () -> Void
+    @AppStorage("onboardingStep") private var step = 0
+
+    var body: some View {
+        switch step {
+        case 0: AddKeyboardStep(onNext: { step = 1 })
+        case 1: FullAccessStep(onNext: { step = 2 })
+        case 2: PhotosPermissionStep(onNext: { step = 3 })
+        case 3: BackTapSetupStep(onNext: { step = 4 })
+        default: DoneStep(onComplete: { step = 0; onComplete() })
+        }
+    }
+}
+
+// MARK: - BackTapSetupFullView (deep-link sheet — copy updated in Task 4)
+
+struct BackTapSetupFullView: View {
+    @Binding var isPresented: Bool
+    var body: some View { Text("TODO — filled in Task 4") }
+}
+```
+
+- [ ] **Step 2: Build in Xcode (⌘B, scheme `Replr`)** — confirm zero errors. The stubs compile because they return valid Views.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add Replr/Replr/Features/Onboarding/OnboardingView.swift
+git commit -m "feat: onboarding skeleton — palette, icons, wrapper, stubs"
+```
+
+---
+
+### Task 2: Screens 1 and 2 — Add Keyboard + Full Access
+
+**Files:**
+- Modify: `Replr/Replr/Features/Onboarding/OnboardingView.swift` — `AddKeyboardStep` and `FullAccessStep` stubs
+
+- [ ] **Step 1: Replace `AddKeyboardStep` stub**
+
+```swift
+private struct AddKeyboardStep: View {
+    let onNext: () -> Void
+
+    var body: some View {
+        DarkOnboardingScreen(
+            stepLabel: "STEP 1 OF 5",
+            currentStep: 1,
+            headline: "Add the Replr\nkeyboard",
+            body: "Settings → General → Keyboards → Add New",
+            glowSize: 80
+        ) {
+            KeyboardIcon()
+        } cta: {
+            GhostCTAButton(label: "Open Settings →") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+                onNext()
+            }
+        }
+    }
+}
+```
+
+- [ ] **Step 2: Replace `FullAccessStep` stub**
+
+```swift
+private struct FullAccessStep: View {
+    let onNext: () -> Void
+
+    var body: some View {
+        DarkOnboardingScreen(
+            stepLabel: "STEP 2 OF 5",
+            currentStep: 2,
+            headline: "Enable Full\nAccess",
+            body: "Lets the keyboard connect to AI.",
+            glowSize: 80
+        ) {
+            LockIcon()
+        } cta: {
+            GhostCTAButton(label: "Done →", action: onNext)
+        }
+    }
+}
+```
+
+- [ ] **Step 3: Build (⌘B)** — confirm zero errors.
+
+- [ ] **Step 4: Run in simulator** — select `Replr` scheme → iPhone 15 simulator → ⌘R. Delete the app if already installed to reset `@AppStorage`. Verify step 1 shows dark gradient, keyboard icon, "Open Settings →" ghost button, 5 dots with dot 1 lit. Tap button → confirm Settings opens → manually advance: in `OnboardingView` body temporarily set `step = 0` to reset if needed. Confirm step 2 shows lock icon, "Done →" ghost button, dot 2 lit.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add Replr/Replr/Features/Onboarding/OnboardingView.swift
+git commit -m "feat: onboarding screens 1-2 — add keyboard, full access"
+```
+
+---
+
+### Task 3: Screen 3 — Photos permission
+
+**Files:**
+- Modify: `Replr/Replr/Features/Onboarding/OnboardingView.swift` — `PhotosPermissionStep` stub
+
+- [ ] **Step 1: Replace `PhotosPermissionStep` stub**
+
+```swift
+private struct PhotosPermissionStep: View {
+    let onNext: () -> Void
+    @State private var status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+
+    var body: some View {
+        DarkOnboardingScreen(
+            stepLabel: "STEP 3 OF 5",
+            currentStep: 3,
+            headline: "Allow photos",
+            body: "Replr reads your latest screenshot.\nNothing is stored.",
+            glowSize: 80
+        ) {
+            PaperPlaneIcon()
+        } cta: {
+            if status == .authorized || status == .limited {
+                GhostCTAButton(label: "Continue →", action: onNext)
+            } else if status == .denied || status == .restricted {
+                VStack(spacing: 10) {
+                    GhostCTAButton(label: "Open Settings →") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    Button("Skip", action: onNext)
+                        .font(.system(size: 13))
+                        .foregroundColor(OBColors.taupe)
+                        .buttonStyle(.plain)
+                }
+            } else {
+                GhostCTAButton(label: "Allow Photos →") {
+                    PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
+                        DispatchQueue.main.async {
+                            status = newStatus
+                            if newStatus == .authorized || newStatus == .limited {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { onNext() }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+- [ ] **Step 2: Build (⌘B)** — confirm zero errors.
+
+- [ ] **Step 3: Verify in simulator** — tap through to step 3. Confirm paper-plane icon, "Allow Photos →" ghost button, dot 3 lit. Tap "Allow Photos →" — iOS permission sheet appears. Accept → auto-advances to step 4.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add Replr/Replr/Features/Onboarding/OnboardingView.swift
+git commit -m "feat: onboarding screen 3 — photos permission"
+```
+
+---
+
+### Task 4: Screen 4 — Back Tap (double tap) + Screen 5 + `BackTapSetupFullView`
+
+**Files:**
+- Modify: `Replr/Replr/Features/Onboarding/OnboardingView.swift` — `BackTapSetupStep`, `DoneStep`, `BackTapSetupFullView`, `SetupRow`
+
+- [ ] **Step 1: Replace `BackTapSetupStep` stub**
+
+Screen 4 has two sub-steps controlled by local `@State`. Sub-step A: install shortcut. Sub-step B: configure Back Tap.
+
+```swift
+private struct BackTapSetupStep: View {
+    let onNext: () -> Void
+    @State private var subStep = 0  // 0 = add shortcut, 1 = configure settings
+
+    var body: some View {
+        DarkOnboardingScreen(
+            stepLabel: "STEP 4 OF 5",
+            currentStep: 4,
+            headline: "Set up\ndouble tap",
+            body: subStep == 0
+                ? "First, install the Replr shortcut with one tap."
+                : "① Accessibility → Touch → Back Tap\n② Double Tap → Replr",
+            glowSize: 80
+        ) {
+            BullseyeIcon()
+        } cta: {
+            if subStep == 0 {
+                VStack(spacing: 10) {
+                    GhostCTAButton(label: "Add Shortcut →") {
+                        if let url = URL(string: "https://www.icloud.com/shortcuts/4239b04c8d0d469b905ce6118c5ce706") {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    Button("Done — next step") { subStep = 1 }
+                        .font(.system(size: 13))
+                        .foregroundColor(OBColors.taupe)
+                        .buttonStyle(.plain)
+                }
+            } else {
+                VStack(spacing: 10) {
+                    GhostCTAButton(label: "Open Settings →") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    Button("Done →", action: onNext)
+                        .font(.system(size: 13))
+                        .foregroundColor(OBColors.taupe)
+                        .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+}
+```
+
+- [ ] **Step 2: Replace `DoneStep` stub**
+
+```swift
+private struct DoneStep: View {
+    let onComplete: () -> Void
+
+    var body: some View {
+        DarkOnboardingScreen(
+            stepLabel: "READY",
+            currentStep: 5,
+            headline: "You're in.",
+            body: "Double-tap the back of your phone while\nin any chat. Switch to Replr. Pick a reply.",
+            glowSize: 120
+        ) {
+            BullseyeDoneIcon()
+        } cta: {
+            SolidCTAButton(label: "Start Replr", action: onComplete)
+        }
+    }
+}
+```
+
+- [ ] **Step 3: Replace `BackTapSetupFullView`** (the deep-link sheet opened from the main app via `replr://setup`). Update all copy from triple-tap → double tap. Keep the existing `SetupRow` helper.
+
+```swift
+// MARK: - SetupRow helper
+
+private struct SetupRow: View {
+    let number: String
+    let text: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(number)
+                .font(.system(size: 13, weight: .semibold))
+                .frame(width: 24, height: 24)
+                .background(Color.accentColor)
+                .foregroundStyle(.white)
+                .clipShape(Circle())
+            Text(text)
+                .font(.subheadline)
+        }
+    }
+}
+
+// MARK: - BackTapSetupFullView (deep-link sheet from replr://setup)
+
+struct BackTapSetupFullView: View {
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    Image(systemName: "iphone.gen3")
+                        .font(.system(size: 56))
+                        .foregroundStyle(Color.accentColor)
+                        .padding(.top, 16)
+
+                    Text("Set up Back Tap")
+                        .font(.title2.bold())
+
+                    Text("Double-tapping the back of your iPhone triggers Replr to capture a screenshot and generate replies.")
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        SetupRow(number: "1", text: "Settings → Accessibility → Touch → Back Tap")
+                        SetupRow(number: "2", text: "Tap \"Double Tap\"")
+                        SetupRow(number: "3", text: "Scroll down and choose Shortcuts → Replr")
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
+
+                    Label("First time you double-tap, iOS will ask to share the screenshot with Replr. Tap \"Allow Always\".", systemImage: "info.circle")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+
+                    Button {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        Label("Open Settings", systemImage: "gearshape")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .padding(.horizontal)
+
+                    Spacer(minLength: 24)
+                }
+            }
+            .navigationTitle("Set up Back Tap")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { isPresented = false }
+                }
+            }
+        }
+    }
+}
+```
+
+- [ ] **Step 4: Build (⌘B)** — confirm zero errors. There should be no remaining "TODO" stubs.
+
+- [ ] **Step 5: Run in simulator** — tap through all 5 steps end-to-end:
+  - Step 1: dark gradient, keyboard icon, ghost "Open Settings →" button, dot 1 lit
+  - Step 2: lock icon, ghost "Done →", dot 2 lit
+  - Step 3: paper plane icon, ghost "Allow Photos →", dot 3 lit
+  - Step 4 sub-step A: bullseye icon, "Add Shortcut →" + "Done — next step" link, dot 4 lit
+  - Step 4 sub-step B: body text shows ① ② path, "Open Settings →" + "Done →" link
+  - Step 5: expanded bullseye with 3 fading rings, "You're in." headline, **solid mustard** "Start Replr" button, all 5 dots lit
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add Replr/Replr/Features/Onboarding/OnboardingView.swift
+git commit -m "feat: onboarding screens 3-5, BackTapSetupFullView — double tap"
+```
+
+---
+
+## Spec Self-Review
+
+### Coverage check
+
+| Spec requirement | Task |
+|---|---|
+| Dark gradient bg `#1E1608 → #0F0C05` | Task 1 (`OBColors.bg0/bg1`) |
+| Amber radial glow behind each icon | Task 1 (`DarkOnboardingScreen`) |
+| Step label 10pt uppercase tracking | Task 1 (`DarkOnboardingScreen`) |
+| Headline 22pt bold cream | Task 1 (`DarkOnboardingScreen`) |
+| Body 13pt taupe | Task 1 (`DarkOnboardingScreen`) |
+| Ghost CTA (steps 1–4) | Task 1 (`GhostCTAButton`) |
+| Solid mustard CTA (step 5 only) | Task 1 (`SolidCTAButton`) |
+| Progress dots active/inactive | Task 1 (`DarkOnboardingScreen`) |
+| KeyboardIcon (step 1) | Task 1 + Task 2 |
+| LockIcon (step 2) | Task 1 + Task 2 |
+| PaperPlaneIcon (step 3) | Task 1 + Task 3 |
+| BullseyeIcon (step 4) | Task 1 + Task 4 |
+| BullseyeDoneIcon (step 5, 3 rings) | Task 1 + Task 4 |
+| Photos permission — authorized/denied/denied flows | Task 3 |
+| Back Tap — two sub-steps | Task 4 |
+| "double tap" copy throughout | Task 4 |
+| `BackTapSetupFullView` copy updates | Task 4 |
+| `@AppStorage("onboardingStep")` key preserved | Task 1 |
+| `onComplete` callback signature preserved | Task 1 |
+| No back button / linear flow | Task 1 (`OnboardingView` switch) |
+
+### Type consistency
+
+- `DarkOnboardingScreen<Icon: View, CTA: View>` — generic parameters match `@ViewBuilder` closures at all 5 call sites ✓
+- `GhostCTAButton(label:action:)` — used in Tasks 2, 3, 4 with same signature ✓
+- `SolidCTAButton(label:action:)` — used only in Task 4 done screen ✓
+- `OBColors` static properties — referenced by name in Tasks 1-4, never redefined ✓
