@@ -273,7 +273,7 @@ final class KeyboardViewController: UIInputViewController {
     // Picks a replies height based on content: email replies are longer so get more space.
     // The card uses maxHeight:.infinity so it fills whatever height we allocate here.
     private func updateHeightFromContent() {
-        // Strip (89) + optional contact row (28) + carousel padding/dots (~32)
+        // Strip (60) + optional contact row (28) + carousel padding/dots (~32)
         let chrome: CGFloat = 60 + (model.contactName != nil ? 28 : 0) + 32
         let longestReply = model.currentReplies.map(\.count).max() ?? 0
         let cardHeight: CGFloat
