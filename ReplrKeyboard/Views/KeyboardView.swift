@@ -13,7 +13,6 @@ enum KeyboardState: Equatable {
     case error(String)
     case editContact(String)                                // current name pre-filled
     case disambiguate(name: String, candidates: [Contact]) // same-name contact picker
-    case editIntent                                         // intent hint text entry
 }
 
 enum KBMode { case alpha, numeric }
@@ -65,7 +64,7 @@ final class KeyboardModel: ObservableObject {
     func type(_ char: String) {
         let out = isShifted ? char.uppercased() : char
         switch state {
-        case .editReply, .editContact, .editIntent: inputText += out
+        case .editReply, .editContact: inputText += out
         default: onTypeChar?(out)
         }
         if isShifted, kbMode == .alpha { isShifted = false }
@@ -74,7 +73,7 @@ final class KeyboardModel: ObservableObject {
 
     func backspace() {
         switch state {
-        case .editReply, .editContact, .editIntent:
+        case .editReply, .editContact:
             guard !inputText.isEmpty else { return }
             inputText.removeLast()
         default:
@@ -85,7 +84,7 @@ final class KeyboardModel: ObservableObject {
 
     func space() {
         switch state {
-        case .editReply, .editContact, .editIntent: inputText += " "
+        case .editReply, .editContact: inputText += " "
         default: onSpaceChar?()
         }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -103,11 +102,6 @@ final class KeyboardModel: ObservableObject {
             withAnimation(.easeInOut(duration: 0.18)) { state = .idle }
         case .editContact:
             if !inputText.isEmpty { onConfirmContact?(inputText) }
-        case .editIntent:
-            let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-            intentHint = trimmed.isEmpty ? nil : trimmed
-            AppGroupService.shared.saveIntentHint(trimmed.isEmpty ? nil : trimmed)
-            withAnimation(.easeInOut(duration: 0.18)) { state = .idle }
         default:
             onReturnChar?()
         }
@@ -116,7 +110,7 @@ final class KeyboardModel: ObservableObject {
     func cancelInput() {
         withAnimation(.easeInOut(duration: 0.18)) {
             switch state {
-            case .editReply, .editContact, .editIntent:
+            case .editReply, .editContact:
                 if !currentReplies.isEmpty {
                     state = .replies(currentReplies)
                 } else {
@@ -304,9 +298,6 @@ struct KeyboardRootView: View {
                     )
                 }
                 .transition(.opacity)
-            case .editIntent:
-                // Unreachable — intent capture now reads from text proxy
-                IdleWithKeyboard(model: model).transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.2), value: stateTag)
@@ -368,7 +359,6 @@ struct KeyboardRootView: View {
         case .collapsed:    return 5
         case .editContact:  return 6
         case .disambiguate: return 7
-        case .editIntent:   return 8
         }
     }
 }
@@ -538,57 +528,6 @@ struct EditContactView: View {
                 isShifted: model.isShifted,
                 kbMode: model.kbMode,
                 doneLabel: "Done",
-                onChar: { model.type($0) },
-                onSpace: { model.space() },
-                onBackspace: { model.backspace() },
-                onShift: { model.toggleShift() },
-                onMode: { model.toggleMode() },
-                onDone: { model.confirmInput() }
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(KBColors.from(cs).bg)
-        }
-    }
-}
-
-// MARK: - Edit Intent View
-
-struct EditIntentView: View {
-    @ObservedObject var model: KeyboardModel
-    @Environment(\.colorScheme) private var cs
-
-    var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                Text(model.inputText.isEmpty ? "What do you want to say…" : model.inputText)
-                    .font(.system(size: 15))
-                    .foregroundColor(model.inputText.isEmpty
-                                     ? Color(UIColor.placeholderText)
-                                     : Color(UIColor.label))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .overlay(alignment: .bottom) {
-                        KBColors.accent.opacity(0.5).frame(height: 1)
-                    }
-
-                Button("Set") { model.confirmInput() }
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(KBColors.accent)
-                    .buttonStyle(.plain)
-
-                Button("Cancel") { model.cancelInput() }
-                    .font(.system(size: 13))
-                    .foregroundColor(KBColors.textDim)
-                    .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 14)
-            .frame(height: 42)
-            .background(Color(UIColor.secondarySystemGroupedBackground))
-            .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
-
-            ReplrKeyboard(
-                isShifted: model.isShifted,
-                kbMode: model.kbMode,
-                doneLabel: "Set",
                 onChar: { model.type($0) },
                 onSpace: { model.space() },
                 onBackspace: { model.backspace() },

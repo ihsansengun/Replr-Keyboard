@@ -125,7 +125,6 @@ final class KeyboardViewController: UIInputViewController {
                     case .collapsed:     newHeight = 44
                     case .editReply:     newHeight = 308
                     case .editContact:   newHeight = 308
-                    case .editIntent:    newHeight = 308
                     case .loading:       newHeight = 308
                     case .error:        newHeight = 308
                     case .disambiguate:  newHeight = 348
