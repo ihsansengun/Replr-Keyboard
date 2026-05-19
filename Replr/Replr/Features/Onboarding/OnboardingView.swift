@@ -19,7 +19,7 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
     let stepLabel: String   // "STEP 1 OF 5" or "READY"
     let currentStep: Int    // 1-based; drives progress dot highlight
     let headline: String
-    let body: String
+    let bodyText: String    // Renamed from `body` to avoid conflict with View's computed `body` property
     let glowSize: CGFloat   // 80 for steps 1-4, 120 for done
     @ViewBuilder var icon: () -> Icon
     @ViewBuilder var cta: () -> CTA
@@ -68,7 +68,7 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
                     .tracking(-0.3)
                     .padding(.horizontal, 40)
 
-                Text(body)
+                Text(bodyText)
                     .font(.system(size: 13))
                     .foregroundColor(OBColors.taupe)
                     .multilineTextAlignment(.center)
@@ -266,7 +266,7 @@ private struct AddKeyboardStep: View {
             stepLabel: "STEP 1 OF 5",
             currentStep: 1,
             headline: "Add the Replr\nkeyboard",
-            body: "Settings → General → Keyboards → Add New",
+            bodyText: "Settings → General → Keyboards → Add New",
             glowSize: 80
         ) {
             KeyboardIcon()
@@ -289,7 +289,7 @@ private struct FullAccessStep: View {
             stepLabel: "STEP 2 OF 5",
             currentStep: 2,
             headline: "Enable Full\nAccess",
-            body: "Lets the keyboard connect to AI.",
+            bodyText: "Lets the keyboard connect to AI.",
             glowSize: 80
         ) {
             LockIcon()
@@ -308,7 +308,7 @@ private struct PhotosPermissionStep: View {
             stepLabel: "STEP 3 OF 5",
             currentStep: 3,
             headline: "Allow photos",
-            body: "Replr reads your latest screenshot.\nNothing is stored.",
+            bodyText: "Replr reads your latest screenshot.\nNothing is stored.",
             glowSize: 80
         ) {
             PaperPlaneIcon()
@@ -345,12 +345,65 @@ private struct PhotosPermissionStep: View {
 
 private struct BackTapSetupStep: View {
     let onNext: () -> Void
-    var body: some View { Text("TODO step 4") }
+    @State private var subStep = 0  // 0 = add shortcut, 1 = configure settings
+
+    var body: some View {
+        DarkOnboardingScreen(
+            stepLabel: "STEP 4 OF 5",
+            currentStep: 4,
+            headline: "Set up\ndouble tap",
+            bodyText: subStep == 0
+                ? "First, install the Replr shortcut with one tap."
+                : "① Accessibility → Touch → Back Tap\n② Double Tap → Replr",
+            glowSize: 80
+        ) {
+            BullseyeIcon()
+        } cta: {
+            if subStep == 0 {
+                VStack(spacing: 10) {
+                    GhostCTAButton(label: "Add Shortcut →") {
+                        if let url = URL(string: "https://www.icloud.com/shortcuts/4239b04c8d0d469b905ce6118c5ce706") {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    Button("Done — next step") { subStep = 1 }
+                        .font(.system(size: 13))
+                        .foregroundColor(OBColors.taupe)
+                        .buttonStyle(.plain)
+                }
+            } else {
+                VStack(spacing: 10) {
+                    GhostCTAButton(label: "Open Settings →") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    Button("Done →", action: onNext)
+                        .font(.system(size: 13))
+                        .foregroundColor(OBColors.taupe)
+                        .buttonStyle(.plain)
+                }
+            }
+        }
+    }
 }
 
 private struct DoneStep: View {
     let onComplete: () -> Void
-    var body: some View { Text("TODO step 5") }
+
+    var body: some View {
+        DarkOnboardingScreen(
+            stepLabel: "READY",
+            currentStep: 5,
+            headline: "You're in.",
+            bodyText: "Double-tap the back of your phone while\nin any chat. Switch to Replr. Pick a reply.",
+            glowSize: 120
+        ) {
+            BullseyeDoneIcon()
+        } cta: {
+            SolidCTAButton(label: "Start Replr", action: onComplete)
+        }
+    }
 }
 
 // MARK: - Root coordinator
@@ -395,5 +448,62 @@ private struct SetupRow: View {
 
 struct BackTapSetupFullView: View {
     @Binding var isPresented: Bool
-    var body: some View { Text("TODO BackTapSetupFullView") }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    Image(systemName: "iphone.gen3")
+                        .font(.system(size: 56))
+                        .foregroundStyle(Color.accentColor)
+                        .padding(.top, 16)
+
+                    Text("Set up Back Tap")
+                        .font(.title2.bold())
+
+                    Text("Double-tapping the back of your iPhone triggers Replr to capture a screenshot and generate replies.")
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        SetupRow(number: "1", text: "Settings → Accessibility → Touch → Back Tap")
+                        SetupRow(number: "2", text: "Tap \"Double Tap\"")
+                        SetupRow(number: "3", text: "Scroll down and choose Shortcuts → Replr")
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal)
+
+                    Label("First time you double-tap, iOS will ask to share the screenshot with Replr. Tap \"Allow Always\".", systemImage: "info.circle")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+
+                    Button {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        Label("Open Settings", systemImage: "gearshape")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .padding(.horizontal)
+
+                    Spacer(minLength: 24)
+                }
+            }
+            .navigationTitle("Set up Back Tap")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { isPresented = false }
+                }
+            }
+        }
+    }
 }
