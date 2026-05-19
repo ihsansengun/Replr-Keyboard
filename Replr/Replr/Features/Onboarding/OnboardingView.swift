@@ -1,180 +1,308 @@
 import SwiftUI
 import Photos
 
+// MARK: - Palette
+
+private enum OBColors {
+    static let accent   = Color(red: 0.831, green: 0.627, blue: 0.090) // #D4A017 mustard
+    static let cream    = Color(red: 0.929, green: 0.898, blue: 0.816) // #EDE5D0
+    static let taupe    = Color(red: 0.420, green: 0.376, blue: 0.314) // #6B6050
+    static let dotOff   = Color(red: 0.180, green: 0.145, blue: 0.094) // #2E2518
+    static let bg0      = Color(red: 0.118, green: 0.086, blue: 0.031) // #1E1608
+    static let bg1      = Color(red: 0.059, green: 0.047, blue: 0.020) // #0F0C05
+    static let accentFg = Color(red: 0.059, green: 0.047, blue: 0.020) // #0F0C05
+}
+
+// MARK: - Shared wrapper
+
+private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
+    let stepLabel: String   // "STEP 1 OF 5" or "READY"
+    let currentStep: Int    // 1-based; drives progress dot highlight
+    let headline: String
+    let body: String
+    let glowSize: CGFloat   // 80 for steps 1-4, 120 for done
+    @ViewBuilder var icon: () -> Icon
+    @ViewBuilder var cta: () -> CTA
+
+    private let totalSteps = 5
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [OBColors.bg0, OBColors.bg1],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Text(stepLabel)
+                    .font(.system(size: 10, weight: .medium))
+                    .tracking(1)
+                    .foregroundColor(
+                        currentStep == totalSteps
+                            ? OBColors.accent.opacity(0.56)
+                            : OBColors.taupe
+                    )
+                    .padding(.top, 72)
+
+                Spacer()
+
+                ZStack {
+                    RadialGradient(
+                        colors: [OBColors.accent.opacity(currentStep == totalSteps ? 0.22 : 0.16), .clear],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: glowSize / 2
+                    )
+                    .frame(width: glowSize, height: glowSize)
+
+                    icon()
+                }
+                .padding(.bottom, 32)
+
+                Text(headline)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(OBColors.cream)
+                    .multilineTextAlignment(.center)
+                    .tracking(-0.3)
+                    .padding(.horizontal, 40)
+
+                Text(body)
+                    .font(.system(size: 13))
+                    .foregroundColor(OBColors.taupe)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(3)
+                    .padding(.top, 12)
+                    .padding(.horizontal, 40)
+
+                Spacer()
+
+                VStack(spacing: 16) {
+                    cta()
+
+                    HStack(spacing: 7) {
+                        ForEach(1...totalSteps, id: \.self) { i in
+                            Circle()
+                                .fill(i == currentStep ? OBColors.accent : OBColors.dotOff)
+                                .frame(width: 6, height: 6)
+                        }
+                    }
+                }
+                .padding(.horizontal, 32)
+                .padding(.bottom, 56)
+            }
+        }
+    }
+}
+
+// MARK: - Button styles
+
+private struct GhostCTAButton: View {
+    let label: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(OBColors.accent)
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(OBColors.accent.opacity(0.35), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct SolidCTAButton: View {
+    let label: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundColor(OBColors.accentFg)
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .background(OBColors.accent)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Icons (Canvas-drawn, stroke-based)
+
+private struct KeyboardIcon: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            var body_ = Path()
+            body_.addRoundedRect(
+                in: CGRect(x: w*0.08, y: h*0.25, width: w*0.84, height: h*0.50),
+                cornerSize: CGSize(width: 4, height: 4)
+            )
+            ctx.stroke(body_, with: .color(OBColors.accent),
+                       style: StrokeStyle(lineWidth: 1.5))
+            let kw = w * 0.09, kh = h * 0.14
+            var keys = Path()
+            let y1 = h * 0.34, y2 = h * 0.52
+            for i in 0..<4 {
+                let x = w * 0.14 + CGFloat(i) * (kw + w * 0.065)
+                keys.addRoundedRect(in: CGRect(x: x, y: y1, width: kw, height: kh),
+                                    cornerSize: CGSize(width: 1.5, height: 1.5))
+            }
+            keys.addRoundedRect(in: CGRect(x: w*0.24, y: y2, width: w*0.52, height: kh),
+                                cornerSize: CGSize(width: 1.5, height: 1.5))
+            ctx.fill(keys, with: .color(OBColors.accent.opacity(0.45)))
+        }
+        .frame(width: 52, height: 52)
+    }
+}
+
+private struct LockIcon: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            var body_ = Path()
+            body_.addRoundedRect(
+                in: CGRect(x: w*0.22, y: h*0.44, width: w*0.56, height: h*0.42),
+                cornerSize: CGSize(width: 4, height: 4)
+            )
+            ctx.stroke(body_, with: .color(OBColors.accent),
+                       style: StrokeStyle(lineWidth: 1.5))
+            var shackle = Path()
+            shackle.move(to: CGPoint(x: w*0.30, y: h*0.45))
+            shackle.addLine(to: CGPoint(x: w*0.30, y: h*0.28))
+            shackle.addArc(center: CGPoint(x: w*0.50, y: h*0.28),
+                           radius: w*0.20,
+                           startAngle: .degrees(180), endAngle: .degrees(0),
+                           clockwise: false)
+            shackle.addLine(to: CGPoint(x: w*0.70, y: h*0.45))
+            ctx.stroke(shackle, with: .color(OBColors.accent),
+                       style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
+            var dot = Path()
+            dot.addEllipse(in: CGRect(x: w*0.44, y: h*0.60, width: w*0.12, height: h*0.12))
+            ctx.fill(dot, with: .color(OBColors.accent.opacity(0.65)))
+        }
+        .frame(width: 52, height: 52)
+    }
+}
+
+private struct PaperPlaneIcon: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            var path = Path()
+            path.move(to: CGPoint(x: w*0.88, y: h*0.12))
+            path.addLine(to: CGPoint(x: w*0.06, y: h*0.54))
+            path.addLine(to: CGPoint(x: w*0.38, y: h*0.62))
+            path.addLine(to: CGPoint(x: w*0.52, y: h*0.88))
+            path.addLine(to: CGPoint(x: w*0.88, y: h*0.12))
+            path.move(to: CGPoint(x: w*0.38, y: h*0.62))
+            path.addLine(to: CGPoint(x: w*0.65, y: h*0.43))
+            ctx.stroke(path, with: .color(OBColors.accent),
+                       style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
+        }
+        .frame(width: 52, height: 52)
+    }
+}
+
+private struct BullseyeIcon: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            let cx = w/2, cy = h/2
+            var rings = Path()
+            rings.addEllipse(in: CGRect(x: cx-w*0.44, y: cy-h*0.44, width: w*0.88, height: h*0.88))
+            rings.addEllipse(in: CGRect(x: cx-w*0.27, y: cy-h*0.27, width: w*0.54, height: h*0.54))
+            ctx.stroke(rings, with: .color(OBColors.accent),
+                       style: StrokeStyle(lineWidth: 1.4))
+            var dot = Path()
+            dot.addEllipse(in: CGRect(x: cx-w*0.10, y: cy-h*0.10, width: w*0.20, height: h*0.20))
+            ctx.fill(dot, with: .color(OBColors.accent.opacity(0.70)))
+        }
+        .frame(width: 52, height: 52)
+    }
+}
+
+private struct BullseyeDoneIcon: View {
+    var body: some View {
+        Canvas { ctx, size in
+            let w = size.width, h = size.height
+            let cx = w/2, cy = h/2
+            var outer = Path()
+            outer.addEllipse(in: CGRect(x: cx-w*0.46, y: cy-h*0.46, width: w*0.92, height: h*0.92))
+            ctx.stroke(outer, with: .color(OBColors.accent.opacity(0.30)),
+                       style: StrokeStyle(lineWidth: 1.2))
+            var mid = Path()
+            mid.addEllipse(in: CGRect(x: cx-w*0.33, y: cy-h*0.33, width: w*0.66, height: h*0.66))
+            ctx.stroke(mid, with: .color(OBColors.accent.opacity(0.60)),
+                       style: StrokeStyle(lineWidth: 1.3))
+            var inner = Path()
+            inner.addEllipse(in: CGRect(x: cx-w*0.19, y: cy-h*0.19, width: w*0.38, height: h*0.38))
+            ctx.stroke(inner, with: .color(OBColors.accent),
+                       style: StrokeStyle(lineWidth: 1.5))
+            var dot = Path()
+            dot.addEllipse(in: CGRect(x: cx-w*0.075, y: cy-h*0.075, width: w*0.15, height: h*0.15))
+            ctx.fill(dot, with: .color(OBColors.accent))
+        }
+        .frame(width: 60, height: 60)
+    }
+}
+
+// MARK: - Step views (stubs — filled in Tasks 2-4)
+
+private struct AddKeyboardStep: View {
+    let onNext: () -> Void
+    var body: some View { Text("TODO step 1") }
+}
+
+private struct FullAccessStep: View {
+    let onNext: () -> Void
+    var body: some View { Text("TODO step 2") }
+}
+
+private struct PhotosPermissionStep: View {
+    let onNext: () -> Void
+    var body: some View { Text("TODO step 3") }
+}
+
+private struct BackTapSetupStep: View {
+    let onNext: () -> Void
+    var body: some View { Text("TODO step 4") }
+}
+
+private struct DoneStep: View {
+    let onComplete: () -> Void
+    var body: some View { Text("TODO step 5") }
+}
+
+// MARK: - Root coordinator
+
 struct OnboardingView: View {
     var onComplete: () -> Void
     @AppStorage("onboardingStep") private var step = 0
 
     var body: some View {
-        VStack(spacing: 32) {
-            Spacer()
-            switch step {
-            case 0:
-                OnboardingStep(
-                    icon: "keyboard",
-                    title: "Add Replr Keyboard",
-                    description: "Settings → General → Keyboard → Keyboards → Add New Keyboard → Replr",
-                    action: {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
-                        }
-                        step = 1
-                    },
-                    buttonLabel: "Open Settings"
-                )
-            case 1:
-                OnboardingStep(
-                    icon: "hand.tap",
-                    title: "Enable Full Access",
-                    description: "In Keyboard settings, enable Full Access for Replr. This lets the keyboard connect to AI.",
-                    action: { step = 2 },
-                    buttonLabel: "Done"
-                )
-            case 2:
-                PhotosPermissionStep(onNext: { step = 3 })
-            case 3:
-                BackTapSetupStep(onNext: { step = 4 })
-            default:
-                OnboardingStep(
-                    icon: "checkmark.circle.fill",
-                    title: "You're ready",
-                    description: "Triple-tap the back of your phone while in any chat. Switch to Replr keyboard and your replies are waiting.",
-                    action: {
-                        step = 0
-                        onComplete()
-                    },
-                    buttonLabel: "Get Started"
-                )
-            }
-            Spacer()
-        }
-        .padding()
-    }
-}
-
-// MARK: - Photos permission
-
-struct PhotosPermissionStep: View {
-    var onNext: () -> Void
-    @State private var status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "photo.stack")
-                .font(.system(size: 52))
-                .foregroundStyle(Color.accentColor)
-
-            Text("Allow Photos Access")
-                .font(.title2).bold()
-
-            Text("Replr reads your latest screenshot to generate replies. Your photos are never stored or shared.")
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-
-            if status == .authorized || status == .limited {
-                Label("Photos access granted", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-
-                Button("Continue", action: onNext)
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-            } else if status == .denied || status == .restricted {
-                Text("Permission denied. Open Settings to allow access.")
-                    .font(.footnote)
-                    .foregroundStyle(.orange)
-                    .multilineTextAlignment(.center)
-
-                Button("Open Settings") {
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(url)
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-
-                Button("Skip", action: onNext)
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-            } else {
-                Button("Allow Photos Access") {
-                    PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
-                        DispatchQueue.main.async {
-                            status = newStatus
-                            if newStatus == .authorized || newStatus == .limited {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { onNext() }
-                            }
-                        }
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-            }
+        switch step {
+        case 0: AddKeyboardStep(onNext: { step = 1 })
+        case 1: FullAccessStep(onNext: { step = 2 })
+        case 2: PhotosPermissionStep(onNext: { step = 3 })
+        case 3: BackTapSetupStep(onNext: { step = 4 })
+        default: DoneStep(onComplete: { step = 0; onComplete() })
         }
     }
 }
 
-// MARK: - Back Tap setup
+// MARK: - SetupRow helper (used by BackTapSetupFullView)
 
-struct BackTapSetupStep: View {
-    var onNext: () -> Void
-    @State private var currentStep = 0
-
-    var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "iphone")
-                .font(.system(size: 52))
-                .foregroundStyle(Color.accentColor)
-
-            Text("Two quick steps")
-                .font(.title2).bold()
-
-            if currentStep == 0 {
-                Text("Tap the button to install the Replr shortcut — it takes one tap.")
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
-
-                Button("Add Shortcut") {
-                    if let url = URL(string: "https://www.icloud.com/shortcuts/4239b04c8d0d469b905ce6118c5ce706") {
-                        UIApplication.shared.open(url)
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-
-                Button("Done — next step") {
-                    currentStep = 1
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-
-            } else {
-                Text("Open the Settings app on your phone, then follow these steps:")
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
-
-                VStack(alignment: .leading, spacing: 12) {
-                    SetupRow(number: "1", text: "Accessibility → Touch → Back Tap")
-                    SetupRow(number: "2", text: "Triple Tap → Shortcuts → Replr")
-                }
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                Label("First time you triple-tap, iOS will ask to share the screenshot with Replr. Tap \"Allow Always\".", systemImage: "info.circle")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-
-                Button("Done", action: onNext)
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-            }
-        }
-    }
-
-}
-
-struct SetupRow: View {
+private struct SetupRow: View {
     let number: String
     let text: String
 
@@ -192,91 +320,9 @@ struct SetupRow: View {
     }
 }
 
-// MARK: - Generic step
-
-struct OnboardingStep: View {
-    let icon: String
-    let title: String
-    let description: String
-    let action: () -> Void
-    let buttonLabel: String
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.system(size: 52))
-                .foregroundStyle(Color.accentColor)
-            Text(title).font(.title2).bold()
-            Text(description)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-            Button(buttonLabel, action: action)
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-        }
-    }
-}
-
-// MARK: - BackTap Setup Full View (presented from replr://setup deep link)
+// MARK: - BackTapSetupFullView (deep-link sheet from replr://setup — stub, filled in Task 4)
 
 struct BackTapSetupFullView: View {
     @Binding var isPresented: Bool
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    Image(systemName: "iphone.gen3")
-                        .font(.system(size: 56))
-                        .foregroundStyle(Color.accentColor)
-                        .padding(.top, 16)
-
-                    Text("Set up BackTap")
-                        .font(.title2.bold())
-
-                    Text("Triple-tapping the back of your iPhone triggers Replr to capture a screenshot and generate replies.")
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-
-                    VStack(alignment: .leading, spacing: 12) {
-                        SetupRow(number: "1", text: "Settings → Accessibility → Touch → Back Tap")
-                        SetupRow(number: "2", text: "Tap \"Triple Tap\" (or \"Double Tap\")")
-                        SetupRow(number: "3", text: "Scroll down and choose Shortcuts → Replr")
-                    }
-                    .padding()
-                    .background(Color(.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .padding(.horizontal)
-
-                    Label("First time you triple-tap, iOS will ask to share the screenshot with Replr. Tap \"Allow Always\".", systemImage: "info.circle")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-
-                    Button {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
-                        }
-                    } label: {
-                        Label("Open Settings", systemImage: "gearshape")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .padding(.horizontal)
-
-                    Spacer(minLength: 24)
-                }
-            }
-            .navigationTitle("BackTap Setup")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { isPresented = false }
-                }
-            }
-        }
-    }
+    var body: some View { Text("TODO BackTapSetupFullView") }
 }
