@@ -12,7 +12,7 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        heightConstraint = view.heightAnchor.constraint(equalToConstant: 308)
+        heightConstraint = view.heightAnchor.constraint(equalToConstant: 316)
         heightConstraint.priority = UILayoutPriority(999)
         heightConstraint.isActive = true
 
@@ -126,14 +126,14 @@ final class KeyboardViewController: UIInputViewController {
                 default:
                     let newHeight: CGFloat
                     switch state {
-                    case .idle:          newHeight = 308
+                    case .idle:          newHeight = 316
                     case .collapsed:     newHeight = 44
-                    case .editReply:     newHeight = 308
-                    case .editContact:   newHeight = 308
-                    case .loading:       newHeight = 308
-                    case .error:        newHeight = 308
-                    case .disambiguate:  newHeight = 348
-                    case .replies:       newHeight = 348  // unreachable — handled above
+                    case .editReply:     newHeight = 316
+                    case .editContact:   newHeight = 316
+                    case .loading:       newHeight = 316
+                    case .error:         newHeight = 316
+                    case .disambiguate:  newHeight = 356
+                    case .replies:       newHeight = 356  // unreachable — handled above
                     }
                     self.setHeight(newHeight)
                 }
@@ -273,8 +273,8 @@ final class KeyboardViewController: UIInputViewController {
     // Picks a replies height based on content: email replies are longer so get more space.
     // The card uses maxHeight:.infinity so it fills whatever height we allocate here.
     private func updateHeightFromContent() {
-        // Strip (60) + optional contact row (28) + carousel padding/dots (~32)
-        let chrome: CGFloat = 60 + (model.contactName != nil ? 28 : 0) + 32
+        // Strip (68) + optional contact row (28) + carousel padding/dots (~32)
+        let chrome: CGFloat = 68 + (model.contactName != nil ? 28 : 0) + 32
         let longestReply = model.currentReplies.map(\.count).max() ?? 0
         let cardHeight: CGFloat
         if model.inputMode == .email {

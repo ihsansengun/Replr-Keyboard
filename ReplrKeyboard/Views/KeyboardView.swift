@@ -1149,7 +1149,7 @@ struct CollapsedBar: View {
     }
 }
 
-// MARK: - Replr Strip (mode row + tone row = 60px)
+// MARK: - Replr Strip (mode row + tone row = 68px)
 
 struct ReplrStrip: View {
     @ObservedObject var model: KeyboardModel
@@ -1173,7 +1173,7 @@ struct ReplrStrip: View {
         VStack(spacing: 0) {
             // ── Mode row ──────────────────────────────────────────────────
             HStack(spacing: 3) {
-                modeTab(symbol: "bubble.left", isActive: model.inputMode == .chat) {
+                modeTab(symbol: "bubble.left", label: "Chat", isActive: model.inputMode == .chat) {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         if case .replies = model.state { model.regenerate() }
                         model.inputMode = .chat
@@ -1181,7 +1181,7 @@ struct ReplrStrip: View {
                 }
                 .disabled(!canSwitchMode)
 
-                modeTab(symbol: "envelope", isActive: model.inputMode == .email) {
+                modeTab(symbol: "envelope", label: "Email", isActive: model.inputMode == .email) {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         if case .replies = model.state { model.regenerate() }
                         if model.selectedTone.name == "Dating" {
@@ -1198,7 +1198,7 @@ struct ReplrStrip: View {
             }
             .padding(.horizontal, 5)
             .padding(.vertical, 4)
-            .frame(height: 28)
+            .frame(height: 36)
 
             KBColors.borderHair.frame(height: 0.5)
 
@@ -1237,20 +1237,24 @@ struct ReplrStrip: View {
     // MARK: - Mode Tab
 
     @ViewBuilder
-    private func modeTab(symbol: String, isActive: Bool, action: @escaping () -> Void) -> some View {
+    private func modeTab(symbol: String, label: String, isActive: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 14, weight: .regular))
-                .symbolRenderingMode(.monochrome)
-                .foregroundColor(isActive ? KBColors.accentFg : KBColors.accent)
-                .frame(width: 28, height: 20)
-                .background(isActive ? KBColors.accent : Color.clear)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .stroke(isActive ? Color.clear : KBColors.accent, lineWidth: 1)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .opacity(isActive ? 1.0 : 0.35)
+            VStack(spacing: 2) {
+                Image(systemName: symbol)
+                    .font(.system(size: 12, weight: .regular))
+                    .symbolRenderingMode(.monochrome)
+                Text(label)
+                    .font(.system(size: 8, weight: .medium))
+            }
+            .foregroundColor(isActive ? KBColors.accentFg : KBColors.accent)
+            .frame(width: 34, height: 26)
+            .background(isActive ? KBColors.accent : Color.clear)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .stroke(isActive ? Color.clear : KBColors.accent, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .opacity(isActive ? 1.0 : 0.35)
         }
         .buttonStyle(.plain)
     }
@@ -1266,28 +1270,35 @@ struct ReplrStrip: View {
             case .captured: model.clearIntent()
             }
         } label: {
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: "bookmark")
-                    .font(.system(size: 14, weight: .regular))
-                    .symbolRenderingMode(.monochrome)
-                    .foregroundColor(intentTabState == .captured ? KBColors.accentFg : KBColors.accent)
-                    .frame(width: 28, height: 20)
-                    .background(intentTabBg)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .stroke(intentTabBorder, lineWidth: 1)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                    .opacity(intentTabState == .empty ? 0.18 : 1.0)
+            VStack(spacing: 2) {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "bookmark")
+                        .font(.system(size: 12, weight: .regular))
+                        .symbolRenderingMode(.monochrome)
+                        .foregroundColor(intentTabState == .captured ? KBColors.accentFg : KBColors.accent)
+                        .frame(width: 34, height: 20)
 
-                if intentTabState == .captured {
-                    Circle()
-                        .fill(KBColors.accentFg)
-                        .frame(width: 5, height: 5)
-                        .offset(x: 3, y: -3)
-                        .transition(.opacity)
+                    if intentTabState == .captured {
+                        Circle()
+                            .fill(KBColors.accentFg)
+                            .frame(width: 5, height: 5)
+                            .offset(x: 3, y: -3)
+                            .transition(.opacity)
+                    }
                 }
+
+                Text("Intent")
+                    .font(.system(size: 8, weight: .medium))
+                    .foregroundColor(intentTabState == .captured ? KBColors.accentFg : KBColors.accent)
             }
+            .frame(width: 34, height: 26)
+            .background(intentTabBg)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .stroke(intentTabBorder, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .opacity(intentTabState == .empty ? 0.18 : 1.0)
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.2), value: intentTabState)
