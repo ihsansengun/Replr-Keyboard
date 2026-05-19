@@ -295,7 +295,8 @@ struct OnboardingView: View {
         case 1: FullAccessStep(onNext: { step = 2 })
         case 2: PhotosPermissionStep(onNext: { step = 3 })
         case 3: BackTapSetupStep(onNext: { step = 4 })
-        default: DoneStep(onComplete: { step = 0; onComplete() })
+        case 4: DoneStep(onComplete: { step = 0; onComplete() })
+        default: AddKeyboardStep(onNext: { step = 1 })
         }
     }
 }
