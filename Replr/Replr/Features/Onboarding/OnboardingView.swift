@@ -260,12 +260,43 @@ private struct BullseyeDoneIcon: View {
 
 private struct AddKeyboardStep: View {
     let onNext: () -> Void
-    var body: some View { Text("TODO step 1") }
+
+    var body: some View {
+        DarkOnboardingScreen(
+            stepLabel: "STEP 1 OF 5",
+            currentStep: 1,
+            headline: "Add the Replr\nkeyboard",
+            body: "Settings → General → Keyboards → Add New",
+            glowSize: 80
+        ) {
+            KeyboardIcon()
+        } cta: {
+            GhostCTAButton(label: "Open Settings →") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+                onNext()
+            }
+        }
+    }
 }
 
 private struct FullAccessStep: View {
     let onNext: () -> Void
-    var body: some View { Text("TODO step 2") }
+
+    var body: some View {
+        DarkOnboardingScreen(
+            stepLabel: "STEP 2 OF 5",
+            currentStep: 2,
+            headline: "Enable Full\nAccess",
+            body: "Lets the keyboard connect to AI.",
+            glowSize: 80
+        ) {
+            LockIcon()
+        } cta: {
+            GhostCTAButton(label: "Done →", action: onNext)
+        }
+    }
 }
 
 private struct PhotosPermissionStep: View {
