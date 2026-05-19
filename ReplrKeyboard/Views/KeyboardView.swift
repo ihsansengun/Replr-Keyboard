@@ -280,8 +280,12 @@ struct KeyboardRootView: View {
                         .buttonStyle(.plain)
                         KBColors.borderHair.frame(height: 0.5)
                     }
-                    ReplyCarousel(replies: replies,
-                                  onSelect: { model.selectReply($0) })
+                    ReplyCarousel(
+                        replies: replies,
+                        inputMode: model.inputMode,
+                        onSelect: { model.selectReply($0) },
+                        onRegenerate: { model.regenerate() }
+                    )
                 }
                 .transition(.opacity)
             case .editReply:
@@ -959,16 +963,23 @@ private struct DoneKey: View {
 
 struct ReplyCarousel: View {
     let replies: [String]
+    let inputMode: KeyboardInputMode
     let onSelect: (String) -> Void
+    let onRegenerate: () -> Void
     @State private var currentPage = 0
 
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $currentPage) {
                 ForEach(Array(replies.enumerated()), id: \.offset) { index, reply in
-                    ReplyCard(text: reply, onTap: { onSelect(reply) })
-                        .padding(.horizontal, 4)
-                        .tag(index)
+                    ReplyCard(
+                        text: reply,
+                        inputMode: inputMode,
+                        onTap: { onSelect(reply) },
+                        onRegenerate: onRegenerate
+                    )
+                    .padding(.horizontal, 4)
+                    .tag(index)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -1001,45 +1012,74 @@ struct PageDots: View {
 
 struct ReplyCard: View {
     let text: String
+    let inputMode: KeyboardInputMode
     let onTap: () -> Void
+    let onRegenerate: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
-            VStack(spacing: 0) {
-                Text(text)
-                    .font(.system(size: 14))
-                    .foregroundColor(KBColors.textPrimary)
-                    .lineSpacing(3)
-                    .multilineTextAlignment(.leading)
-                    .lineLimit(nil)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(.horizontal, 14)
-                    .padding(.top, 13)
-
-                Divider().opacity(0.15)
-
-                HStack(spacing: 3) {
-                    Image(systemName: "arrow.up").font(.system(size: 10))
-                    Text("Send").font(.system(size: 11, weight: .medium))
-                }
-                .foregroundColor(KBColors.accent)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(spacing: 0) {
+            Text(text)
+                .font(.system(size: 14))
+                .foregroundColor(KBColors.textPrimary)
+                .lineSpacing(3)
+                .multilineTextAlignment(.leading)
+                .lineLimit(nil)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .padding(.horizontal, 14)
-                .padding(.vertical, 9)
+                .padding(.top, 13)
+
+            Divider().opacity(0.15)
+
+            if inputMode == .email {
+                emailFooter
+            } else {
+                chatFooter
             }
         }
-        .buttonStyle(ReplyCardButtonStyle())
         .background(KBColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
-}
 
-struct ReplyCardButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .opacity(configuration.isPressed ? 0.7 : 1.0)
-            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+    private var chatFooter: some View {
+        Button(action: onTap) {
+            HStack(spacing: 3) {
+                Image(systemName: "arrow.up").font(.system(size: 10))
+                Text("Send").font(.system(size: 11, weight: .medium))
+            }
+            .foregroundColor(KBColors.accent)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 9)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var emailFooter: some View {
+        HStack(spacing: 0) {
+            Button(action: onTap) {
+                HStack(spacing: 3) {
+                    Image(systemName: "doc.on.clipboard").font(.system(size: 10))
+                    Text("Paste").font(.system(size: 11, weight: .medium))
+                }
+                .foregroundColor(KBColors.accent)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 9)
+            }
+            .buttonStyle(.plain)
+
+            KBColors.borderHair.frame(width: 0.5)
+
+            Button(action: onRegenerate) {
+                HStack(spacing: 3) {
+                    Image(systemName: "arrow.clockwise").font(.system(size: 10))
+                    Text("Regenerate").font(.system(size: 11, weight: .medium))
+                }
+                .foregroundColor(KBColors.textDim)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 9)
+            }
+            .buttonStyle(.plain)
+        }
     }
 }
 
