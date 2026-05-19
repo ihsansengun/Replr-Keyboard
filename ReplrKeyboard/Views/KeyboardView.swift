@@ -53,6 +53,7 @@ final class KeyboardModel: ObservableObject {
     var onUndoInsert: (() -> Void)?
     var retryTrigger: (() -> Void)?
     var readTextProxy: (() -> String?)?   // reads documentContextBeforeInput from VC
+    var onDeleteTextProxy: (() -> Void)?  // deletes draft from text proxy after intent capture
 
     init(initialTone: Tone) {
         self.selectedTone = initialTone
@@ -139,6 +140,9 @@ final class KeyboardModel: ObservableObject {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         intentHint = trimmed
         AppGroupService.shared.saveIntentHint(trimmed)
+        pendingContext = ""
+        onDeleteTextProxy?()
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 
     func clearIntent() {
