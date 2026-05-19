@@ -395,73 +395,48 @@ struct TonePill: View {
 // MARK: - Keyboard Colors
 
 struct KBColors {
-    let alpha: Color      // letter key background
-    let fn: Color         // special key (shift, delete, 123, space)
-    let text: Color       // key label
-    let subtext: Color    // "space" label
-    let shadow: Color
-    let bg: Color         // area between keys
+    let alpha: Color      // letter key face
+    let fn: Color         // function key face
+    let letterText: Color // letter key label
+    let fnText: Color     // fn key label / icon
+    let subtext: Color    // space bar label
+    let shadow: Color     // key bottom shadow
+    let bg: Color         // QWERTY area background
 
     static func from(_ cs: ColorScheme) -> KBColors {
-        cs == .dark
-        ? KBColors(
-            alpha:   Color(white: 0.90),                           // #E6E6E6 — off-white keys
-            fn:      Color(white: 0.90),
-            text:    Color(white: 0.06),
-            subtext: Color(white: 0.06).opacity(0.55),
-            shadow:  Color.black.opacity(0.70),                    // visible on charcoal bg
-            bg:      Color(white: 0.11)                            // #1C1C1C — dark charcoal, not pure black
-          )
-        : KBColors(
-            alpha:   Color(red: 0.102, green: 0.106, blue: 0.165), // #1A1B2A — suave dark key
-            fn:      Color(red: 0.102, green: 0.106, blue: 0.165),
-            text:    .white,
-            subtext: Color.white.opacity(0.65),
-            shadow:  Color.black.opacity(0.20),
-            bg:      Color(red: 0.933, green: 0.945, blue: 0.969)  // #EEF1F7 — soft white
-          )
+        KBColors(
+            alpha:      Color(red: 0.929, green: 0.898, blue: 0.816), // #EDE5D0 cream
+            fn:         Color(red: 0.420, green: 0.376, blue: 0.314), // #6B6050 taupe
+            letterText: Color(red: 0.102, green: 0.078, blue: 0.031), // #1A1408 dark amber
+            fnText:     Color(red: 0.929, green: 0.898, blue: 0.816), // #EDE5D0 cream
+            subtext:    Color(red: 0.929, green: 0.898, blue: 0.816).opacity(0.65),
+            shadow:     Color(red: 0.039, green: 0.031, blue: 0.012), // #0A0803
+            bg:         Color(red: 0.133, green: 0.114, blue: 0.078)  // #221D14
+        )
     }
 
-    // MARK: - Design tokens (all adaptive — dark / light)
+    // MARK: - Design tokens
 
-    // Mustard yellow — primary accent across all states and color schemes
-    private static let mustard = UIColor(red: 0.831, green: 0.627, blue: 0.090, alpha: 1)
+    // Accent — mustard yellow
+    static let accent       = Color(red: 0.831, green: 0.627, blue: 0.090) // #D4A017
+    static let accentFg     = Color(red: 0.071, green: 0.055, blue: 0.000) // #120E00
+    static let accentShadow = Color(red: 0.478, green: 0.353, blue: 0.000) // #7A5A00
+    static let accentSubtle = Color(red: 0.831, green: 0.627, blue: 0.090, opacity: 0.50)
+    static let accentBg     = Color(red: 0.831, green: 0.627, blue: 0.090, opacity: 0.12)
+    static let accentBgBorder = Color(red: 0.831, green: 0.627, blue: 0.090, opacity: 0.38)
 
-    static let accent = Color(mustard)
-    // Dark text sits on mustard without losing contrast
-    static let accentFg = Color(UIColor(white: 0.06, alpha: 1))
-    static let accentSubtle = Color(UIColor(red: 0.831, green: 0.627, blue: 0.090, alpha: 0.50))
-    static let accentBg = Color(UIColor(red: 0.831, green: 0.627, blue: 0.090, alpha: 0.13))
-    static let accentBgBorder = Color(UIColor(red: 0.831, green: 0.627, blue: 0.090, alpha: 0.28))
+    // Shell backgrounds
+    static let background = Color(red: 0.090, green: 0.071, blue: 0.035) // #171209 keyboard shell
+    static let deep       = Color(red: 0.118, green: 0.098, blue: 0.071) // #1E1912 strip rows
+    static let surface    = Color(red: 0.141, green: 0.118, blue: 0.075) // #241E13 card surfaces
 
-    // Backgrounds
-    static let background = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? UIColor(white: 0.067, alpha: 1) // #111111
-            : .systemBackground               // white
-    })
-    static let deep = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? UIColor(white: 0.051, alpha: 1) // #0D0D0D
-            : UIColor(white: 0.960, alpha: 1) // #F5F5F5
-    })
-    static let surface = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? UIColor(white: 0.086, alpha: 1) // #161616
-            : UIColor(white: 0.925, alpha: 1) // #ECECEC
-    })
-    static let surfaceActive = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark
-            ? UIColor(white: 0.13, alpha: 1)
-            : UIColor(white: 0.87, alpha: 1)
-    })
-
-    // Text & borders — use system adaptive values
-    static let borderHair  = Color(UIColor.separator)
-    static let borderDim   = Color(UIColor.opaqueSeparator)
-    static let textPrimary = Color(UIColor.label)
-    static let textDim     = Color(UIColor.secondaryLabel)
-    static let textGhost   = Color(UIColor.opaqueSeparator)
+    // Borders + text
+    static let borderHair  = Color(red: 0.180, green: 0.145, blue: 0.094) // #2E2518
+    static let borderDim   = Color(red: 0.250, green: 0.200, blue: 0.140)
+    static let textPrimary = Color(red: 0.929, green: 0.898, blue: 0.816) // #EDE5D0
+    static let textDim     = Color(red: 0.420, green: 0.376, blue: 0.314) // #6B6050
+    static let textGhost   = Color(red: 0.250, green: 0.200, blue: 0.140)
+    static let surfaceActive = Color(red: 0.180, green: 0.145, blue: 0.094)
 }
 
 // MARK: - Keyboard Input Area
@@ -743,6 +718,7 @@ struct ReplrKeyboard: View {
     let isShifted: Bool
     let kbMode: KBMode
     let doneLabel: String
+    let doneIsAccent: Bool = true // NEW — true: mustard Send, false: taupe return
     let onChar: (String) -> Void
     let onSpace: () -> Void
     let onBackspace: () -> Void
@@ -786,7 +762,8 @@ struct ReplrKeyboard: View {
                     ModeKey(label: kbMode == .alpha ? "123" : "ABC",
                             width: fnW * 1.15, height: kH, c: c, action: onMode)
                     SpaceKey(height: kH, c: c, action: onSpace)
-                    DoneKey(label: doneLabel, width: fnW * 1.45, height: kH, action: onDone)
+                    DoneKey(label: doneLabel, width: fnW * 1.45, height: kH,
+                            isAccent: doneIsAccent, c: c, action: onDone)
                 }
             }
             .padding(.horizontal, hPad)
@@ -860,7 +837,7 @@ private struct CharKey: View {
     var body: some View {
         Text(shifted ? char.uppercased() : char)
             .font(.system(size: 17))
-            .foregroundColor(c.text)
+            .foregroundColor(c.letterText)
             .frame(width: width, height: height)
             .background(
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
@@ -888,7 +865,7 @@ private struct ShiftKey: View {
     var body: some View {
         Image(systemName: isShifted ? "shift.fill" : "shift")
             .font(.system(size: 15, weight: .light))
-            .foregroundColor(isShifted ? Color.accentColor : c.text)
+            .foregroundColor(isShifted ? Color.accentColor : c.fnText)
             .frame(width: width, height: height)
             .background(
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
@@ -929,7 +906,7 @@ private struct DeleteKey: View {
     var body: some View {
         Image(systemName: "delete.backward")
             .font(.system(size: 15, weight: .light))
-            .foregroundColor(c.text)
+            .foregroundColor(c.fnText)
             .frame(width: width, height: height)
             .background(
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
@@ -986,7 +963,7 @@ private struct ModeKey: View {
     var body: some View {
         Text(label)
             .font(.system(size: 13, weight: .regular))
-            .foregroundColor(c.text)
+            .foregroundColor(c.fnText)
             .frame(width: width, height: height)
             .background(
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
@@ -1007,19 +984,22 @@ private struct DoneKey: View {
     let label: String
     let width: CGFloat
     let height: CGFloat
+    let isAccent: Bool   // true = mustard Send, false = taupe return
+    let c: KBColors
     let action: () -> Void
     @GestureState private var pressed = false
 
     var body: some View {
         Text(label)
             .font(.system(size: 13, weight: .semibold))
-            .foregroundColor(KBColors.accentFg)
+            .foregroundColor(isAccent ? KBColors.accentFg : c.fnText)
             .frame(width: width, height: height)
             .background(
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(KBColors.accent)
+                    .fill(isAccent ? KBColors.accent : c.fn)
                     .opacity(pressed ? 0.75 : 1.0)
-                    .shadow(color: KBColors.accent.opacity(0.3), radius: 0, y: 1)
+                    .shadow(color: isAccent ? KBColors.accentShadow.opacity(0.6) : c.shadow,
+                            radius: 0, y: 1)
             )
             .scaleEffect(pressed ? 0.94 : 1.0)
             .gesture(
