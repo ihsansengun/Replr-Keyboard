@@ -54,6 +54,7 @@ struct IdlePanelView: View {
 
     private var emailContent: some View {
         VStack(spacing: 6) {
+            Spacer(minLength: 0)
             Button { model.generateEmailReply() } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "doc.on.clipboard.fill")
@@ -68,13 +69,12 @@ struct IdlePanelView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
             }
             .buttonStyle(.plain)
-            .padding(8)
+            .padding(.horizontal, 8)
 
             Text("Copy the email text first, then tap above")
                 .font(.system(size: 10))
                 .foregroundColor(KBColors.textDim)
                 .multilineTextAlignment(.center)
-
             Spacer(minLength: 0)
         }
     }
