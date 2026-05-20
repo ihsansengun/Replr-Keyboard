@@ -21,6 +21,7 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
     let headline: String
     let bodyText: String    // Renamed from `body` to avoid conflict with View's computed `body` property
     let glowSize: CGFloat   // 80 for steps 1-4, 120 for done
+    var onBack: (() -> Void)? = nil
     @ViewBuilder var icon: () -> Icon
     @ViewBuilder var cta: () -> CTA
 
@@ -36,15 +37,35 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Text(stepLabel)
-                    .font(.system(size: 10, weight: .medium))
-                    .tracking(1)
-                    .foregroundColor(
-                        currentStep == totalSteps
-                            ? OBColors.accent.opacity(0.56)
-                            : OBColors.taupe
-                    )
-                    .padding(.top, 72)
+                HStack {
+                    if let onBack {
+                        Button(action: onBack) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(OBColors.taupe)
+                        }
+                        .buttonStyle(.plain)
+                        .frame(width: 28)
+                    } else {
+                        Color.clear.frame(width: 28)
+                    }
+
+                    Spacer()
+
+                    Text(stepLabel)
+                        .font(.system(size: 10, weight: .medium))
+                        .tracking(1)
+                        .foregroundColor(
+                            currentStep == totalSteps
+                                ? OBColors.accent.opacity(0.56)
+                                : OBColors.taupe
+                        )
+
+                    Spacer()
+                    Color.clear.frame(width: 28)
+                }
+                .padding(.top, 72)
+                .padding(.horizontal, 24)
 
                 Spacer()
 
@@ -111,7 +132,7 @@ private struct GhostCTAButton: View {
                 .frame(height: 52)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(OBColors.accent.opacity(0.35), lineWidth: 1)
+                        .stroke(OBColors.accent.opacity(0.55), lineWidth: 1)
                 )
         }
         .buttonStyle(.plain)
@@ -272,9 +293,9 @@ private struct AddKeyboardStep: View {
             KeyboardIcon()
         } cta: {
             GhostCTAButton(label: "Open Settings →") {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(url)
-                }
+                let url = URL(string: "prefs:root=General&path=Keyboard")
+                    ?? URL(string: UIApplication.openSettingsURLString)!
+                UIApplication.shared.open(url)
                 onNext()
             }
         }
@@ -283,6 +304,7 @@ private struct AddKeyboardStep: View {
 
 private struct FullAccessStep: View {
     let onNext: () -> Void
+    let onBack: () -> Void
 
     var body: some View {
         DarkOnboardingScreen(
@@ -290,7 +312,8 @@ private struct FullAccessStep: View {
             currentStep: 2,
             headline: "Enable Full\nAccess",
             bodyText: "Lets the keyboard connect to AI.",
-            glowSize: 80
+            glowSize: 80,
+            onBack: onBack
         ) {
             LockIcon()
         } cta: {
@@ -301,6 +324,7 @@ private struct FullAccessStep: View {
 
 private struct PhotosPermissionStep: View {
     let onNext: () -> Void
+    let onBack: () -> Void
     @State private var status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
 
     var body: some View {
@@ -309,7 +333,8 @@ private struct PhotosPermissionStep: View {
             currentStep: 3,
             headline: "Allow photos",
             bodyText: "Replr reads your latest screenshot.\nNothing is stored.",
-            glowSize: 80
+            glowSize: 80,
+            onBack: onBack
         ) {
             PaperPlaneIcon()
         } cta: {
@@ -345,6 +370,7 @@ private struct PhotosPermissionStep: View {
 
 private struct BackTapSetupStep: View {
     let onNext: () -> Void
+    let onBack: () -> Void
     @State private var subStep = 0  // 0 = add shortcut, 1 = configure settings
 
     var body: some View {
@@ -355,7 +381,8 @@ private struct BackTapSetupStep: View {
             bodyText: subStep == 0
                 ? "First, install the Replr shortcut with one tap."
                 : "① Accessibility → Touch → Back Tap\n② Double Tap → Replr",
-            glowSize: 80
+            glowSize: 80,
+            onBack: onBack
         ) {
             BullseyeIcon()
         } cta: {
@@ -374,9 +401,9 @@ private struct BackTapSetupStep: View {
             } else {
                 VStack(spacing: 10) {
                     GhostCTAButton(label: "Open Settings →") {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
-                        }
+                        let url = URL(string: "prefs:root=ACCESSIBILITY&path=Touch")
+                            ?? URL(string: UIApplication.openSettingsURLString)!
+                        UIApplication.shared.open(url)
                     }
                     Button("Done →", action: onNext)
                         .font(.system(size: 13))
@@ -390,6 +417,7 @@ private struct BackTapSetupStep: View {
 
 private struct DoneStep: View {
     let onComplete: () -> Void
+    let onBack: () -> Void
 
     var body: some View {
         DarkOnboardingScreen(
@@ -397,7 +425,8 @@ private struct DoneStep: View {
             currentStep: 5,
             headline: "You're in.",
             bodyText: "Double-tap the back of your phone while\nin any chat. Switch to Replr. Pick a reply.",
-            glowSize: 120
+            glowSize: 120,
+            onBack: onBack
         ) {
             BullseyeDoneIcon()
         } cta: {
@@ -415,10 +444,10 @@ struct OnboardingView: View {
     var body: some View {
         switch step {
         case 0: AddKeyboardStep(onNext: { step = 1 })
-        case 1: FullAccessStep(onNext: { step = 2 })
-        case 2: PhotosPermissionStep(onNext: { step = 3 })
-        case 3: BackTapSetupStep(onNext: { step = 4 })
-        case 4: DoneStep(onComplete: { step = 0; onComplete() })
+        case 1: FullAccessStep(onNext: { step = 2 }, onBack: { step = 0 })
+        case 2: PhotosPermissionStep(onNext: { step = 3 }, onBack: { step = 1 })
+        case 3: BackTapSetupStep(onNext: { step = 4 }, onBack: { step = 2 })
+        case 4: DoneStep(onComplete: { step = 0; onComplete() }, onBack: { step = 3 })
         default: AddKeyboardStep(onNext: { step = 1 })
         }
     }
@@ -483,9 +512,9 @@ struct BackTapSetupFullView: View {
                         .padding(.horizontal)
 
                     Button {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
-                        }
+                        let url = URL(string: "prefs:root=ACCESSIBILITY&path=Touch")
+                            ?? URL(string: UIApplication.openSettingsURLString)!
+                        UIApplication.shared.open(url)
                     } label: {
                         Label("Open Settings", systemImage: "gearshape")
                             .frame(maxWidth: .infinity)
