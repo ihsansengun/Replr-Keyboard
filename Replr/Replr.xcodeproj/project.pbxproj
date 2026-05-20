@@ -28,11 +28,7 @@
 		57CF47FB2FB390BF0034657F /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47FA2FB38FA40034657F /* KeyboardViewController.swift */; };
 		57CF47FC2FB390BF0034657F /* CaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F02FB38FA40034657F /* CaptureService.swift */; };
 		57CF47FE2FB390BF0034657F /* ScrollCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F22FB38FA40034657F /* ScrollCaptureService.swift */; };
-		57CF47FF2FB390BF0034657F /* IdleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F42FB38FA40034657F /* IdleView.swift */; };
 		57CF48002FB390BF0034657F /* KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F52FB38FA40034657F /* KeyboardView.swift */; };
-		57CF48012FB390BF0034657F /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F62FB38FA40034657F /* LoadingView.swift */; };
-		57CF48022FB390BF0034657F /* ReplyCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F72FB38FA40034657F /* ReplyCardView.swift */; };
-		57CF48032FB390BF0034657F /* ToneSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F82FB38FA40034657F /* ToneSelectorView.swift */; };
 		57CF48042FB390BF0034657F /* ConversationSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CA2FB38B860034657F /* ConversationSummary.swift */; };
 		57CF48052FB390BF0034657F /* Tone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CB2FB38B860034657F /* Tone.swift */; };
 		57CF48062FB390BF0034657F /* AppGroupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CD2FB38B860034657F /* AppGroupService.swift */; };
@@ -50,7 +46,6 @@
 		57CF48362FB394B40034657F /* Tone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CB2FB38B860034657F /* Tone.swift */; };
 		57CF48372FB394B40034657F /* AppGroupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CD2FB38B860034657F /* AppGroupService.swift */; };
 		57CF48382FB394B40034657F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CE2FB38B860034657F /* Constants.swift */; };
-		7EB7B6EE2C964E498C8B62D0 /* ReplyCardsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E3287202AF4E5B887D5293 /* ReplyCardsView.swift */; };
 		CC00000000CC0000000000A2 /* ContactResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00000000CC0000000000A1 /* ContactResolver.swift */; };
 		CC00000000CC0000000000A3 /* ContactResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00000000CC0000000000A1 /* ContactResolver.swift */; };
 /* End PBXBuildFile section */
@@ -110,7 +105,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		16E3287202AF4E5B887D5293 /* ReplyCardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyCardsView.swift; sourceTree = "<group>"; };
 		57BB31B62FB5414D00CE9E4D /* ReplyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyService.swift; sourceTree = "<group>"; };
 		57BB31BD2FB54B8D00CE9E4D /* GenerateReplyIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateReplyIntent.swift; sourceTree = "<group>"; };
 		57BB31C62FB6112700CE9E4D /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
@@ -136,11 +130,7 @@
 		57CF47D82FB38DD70034657F /* ReplrKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ReplrKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		57CF47F02FB38FA40034657F /* CaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureService.swift; sourceTree = "<group>"; };
 		57CF47F22FB38FA40034657F /* ScrollCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollCaptureService.swift; sourceTree = "<group>"; };
-		57CF47F42FB38FA40034657F /* IdleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleView.swift; sourceTree = "<group>"; };
 		57CF47F52FB38FA40034657F /* KeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardView.swift; sourceTree = "<group>"; };
-		57CF47F62FB38FA40034657F /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
-		57CF47F72FB38FA40034657F /* ReplyCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyCardView.swift; sourceTree = "<group>"; };
-		57CF47F82FB38FA40034657F /* ToneSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToneSelectorView.swift; sourceTree = "<group>"; };
 		57CF47FA2FB38FA40034657F /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KeyboardViewController.swift; path = ../ReplrKeyboard/KeyboardViewController.swift; sourceTree = "<group>"; };
 		57CF480C2FB390E50034657F /* ReplrBroadcast.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ReplrBroadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		57CF480E2FB390E50034657F /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
@@ -412,12 +402,7 @@
 		57CF47F92FB38FA40034657F /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				57CF47F42FB38FA40034657F /* IdleView.swift */,
 				57CF47F52FB38FA40034657F /* KeyboardView.swift */,
-				57CF47F62FB38FA40034657F /* LoadingView.swift */,
-				57CF47F72FB38FA40034657F /* ReplyCardView.swift */,
-				57CF47F82FB38FA40034657F /* ToneSelectorView.swift */,
-				16E3287202AF4E5B887D5293 /* ReplyCardsView.swift */,
 			);
 			name = Views;
 			path = ../ReplrKeyboard/Views;
@@ -712,12 +697,7 @@
 				57CF47FB2FB390BF0034657F /* KeyboardViewController.swift in Sources */,
 				57CF47FC2FB390BF0034657F /* CaptureService.swift in Sources */,
 				57CF47FE2FB390BF0034657F /* ScrollCaptureService.swift in Sources */,
-				57CF47FF2FB390BF0034657F /* IdleView.swift in Sources */,
 				57CF48002FB390BF0034657F /* KeyboardView.swift in Sources */,
-				57CF48012FB390BF0034657F /* LoadingView.swift in Sources */,
-				57CF48022FB390BF0034657F /* ReplyCardView.swift in Sources */,
-				57CF48032FB390BF0034657F /* ToneSelectorView.swift in Sources */,
-				7EB7B6EE2C964E498C8B62D0 /* ReplyCardsView.swift in Sources */,
 				57BB31BA2FB5414D00CE9E4D /* ReplyService.swift in Sources */,
 				57CF48042FB390BF0034657F /* ConversationSummary.swift in Sources */,
 				57CF48052FB390BF0034657F /* Tone.swift in Sources */,
