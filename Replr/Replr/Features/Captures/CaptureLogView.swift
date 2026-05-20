@@ -120,8 +120,8 @@ struct CaptureLogView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 5)
                 .frame(maxWidth: 160)
-                .background(isSelected ? Color.accentColor : Color(.secondarySystemGroupedBackground))
-                .foregroundStyle(isSelected ? Color.white : Color.primary)
+                .background(isSelected ? Replr.accent : Color(.secondarySystemGroupedBackground))
+                .foregroundStyle(isSelected ? Replr.accentFg : Color.primary)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -130,7 +130,7 @@ struct CaptureLogView: View {
 
 struct CaptureRowView: View {
     let session: CaptureSession
-    private static let accent = Color.primary
+    private static let accent = Replr.accent
 
     var body: some View {
         HStack(spacing: 14) {
@@ -211,7 +211,7 @@ struct CaptureRowView: View {
 struct CaptureDetailView: View {
     let session: CaptureSession
     @State private var copiedReply: String? = nil
-    private static let accent = Color.primary
+    private static let accent = Replr.accent
 
     var body: some View {
         List {

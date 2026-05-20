@@ -81,7 +81,7 @@ struct SummariesView: View {
 
 struct ContactMemoryRow: View {
     let entry: ContactMemoryEntry
-    private static let accent = Color.primary
+    private static let accent = Replr.accent
 
     var body: some View {
         HStack(spacing: 14) {

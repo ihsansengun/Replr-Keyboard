@@ -6,7 +6,7 @@ struct SettingsView: View {
     @State private var memoryWindowDays = AppGroupService.shared.memoryWindowDays
     @State private var memoryDepth = AppGroupService.shared.memoryDepth
 
-    private static let accent = Color.primary
+    private static let accent = Replr.accent
 
     var body: some View {
         NavigationStack {
@@ -19,7 +19,7 @@ struct SettingsView: View {
                             .overlay(
                                 Image(systemName: "arrowshape.turn.up.left.fill")
                                     .font(.system(size: 24))
-                                    .foregroundStyle(.black.opacity(0.75))
+                                    .foregroundStyle(Replr.accentFg)
                             )
                         VStack(alignment: .leading, spacing: 3) {
                             Text("Replr")
