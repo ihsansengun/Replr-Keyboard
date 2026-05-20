@@ -190,6 +190,17 @@ struct RepliesPanelView: View {
                 }
                 .padding(.horizontal, 8)
             }
+            .mask(
+                LinearGradient(
+                    stops: [
+                        .init(color: .black, location: 0.0),
+                        .init(color: .black, location: 0.85),
+                        .init(color: .clear, location: 1.0),
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
 
             KBColors.borderDim.frame(width: 0.5, height: 16)
 

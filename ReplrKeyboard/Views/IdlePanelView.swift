@@ -2,6 +2,7 @@ import SwiftUI
 
 struct IdlePanelView: View {
     @ObservedObject var model: KeyboardModel
+    @State private var hasClipboardText: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -74,6 +75,8 @@ struct IdlePanelView: View {
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 16)
+            .opacity(hasClipboardText ? 1.0 : 0.45)
+            .disabled(!hasClipboardText)
 
             Text("Copy the email you're replying to, then tap above")
                 .font(.system(size: 11))
@@ -82,7 +85,24 @@ struct IdlePanelView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 10)
 
+            // Live clipboard status — uses hasStrings (no paste banner)
+            HStack(spacing: 4) {
+                if hasClipboardText {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 11))
+                        .foregroundColor(.green)
+                }
+                Text(hasClipboardText ? "Email text ready" : "Nothing copied yet")
+                    .font(.system(size: 11))
+                    .foregroundColor(hasClipboardText ? .green : KBColors.textDim)
+            }
+            .padding(.top, 8)
+            .animation(.easeInOut(duration: 0.2), value: hasClipboardText)
+
             Spacer(minLength: 0)
+        }
+        .onAppear {
+            hasClipboardText = UIPasteboard.general.hasStrings
         }
     }
 }
