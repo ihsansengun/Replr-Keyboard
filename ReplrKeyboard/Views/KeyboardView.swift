@@ -79,6 +79,7 @@ final class KeyboardModel: ObservableObject {
     @Published var lastInsertedReply: String? = nil
     @Published var hasAnySessions: Bool = false
     @Published var inputMode: KeyboardInputMode = .chat
+    @Published var isCaptureMode: Bool = false
 
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
@@ -287,7 +288,7 @@ struct TonePill: View {
                 .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
                 .foregroundColor(isSelected ? KBColors.background : KBColors.textDim)
                 .padding(.horizontal, 9).padding(.vertical, 3)
-                .background(isSelected ? KBColors.accent : Color.clear)
+                .background(isSelected ? KBColors.accent : KBColors.surface)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -319,7 +320,119 @@ struct KBColors {
     static let textPrimary = Color(red: 0.929, green: 0.898, blue: 0.816) // #EDE5D0
     static let textDim     = Color(red: 0.420, green: 0.376, blue: 0.314) // #6B6050
     static let textGhost   = Color(red: 0.250, green: 0.200, blue: 0.140)
+    static let segmentedBg = Color(red: 0.165, green: 0.125, blue: 0.063) // #2a2010
+    static let sentCard    = Color(red: 0.102, green: 0.102, blue: 0.063) // #1a1a10
+    static let undoBtnBg   = Color(red: 0.227, green: 0.165, blue: 0.000) // #3a2a00
     static let surfaceActive = Color(red: 0.180, green: 0.145, blue: 0.094)
+}
+
+// MARK: - Mode Segmented Control
+
+struct ModeSegmentedControl: View {
+    @ObservedObject var model: KeyboardModel
+
+    var body: some View {
+        HStack(spacing: 2) {
+            segmentBtn(mode: .chat,  iconName: "message.fill",  label: "Chat")
+            segmentBtn(mode: .email, iconName: "envelope.fill", label: "Email")
+        }
+        .padding(3)
+        .background(KBColors.segmentedBg)
+        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+        .padding(.horizontal, 7)
+        .padding(.top, 7)
+    }
+
+    @ViewBuilder
+    private func segmentBtn(mode: KeyboardInputMode, iconName: String, label: String) -> some View {
+        let isActive = model.inputMode == mode
+        Button {
+            guard model.inputMode != mode else { return }
+            withAnimation(.easeInOut(duration: 0.2)) {
+                if case .replies = model.state { model.regenerate() }
+                if mode == .email, model.selectedTone.name == "Dating" {
+                    model.selectedTone = model.tones.first { $0.name != "Dating" } ?? model.selectedTone
+                }
+                model.inputMode = mode
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: iconName)
+                    .font(.system(size: 13))
+                Text(label)
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .foregroundColor(isActive ? KBColors.accentFg : KBColors.textDim)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 7)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(isActive ? KBColors.accent : Color.clear)
+            )
+        }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.15), value: isActive)
+    }
+}
+
+// MARK: - Tone Row
+
+struct ToneRow: View {
+    @ObservedObject var model: KeyboardModel
+    var isDimmed: Bool = false
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 2) {
+                    ForEach(model.tones.filter { model.inputMode == .chat || $0.name != "Dating" }) { tone in
+                        TonePill(
+                            name: tone.name,
+                            isSelected: tone.name == model.selectedTone.name,
+                            action: { model.selectTone(tone) }
+                        )
+                    }
+                }
+                .padding(.horizontal, 8)
+            }
+
+            if model.needsGlobeKey {
+                KBColors.borderDim.frame(width: 0.5, height: 16)
+                Button { model.onSwitchKeyboard?() } label: {
+                    Image(systemName: "globe")
+                        .font(.system(size: 14))
+                        .foregroundColor(KBColors.textDim)
+                        .frame(width: 36, height: 30)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .frame(height: 30)
+        .overlay(alignment: .top) { KBColors.borderHair.frame(height: 0.5) }
+        .opacity(isDimmed ? 0.35 : 1.0)
+    }
+}
+
+// MARK: - Keyboard Header (segmented control + optional tone row)
+
+struct KeyboardHeader: View {
+    @ObservedObject var model: KeyboardModel
+    var isSegmentedDisabled: Bool = false
+    var isToneHidden: Bool = false
+    var isToneDimmed: Bool = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ModeSegmentedControl(model: model)
+                .opacity(isSegmentedDisabled ? 0.4 : 1.0)
+                .allowsHitTesting(!isSegmentedDisabled)
+            if !isToneHidden {
+                ToneRow(model: model, isDimmed: isToneDimmed)
+            }
+        }
+        .background(KBColors.deep)
+        .overlay(alignment: .bottom) { KBColors.borderHair.frame(height: 0.5) }
+    }
 }
 
 // MARK: - Disambiguate View
@@ -653,13 +766,31 @@ struct ReplrStrip: View {
 struct SkeletonLine: View {
     let fraction: CGFloat
     let pulse: Bool
+    @State private var shimmer = false
 
     var body: some View {
         RoundedRectangle(cornerRadius: 4, style: .continuous)
-            .fill(Color(white: pulse ? 0.18 : 0.13))
+            .fill(
+                LinearGradient(
+                    stops: [
+                        .init(color: Color(red: 0.165, green: 0.125, blue: 0.063), location: 0),
+                        .init(color: Color(red: 0.227, green: 0.188, blue: 0.094), location: shimmer ? 0.5 : 0.15),
+                        .init(color: Color(red: 0.165, green: 0.125, blue: 0.063), location: 1),
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
             .frame(height: 10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .scaleEffect(x: fraction, anchor: .leading)
+            .onAppear {
+                withAnimation(
+                    .easeInOut(duration: 0.9)
+                    .repeatForever(autoreverses: true)
+                    .delay(pulse ? 0.3 : 0)
+                ) { shimmer = true }
+            }
     }
 }
 
