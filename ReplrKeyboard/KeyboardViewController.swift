@@ -93,13 +93,11 @@ final class KeyboardViewController: UIInputViewController {
                 let height: CGFloat
                 switch state {
                 case .idle:         height = 270
-                case .loading:      height = 200
-                case .error:        height = 200
+                case .loading:      height = 230
+                case .error:        height = 240
                 case .disambiguate: height = 300
-                case .replies(let replies):
-                    height = inputMode == .email
-                        ? 380
-                        : max(200, min(340, 100 + CGFloat(replies.count) * 52))
+                case .replies:
+                    height = inputMode == .email ? 380 : 360
                 }
                 self.setHeight(height)
             }
