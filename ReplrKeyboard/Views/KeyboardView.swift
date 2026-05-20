@@ -63,7 +63,7 @@ enum KeyboardState: Equatable {
     case disambiguate(name: String, candidates: [Contact])
 }
 
-enum KeyboardInputMode { case chat, email }
+enum KeyboardInputMode: Equatable { case chat, email }
 
 // MARK: - Model
 
@@ -323,6 +323,7 @@ struct KBColors {
     static let segmentedBg = Color(red: 0.165, green: 0.125, blue: 0.063) // #2a2010
     static let sentCard    = Color(red: 0.102, green: 0.102, blue: 0.063) // #1a1a10
     static let undoBtnBg   = Color(red: 0.227, green: 0.165, blue: 0.000) // #3a2a00
+    static let skeletonHighlight = Color(red: 0.227, green: 0.188, blue: 0.094) // #3a3018
     static let surfaceActive = Color(red: 0.180, green: 0.145, blue: 0.094)
 }
 
@@ -773,9 +774,9 @@ struct SkeletonLine: View {
             .fill(
                 LinearGradient(
                     stops: [
-                        .init(color: Color(red: 0.165, green: 0.125, blue: 0.063), location: 0),
-                        .init(color: Color(red: 0.227, green: 0.188, blue: 0.094), location: shimmer ? 0.5 : 0.15),
-                        .init(color: Color(red: 0.165, green: 0.125, blue: 0.063), location: 1),
+                        .init(color: KBColors.segmentedBg, location: 0),
+                        .init(color: KBColors.skeletonHighlight, location: shimmer ? 0.5 : 0.15),
+                        .init(color: KBColors.segmentedBg, location: 1),
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
