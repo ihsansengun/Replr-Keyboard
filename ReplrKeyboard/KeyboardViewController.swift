@@ -13,7 +13,7 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        heightConstraint = view.heightAnchor.constraint(equalToConstant: 316)
+        heightConstraint = view.heightAnchor.constraint(equalToConstant: 270)
         heightConstraint.priority = UILayoutPriority(999)
         heightConstraint.isActive = true
 
@@ -74,17 +74,22 @@ final class KeyboardViewController: UIInputViewController {
         hostingVC.didMove(toParent: self)
 
         stateCancellable = model.$state
+            .combineLatest(model.$isCaptureMode)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] state in
+            .sink { [weak self] state, isCaptureMode in
                 guard let self else { return }
+                if isCaptureMode {
+                    self.setHeight(0, duration: 0.15)
+                    return
+                }
                 let height: CGFloat
                 switch state {
-                case .idle:                       height = 240
-                case .loading:                    height = 160
-                case .error:                      height = 160
-                case .disambiguate:               height = 280
+                case .idle:         height = 270
+                case .loading:      height = 200
+                case .error:        height = 200
+                case .disambiguate: height = 300
                 case .replies(let replies):
-                    height = min(320, 68 + 12 + CGFloat(replies.count) * 52)
+                    height = max(200, min(340, 100 + CGFloat(replies.count) * 52))
                 }
                 self.setHeight(height)
             }
@@ -154,7 +159,7 @@ final class KeyboardViewController: UIInputViewController {
                 guard let self else { return }
                 if AppGroupService.shared.switchKeyboardRequested {
                     AppGroupService.shared.setSwitchKeyboardRequested(false)
-                    await MainActor.run { self.advanceToNextInputMode() }
+                    await MainActor.run { self.model.isCaptureMode = true }
                 } else if AppGroupService.shared.isGenerating {
                     await MainActor.run {
                         if self.model.state != .loading {
@@ -165,6 +170,7 @@ final class KeyboardViewController: UIInputViewController {
                     NSLog("[Replr][Keyboard] poll: %d replies", replies.count)
                     AppGroupService.shared.savePendingContext("")  // context consumed, reset for next use
                     await MainActor.run {
+                        self.model.isCaptureMode = false
                         self.model.currentReplies = replies
                         // Refresh contact chip — intent may have switched contact during this capture
                         if let id = AppGroupService.shared.currentContactID,
@@ -181,6 +187,7 @@ final class KeyboardViewController: UIInputViewController {
                 } else if let error = AppGroupService.shared.consumeError() {
                     NSLog("[Replr][Keyboard] poll error: %@", error)
                     await MainActor.run {
+                        self.model.isCaptureMode = false
                         withAnimation { self.model.state = .error(error) }
                     }
                 }
@@ -226,9 +233,9 @@ final class KeyboardViewController: UIInputViewController {
         startCapturePoll()
     }
 
-    private func setHeight(_ height: CGFloat) {
+    private func setHeight(_ height: CGFloat, duration: TimeInterval = 0.25) {
         guard heightConstraint.constant != height else { return }
         heightConstraint.constant = height
-        UIView.animate(withDuration: 0.25) { self.view.layoutIfNeeded() }
+        UIView.animate(withDuration: duration) { self.view.layoutIfNeeded() }
     }
 }
