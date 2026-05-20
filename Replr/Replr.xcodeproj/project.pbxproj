@@ -121,8 +121,6 @@
 		57CF47BA2FB3895F0034657F /* ReplrApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplrApp.swift; sourceTree = "<group>"; };
 		57CF47BC2FB3895F0034657F /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		57CF47BE2FB3895F0034657F /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		57CF47C02FB3895F0034657F /* SummariesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummariesView.swift; sourceTree = "<group>"; };
-		57CF47C12FB3895F0034657F /* SummaryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryDetailView.swift; sourceTree = "<group>"; };
 		57CF47C32FB3895F0034657F /* ToneBuilderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToneBuilderView.swift; sourceTree = "<group>"; };
 		57CF47C42FB3895F0034657F /* TonesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TonesView.swift; sourceTree = "<group>"; };
 		57CF47C72FB3895F0034657F /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
@@ -176,7 +174,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				ReplrKeyboard.entitlements,
 			);
 			target = 57CF47D72FB38DD70034657F /* ReplrKeyboard */;
 		};
@@ -339,8 +336,6 @@
 		57CF47C22FB3895F0034657F /* Summaries */ = {
 			isa = PBXGroup;
 			children = (
-				57CF47C02FB3895F0034657F /* SummariesView.swift */,
-				57CF47C12FB3895F0034657F /* SummaryDetailView.swift */,
 			);
 			path = Summaries;
 			sourceTree = "<group>";

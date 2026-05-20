@@ -93,8 +93,6 @@ struct ContentView: View {
         TabView {
             CaptureLogView()
                 .tabItem { Label("Captures", systemImage: "camera.viewfinder") }
-            SummariesView()
-                .tabItem { Label("Memory", systemImage: "brain") }
             TonesView()
                 .tabItem { Label("Tones", systemImage: "slider.horizontal.3") }
             SettingsView()
