@@ -256,7 +256,7 @@ private struct BullseyeDoneIcon: View {
     }
 }
 
-// MARK: - Step views (stubs — filled in Tasks 2-4)
+// MARK: - Step views
 
 private struct AddKeyboardStep: View {
     let onNext: () -> Void
@@ -444,7 +444,7 @@ private struct SetupRow: View {
     }
 }
 
-// MARK: - BackTapSetupFullView (deep-link sheet from replr://setup — stub, filled in Task 4)
+// MARK: - BackTapSetupFullView (deep-link sheet from replr://setup)
 
 struct BackTapSetupFullView: View {
     @Binding var isPresented: Bool
