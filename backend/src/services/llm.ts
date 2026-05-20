@@ -188,7 +188,7 @@ function buildContextBlock(summary?: string, previousContext?: string): string {
     parts.push(`PREVIOUS CONVERSATIONS WITH THIS CONTACT (summaries of past sessions, oldest first):\n${previousContext}`)
   }
   if (summary) {
-    parts.push(`CONVERSATION BACKGROUND (from user):\n${summary}`)
+    parts.push(`CONTEXT NOTE FROM THE REPLY AUTHOR (not part of the chat — extra background typed by the person generating these replies to help you understand the situation):\n${summary}`)
   }
   return parts.length > 0 ? parts.join('\n\n') + '\n\n' : ''
 }
