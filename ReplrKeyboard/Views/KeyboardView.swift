@@ -219,8 +219,10 @@ struct KeyboardRootView: View {
             }
             ReplyListView(
                 replies: replies,
+                lastInsertedReply: model.lastInsertedReply,
                 onSend: { model.selectReply($0) },
-                onEdit: { model.editReply($0) }
+                onEdit: { model.editReply($0) },
+                onUndo: { model.onUndoInsert?() }
             )
         }
     }
