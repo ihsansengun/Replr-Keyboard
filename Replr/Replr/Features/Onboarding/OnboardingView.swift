@@ -293,9 +293,9 @@ private struct AddKeyboardStep: View {
             KeyboardIcon()
         } cta: {
             GhostCTAButton(label: "Open Settings →") {
-                let url = URL(string: "prefs:root=General&path=Keyboard")
-                    ?? URL(string: UIApplication.openSettingsURLString)!
-                UIApplication.shared.open(url)
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
                 onNext()
             }
         }
@@ -401,9 +401,9 @@ private struct BackTapSetupStep: View {
             } else {
                 VStack(spacing: 10) {
                     GhostCTAButton(label: "Open Settings →") {
-                        let url = URL(string: "prefs:root=ACCESSIBILITY&path=Touch")
-                            ?? URL(string: UIApplication.openSettingsURLString)!
-                        UIApplication.shared.open(url)
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
                     }
                     Button("Done →", action: onNext)
                         .font(.system(size: 13))
@@ -512,9 +512,9 @@ struct BackTapSetupFullView: View {
                         .padding(.horizontal)
 
                     Button {
-                        let url = URL(string: "prefs:root=ACCESSIBILITY&path=Touch")
-                            ?? URL(string: UIApplication.openSettingsURLString)!
-                        UIApplication.shared.open(url)
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
                     } label: {
                         Label("Open Settings", systemImage: "gearshape")
                             .frame(maxWidth: .infinity)
