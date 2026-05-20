@@ -5,6 +5,7 @@ struct SettingsView: View {
     @State private var persistReplies = AppGroupService.shared.persistReplies
     @State private var memoryWindowDays = AppGroupService.shared.memoryWindowDays
     @State private var memoryDepth = AppGroupService.shared.memoryDepth
+    @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
 
     private static let accent = Replr.accent
 
@@ -42,6 +43,9 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    NavigationLink(destination: TonesView()) {
+                        Text("Tones")
+                    }
                     Toggle("Keep replies between sessions", isOn: $persistReplies)
                         .onChange(of: persistReplies) { newValue in
                             AppGroupService.shared.persistReplies = newValue
@@ -53,24 +57,28 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Picker("Time window", selection: $memoryWindowDays) {
-                        Text("7 days").tag(7)
-                        Text("30 days").tag(30)
-                        Text("90 days").tag(90)
-                        Text("All time").tag(0)
-                    }
-                    .onChange(of: memoryWindowDays) { AppGroupService.shared.memoryWindowDays = $0 }
+                    Toggle("Enable Memory", isOn: $memoryEnabled)
+                        .onChange(of: memoryEnabled) { AppGroupService.shared.memoryEnabled = $0 }
+                    if memoryEnabled {
+                        Picker("Time window", selection: $memoryWindowDays) {
+                            Text("7 days").tag(7)
+                            Text("30 days").tag(30)
+                            Text("90 days").tag(90)
+                            Text("All time").tag(0)
+                        }
+                        .onChange(of: memoryWindowDays) { AppGroupService.shared.memoryWindowDays = $0 }
 
-                    Picker("Conversations per contact", selection: $memoryDepth) {
-                        Text("5").tag(5)
-                        Text("10").tag(10)
-                        Text("20").tag(20)
+                        Picker("Conversations per contact", selection: $memoryDepth) {
+                            Text("5").tag(5)
+                            Text("10").tag(10)
+                            Text("20").tag(20)
+                        }
+                        .onChange(of: memoryDepth) { AppGroupService.shared.memoryDepth = $0 }
                     }
-                    .onChange(of: memoryDepth) { AppGroupService.shared.memoryDepth = $0 }
                 } header: {
                     Text("Memory")
                 } footer: {
-                    Text("How far back Replr looks when building context for each contact. Maximum 20 past conversations.")
+                    Text("When enabled, Replr summarises each conversation and uses it as context when generating future replies for the same contact.")
                 }
 
                 Section("Account") {
