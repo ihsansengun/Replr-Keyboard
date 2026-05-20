@@ -28,16 +28,8 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
     private let totalSteps = 5
 
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [OBColors.bg0, OBColors.bg1],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                HStack {
+        VStack(spacing: 0) {
+            HStack {
                     if let onBack {
                         Button(action: onBack) {
                             Image(systemName: "chevron.left")
@@ -67,7 +59,7 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
                 .padding(.top, 72)
                 .padding(.horizontal, 24)
 
-                Spacer()
+                Spacer().frame(maxHeight: 80)
 
                 ZStack {
                     RadialGradient(
@@ -112,8 +104,16 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
                 }
                 .padding(.horizontal, 32)
                 .padding(.bottom, 56)
-            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            LinearGradient(
+                colors: [OBColors.bg0, OBColors.bg1],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+        )
     }
 }
 
@@ -401,8 +401,12 @@ private struct BackTapSetupStep: View {
             } else {
                 VStack(spacing: 10) {
                     GhostCTAButton(label: "Open Settings →") {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
+                        if let url = URL(string: "prefs:root=ACCESSIBILITY") {
+                            UIApplication.shared.open(url, options: [:]) { success in
+                                if !success, let fallback = URL(string: UIApplication.openSettingsURLString) {
+                                    UIApplication.shared.open(fallback)
+                                }
+                            }
                         }
                     }
                     Button("Done →", action: onNext)
@@ -512,8 +516,12 @@ struct BackTapSetupFullView: View {
                         .padding(.horizontal)
 
                     Button {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
+                        if let url = URL(string: "prefs:root=ACCESSIBILITY") {
+                            UIApplication.shared.open(url, options: [:]) { success in
+                                if !success, let fallback = URL(string: UIApplication.openSettingsURLString) {
+                                    UIApplication.shared.open(fallback)
+                                }
+                            }
                         }
                     } label: {
                         Label("Open Settings", systemImage: "gearshape")
