@@ -201,6 +201,7 @@ final class KeyboardModel: ObservableObject {
     func selectReply(_ text: String) { onReplySelected?(text) }
     func editReply(_ text: String) { onEditReply?(text) }
     func regenerate() {
+        lastInsertedReply = nil
         AppGroupService.shared.clearCachedReplies()
         currentReplies = []
         withAnimation(.easeInOut(duration: 0.2)) { state = .idle }
