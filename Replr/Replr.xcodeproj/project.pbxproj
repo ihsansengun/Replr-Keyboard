@@ -29,6 +29,8 @@
 		57CF47FC2FB390BF0034657F /* CaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F02FB38FA40034657F /* CaptureService.swift */; };
 		57CF47FE2FB390BF0034657F /* ScrollCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F22FB38FA40034657F /* ScrollCaptureService.swift */; };
 		57CF48002FB390BF0034657F /* KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F52FB38FA40034657F /* KeyboardView.swift */; };
+		BB3396FD4C094C68848A5DFB /* IdlePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9D9AE8AD804A3FAF344942 /* IdlePanelView.swift */; };
+		97NFFLHM7VMCKWGF5XR93Z6Y /* ReplyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9UQQVONMO98OVYUWSM6VSM /* ReplyListView.swift */; };
 		57CF48042FB390BF0034657F /* ConversationSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CA2FB38B860034657F /* ConversationSummary.swift */; };
 		57CF48052FB390BF0034657F /* Tone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CB2FB38B860034657F /* Tone.swift */; };
 		57CF48062FB390BF0034657F /* AppGroupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CD2FB38B860034657F /* AppGroupService.swift */; };
@@ -131,6 +133,8 @@
 		57CF47F02FB38FA40034657F /* CaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureService.swift; sourceTree = "<group>"; };
 		57CF47F22FB38FA40034657F /* ScrollCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollCaptureService.swift; sourceTree = "<group>"; };
 		57CF47F52FB38FA40034657F /* KeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardView.swift; sourceTree = "<group>"; };
+		7D9D9AE8AD804A3FAF344942 /* IdlePanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdlePanelView.swift; sourceTree = "<group>"; };
+		9E9UQQVONMO98OVYUWSM6VSM /* ReplyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyListView.swift; sourceTree = "<group>"; };
 		57CF47FA2FB38FA40034657F /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KeyboardViewController.swift; path = ../ReplrKeyboard/KeyboardViewController.swift; sourceTree = "<group>"; };
 		57CF480C2FB390E50034657F /* ReplrBroadcast.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ReplrBroadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		57CF480E2FB390E50034657F /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
@@ -403,6 +407,8 @@
 			isa = PBXGroup;
 			children = (
 				57CF47F52FB38FA40034657F /* KeyboardView.swift */,
+				7D9D9AE8AD804A3FAF344942 /* IdlePanelView.swift */,
+				9E9UQQVONMO98OVYUWSM6VSM /* ReplyListView.swift */,
 			);
 			name = Views;
 			path = ../ReplrKeyboard/Views;
@@ -698,6 +704,8 @@
 				57CF47FC2FB390BF0034657F /* CaptureService.swift in Sources */,
 				57CF47FE2FB390BF0034657F /* ScrollCaptureService.swift in Sources */,
 				57CF48002FB390BF0034657F /* KeyboardView.swift in Sources */,
+				BB3396FD4C094C68848A5DFB /* IdlePanelView.swift in Sources */,
+				97NFFLHM7VMCKWGF5XR93Z6Y /* ReplyListView.swift in Sources */,
 				57BB31BA2FB5414D00CE9E4D /* ReplyService.swift in Sources */,
 				57CF48042FB390BF0034657F /* ConversationSummary.swift in Sources */,
 				57CF48052FB390BF0034657F /* Tone.swift in Sources */,
