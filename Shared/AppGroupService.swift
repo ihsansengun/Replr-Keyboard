@@ -314,6 +314,11 @@ final class AppGroupService {
         set { defaults.set(min(newValue, 20), forKey: Constants.memoryDepthKey); defaults.synchronize() }
     }
 
+    var memoryEnabled: Bool {
+        get { defaults.object(forKey: Constants.memoryEnabledKey) as? Bool ?? true }
+        set { defaults.set(newValue, forKey: Constants.memoryEnabledKey); defaults.synchronize() }
+    }
+
     func recentSummaries(forContactID id: UUID, limit: Int) -> [String] {
         let cutoff: Date? = memoryWindowDays > 0
             ? Calendar.current.date(byAdding: .day, value: -memoryWindowDays, to: Date())
