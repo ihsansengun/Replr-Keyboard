@@ -91,12 +91,10 @@ struct ReplrApp: App {
 struct ContentView: View {
     var body: some View {
         TabView {
-            HistoryView()
-                .tabItem { Label("History", systemImage: "camera.viewfinder") }
-            TonesView()
-                .tabItem { Label("Tones", systemImage: "slider.horizontal.3") }
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape") }
+            HistoryView()
+                .tabItem { Label("History", systemImage: "clock") }
         }
         .tint(Replr.accent)
         .preferredColorScheme(.dark)
