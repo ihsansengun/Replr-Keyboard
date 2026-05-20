@@ -214,7 +214,8 @@ struct ModeSegmentedControl: View {
         .background(KBColors.segmentedBg)
         .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
         .padding(.horizontal, 7)
-        .padding(.top, 7)
+        .padding(.top, 5)
+        .padding(.bottom, 2)
     }
 
     @ViewBuilder
@@ -238,7 +239,7 @@ struct ModeSegmentedControl: View {
             }
             .foregroundColor(isActive ? KBColors.accentFg : KBColors.textDim)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 7)
+            .padding(.vertical, 5)
             .background(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .fill(isActive ? KBColors.accent : Color.clear)

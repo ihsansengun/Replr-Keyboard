@@ -21,11 +21,13 @@ struct IdlePanelView: View {
     private var chatContent: some View {
         VStack(spacing: 0) {
             CaptureZoneView()
-                .padding(8)
+                .padding(.horizontal, 8)
+                .padding(.top, 8)
+                .padding(.bottom, model.pendingContext.isEmpty ? 8 : 4)
+                .frame(maxHeight: .infinity)
             if !model.pendingContext.isEmpty {
                 draftRow
             }
-            Spacer(minLength: 0)
         }
     }
 
@@ -86,36 +88,37 @@ private struct CaptureZoneView: View {
     @State private var animating = false
 
     var body: some View {
-        VStack(spacing: 10) {
-            ZStack {
-                rippleCircle(expanding: ring1)
-                rippleCircle(expanding: ring2)
-                Image(systemName: "iphone.rear.camera")
-                    .font(.system(size: 34, weight: .light))
-                    .foregroundColor(KBColors.accent)
-            }
-            .frame(height: 54)
-            .onAppear {
-                guard !animating else { return }
-                animating = true
-                withAnimation(.easeOut(duration: 1.1).repeatForever(autoreverses: false)) {
-                    ring1 = true
+        ZStack {
+            KBColors.surface
+            VStack(spacing: 10) {
+                ZStack {
+                    rippleCircle(expanding: ring1)
+                    rippleCircle(expanding: ring2)
+                    Image(systemName: "iphone.rear.camera")
+                        .font(.system(size: 34, weight: .light))
+                        .foregroundColor(KBColors.accent)
                 }
-                withAnimation(.easeOut(duration: 1.1).repeatForever(autoreverses: false).delay(0.55)) {
-                    ring2 = true
+                .frame(height: 54)
+                .onAppear {
+                    guard !animating else { return }
+                    animating = true
+                    withAnimation(.easeOut(duration: 1.1).repeatForever(autoreverses: false)) {
+                        ring1 = true
+                    }
+                    withAnimation(.easeOut(duration: 1.1).repeatForever(autoreverses: false).delay(0.55)) {
+                        ring2 = true
+                    }
                 }
-            }
 
-            Text("Back Tap to capture")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(KBColors.accent)
-            Text("screenshot → AI replies")
-                .font(.system(size: 11))
-                .foregroundColor(KBColors.textDim)
+                Text("Back Tap to capture")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(KBColors.accent)
+                Text("screenshot → AI replies")
+                    .font(.system(size: 11))
+                    .foregroundColor(KBColors.textDim)
+            }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 18)
-        .background(KBColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
