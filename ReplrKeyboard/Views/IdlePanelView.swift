@@ -20,11 +20,14 @@ struct IdlePanelView: View {
 
     private var chatContent: some View {
         VStack(spacing: 0) {
-            CaptureZoneView()
-                .padding(.horizontal, 8)
-                .padding(.top, 8)
-                .padding(.bottom, model.pendingContext.isEmpty ? 8 : 4)
-                .frame(maxHeight: .infinity)
+            Button { model.isCaptureMode = true } label: {
+                CaptureZoneView()
+                    .padding(.horizontal, 8)
+                    .padding(.top, 8)
+                    .padding(.bottom, model.pendingContext.isEmpty ? 8 : 4)
+            }
+            .buttonStyle(.plain)
+            .frame(maxHeight: .infinity)
             if !model.pendingContext.isEmpty {
                 draftRow
             }
@@ -110,7 +113,7 @@ private struct CaptureZoneView: View {
                     }
                 }
 
-                Text("Back Tap to capture")
+                Text("Tap to minimise, then Back Tap")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(KBColors.accent)
                 Text("screenshot → AI replies")
