@@ -83,6 +83,7 @@ struct IdlePanelView: View {
 private struct CaptureZoneView: View {
     @State private var ring1 = false
     @State private var ring2 = false
+    @State private var animating = false
 
     var body: some View {
         VStack(spacing: 10) {
@@ -95,6 +96,8 @@ private struct CaptureZoneView: View {
             }
             .frame(height: 54)
             .onAppear {
+                guard !animating else { return }
+                animating = true
                 withAnimation(.easeOut(duration: 1.1).repeatForever(autoreverses: false)) {
                     ring1 = true
                 }
@@ -122,5 +125,6 @@ private struct CaptureZoneView: View {
             .frame(width: expanding ? 44 : 6,
                    height: expanding ? 44 : 6)
             .opacity(expanding ? 0 : 1)
+            .offset(y: -2)
     }
 }
