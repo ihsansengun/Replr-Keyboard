@@ -6,30 +6,46 @@ struct LoadingPanelView: View {
     var body: some View {
         VStack(spacing: 0) {
             KeyboardHeader(model: model, isToneDimmed: true)
-            VStack(spacing: 10) {
-                HStack(spacing: 6) {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .scaleEffect(0.55)
-                        .tint(KBColors.accent)
-                    Text("Generating replies…")
-                        .font(.system(size: 11))
-                        .foregroundColor(KBColors.accent.opacity(0.6))
-                    Spacer()
-                }
-                .padding(.horizontal, 12)
 
-                VStack(spacing: 6) {
-                    SkeletonLine(fraction: 0.80, pulse: false)
-                    SkeletonLine(fraction: 0.95, pulse: true)
-                    SkeletonLine(fraction: 0.65, pulse: false)
-                }
-                .padding(.horizontal, 12)
-            }
-            .padding(.top, 14)
+            // Skeleton card — same shape/position as the reply card in RepliesPanelView
+            skeletonCard
+                .padding(.horizontal, 10)
+                .padding(.vertical, 10)
+
             Spacer(minLength: 0)
+
+            // Status line
+            HStack(spacing: 6) {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .scaleEffect(0.5)
+                    .tint(KBColors.textDim)
+                Text("Generating replies…")
+                    .font(.system(size: 11))
+                    .foregroundColor(KBColors.textDim)
+            }
+            .padding(.bottom, 14)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(KBColors.background)
+    }
+
+    private var skeletonCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SkeletonLine(fraction: 0.92, pulse: false)
+            SkeletonLine(fraction: 1.00, pulse: true)
+            SkeletonLine(fraction: 0.75, pulse: false)
+            SkeletonLine(fraction: 0.88, pulse: true)
+            SkeletonLine(fraction: 0.55, pulse: false)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(KBColors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(KBColors.borderHair, lineWidth: 0.5)
+        )
     }
 }

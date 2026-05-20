@@ -396,9 +396,9 @@ struct SkeletonLine: View {
             .fill(
                 LinearGradient(
                     stops: [
-                        .init(color: KBColors.segmentedBg, location: 0),
+                        .init(color: KBColors.surface, location: 0),
                         .init(color: KBColors.skeletonHighlight, location: shimmer ? 0.5 : 0.15),
-                        .init(color: KBColors.segmentedBg, location: 1),
+                        .init(color: KBColors.surface, location: 1),
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
