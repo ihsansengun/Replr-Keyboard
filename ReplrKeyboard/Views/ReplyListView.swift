@@ -1,195 +1,30 @@
 import SwiftUI
 
-// MARK: - Email pager (one reply at a time, full text)
+// MARK: - Unified reply carousel (chat + email)
 
-struct EmailReplyPagerView: View {
+struct ReplyCarouselView: View {
     let replies: [String]
     let lastInsertedReply: String?
-    let onSend: (String) -> Void
-    let onEdit: (String) -> Void
-    let onUndo: () -> Void
-
-    @State private var currentPage: Int = 0
-
-    private var currentReply: String {
-        replies.indices.contains(currentPage) ? replies[currentPage] : ""
-    }
+    @Binding var currentPage: Int
 
     var body: some View {
-        VStack(spacing: 0) {
-            TabView(selection: $currentPage) {
-                ForEach(Array(replies.enumerated()), id: \.offset) { idx, reply in
-                    ScrollView(.vertical, showsIndicators: false) {
-                        Text(reply)
-                            .font(.system(size: 13))
-                            .foregroundColor(reply == lastInsertedReply ? KBColors.textDim : KBColors.textPrimary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 12)
-                            .padding(.top, 10)
-                            .padding(.bottom, 14)
-                    }
-                    .tag(idx)
-                }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-
-            KBColors.borderHair.frame(height: 0.5)
-
-            HStack(spacing: 8) {
-                HStack(spacing: 5) {
-                    ForEach(0..<replies.count, id: \.self) { i in
-                        Circle()
-                            .fill(i == currentPage ? KBColors.accent : KBColors.textDim.opacity(0.4))
-                            .frame(width: 5, height: 5)
-                            .animation(.easeInOut(duration: 0.15), value: currentPage)
-                    }
-                }
-                .padding(.leading, 12)
-
-                Spacer()
-
-                if lastInsertedReply != nil {
-                    Button(action: onUndo) {
-                        Image(systemName: "arrow.uturn.backward")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(KBColors.accent)
-                            .frame(width: 28, height: 28)
-                            .background(KBColors.undoBtnBg)
-                            .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                    .stroke(KBColors.accent, lineWidth: 1)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Undo send")
-                } else {
-                    Button("Edit") { onEdit(currentReply) }
-                        .font(.system(size: 11))
-                        .foregroundColor(KBColors.textDim)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                        .background(KBColors.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                        .buttonStyle(.plain)
-
-                    Button(action: { onSend(currentReply) }) {
-                        Image(systemName: "arrow.up")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(KBColors.accentFg)
-                            .frame(width: 28, height: 28)
-                            .background(KBColors.accent)
-                            .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Send reply")
-                }
-            }
-            .frame(height: 40)
-            .padding(.trailing, 10)
-            .animation(.easeInOut(duration: 0.2), value: lastInsertedReply)
-        }
-    }
-}
-
-// MARK: - Chat compact list
-
-struct ReplyListView: View {
-    let replies: [String]
-    let lastInsertedReply: String?
-    let onSend: (String) -> Void
-    let onEdit: (String) -> Void
-    let onUndo: () -> Void
-
-    var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 4) {
-                ForEach(Array(replies.enumerated()), id: \.offset) { _, reply in
-                    ReplyRowView(
-                        text: reply,
-                        isSent: reply == lastInsertedReply,
-                        isDimmed: lastInsertedReply != nil && reply != lastInsertedReply,
-                        onSend: { onSend(reply) },
-                        onEdit: { onEdit(reply) },
-                        onUndo: onUndo
-                    )
-                }
-            }
-            .padding(.horizontal, 6)
-            .padding(.top, 6)
-            .padding(.bottom, 4)
-        }
-    }
-}
-
-struct ReplyRowView: View {
-    let text: String
-    let isSent: Bool
-    let isDimmed: Bool
-    let onSend: () -> Void
-    let onEdit: () -> Void
-    let onUndo: () -> Void
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Text(text)
-                .font(.system(size: 13))
-                .foregroundColor(isSent ? KBColors.textDim : KBColors.textPrimary)
-                .lineLimit(2)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            if !isSent {
-                Button("Edit", action: onEdit)
-                    .font(.system(size: 11))
-                    .foregroundColor(KBColors.textDim)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 5)
-                    .background(KBColors.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                    .buttonStyle(.plain)
-            }
-
-            if isSent {
-                Button(action: onUndo) {
-                    Image(systemName: "arrow.uturn.backward")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(KBColors.accent)
-                        .frame(width: 28, height: 28)
-                        .background(KBColors.undoBtnBg)
-                        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                .stroke(KBColors.accent, lineWidth: 1)
+        TabView(selection: $currentPage) {
+            ForEach(Array(replies.enumerated()), id: \.offset) { idx, reply in
+                ScrollView(.vertical, showsIndicators: false) {
+                    Text(reply)
+                        .font(.system(size: 15))
+                        .foregroundColor(
+                            reply == lastInsertedReply
+                                ? KBColors.textDim
+                                : KBColors.textPrimary
                         )
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Undo send")
-            } else {
-                Button(action: onSend) {
-                    Image(systemName: "arrow.up")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(KBColors.accentFg)
-                        .frame(width: 28, height: 28)
-                        .background(KBColors.accent)
-                        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Send reply")
+                .tag(idx)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(isSent ? KBColors.sentCard : KBColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(
-                    isSent ? KBColors.accent.opacity(0.18) : KBColors.borderHair,
-                    lineWidth: isSent ? 1.0 : 0.5
-                )
-        )
-        .opacity(isDimmed ? 0.35 : 1.0)
-        .animation(.easeInOut(duration: 0.2), value: isSent)
-        .animation(.easeInOut(duration: 0.2), value: isDimmed)
+        .tabViewStyle(.page(indexDisplayMode: .never))
     }
 }
