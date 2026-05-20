@@ -1,0 +1,12 @@
+{
+  "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Shared/ReplyService.swift" : {
+    "abi-baseline-json" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcast.build/Objects-normal/x86_64/ReplrBroadcast.abi.json",
+    "const-values" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcast.build/Objects-normal/x86_64/ReplrBroadcast-primary.swiftconstvalues",
+    "dependencies" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcast.build/Objects-normal/x86_64/ReplrBroadcast-primary.d",
+    "diagnostics" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcast.build/Objects-normal/x86_64/ReplrBroadcast-primary.dia",
+    "objc-header" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcast.build/Objects-normal/x86_64/ReplrBroadcast-Swift.h",
+    "swiftdoc" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcast.build/Objects-normal/x86_64/ReplrBroadcast.swiftdoc",
+    "swiftmodule" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcast.build/Objects-normal/x86_64/ReplrBroadcast.swiftmodule",
+    "swiftsourceinfo" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcast.build/Objects-normal/x86_64/ReplrBroadcast.swiftsourceinfo"
+  }
+}

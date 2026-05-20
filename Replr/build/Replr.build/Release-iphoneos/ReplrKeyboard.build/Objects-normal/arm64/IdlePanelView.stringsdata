@@ -1,0 +1,40 @@
+{
+  "source": "/Users/WORK2/Desktop/DesktopCloud/Replr/ReplrKeyboard/Views/IdlePanelView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Copy the email text first, then tap above",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "↑ Generate from clipboard",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 59
+        }
+      },
+      {
+        "comment": "",
+        "key": "Back Tap to capture",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 109
+        }
+      },
+      {
+        "comment": "",
+        "key": "screenshot → AI replies",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 112
+        }
+      }
+    ]
+  },
+  "version": 1
+}

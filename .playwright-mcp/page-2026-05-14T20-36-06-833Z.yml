@@ -1,0 +1,42 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - heading "Superpowers Brainstorming" [level=1] [ref=e3]:
+      - link "Superpowers Brainstorming" [ref=e4] [cursor=pointer]:
+        - /url: https://github.com/obra/superpowers
+    - generic [ref=e5]: Connected
+  - generic [ref=e7]:
+    - heading "Loading state — generating replies" [level=2] [ref=e8]
+    - paragraph [ref=e9]: Triple-tap fired. Waiting for the LLM. What does the keyboard show?
+    - generic [ref=e10]:
+      - generic [ref=e11] [cursor=pointer]:
+        - generic [ref=e13]:
+          - generic [ref=e19]: Generating replies…
+          - generic [ref=e20]:
+            - generic [ref=e21]: Casual
+            - generic [ref=e22]: Dating
+            - generic [ref=e23]: Pro
+            - generic [ref=e24]: Bold
+        - generic [ref=e25]:
+          - heading "A — Pulse dots" [level=3] [ref=e26]
+          - paragraph [ref=e27]: Three amber dots (animated fade in production). Minimal. Same visual language as the rest of the app.
+      - generic [ref=e28] [cursor=pointer]:
+        - generic [ref=e44]:
+          - generic [ref=e45]: Casual
+          - generic [ref=e46]: Dating
+          - generic [ref=e47]: Pro
+          - generic [ref=e48]: Bold
+        - generic [ref=e49]:
+          - heading "B — Skeleton card" [level=3] [ref=e50]
+          - paragraph [ref=e51]: Placeholder card matching reply card layout. Signals what's coming. Feels faster even if it isn't.
+      - generic [ref=e52] [cursor=pointer]:
+        - generic [ref=e54]:
+          - generic [ref=e56]: Generating replies…
+          - generic [ref=e59]:
+            - generic [ref=e60]: Casual
+            - generic [ref=e61]: Dating
+            - generic [ref=e62]: Pro
+            - generic [ref=e63]: Bold
+        - generic [ref=e64]:
+          - heading "C — Amber progress bar" [level=3] [ref=e65]
+          - paragraph [ref=e66]: Thin amber bar animates across. Simple, familiar. Works as indeterminate (bouncing) in practice.
+  - generic [ref=e67]: Click an option above, then return to the terminal

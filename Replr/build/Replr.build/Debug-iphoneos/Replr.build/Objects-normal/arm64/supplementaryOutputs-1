@@ -1,0 +1,23 @@
+{
+  "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/Replr/App/ReplrApp.swift" : {
+    "const-values" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/ReplrApp.swiftconstvalues",
+    "dependencies" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/ReplrApp.d",
+    "diagnostics" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/ReplrApp.dia",
+    "object" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/ReplrApp.o",
+    "swift-dependencies" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/ReplrApp.swiftdeps"
+  },
+  "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/Replr/Features/Captures/CaptureLogView.swift" : {
+    "const-values" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/CaptureLogView.swiftconstvalues",
+    "dependencies" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/CaptureLogView.d",
+    "diagnostics" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/CaptureLogView.dia",
+    "object" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/CaptureLogView.o",
+    "swift-dependencies" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/CaptureLogView.swiftdeps"
+  },
+  "/Users/WORK2/Desktop/DesktopCloud/Replr/Shared/ReplyService.swift" : {
+    "const-values" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/ReplyService.swiftconstvalues",
+    "dependencies" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/ReplyService.d",
+    "diagnostics" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/ReplyService.dia",
+    "object" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/ReplyService.o",
+    "swift-dependencies" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/ReplyService.swiftdeps"
+  }
+}

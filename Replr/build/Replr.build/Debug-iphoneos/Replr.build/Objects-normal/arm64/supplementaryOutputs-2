@@ -1,0 +1,23 @@
+{
+  "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/Replr/Features/Onboarding/OnboardingView.swift" : {
+    "const-values" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/OnboardingView.swiftconstvalues",
+    "dependencies" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/OnboardingView.d",
+    "diagnostics" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/OnboardingView.dia",
+    "object" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/OnboardingView.o",
+    "swift-dependencies" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/OnboardingView.swiftdeps"
+  },
+  "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/Replr/Features/Settings/SettingsView.swift" : {
+    "const-values" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/SettingsView.swiftconstvalues",
+    "dependencies" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/SettingsView.d",
+    "diagnostics" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/SettingsView.dia",
+    "object" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/SettingsView.o",
+    "swift-dependencies" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/SettingsView.swiftdeps"
+  },
+  "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/Replr/Features/Summaries/SummariesView.swift" : {
+    "const-values" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/SummariesView.swiftconstvalues",
+    "dependencies" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/SummariesView.d",
+    "diagnostics" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/SummariesView.dia",
+    "object" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/SummariesView.o",
+    "swift-dependencies" : "/Users/WORK2/Desktop/DesktopCloud/Replr/Replr/build/Replr.build/Debug-iphoneos/Replr.build/Objects-normal/arm64/SummariesView.swiftdeps"
+  }
+}

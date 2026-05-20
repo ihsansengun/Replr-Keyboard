@@ -1,0 +1,83 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - heading "Superpowers Brainstorming" [level=1] [ref=e3]:
+      - link "Superpowers Brainstorming" [ref=e4] [cursor=pointer]:
+        - /url: https://github.com/obra/superpowers
+    - generic [ref=e5]: Connected
+  - generic [ref=e7]:
+    - heading "Saved contexts — reusable hints" [level=2] [ref=e8]
+    - paragraph [ref=e9]: "Text snippets you save once, reuse anytime. Persist between sessions. Correct order: set context → pick tone → triple-tap."
+    - generic [ref=e10]:
+      - generic [ref=e11] [cursor=pointer]:
+        - generic [ref=e13]:
+          - generic [ref=e14]:
+            - generic [ref=e15]: Context
+            - generic [ref=e16]:
+              - generic [ref=e17]:
+                - generic [ref=e18]: Free next week
+                - generic [ref=e19]: ✕
+              - generic [ref=e20]: Playing it cool
+              - generic [ref=e21]: Keep it short
+              - generic [ref=e22]: + New
+          - generic [ref=e23]:
+            - text: Pick tone below · then
+            - emphasis [ref=e24]: triple-tap back
+          - generic [ref=e25]:
+            - generic [ref=e26]: Casual
+            - generic [ref=e27]: Dating
+            - generic [ref=e28]: Pro
+            - generic [ref=e29]: Bold
+        - generic [ref=e30]:
+          - heading "A — Chips row" [level=3] [ref=e31]
+          - paragraph [ref=e32]: Saved contexts as horizontal scrolling chips. Tap to activate (amber), tap again or ✕ to clear. "+ New" to save a new one. Fast, compact.
+      - generic [ref=e33] [cursor=pointer]:
+        - generic [ref=e35]:
+          - generic [ref=e36]:
+            - generic [ref=e37]:
+              - generic [ref=e38]:
+                - generic [ref=e39]: Active context
+                - generic [ref=e40]: Free next week, not tomorrow
+              - generic [ref=e41]: ✕
+            - generic [ref=e42]: Saved
+            - generic [ref=e43]:
+              - generic [ref=e44]:
+                - generic [ref=e45]: Playing it cool
+                - generic [ref=e46]: Use
+              - generic [ref=e47]:
+                - generic [ref=e48]: Keep it short and casual
+                - generic [ref=e49]: Use
+              - generic [ref=e51]: + Save new context…
+          - generic [ref=e52]:
+            - generic [ref=e53]: Casual
+            - generic [ref=e54]: Dating
+            - generic [ref=e55]: Pro
+            - generic [ref=e56]: Bold
+        - generic [ref=e57]:
+          - heading "B — Active + saved list" [level=3] [ref=e58]
+          - paragraph [ref=e59]: Active context shown prominently at top. Saved list below — tap "Use" to switch. Best for reading longer contexts clearly.
+      - generic [ref=e60] [cursor=pointer]:
+        - generic [ref=e62]:
+          - generic [ref=e63]:
+            - generic [ref=e64]:
+              - generic [ref=e65]: "01"
+              - generic [ref=e66]:
+                - generic [ref=e67]: Context
+                - generic [ref=e68]:
+                  - generic [ref=e69]: Free next week, not tomorrow
+                  - generic [ref=e70]: ✕
+            - generic [ref=e71]:
+              - generic [ref=e72]: Playing it cool
+              - generic [ref=e73]: Keep it short
+              - generic [ref=e74]: + New
+            - generic [ref=e75]:
+              - generic [ref=e76]: "02"
+              - generic [ref=e77]: Pick tone · triple-tap back
+          - generic [ref=e78]:
+            - generic [ref=e79]: Casual
+            - generic [ref=e80]: Dating
+            - generic [ref=e81]: Pro
+            - generic [ref=e82]: Bold
+        - generic [ref=e83]:
+          - heading "C — Editorial steps" [level=3] [ref=e84]
+          - paragraph [ref=e85]: 01 Context (active + saved chips below). 02 Tone + triple-tap. Clear order. Compact. Keeps the B UX you liked but refined visually.
+  - generic [ref=e86]: Click an option above, then return to the terminal

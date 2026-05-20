@@ -1,0 +1,51 @@
+{
+  "" : {
+    "const-values" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/ReplrBroadcastSetupUI-primary.swiftconstvalues",
+    "dependencies" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/ReplrBroadcastSetupUI-primary.d",
+    "diagnostics" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/ReplrBroadcastSetupUI-primary.dia",
+    "emit-module-dependencies" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/ReplrBroadcastSetupUI-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/ReplrBroadcastSetupUI-primary-emit-module.dia",
+    "pch" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/ReplrBroadcastSetupUI-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/ReplrBroadcastSetupUI-primary.swiftdeps"
+  },
+  "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/ReplrBroadcastSetupUI/BroadcastSetupViewController.swift" : {
+    "index-unit-output-path" : "/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/BroadcastSetupViewController.o",
+    "llvm-bc" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/BroadcastSetupViewController.bc",
+    "object" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/BroadcastSetupViewController.o"
+  },
+  "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Shared/AppGroupService.swift" : {
+    "index-unit-output-path" : "/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/AppGroupService.o",
+    "llvm-bc" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/AppGroupService.bc",
+    "object" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/AppGroupService.o"
+  },
+  "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Shared/Constants.swift" : {
+    "index-unit-output-path" : "/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/Constants.o",
+    "llvm-bc" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/Constants.bc",
+    "object" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/Constants.o"
+  },
+  "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Shared/Models/CaptureSession.swift" : {
+    "index-unit-output-path" : "/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/CaptureSession.o",
+    "llvm-bc" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/CaptureSession.bc",
+    "object" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/CaptureSession.o"
+  },
+  "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Shared/Models/Contact.swift" : {
+    "index-unit-output-path" : "/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/Contact.o",
+    "llvm-bc" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/Contact.bc",
+    "object" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/Contact.o"
+  },
+  "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Shared/Models/ConversationSummary.swift" : {
+    "index-unit-output-path" : "/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/ConversationSummary.o",
+    "llvm-bc" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/ConversationSummary.bc",
+    "object" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/ConversationSummary.o"
+  },
+  "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Shared/Models/Tone.swift" : {
+    "index-unit-output-path" : "/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/Tone.o",
+    "llvm-bc" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/Tone.bc",
+    "object" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/Tone.o"
+  },
+  "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Shared/ReplyService.swift" : {
+    "index-unit-output-path" : "/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/ReplyService.o",
+    "llvm-bc" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/ReplyService.bc",
+    "object" : "/Users/WORK2/Desktop/Desktop - Ihsan’s MacBook Pro (2)/Replr/Replr/build/Replr.build/Release-iphonesimulator/ReplrBroadcastSetupUI.build/Objects-normal/arm64/ReplyService.o"
+  }
+}

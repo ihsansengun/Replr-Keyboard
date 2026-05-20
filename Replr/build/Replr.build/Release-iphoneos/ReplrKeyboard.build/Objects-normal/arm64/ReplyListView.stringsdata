@@ -1,0 +1,24 @@
+{
+  "source": "/Users/WORK2/Desktop/DesktopCloud/Replr/ReplrKeyboard/Views/ReplyListView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Edit",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 39
+        }
+      },
+      {
+        "comment": "",
+        "key": "Send reply",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 57
+        }
+      }
+    ]
+  },
+  "version": 1
+}
