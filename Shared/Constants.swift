@@ -21,6 +21,7 @@ enum Constants {
     static let memoryWindowDaysKey    = "memory_window_days"   // Int, 0 = all time
     static let memoryDepthKey         = "memory_depth"         // Int, default 10, max 20
     static let intentHintKey          = "intent_hint"
+    static let switchKeyboardKey      = "switch_keyboard_requested"
 
     // File-based keys (broadcast/scroll capture only)
     static let screenshotFilename     = "screenshot.png"

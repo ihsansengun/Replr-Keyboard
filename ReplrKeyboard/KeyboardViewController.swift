@@ -22,13 +22,6 @@ final class KeyboardViewController: UIInputViewController {
         model.onReplySelected = { [weak self] reply in self?.insert(reply) }
         model.onToneChanged = { tone in AppGroupService.shared.saveSelectedTone(tone) }
         model.onSwitchKeyboard = { [weak self] in self?.advanceToNextInputMode() }
-        model.onUseAsContext = { [weak self] in
-            guard let self else { return }
-            AppGroupService.shared.savePendingContext(self.model.pendingContext)
-            let draft = self.textDocumentProxy.documentContextBeforeInput ?? ""
-            for _ in draft.unicodeScalars { self.textDocumentProxy.deleteBackward() }
-        }
-
         model.onSelectContact = { [weak self] contact in
             guard let self else { return }
             AppGroupService.shared.currentContactID = contact.id
@@ -53,12 +46,6 @@ final class KeyboardViewController: UIInputViewController {
             self.advanceToNextInputMode()
         }
         model.retryTrigger = { [weak self] in self?.triggerRetry() }
-        model.readTextProxy = { [weak self] in self?.textDocumentProxy.documentContextBeforeInput }
-        model.onDeleteTextProxy = { [weak self] in
-            guard let self else { return }
-            let draft = self.textDocumentProxy.documentContextBeforeInput ?? ""
-            for _ in draft.unicodeScalars { self.textDocumentProxy.deleteBackward() }
-        }
 
         model.onCreateNewContact = { [weak self] name in
             guard let self else { return }
@@ -114,7 +101,6 @@ final class KeyboardViewController: UIInputViewController {
             model.contactName = nil
         }
         model.hasAnySessions = !AppGroupService.shared.loadCaptureSessions().isEmpty
-        model.intentHint = AppGroupService.shared.readIntentHint()
 
         if AppGroupService.shared.isGenerating {
             model.state = .loading
@@ -166,7 +152,10 @@ final class KeyboardViewController: UIInputViewController {
         capturePollingTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
-                if AppGroupService.shared.isGenerating {
+                if AppGroupService.shared.switchKeyboardRequested {
+                    AppGroupService.shared.setSwitchKeyboardRequested(false)
+                    await MainActor.run { self.advanceToNextInputMode() }
+                } else if AppGroupService.shared.isGenerating {
                     await MainActor.run {
                         if self.model.state != .loading {
                             withAnimation(.easeInOut(duration: 0.2)) { self.model.state = .loading }
@@ -209,8 +198,6 @@ final class KeyboardViewController: UIInputViewController {
         model.pendingContext = ""
         AppGroupService.shared.savePendingContext("")
         AppGroupService.shared.markLastSessionReplySelected(text)
-        AppGroupService.shared.saveIntentHint(nil)
-        model.intentHint = nil
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         model.lastInsertedReply = text
 

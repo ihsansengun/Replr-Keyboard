@@ -53,28 +53,6 @@ private struct EmailIcon: View {
     }
 }
 
-private struct IntentIcon: View {
-    let color: Color
-    var body: some View {
-        Canvas { ctx, size in
-            let w = size.width, h = size.height
-            let cx = w / 2, cy = h / 2
-            var path = Path()
-            // Outer ring
-            path.addEllipse(in: CGRect(x: cx - w * 0.44, y: cy - h * 0.44,
-                                       width: w * 0.88, height: h * 0.88))
-            // Middle ring
-            path.addEllipse(in: CGRect(x: cx - w * 0.27, y: cy - h * 0.27,
-                                       width: w * 0.54, height: h * 0.54))
-            // Centre dot
-            path.addEllipse(in: CGRect(x: cx - w * 0.10, y: cy - h * 0.10,
-                                       width: w * 0.20, height: h * 0.20))
-            ctx.stroke(path, with: .color(color),
-                      style: StrokeStyle(lineWidth: 1.2, lineCap: .round))
-        }
-    }
-}
-
 // MARK: - State
 
 enum KeyboardState: Equatable {
@@ -101,42 +79,19 @@ final class KeyboardModel: ObservableObject {
     @Published var lastInsertedReply: String? = nil
     @Published var hasAnySessions: Bool = false
     @Published var inputMode: KeyboardInputMode = .chat
-    @Published var intentHint: String? = nil
 
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
     var onSwitchKeyboard: (() -> Void)?
-    var onUseAsContext: (() -> Void)?
     var onSelectContact: ((Contact) -> Void)?
     var onCreateNewContact: ((String) -> Void)?
     var onUndoInsert: (() -> Void)?
     var onEditReply: ((String) -> Void)?
     var retryTrigger: (() -> Void)?
-    var readTextProxy: (() -> String?)?   // reads documentContextBeforeInput from VC
-    var onDeleteTextProxy: (() -> Void)?  // deletes draft from text proxy after intent capture
 
     init(initialTone: Tone) {
         self.selectedTone = initialTone
         self.tones = AppGroupService.shared.readTones()
-    }
-
-    // MARK: - Input
-
-    func captureIntent() {
-        // Reads whatever the user typed in the host app's text field and saves it as intent
-        guard let raw = readTextProxy?(),
-              !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        intentHint = trimmed
-        AppGroupService.shared.saveIntentHint(trimmed)
-        pendingContext = ""
-        onDeleteTextProxy?()
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-    }
-
-    func clearIntent() {
-        AppGroupService.shared.saveIntentHint(nil)
-        intentHint = nil
     }
 
     func generateEmailReply() {
@@ -163,7 +118,7 @@ final class KeyboardModel: ObservableObject {
                 let result = try await ReplyService.shared.generateRepliesFromEmail(
                     emailText: emailText,
                     tone: selectedTone,
-                    summary: intentHint,
+                    summary: pendingContext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : pendingContext,
                     previousContext: previousContext,
                     model: "claude",
                     transactionId: txID
@@ -174,7 +129,7 @@ final class KeyboardModel: ObservableObject {
                     id: UUID(),
                     timestamp: Date(),
                     thumbnailData: nil,
-                    contextHint: intentHint,
+                    contextHint: pendingContext.isEmpty ? nil : pendingContext,
                     generatedReplies: result.replies,
                     selectedReply: nil,
                     llmSummary: result.summary,
@@ -190,11 +145,6 @@ final class KeyboardModel: ObservableObject {
                 withAnimation { state = .error(error.localizedDescription) }
             }
         }
-    }
-
-    func useAsContext() {
-        onUseAsContext?()
-        pendingContext = ""
     }
 
     func selectTone(_ tone: Tone) { selectedTone = tone; onToneChanged?(tone) }
@@ -487,14 +437,6 @@ struct DisambiguateView: View {
 struct ReplrStrip: View {
     @ObservedObject var model: KeyboardModel
 
-    private enum IntentTabState: Equatable { case empty, ready, captured }
-
-    private var intentTabState: IntentTabState {
-        if model.intentHint != nil { return .captured }
-        if !model.pendingContext.isEmpty { return .ready }
-        return .empty
-    }
-
     private var canSwitchMode: Bool {
         switch model.state {
         case .idle, .loading, .error, .replies: return true
@@ -528,8 +470,6 @@ struct ReplrStrip: View {
                     EmailIcon(color: color)
                 }
                 .disabled(!canSwitchMode)
-
-                intentTab
 
                 ctaButton
             }
@@ -600,55 +540,6 @@ struct ReplrStrip: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Intent Tab
-
-    @ViewBuilder
-    private var intentTab: some View {
-        let faceColor: Color = intentTabState == .captured
-            ? Color(red: 0.929, green: 0.898, blue: 0.816)   // cream when captured
-            : Color(red: 0.310, green: 0.259, blue: 0.180)   // vintage otherwise
-        let iconColor: Color = intentTabState == .captured
-            ? Color(red: 0.102, green: 0.078, blue: 0.031)   // dark amber when captured
-            : Color(red: 0.929, green: 0.898, blue: 0.816).opacity(0.75)
-        let borderColor: Color = intentTabState == .ready
-            ? KBColors.accent.opacity(0.8) : Color.clear
-
-        Button {
-            switch intentTabState {
-            case .empty:    break
-            case .ready:    model.captureIntent()
-            case .captured: model.clearIntent()
-            }
-        } label: {
-            ZStack(alignment: .topTrailing) {
-                IntentIcon(color: iconColor)
-                    .frame(width: 18, height: 14)
-                    .frame(width: 34, height: 26)
-
-                if intentTabState == .captured {
-                    Circle()
-                        .fill(Color(red: 0.102, green: 0.078, blue: 0.031))
-                        .frame(width: 5, height: 5)
-                        .offset(x: -2, y: 2)
-                        .transition(.opacity)
-                }
-            }
-            .background(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(faceColor)
-                    .shadow(color: Color(red: 0.039, green: 0.031, blue: 0.012),
-                            radius: 0, y: 1)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .stroke(borderColor, lineWidth: 1)
-            )
-            .opacity(intentTabState == .empty ? 0.35 : 1.0)
-        }
-        .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.2), value: intentTabState)
-    }
-
     // MARK: - CTA Button (fills remaining width)
 
     @ViewBuilder
@@ -703,21 +594,15 @@ struct ReplrStrip: View {
                     .buttonStyle(.plain)
 
                 case .replies:
-                    Text(model.inputMode == .email ? "↑ Generate from clipboard" : "↑ Capture replies")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(model.inputMode == .email
-                                         ? KBColors.accent.opacity(0.15)
-                                         : KBColors.textDim.opacity(0.15))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 20)
-
-                case .idle where !model.hasAnySessions && model.inputMode == .chat:
-                    Text("Set up triple-tap →")
-                        .font(.system(size: 11))
-                        .foregroundColor(KBColors.textDim)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .frame(height: 20)
-                        .padding(.leading, 4)
+                    if model.inputMode == .email {
+                        Text("↑ Generate from clipboard")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(KBColors.accent.opacity(0.15))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 20)
+                    } else {
+                        Color.clear.frame(maxWidth: .infinity).frame(height: 20)
+                    }
 
                 default:
                     if model.inputMode == .email {
@@ -735,18 +620,17 @@ struct ReplrStrip: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                         }
                         .buttonStyle(.plain)
-                    } else {
-                        Text("↑ Capture replies")
-                            .font(.system(size: 11, weight: .semibold))
+                    } else if !model.pendingContext.isEmpty {
+                        Text(model.pendingContext)
+                            .font(.system(size: 11))
                             .foregroundColor(KBColors.textDim)
-                            .frame(maxWidth: .infinity)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .frame(height: 20)
-                            .background(KBColors.textDim.opacity(0.18))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .stroke(KBColors.textDim.opacity(0.5), lineWidth: 1)
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            .padding(.leading, 4)
+                    } else {
+                        Color.clear.frame(maxWidth: .infinity).frame(height: 20)
                     }
                 }
             }

@@ -354,6 +354,18 @@ final class AppGroupService {
         guard let text = defaults.string(forKey: Constants.intentHintKey), !text.isEmpty else { return nil }
         return text
     }
+
+    // MARK: - Switch keyboard (companion app requests keyboard switch before screenshot)
+
+    var switchKeyboardRequested: Bool {
+        defaults.synchronize()
+        return defaults.bool(forKey: Constants.switchKeyboardKey)
+    }
+
+    func setSwitchKeyboardRequested(_ value: Bool) {
+        defaults.set(value, forKey: Constants.switchKeyboardKey)
+        defaults.synchronize()
+    }
 }
 
 enum AppGroupError: Error {
