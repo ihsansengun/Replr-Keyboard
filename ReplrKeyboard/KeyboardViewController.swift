@@ -97,6 +97,7 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        model.isCaptureMode = false   // safety reset — ensures 0px collapse never gets stuck
 
         // Resolve contact display name from App Group
         if let id = AppGroupService.shared.currentContactID,

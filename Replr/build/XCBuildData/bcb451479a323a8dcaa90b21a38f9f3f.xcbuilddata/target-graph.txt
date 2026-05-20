@@ -1,2 +1,0 @@
-Target dependency graph (1 target)
-Target 'ReplrKeyboard' in project 'Replr' (no dependencies)

@@ -101,6 +101,7 @@ final class KeyboardModel: ObservableObject {
     func selectReply(_ text: String) { onReplySelected?(text) }
     func editReply(_ text: String) { onEditReply?(text) }
     func regenerate() {
+        isCaptureMode = false
         lastInsertedReply = nil
         AppGroupService.shared.clearCachedReplies()
         currentReplies = []

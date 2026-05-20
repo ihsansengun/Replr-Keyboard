@@ -7,7 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0F2B8C3E40C34EC4989481FC /* LoadingPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973E39972E254D88BA792D61 /* LoadingPanelView.swift */; };
 		1F38788925D348DB949BC2ED /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */; };
+		222DD21CD51742898D801450 /* DisambiguatePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848A8855CDE649AC9324B89F /* DisambiguatePanelView.swift */; };
+		429678B08FF5456FACB1B781 /* RepliesPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D479986D87FD41BAA0E7D9AB /* RepliesPanelView.swift */; };
 		485BF568190040E6894A4AEC /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */; };
 		543F9DDB49F94FF79619573B /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
 		57BB31B72FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
@@ -42,9 +45,9 @@
 		57CF48372FB394B40034657F /* AppGroupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CD2FB38B860034657F /* AppGroupService.swift */; };
 		57CF48382FB394B40034657F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CE2FB38B860034657F /* Constants.swift */; };
 		86D9D25E85BA4CEB8F652700 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
+		9239BA911EE141E6ABB05CFE /* ErrorPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42D2C67B4BFD4668A093B8BF /* ErrorPanelView.swift */; };
 		9716598EFAAC4EDEB2269AA3 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
 		97NFFLHM7VMCKWGF5XR93Z6Y /* ReplyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9UQQVONMO98OVYUWSM6VSM /* ReplyListView.swift */; };
-		222DD21CD51742898D801450 /* DisambiguatePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848A8855CDE649AC9324B89F /* DisambiguatePanelView.swift */; };
 		B6C4868C80B147D5B844BA70 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
 		BA77ACE356C940B2ACEF3AD8 /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */; };
 		BB3396FD4C094C68848A5DFB /* IdlePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9D9AE8AD804A3FAF344942 /* IdlePanelView.swift */; };
@@ -108,6 +111,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		42D2C67B4BFD4668A093B8BF /* ErrorPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorPanelView.swift; sourceTree = "<group>"; };
 		57BB31B62FB5414D00CE9E4D /* ReplyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyService.swift; sourceTree = "<group>"; };
 		57BB31BD2FB54B8D00CE9E4D /* GenerateReplyIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateReplyIntent.swift; sourceTree = "<group>"; };
 		57BB31C62FB6112700CE9E4D /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
@@ -138,21 +142,15 @@
 		57CF481A2FB390E50034657F /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		7D9D9AE8AD804A3FAF344942 /* IdlePanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdlePanelView.swift; sourceTree = "<group>"; };
 		7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contact.swift; sourceTree = "<group>"; };
-		901023AA25EF4F65B91E4A72 /* CaptureSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSession.swift; sourceTree = "<group>"; };
-		9E9UQQVONMO98OVYUWSM6VSM /* ReplyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyListView.swift; sourceTree = "<group>"; };
 		848A8855CDE649AC9324B89F /* DisambiguatePanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisambiguatePanelView.swift; sourceTree = "<group>"; };
+		901023AA25EF4F65B91E4A72 /* CaptureSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSession.swift; sourceTree = "<group>"; };
+		973E39972E254D88BA792D61 /* LoadingPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingPanelView.swift; sourceTree = "<group>"; };
+		9E9UQQVONMO98OVYUWSM6VSM /* ReplyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyListView.swift; sourceTree = "<group>"; };
 		CC00000000CC0000000000A1 /* ContactResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactResolver.swift; sourceTree = "<group>"; };
+		D479986D87FD41BAA0E7D9AB /* RepliesPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepliesPanelView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		57CF47E12FB38DD70034657F /* Exceptions for "ReplrKeyboard" folder in "ReplrKeyboard" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-				KeyboardViewController.swift,
-			);
-			target = 57CF47D72FB38DD70034657F /* ReplrKeyboard */;
-		};
 		57CF48262FB390E50034657F /* Exceptions for "ReplrBroadcast" folder in "ReplrBroadcast" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -173,6 +171,14 @@
 				Info.plist,
 			);
 			target = 57CF47762FB384F10034657F /* Replr */;
+		};
+		97754ED54CE54775AB0CF885 /* Exceptions for "ReplrKeyboard" folder in "ReplrKeyboard" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+				ReplrKeyboard.entitlements,
+			);
+			target = 57CF47D72FB38DD70034657F /* ReplrKeyboard */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -198,7 +204,7 @@
 		57CF47D92FB38DD70034657F /* ReplrKeyboard */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				57CF47E12FB38DD70034657F /* Exceptions for "ReplrKeyboard" folder in "ReplrKeyboard" target */,
+				97754ED54CE54775AB0CF885 /* Exceptions for "ReplrKeyboard" folder in "ReplrKeyboard" target */,
 			);
 			path = ReplrKeyboard;
 			sourceTree = "<group>";
@@ -412,6 +418,9 @@
 				7D9D9AE8AD804A3FAF344942 /* IdlePanelView.swift */,
 				9E9UQQVONMO98OVYUWSM6VSM /* ReplyListView.swift */,
 				848A8855CDE649AC9324B89F /* DisambiguatePanelView.swift */,
+				42D2C67B4BFD4668A093B8BF /* ErrorPanelView.swift */,
+				973E39972E254D88BA792D61 /* LoadingPanelView.swift */,
+				D479986D87FD41BAA0E7D9AB /* RepliesPanelView.swift */,
 			);
 			name = Views;
 			path = ../ReplrKeyboard/Views;
@@ -710,6 +719,9 @@
 				BB3396FD4C094C68848A5DFB /* IdlePanelView.swift in Sources */,
 				97NFFLHM7VMCKWGF5XR93Z6Y /* ReplyListView.swift in Sources */,
 				222DD21CD51742898D801450 /* DisambiguatePanelView.swift in Sources */,
+				9239BA911EE141E6ABB05CFE /* ErrorPanelView.swift in Sources */,
+				0F2B8C3E40C34EC4989481FC /* LoadingPanelView.swift in Sources */,
+				429678B08FF5456FACB1B781 /* RepliesPanelView.swift in Sources */,
 				57BB31BA2FB5414D00CE9E4D /* ReplyService.swift in Sources */,
 				57CF48042FB390BF0034657F /* ConversationSummary.swift in Sources */,
 				57CF48052FB390BF0034657F /* Tone.swift in Sources */,
