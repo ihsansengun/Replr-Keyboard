@@ -91,8 +91,8 @@ struct ReplrApp: App {
 struct ContentView: View {
     var body: some View {
         TabView {
-            CaptureLogView()
-                .tabItem { Label("Captures", systemImage: "camera.viewfinder") }
+            HistoryView()
+                .tabItem { Label("History", systemImage: "camera.viewfinder") }
             TonesView()
                 .tabItem { Label("Tones", systemImage: "slider.horizontal.3") }
             SettingsView()

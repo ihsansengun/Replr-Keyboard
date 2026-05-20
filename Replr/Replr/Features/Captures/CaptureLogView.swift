@@ -2,7 +2,7 @@ import Combine
 import SwiftUI
 import UIKit
 
-final class CaptureLogViewModel: ObservableObject {
+final class HistoryViewModel: ObservableObject {
     @Published var sessions: [CaptureSession] = []
     @Published var selectedContactID: UUID? = nil  // nil = "All"
 
@@ -44,8 +44,10 @@ final class CaptureLogViewModel: ObservableObject {
     }
 }
 
-struct CaptureLogView: View {
-    @StateObject private var vm = CaptureLogViewModel()
+struct HistoryView: View {
+    @StateObject private var vm = HistoryViewModel()
+    @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
+    @State private var memoryContact: Contact? = nil
 
     var body: some View {
         NavigationStack {
@@ -85,6 +87,28 @@ struct CaptureLogView: View {
                                 .padding(.vertical, 8)
                             }
                             Divider()
+                            if let id = vm.selectedContactID,
+                               memoryEnabled,
+                               let contact = vm.allContacts.first(where: { $0.id == id }),
+                               contactHasMemory(id: id) {
+                                Button { memoryContact = contact } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "sparkles")
+                                            .font(.system(size: 12))
+                                        Text("View Memory for \(contact.displayName)")
+                                            .font(.system(size: 13, weight: .semibold))
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 11))
+                                    }
+                                    .foregroundStyle(Replr.accent)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 10)
+                                    .background(Replr.accent.opacity(0.08))
+                                }
+                                .buttonStyle(.plain)
+                                Divider()
+                            }
                         }
 
                         List {
@@ -98,7 +122,7 @@ struct CaptureLogView: View {
                     }
                 }
             }
-            .navigationTitle("Captures")
+            .navigationTitle("History")
             .toolbar {
                 if !vm.sessions.isEmpty {
                     Button(role: .destructive) { vm.clearAll() } label: {
@@ -107,24 +131,48 @@ struct CaptureLogView: View {
                 }
             }
         }
-        .onAppear { vm.load() }
+        .onAppear {
+            vm.load()
+            memoryEnabled = AppGroupService.shared.memoryEnabled
+        }
+        .sheet(item: $memoryContact) { contact in
+            NavigationStack {
+                ContactMemoryDetailView(contact: contact, onClearMemory: {
+                    AppGroupService.shared.clearMemory(forContactID: contact.id)
+                    vm.load()
+                    memoryContact = nil
+                })
+            }
+        }
     }
 
     @ViewBuilder
     private func filterChip(label: String, id: UUID?) -> some View {
         let isSelected = vm.selectedContactID == id
+        let hasMemory = id.map { contactHasMemory(id: $0) } ?? false
+        let showSparkles = hasMemory && memoryEnabled
         Button { vm.selectedContactID = id } label: {
-            Text(label)
-                .lineLimit(1)
-                .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 5)
-                .frame(maxWidth: 160)
-                .background(isSelected ? Replr.accent : Color(.secondarySystemGroupedBackground))
-                .foregroundStyle(isSelected ? Replr.accentFg : Color.primary)
-                .clipShape(Capsule())
+            HStack(spacing: 4) {
+                Text(label)
+                    .lineLimit(1)
+                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                if showSparkles {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 9))
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            .frame(maxWidth: 160)
+            .background(isSelected ? Replr.accent : Color(.secondarySystemGroupedBackground))
+            .foregroundStyle(isSelected ? Replr.accentFg : Color.primary)
+            .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+    }
+
+    private func contactHasMemory(id: UUID) -> Bool {
+        AppGroupService.shared.sessions(forContactID: id).contains { $0.llmSummary != nil }
     }
 }
 
