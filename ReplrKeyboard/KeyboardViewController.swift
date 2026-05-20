@@ -43,6 +43,9 @@ final class KeyboardViewController: UIInputViewController {
         model.onUndoInsert = { [weak self] in self?.undoLastInsert() }
         model.onEditReply = { [weak self] reply in
             guard let self else { return }
+            self.autoSwitchTask?.cancel()
+            self.autoSwitchTask = nil
+            self.model.lastInsertedReply = nil
             let ctx = self.textDocumentProxy.documentContextBeforeInput ?? ""
             for _ in ctx.unicodeScalars { self.textDocumentProxy.deleteBackward() }
             self.textDocumentProxy.insertText(reply)
