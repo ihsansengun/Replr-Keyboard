@@ -8,6 +8,7 @@ final class KeyboardViewController: UIInputViewController {
     private var heightConstraint: NSLayoutConstraint!
     private var autoSwitchTask: DispatchWorkItem?
     private var stateCancellable: AnyCancellable?
+    private var collapseCancellable: AnyCancellable?
     private var hostingVC: UIHostingController<KeyboardRootView>!
 
     override func viewDidLoad() {
@@ -101,6 +102,18 @@ final class KeyboardViewController: UIInputViewController {
                         : max(200, min(340, 100 + CGFloat(replies.count) * 52))
                 }
                 self.setHeight(height)
+            }
+
+        // On collapse: persist context to App Group (so intent can read it) then clear the input field
+        // so the screenshot doesn't show the typed hint alongside the saved prompt context.
+        collapseCancellable = model.$isCollapsed
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isCollapsed in
+                guard let self, isCollapsed else { return }
+                let ctx = self.model.pendingContext
+                AppGroupService.shared.savePendingContext(ctx)
+                let fieldText = self.textDocumentProxy.documentContextBeforeInput ?? ""
+                for _ in fieldText.unicodeScalars { self.textDocumentProxy.deleteBackward() }
             }
     }
 
