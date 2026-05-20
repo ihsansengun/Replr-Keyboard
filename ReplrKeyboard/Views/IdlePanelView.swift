@@ -8,7 +8,7 @@ struct IdlePanelView: View {
             ReplrStrip(model: model)
             VStack(spacing: 8) {
                 captureZone
-                if model.hasAnySessions {
+                if model.hasAnySessions, model.contactName != nil || lastSummary != nil {
                     lastCaptureCard
                 }
             }

@@ -54,6 +54,7 @@ struct ReplyRowView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Send reply")
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
