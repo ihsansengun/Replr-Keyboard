@@ -111,6 +111,17 @@ final class KeyboardModel: ObservableObject {
         withAnimation(.easeInOut(duration: 0.2)) { state = .idle }
     }
 
+    func startRenameContact() {
+        let name = contactName ?? ""
+        let allContacts = AppGroupService.shared.loadContacts()
+        let candidates = allContacts.filter {
+            $0.displayName.localizedCaseInsensitiveContains(name)
+        }
+        withAnimation(.easeInOut(duration: 0.18)) {
+            state = .disambiguate(name: name, candidates: candidates)
+        }
+    }
+
     func retryGeneration() {
         retryTrigger?()
     }
@@ -162,26 +173,55 @@ struct KeyboardRootView: View {
 
 struct CollapsedStripView: View {
     @ObservedObject var model: KeyboardModel
+    @State private var phoneScale: CGFloat = 1.0
 
     var body: some View {
-        Button { model.isCollapsed = false } label: {
-            HStack(spacing: 8) {
+        HStack(spacing: 0) {
+            // Amber left edge
+            KBColors.accent
+                .frame(width: 3)
+
+            HStack(spacing: 10) {
+                // Animated phone glyph
                 Image(systemName: "iphone.rear.camera")
-                    .font(.system(size: 13, weight: .light))
+                    .font(.system(size: 16, weight: .light))
                     .foregroundColor(KBColors.accent)
-                Text("Back Tap to capture")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(KBColors.accent)
+                    .scaleEffect(phoneScale)
+                    .onAppear {
+                        withAnimation(
+                            .easeInOut(duration: 0.55)
+                            .repeatForever(autoreverses: true)
+                        ) { phoneScale = 0.82 }
+                    }
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Triple-tap the back of your phone")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(KBColors.textPrimary)
+                    Text("to capture this chat")
+                        .font(.system(size: 11))
+                        .foregroundColor(KBColors.textDim)
+                }
+
                 Spacer()
-                Image(systemName: "chevron.up")
-                    .font(.system(size: 11))
-                    .foregroundColor(KBColors.textDim)
+
+                // Cancel — return to idle
+                Button {
+                    withAnimation(.easeInOut(duration: 0.18)) {
+                        model.isCollapsed = false
+                    }
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(KBColors.textDim)
+                        .frame(width: 36, height: 44)
+                }
+                .buttonStyle(.plain)
             }
-            .padding(.horizontal, 14)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(KBColors.background)
+            .padding(.leading, 12)
         }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(KBColors.surface)
     }
 }
 
@@ -209,30 +249,31 @@ struct TonePill: View {
 struct KBColors {
     // MARK: - Design tokens
 
-    // Accent — mustard yellow
-    static let accent       = Color(red: 0.831, green: 0.627, blue: 0.090) // #D4A017
-    static let accentFg     = Color(red: 0.071, green: 0.055, blue: 0.000) // #120E00
-    static let accentShadow = Color(red: 0.478, green: 0.353, blue: 0.000) // #7A5A00
-    static let accentSubtle = Color(red: 0.831, green: 0.627, blue: 0.090, opacity: 0.50)
-    static let accentBg     = Color(red: 0.831, green: 0.627, blue: 0.090, opacity: 0.12)
-    static let accentBgBorder = Color(red: 0.831, green: 0.627, blue: 0.090, opacity: 0.38)
+    // Accent — brighter amber
+    static let accent        = Color(red: 0.949, green: 0.663, blue: 0.235) // #F2A93C
+    static let accentFg      = Color(red: 0.227, green: 0.141, blue: 0.004) // #3A2401
+    static let accentSubtle  = Color(red: 0.949, green: 0.663, blue: 0.235, opacity: 0.50)
+    static let accentBg      = Color(red: 0.949, green: 0.663, blue: 0.235, opacity: 0.12)
+    static let accentBgBorder = Color(red: 0.949, green: 0.663, blue: 0.235, opacity: 0.38)
+    static let accentShadow  = Color(red: 0.478, green: 0.353, blue: 0.000) // #7A5A00
 
-    // Shell backgrounds
-    static let background = Color(red: 0.090, green: 0.071, blue: 0.035) // #171209 keyboard shell
-    static let deep       = Color(red: 0.118, green: 0.098, blue: 0.071) // #1E1912 strip rows
-    static let surface    = Color(red: 0.141, green: 0.118, blue: 0.075) // #241E13 card surfaces
+    // Shell backgrounds — neutral dark, no warm tint
+    static let background    = Color(red: 0.059, green: 0.059, blue: 0.071) // #0F0F12
+    static let deep          = Color(red: 0.082, green: 0.082, blue: 0.098) // #151519
+    static let surface       = Color(red: 0.106, green: 0.106, blue: 0.125) // #1B1B20
+    static let raised        = Color(red: 0.149, green: 0.149, blue: 0.173) // #26262C
 
     // Borders + text
-    static let borderHair  = Color(red: 0.180, green: 0.145, blue: 0.094) // #2E2518
-    static let borderDim   = Color(red: 0.250, green: 0.200, blue: 0.140)
-    static let textPrimary = Color(red: 0.929, green: 0.898, blue: 0.816) // #EDE5D0
-    static let textDim     = Color(red: 0.420, green: 0.376, blue: 0.314) // #6B6050
-    static let textGhost   = Color(red: 0.250, green: 0.200, blue: 0.140)
-    static let segmentedBg = Color(red: 0.165, green: 0.125, blue: 0.063) // #2a2010
-    static let sentCard    = Color(red: 0.102, green: 0.102, blue: 0.063) // #1a1a10
-    static let undoBtnBg   = Color(red: 0.227, green: 0.165, blue: 0.000) // #3a2a00
-    static let skeletonHighlight = Color(red: 0.227, green: 0.188, blue: 0.094) // #3a3018
-    static let surfaceActive = Color(red: 0.180, green: 0.145, blue: 0.094)
+    static let borderHair    = Color(red: 0.180, green: 0.180, blue: 0.212) // #2E2E36
+    static let borderDim     = Color(red: 0.250, green: 0.250, blue: 0.290)
+    static let textPrimary   = Color(red: 0.929, green: 0.914, blue: 0.890) // #EDE9E3
+    static let textDim       = Color(red: 0.604, green: 0.588, blue: 0.557) // #9A968E
+    static let textGhost     = Color(red: 0.430, green: 0.420, blue: 0.385)
+    static let segmentedBg   = Color(red: 0.106, green: 0.106, blue: 0.125) // same as surface
+    static let sentCard      = Color(red: 0.082, green: 0.082, blue: 0.110) // #15151C
+    static let undoBtnBg     = Color(red: 0.149, green: 0.090, blue: 0.000) // #261700
+    static let skeletonHighlight = Color(red: 0.200, green: 0.200, blue: 0.235) // #33333C
+    static let surfaceActive = Color(red: 0.180, green: 0.180, blue: 0.212)
 }
 
 // MARK: - Mode Segmented Control
@@ -272,12 +313,12 @@ struct ModeSegmentedControl: View {
                 Text(label)
                     .font(.system(size: 11, weight: .semibold))
             }
-            .foregroundColor(isActive ? KBColors.accentFg : KBColors.textDim)
+            .foregroundColor(isActive ? KBColors.textPrimary : KBColors.textDim)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 5)
             .background(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(isActive ? KBColors.accent : Color.clear)
+                    .fill(isActive ? KBColors.raised : Color.clear)
             )
         }
         .buttonStyle(.plain)
