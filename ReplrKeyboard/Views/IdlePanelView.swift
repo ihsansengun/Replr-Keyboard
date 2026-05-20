@@ -20,7 +20,7 @@ struct IdlePanelView: View {
 
     private var chatContent: some View {
         VStack(spacing: 0) {
-            Button { model.isCaptureMode = true } label: {
+            Button { model.isCollapsed = true } label: {
                 CaptureZoneView()
                     .padding(.horizontal, 8)
                     .padding(.top, 8)

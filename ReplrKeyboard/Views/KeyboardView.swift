@@ -29,6 +29,7 @@ final class KeyboardModel: ObservableObject {
     @Published var hasAnySessions: Bool = false
     @Published var inputMode: KeyboardInputMode = .chat
     @Published var isCaptureMode: Bool = false
+    @Published var isCollapsed: Bool = false
 
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
@@ -102,6 +103,7 @@ final class KeyboardModel: ObservableObject {
     func editReply(_ text: String) { onEditReply?(text) }
     func regenerate() {
         isCaptureMode = false
+        isCollapsed = false
         lastInsertedReply = nil
         AppGroupService.shared.clearCachedReplies()
         currentReplies = []
@@ -120,20 +122,25 @@ struct KeyboardRootView: View {
 
     var body: some View {
         ZStack {
-            switch model.state {
-            case .idle:
-                IdlePanelView(model: model).transition(.opacity)
-            case .loading:
-                LoadingPanelView(model: model).transition(.opacity)
-            case .replies(let replies):
-                RepliesPanelView(model: model, replies: replies).transition(.opacity)
-            case .error(let message):
-                ErrorPanelView(message: message, model: model).transition(.opacity)
-            case .disambiguate(let name, let candidates):
-                DisambiguatePanelView(model: model, name: name, candidates: candidates)
-                    .transition(.opacity)
+            if model.isCollapsed {
+                CollapsedStripView(model: model).transition(.opacity)
+            } else {
+                switch model.state {
+                case .idle:
+                    IdlePanelView(model: model).transition(.opacity)
+                case .loading:
+                    LoadingPanelView(model: model).transition(.opacity)
+                case .replies(let replies):
+                    RepliesPanelView(model: model, replies: replies).transition(.opacity)
+                case .error(let message):
+                    ErrorPanelView(message: message, model: model).transition(.opacity)
+                case .disambiguate(let name, let candidates):
+                    DisambiguatePanelView(model: model, name: name, candidates: candidates)
+                        .transition(.opacity)
+                }
             }
         }
+        .animation(.easeInOut(duration: 0.2), value: model.isCollapsed)
         .animation(.easeInOut(duration: 0.2), value: stateTag)
         .background(KBColors.background)
         .ignoresSafeArea()
@@ -147,6 +154,33 @@ struct KeyboardRootView: View {
         case .error:        return 3
         case .disambiguate: return 4
         }
+    }
+}
+
+// MARK: - Collapsed Strip
+
+struct CollapsedStripView: View {
+    @ObservedObject var model: KeyboardModel
+
+    var body: some View {
+        Button { model.isCollapsed = false } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "iphone.rear.camera")
+                    .font(.system(size: 13, weight: .light))
+                    .foregroundColor(KBColors.accent)
+                Text("Back Tap to capture")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(KBColors.accent)
+                Spacer()
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 11))
+                    .foregroundColor(KBColors.textDim)
+            }
+            .padding(.horizontal, 14)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(KBColors.background)
+        }
+        .buttonStyle(.plain)
     }
 }
 

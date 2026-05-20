@@ -76,12 +76,17 @@ final class KeyboardViewController: UIInputViewController {
         stateCancellable = model.$state
             .combineLatest(model.$isCaptureMode)
             .combineLatest(model.$inputMode)
+            .combineLatest(model.$isCollapsed)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] combined, inputMode in
+            .sink { [weak self] combined, isCollapsed in
                 guard let self else { return }
-                let (state, isCaptureMode) = combined
+                let ((state, isCaptureMode), inputMode) = combined
                 if isCaptureMode {
                     self.setHeight(0, duration: 0.15)
+                    return
+                }
+                if isCollapsed {
+                    self.setHeight(44)
                     return
                 }
                 let height: CGFloat
@@ -102,6 +107,7 @@ final class KeyboardViewController: UIInputViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         model.isCaptureMode = false   // safety reset — ensures 0px collapse never gets stuck
+        model.isCollapsed = false
 
         // Resolve contact display name from App Group
         if let id = AppGroupService.shared.currentContactID,
@@ -176,6 +182,7 @@ final class KeyboardViewController: UIInputViewController {
                     AppGroupService.shared.savePendingContext("")  // context consumed, reset for next use
                     await MainActor.run {
                         self.model.isCaptureMode = false
+                        self.model.isCollapsed = false
                         self.model.currentReplies = replies
                         // Refresh contact chip — intent may have switched contact during this capture
                         if let id = AppGroupService.shared.currentContactID,
@@ -193,6 +200,7 @@ final class KeyboardViewController: UIInputViewController {
                     NSLog("[Replr][Keyboard] poll error: %@", error)
                     await MainActor.run {
                         self.model.isCaptureMode = false
+                        self.model.isCollapsed = false
                         withAnimation { self.model.state = .error(error) }
                     }
                 }
