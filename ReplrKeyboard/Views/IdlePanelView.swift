@@ -35,22 +35,30 @@ struct IdlePanelView: View {
     }
 
     private var draftRow: some View {
-        Text(model.pendingContext)
-            .font(.system(size: 9))
-            .foregroundColor(KBColors.textDim)
-            .lineLimit(1)
-            .truncationMode(.tail)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(KBColors.deep)
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .stroke(KBColors.borderHair, lineWidth: 0.5)
-            )
-            .padding(.horizontal, 8)
-            .padding(.bottom, 6)
+        HStack(spacing: 5) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 8))
+                .foregroundColor(KBColors.accent.opacity(0.7))
+            Text("AI hint:")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(KBColors.accent.opacity(0.7))
+            Text(model.pendingContext)
+                .font(.system(size: 9))
+                .foregroundColor(KBColors.textDim)
+                .lineLimit(1)
+                .truncationMode(.tail)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(KBColors.deep)
+        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .stroke(KBColors.accent.opacity(0.25), lineWidth: 0.5)
+        )
+        .padding(.horizontal, 8)
+        .padding(.bottom, 6)
     }
 
     // MARK: - Email idle
