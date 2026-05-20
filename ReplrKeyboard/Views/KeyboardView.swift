@@ -347,26 +347,6 @@ struct TonePill: View {
 // MARK: - Keyboard Colors
 
 struct KBColors {
-    let alpha: Color      // letter key face
-    let fn: Color         // function key face
-    let letterText: Color // letter key label
-    let fnText: Color     // fn key label / icon
-    let subtext: Color    // space bar label
-    let shadow: Color     // key bottom shadow
-    let bg: Color         // QWERTY area background
-
-    static func from(_ cs: ColorScheme) -> KBColors {
-        KBColors(
-            alpha:      Color(red: 0.929, green: 0.898, blue: 0.816), // #EDE5D0 cream
-            fn:         Color(red: 0.420, green: 0.376, blue: 0.314), // #6B6050 taupe
-            letterText: Color(red: 0.102, green: 0.078, blue: 0.031), // #1A1408 dark amber
-            fnText:     Color(red: 0.929, green: 0.898, blue: 0.816), // #EDE5D0 cream
-            subtext:    Color(red: 0.929, green: 0.898, blue: 0.816).opacity(0.65),
-            shadow:     Color(red: 0.039, green: 0.031, blue: 0.012), // #0A0803
-            bg:         Color(red: 0.133, green: 0.114, blue: 0.078)  // #221D14
-        )
-    }
-
     // MARK: - Design tokens
 
     // Accent — mustard yellow

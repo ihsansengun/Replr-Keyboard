@@ -6,6 +6,7 @@ final class KeyboardViewController: UIInputViewController {
     private var model: KeyboardModel!
     private var capturePollingTask: Task<Void, Never>?
     private var heightConstraint: NSLayoutConstraint!
+    private var autoSwitchTask: DispatchWorkItem?
     private var stateCancellable: AnyCancellable?
     private var hostingVC: UIHostingController<KeyboardRootView>!
 
@@ -40,6 +41,14 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         model.onUndoInsert = { [weak self] in self?.undoLastInsert() }
+        model.onEditReply = { [weak self] reply in
+            guard let self else { return }
+            let ctx = self.textDocumentProxy.documentContextBeforeInput ?? ""
+            for _ in ctx.unicodeScalars { self.textDocumentProxy.deleteBackward() }
+            self.textDocumentProxy.insertText(reply)
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            self.advanceToNextInputMode()
+        }
         model.retryTrigger = { [weak self] in self?.triggerRetry() }
         model.readTextProxy = { [weak self] in self?.textDocumentProxy.documentContextBeforeInput }
         model.onDeleteTextProxy = { [weak self] in
@@ -74,25 +83,20 @@ final class KeyboardViewController: UIInputViewController {
         ])
         hostingVC.didMove(toParent: self)
 
-        stateCancellable = Publishers.CombineLatest(model.$state, model.$inputMode)
+        stateCancellable = model.$state
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] state, inputMode in
+            .sink { [weak self] state in
                 guard let self else { return }
+                let height: CGFloat
                 switch state {
-                case .replies:
-                    // Measure natural content height so the card fills exactly what it needs
-                    self.updateHeightFromContent()
-                default:
-                    let newHeight: CGFloat
-                    switch state {
-                    case .idle:          newHeight = 316
-                    case .loading:       newHeight = 316
-                    case .error:         newHeight = 316
-                    case .disambiguate:  newHeight = 356
-                    case .replies:       newHeight = 356  // unreachable — handled above
-                    }
-                    self.setHeight(newHeight)
+                case .idle:                       height = 240
+                case .loading:                    height = 160
+                case .error:                      height = 160
+                case .disambiguate:               height = 280
+                case .replies(let replies):
+                    height = min(320, 68 + 12 + CGFloat(replies.count) * 52)
                 }
+                self.setHeight(height)
             }
     }
 
@@ -202,15 +206,23 @@ final class KeyboardViewController: UIInputViewController {
         model.intentHint = nil
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         model.lastInsertedReply = text
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
-            self?.model.lastInsertedReply = nil
+
+        autoSwitchTask?.cancel()
+        let task = DispatchWorkItem { [weak self] in
+            guard let self, self.model.lastInsertedReply != nil else { return }
+            self.model.lastInsertedReply = nil
+            self.advanceToNextInputMode()
         }
+        autoSwitchTask = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: task)
     }
 
     private func undoLastInsert() {
         guard let text = model.lastInsertedReply else { return }
         for _ in text { textDocumentProxy.deleteBackward() }
         model.lastInsertedReply = nil
+        autoSwitchTask?.cancel()
+        autoSwitchTask = nil
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 
@@ -224,22 +236,5 @@ final class KeyboardViewController: UIInputViewController {
         guard heightConstraint.constant != height else { return }
         heightConstraint.constant = height
         UIView.animate(withDuration: 0.25) { self.view.layoutIfNeeded() }
-    }
-
-    // Picks a replies height based on content: email replies are longer so get more space.
-    // The card uses maxHeight:.infinity so it fills whatever height we allocate here.
-    private func updateHeightFromContent() {
-        // Strip (68) + optional contact row (28) + carousel padding/dots (~32)
-        let chrome: CGFloat = 68 + (model.contactName != nil ? 28 : 0) + 32
-        let longestReply = model.currentReplies.map(\.count).max() ?? 0
-        let cardHeight: CGFloat
-        if model.inputMode == .email {
-            // Email bodies: scale from 200px (short) up to 340px (long)
-            cardHeight = min(340, max(200, CGFloat(longestReply) * 0.8))
-        } else {
-            // Chat replies are short — scale from 110px up to 200px
-            cardHeight = min(200, max(110, CGFloat(longestReply) * 1.2))
-        }
-        setHeight(chrome + cardHeight)
     }
 }
