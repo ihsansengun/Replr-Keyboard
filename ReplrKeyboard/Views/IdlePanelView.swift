@@ -56,15 +56,15 @@ struct IdlePanelView: View {
         VStack(spacing: 6) {
             Spacer(minLength: 0)
             Button { model.generateEmailReply() } label: {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Image(systemName: "doc.on.clipboard.fill")
-                        .font(.system(size: 16))
+                        .font(.system(size: 13))
                     Text("↑ Generate from clipboard")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 11, weight: .semibold))
                 }
                 .foregroundColor(KBColors.accentFg)
                 .frame(maxWidth: .infinity)
-                .frame(height: 50)
+                .frame(height: 38)
                 .background(KBColors.accent)
                 .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
             }
