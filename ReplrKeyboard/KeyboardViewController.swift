@@ -184,7 +184,7 @@ final class KeyboardViewController: UIInputViewController {
                         withAnimation { self.model.state = .error(error) }
                     }
                 }
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                try? await Task.sleep(nanoseconds: 250_000_000)
             }
         }
     }

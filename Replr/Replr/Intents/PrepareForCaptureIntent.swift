@@ -16,8 +16,8 @@ struct PrepareForCaptureIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         AppGroupService.shared.setSwitchKeyboardRequested(true)
-        // Give the keyboard extension time to poll the flag (~1s loop) and switch.
-        try? await Task.sleep(nanoseconds: 1_300_000_000)
+        // Give the keyboard extension time to poll the flag (0.25s loop) and animate the switch.
+        try? await Task.sleep(nanoseconds: 2_000_000_000)
         return .result()
     }
 }
