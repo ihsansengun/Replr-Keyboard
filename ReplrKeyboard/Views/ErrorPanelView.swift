@@ -14,37 +14,44 @@ struct ErrorPanelView: View {
     }
 
     private var errorContent: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 0) {
+            Spacer(minLength: 0)
+
             Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 18))
-                .foregroundColor(KBColors.accent.opacity(0.8))
+                .font(.system(size: 22))
+                .foregroundColor(KBColors.accent.opacity(0.85))
+                .padding(.bottom, 8)
+
+            Text("Couldn't generate replies")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(KBColors.textPrimary)
 
             Text(message)
-                .font(.system(size: 12))
+                .font(.system(size: 11))
                 .foregroundColor(KBColors.textDim)
                 .multilineTextAlignment(.center)
-                .lineLimit(3)
+                .lineLimit(2)
                 .padding(.horizontal, 24)
+                .padding(.top, 4)
+
+            Spacer(minLength: 0)
 
             Button { model.retryGeneration() } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: 6) {
                     Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 11))
-                    Text("Retry")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 13, weight: .medium))
+                    Text("Try again")
+                        .font(.system(size: 14, weight: .semibold))
                 }
-                .foregroundColor(KBColors.textPrimary)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 6)
-                .background(KBColors.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .stroke(KBColors.borderHair, lineWidth: 0.5)
-                )
+                .foregroundColor(KBColors.accentFg)
+                .frame(maxWidth: .infinity)
+                .frame(height: 42)
+                .background(KBColors.accent)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .buttonStyle(.plain)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 14)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
