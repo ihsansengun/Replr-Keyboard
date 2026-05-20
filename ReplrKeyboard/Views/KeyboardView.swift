@@ -105,6 +105,7 @@ final class KeyboardModel: ObservableObject {
         isCaptureMode = false
         isCollapsed = false
         lastInsertedReply = nil
+        contactName = nil
         AppGroupService.shared.clearCachedReplies()
         currentReplies = []
         withAnimation(.easeInOut(duration: 0.2)) { state = .idle }

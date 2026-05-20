@@ -135,7 +135,7 @@ struct ReplyRowView: View {
             Text(text)
                 .font(.system(size: 13))
                 .foregroundColor(isSent ? KBColors.textDim : KBColors.textPrimary)
-                .lineLimit(3)
+                .lineLimit(2)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if !isSent {
@@ -178,7 +178,7 @@ struct ReplyRowView: View {
             }
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
         .background(isSent ? KBColors.sentCard : KBColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay(

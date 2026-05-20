@@ -48,8 +48,8 @@ struct RepliesPanelView: View {
 
             Button { model.regenerate() } label: {
                 Text("↺ New replies")
-                    .font(.system(size: 10))
-                    .foregroundColor(KBColors.textDim)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(KBColors.accent)
             }
             .buttonStyle(.plain)
             .padding(.trailing, 14)
