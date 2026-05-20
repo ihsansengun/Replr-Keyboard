@@ -160,7 +160,7 @@ struct TonePill: View {
             Text(name)
                 .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
                 .foregroundColor(isSelected ? KBColors.background : KBColors.textDim)
-                .padding(.horizontal, 9).padding(.vertical, 3)
+                .padding(.horizontal, 9).padding(.vertical, 5)
                 .background(isSelected ? KBColors.accent : KBColors.surface)
                 .clipShape(Capsule())
         }
@@ -214,7 +214,7 @@ struct ModeSegmentedControl: View {
         .background(KBColors.segmentedBg)
         .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
         .padding(.horizontal, 7)
-        .padding(.top, 5)
+        .padding(.top, 2)
         .padding(.bottom, 2)
     }
 
@@ -282,7 +282,7 @@ struct ToneRow: View {
                 .buttonStyle(.plain)
             }
         }
-        .frame(height: 30)
+        .frame(height: 38)
         .overlay(alignment: .top) { KBColors.borderHair.frame(height: 0.5) }
         .opacity(isDimmed ? 0.35 : 1.0)
     }
