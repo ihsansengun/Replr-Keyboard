@@ -216,70 +216,17 @@ final class KeyboardModel: ObservableObject {
 struct KeyboardRootView: View {
     @ObservedObject var model: KeyboardModel
 
-    private var showToneBar: Bool {
-        switch model.state {
-        case .error, .loading: return true
-        default: return false
-        }
-    }
-
     var body: some View {
-        VStack(spacing: 0) {
-            Divider().opacity(0.4)
-            contentArea.frame(maxWidth: .infinity, maxHeight: .infinity)
-            if showToneBar { toneBar }
-        }
-        .background(KBColors.background)
-        .ignoresSafeArea()
-    }
-
-    @ViewBuilder
-    private var contentArea: some View {
         ZStack {
             switch model.state {
             case .idle:
-                IdleWithKeyboard(model: model).transition(.opacity)
-            case .collapsed:
-                CollapsedBar(model: model).transition(.opacity)
+                IdlePanelView(model: model).transition(.opacity)
             case .loading:
-                IdleWithKeyboard(model: model).transition(.opacity)
+                loadingPanel.transition(.opacity)
             case .replies(let replies):
-                VStack(spacing: 0) {
-                    ReplrStrip(model: model)
-                    if let name = model.contactName {
-                        Button { model.enterEditContact(name) } label: {
-                            HStack(spacing: 5) {
-                                Image(systemName: "person.fill")
-                                    .font(.system(size: 9))
-                                Text(name)
-                                    .font(.system(size: 12))
-                                    .lineLimit(1)
-                                Image(systemName: "pencil")
-                                    .font(.system(size: 9))
-                            }
-                            .foregroundColor(KBColors.accent)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 4)
-                        }
-                        .buttonStyle(.plain)
-                        KBColors.borderHair.frame(height: 0.5)
-                    }
-                    ReplyCarousel(
-                        replies: replies,
-                        inputMode: model.inputMode,
-                        onSelect: { model.selectReply($0) },
-                        onRegenerate: { model.regenerate() }
-                    )
-                }
-                .transition(.opacity)
-            case .editReply:
-                // Edit inline removed — unreachable, guard as fallback
-                IdleWithKeyboard(model: model).transition(.opacity)
-            case .error:
-                IdleWithKeyboard(model: model).transition(.opacity)
-            case .editContact:
-                EditContactView(model: model).transition(.opacity)
+                repliesPanel(replies).transition(.opacity)
+            case .error(let message):
+                errorPanel(message).transition(.opacity)
             case .disambiguate(let name, let candidates):
                 VStack(spacing: 0) {
                     ReplrStrip(model: model)
@@ -294,52 +241,77 @@ struct KeyboardRootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: stateTag)
+        .background(KBColors.background)
+        .ignoresSafeArea()
     }
 
-    private var toneBar: some View {
-        HStack(spacing: 0) {
-            if model.needsGlobeKey {
-                Button { model.onSwitchKeyboard?() } label: {
-                    Image(systemName: "globe")
-                        .font(.system(size: 14))
-                        .foregroundColor(KBColors.textDim)
-                        .frame(width: 40, height: 36)
+    private var loadingPanel: some View {
+        VStack(spacing: 0) {
+            ReplrStrip(model: model)
+            VStack(spacing: 7) {
+                ForEach(0..<3, id: \.self) { i in
+                    SkeletonLine(fraction: [0.75, 0.9, 0.6][i], pulse: i == 1)
                 }
-                .buttonStyle(.plain)
             }
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 2) {
-                    ForEach(model.tones) { tone in
-                        TonePill(name: tone.name,
-                                 isSelected: tone.name == model.selectedTone.name,
-                                 action: { model.selectTone(tone) })
-                    }
-                }
-                .padding(.horizontal, 10)
-            }
-
-            if case .replies = model.state {
-                KBColors.borderDim.frame(width: 0.5, height: 16).padding(.horizontal, 2)
-                Button { model.regenerate() } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(KBColors.textDim)
-                        .frame(width: 40, height: 36)
-                }
-                .buttonStyle(.plain)
-                .padding(.trailing, 2)
-                .transition(.opacity.combined(with: .scale(scale: 0.8)))
-            }
+            .padding(10)
+            Spacer(minLength: 0)
         }
-        .frame(height: 36)
-        .background(
-            KBColors.deep
-                .overlay(alignment: .top) {
-                    KBColors.borderHair.frame(height: 1)
+    }
+
+    private func repliesPanel(_ replies: [String]) -> some View {
+        VStack(spacing: 0) {
+            ReplrStrip(model: model)
+            if let name = model.contactName {
+                contactChip(name)
+                KBColors.borderHair.frame(height: 0.5)
+            }
+            ReplyListView(
+                replies: replies,
+                onSend: { model.selectReply($0) },
+                onEdit: { model.editReply($0) }
+            )
+        }
+    }
+
+    private func contactChip(_ name: String) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: "person.fill").font(.system(size: 9))
+            Text(name).font(.system(size: 12)).lineLimit(1)
+        }
+        .foregroundColor(KBColors.accent)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 4)
+    }
+
+    private func errorPanel(_ message: String) -> some View {
+        VStack(spacing: 0) {
+            ReplrStrip(model: model)
+            VStack(spacing: 8) {
+                Text(message)
+                    .font(.system(size: 12))
+                    .foregroundColor(KBColors.textDim)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+                Button { model.retryGeneration() } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.clockwise").font(.system(size: 11))
+                        Text("Retry").font(.system(size: 12, weight: .medium))
+                    }
+                    .foregroundColor(KBColors.textPrimary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
+                    .background(KBColors.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .stroke(KBColors.borderDim, lineWidth: 0.5)
+                    )
                 }
-        )
-        .animation(.easeInOut(duration: 0.18), value: stateTag)
+                .buttonStyle(.plain)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
     }
 
     private var stateTag: Int {
@@ -348,10 +320,7 @@ struct KeyboardRootView: View {
         case .loading:      return 1
         case .replies:      return 2
         case .error:        return 3
-        case .editReply:    return 4
-        case .collapsed:    return 5
-        case .editContact:  return 6
-        case .disambiguate: return 7
+        case .disambiguate: return 4
         }
     }
 }
@@ -420,120 +389,6 @@ struct KBColors {
     static let textDim     = Color(red: 0.420, green: 0.376, blue: 0.314) // #6B6050
     static let textGhost   = Color(red: 0.250, green: 0.200, blue: 0.140)
     static let surfaceActive = Color(red: 0.180, green: 0.145, blue: 0.094)
-}
-
-// MARK: - Keyboard Input Area
-
-enum KBInputMode { case context, edit }
-
-struct KBInputArea: View {
-    @ObservedObject var model: KeyboardModel
-    let mode: KBInputMode
-    @Environment(\.colorScheme) private var cs
-
-    var body: some View {
-        VStack(spacing: 0) {
-            ReplrStrip(model: model)
-
-            HStack(spacing: 8) {
-                Text(model.inputText.isEmpty ? placeholder : model.inputText)
-                    .font(.system(size: 15))
-                    .foregroundColor(model.inputText.isEmpty ? Color(UIColor.placeholderText) : Color(UIColor.label))
-                    .lineLimit(2)
-                    .truncationMode(.tail)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Button(mode == .context ? "Cancel" : "Back") { model.cancelInput() }
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(UIColor.tertiaryLabel))
-                    .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 14)
-            .frame(height: 42)
-            .background(Color(UIColor.secondarySystemGroupedBackground))
-            .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
-
-            ReplrKeyboard(
-                isShifted: model.isShifted,
-                kbMode: model.kbMode,
-                doneLabel: mode == .context ? "Save" : "Send",
-                doneIsAccent: true,
-                onChar: { model.type($0) },
-                onSpace: { model.space() },
-                onBackspace: { model.backspace() },
-                onShift: { model.toggleShift() },
-                onMode: { model.toggleMode() },
-                onDone: { model.confirmInput() }
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(KBColors.from(cs).bg)
-        }
-    }
-
-    private var placeholder: String { mode == .context ? "Type context…" : "Edit reply…" }
-}
-
-// MARK: - Edit Contact View
-
-struct EditContactView: View {
-    @ObservedObject var model: KeyboardModel
-    @Environment(\.colorScheme) private var cs
-
-    var body: some View {
-        VStack(spacing: 0) {
-            ReplrStrip(model: model)
-            HStack(spacing: 8) {
-                Text(model.inputText.isEmpty ? "Contact name" : model.inputText)
-                    .font(.system(size: 15))
-                    .foregroundColor(model.inputText.isEmpty
-                                     ? Color(UIColor.placeholderText)
-                                     : Color(UIColor.label))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .overlay(alignment: .bottom) {
-                        KBColors.accent.opacity(0.5).frame(height: 1)
-                    }
-
-                Button("Done") { model.confirmInput() }
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(KBColors.accent)
-                    .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 14)
-            .frame(height: 42)
-            .background(Color(UIColor.secondarySystemGroupedBackground))
-            .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
-
-            Button {
-                model.onDifferentPerson?(model.inputText)
-            } label: {
-                Text("Different person")
-                    .font(.system(size: 13))
-                    .foregroundColor(KBColors.textDim)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 36)
-                    .opacity(model.inputText.isEmpty ? 0.4 : 1.0)
-            }
-            .buttonStyle(.plain)
-            .disabled(model.inputText.isEmpty)
-            .background(Color(UIColor.secondarySystemGroupedBackground))
-            .overlay(alignment: .bottom) { Color(UIColor.separator).frame(height: 0.5) }
-
-            ReplrKeyboard(
-                isShifted: model.isShifted,
-                kbMode: model.kbMode,
-                doneLabel: "Done",
-                doneIsAccent: true,
-                onChar: { model.type($0) },
-                onSpace: { model.space() },
-                onBackspace: { model.backspace() },
-                onShift: { model.toggleShift() },
-                onMode: { model.toggleMode() },
-                onDone: { model.confirmInput() }
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(KBColors.from(cs).bg)
-        }
-    }
 }
 
 // MARK: - Disambiguate View
@@ -643,494 +498,6 @@ struct DisambiguateView: View {
                         .foregroundColor(KBColors.textDim)
                 )
         }
-    }
-}
-
-// MARK: - QWERTY Keyboard
-
-struct ReplrKeyboard: View {
-    let isShifted: Bool
-    let kbMode: KBMode
-    let doneLabel: String
-    let doneIsAccent: Bool
-    let onChar: (String) -> Void
-    let onSpace: () -> Void
-    let onBackspace: () -> Void
-    let onShift: () -> Void
-    let onMode: () -> Void
-    let onDone: () -> Void
-
-    @Environment(\.colorScheme) private var cs
-
-    private static let alpha1 = ["q","w","e","r","t","y","u","i","o","p"]
-    private static let alpha2 = ["a","s","d","f","g","h","j","k","l"]
-    private static let alpha3 = ["z","x","c","v","b","n","m"]
-    private static let num1   = ["1","2","3","4","5","6","7","8","9","0"]
-    private static let num2   = ["-","/",":",";","(",")","$","&","@","\""]
-    private static let num3   = [".",",","?","!","'","+","="]
-
-    var body: some View {
-        let c = KBColors.from(cs)
-        GeometryReader { geo in
-            // hPad is the horizontal padding applied to the VStack.
-            // Key widths are computed from geo.size.width minus 2*hPad so rows
-            // exactly fill the available space without overflowing.
-            let hPad: CGFloat = 3
-            let gap: CGFloat  = 5
-            // kH fills available height: 4 rows, 3 gaps, 2×7pt vertical padding
-            let kH  = max(36, floor((geo.size.height - 14 - 3 * gap) / 4))
-            let w   = geo.size.width - 2 * hPad
-            let kW  = floor((w - 9 * gap) / 10)
-            // row 3 has 9 items → 8 HStack gaps; fnW sized so row exactly fills w
-            let fnW = floor((w - 8 * gap - 7 * kW) / 2)
-
-            VStack(spacing: gap) {
-                if kbMode == .alpha {
-                    alphaLayout(kW: kW, fnW: fnW, kH: kH, gap: gap, c: c)
-                } else {
-                    numericLayout(kW: kW, fnW: fnW, kH: kH, gap: gap, c: c)
-                }
-
-                // Row 4: mode + space + done
-                HStack(spacing: gap) {
-                    ModeKey(label: kbMode == .alpha ? "123" : "ABC",
-                            width: fnW * 1.15, height: kH, c: c, action: onMode)
-                    SpaceKey(height: kH, c: c, action: onSpace)
-                    DoneKey(label: doneLabel, width: fnW * 1.45, height: kH,
-                            isAccent: doneIsAccent, c: c, action: onDone)
-                }
-            }
-            .padding(.horizontal, hPad)
-            .padding(.vertical, 7)
-        }
-    }
-
-    @ViewBuilder
-    private func alphaLayout(kW: CGFloat, fnW: CGFloat, kH: CGFloat, gap: CGFloat, c: KBColors) -> some View {
-        // Row 1
-        HStack(spacing: gap) {
-            ForEach(Self.alpha1, id: \.self) { ch in
-                CharKey(char: ch, shifted: isShifted, width: kW, height: kH, c: c) { onChar(ch) }
-            }
-        }
-        // Row 2 — centered
-        HStack(spacing: gap) {
-            Spacer()
-            ForEach(Self.alpha2, id: \.self) { ch in
-                CharKey(char: ch, shifted: isShifted, width: kW, height: kH, c: c) { onChar(ch) }
-            }
-            Spacer()
-        }
-        // Row 3 — shift + letters + delete
-        HStack(spacing: gap) {
-            ShiftKey(isShifted: isShifted, width: fnW, height: kH, c: c, action: onShift)
-            ForEach(Self.alpha3, id: \.self) { ch in
-                CharKey(char: ch, shifted: isShifted, width: kW, height: kH, c: c) { onChar(ch) }
-            }
-            DeleteKey(width: fnW, height: kH, c: c, action: onBackspace)
-        }
-    }
-
-    @ViewBuilder
-    private func numericLayout(kW: CGFloat, fnW: CGFloat, kH: CGFloat, gap: CGFloat, c: KBColors) -> some View {
-        // Row 1: digits
-        HStack(spacing: gap) {
-            ForEach(Self.num1, id: \.self) { ch in
-                CharKey(char: ch, shifted: false, width: kW, height: kH, c: c) { onChar(ch) }
-            }
-        }
-        // Row 2: symbols (10 keys, same widths)
-        HStack(spacing: gap) {
-            ForEach(Self.num2, id: \.self) { ch in
-                CharKey(char: ch, shifted: false, width: kW, height: kH, c: c) { onChar(ch) }
-            }
-        }
-        // Row 3: 7 symbols + delete (same structure as alpha row 3)
-        HStack(spacing: gap) {
-            // placeholder same width as shift key
-            Color.clear.frame(width: fnW, height: kH)
-            ForEach(Self.num3, id: \.self) { ch in
-                CharKey(char: ch, shifted: false, width: kW, height: kH, c: c) { onChar(ch) }
-            }
-            DeleteKey(width: fnW, height: kH, c: c, action: onBackspace)
-        }
-    }
-}
-
-// MARK: - Key Components
-
-private struct CharKey: View {
-    let char: String
-    let shifted: Bool
-    let width: CGFloat
-    let height: CGFloat
-    let c: KBColors
-    let action: () -> Void
-    @GestureState private var pressed = false
-
-    var body: some View {
-        Text(shifted ? char.uppercased() : char)
-            .font(.system(size: 17))
-            .foregroundColor(c.letterText)
-            .frame(width: width, height: height)
-            .background(
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(c.alpha)
-                    .opacity(pressed ? 0.6 : 1.0)
-                    .shadow(color: c.shadow, radius: 0, y: 1)
-            )
-            .scaleEffect(pressed ? 0.94 : 1.0)
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .updating($pressed) { _, s, _ in s = true }
-                    .onEnded { _ in action() }
-            )
-    }
-}
-
-private struct ShiftKey: View {
-    let isShifted: Bool
-    let width: CGFloat
-    let height: CGFloat
-    let c: KBColors
-    let action: () -> Void
-    @GestureState private var pressed = false
-
-    var body: some View {
-        Image(systemName: isShifted ? "shift.fill" : "shift")
-            .font(.system(size: 15, weight: .light))
-            .foregroundColor(isShifted ? Color.accentColor : c.fnText)
-            .frame(width: width, height: height)
-            .background(
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(isShifted ? c.alpha : c.fn)
-                    .opacity(pressed ? 0.7 : 1.0)
-                    .shadow(color: c.shadow, radius: 0, y: 1)
-            )
-            .scaleEffect(pressed ? 0.94 : 1.0)
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .updating($pressed) { _, s, _ in s = true }
-                    .onEnded { _ in action() }
-            )
-    }
-}
-
-// Hold-to-repeat delete
-private class RepeatTimer: ObservableObject {
-    var timer: Timer?
-    func start(delay: TimeInterval = 0.4, interval: TimeInterval = 0.075, action: @escaping () -> Void) {
-        stop()
-        action()
-        timer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
-            self?.timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in action() }
-        }
-    }
-    func stop() { timer?.invalidate(); timer = nil }
-}
-
-private struct DeleteKey: View {
-    let width: CGFloat
-    let height: CGFloat
-    let c: KBColors
-    let action: () -> Void
-    @GestureState private var pressed = false
-    @StateObject private var repeater = RepeatTimer()
-
-    var body: some View {
-        Image(systemName: "delete.backward")
-            .font(.system(size: 15, weight: .light))
-            .foregroundColor(c.fnText)
-            .frame(width: width, height: height)
-            .background(
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(c.fn)
-                    .opacity(pressed ? 0.7 : 1.0)
-                    .shadow(color: c.shadow, radius: 0, y: 1)
-            )
-            .scaleEffect(pressed ? 0.94 : 1.0)
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .updating($pressed) { _, s, _ in s = true }
-                    .onChanged { _ in
-                        if repeater.timer == nil { repeater.start(action: action) }
-                    }
-                    .onEnded { _ in repeater.stop() }
-            )
-    }
-}
-
-private struct SpaceKey: View {
-    let height: CGFloat
-    let c: KBColors
-    let action: () -> Void
-    @GestureState private var pressed = false
-
-    var body: some View {
-        Text("space")
-            .font(.system(size: 14))
-            .foregroundColor(c.subtext)
-            .frame(maxWidth: .infinity, minHeight: height)
-            .background(
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(c.alpha)
-                    .opacity(pressed ? 0.6 : 1.0)
-                    .shadow(color: c.shadow, radius: 0, y: 1)
-            )
-            .scaleEffect(pressed ? 0.98 : 1.0)
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .updating($pressed) { _, s, _ in s = true }
-                    .onEnded { _ in action() }
-            )
-    }
-}
-
-private struct ModeKey: View {
-    let label: String
-    let width: CGFloat
-    let height: CGFloat
-    let c: KBColors
-    let action: () -> Void
-    @GestureState private var pressed = false
-
-    var body: some View {
-        Text(label)
-            .font(.system(size: 13, weight: .regular))
-            .foregroundColor(c.fnText)
-            .frame(width: width, height: height)
-            .background(
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(c.fn)
-                    .opacity(pressed ? 0.7 : 1.0)
-                    .shadow(color: c.shadow, radius: 0, y: 1)
-            )
-            .scaleEffect(pressed ? 0.94 : 1.0)
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .updating($pressed) { _, s, _ in s = true }
-                    .onEnded { _ in action() }
-            )
-    }
-}
-
-private struct DoneKey: View {
-    let label: String
-    let width: CGFloat
-    let height: CGFloat
-    let isAccent: Bool   // true = mustard Send, false = taupe return
-    let c: KBColors
-    let action: () -> Void
-    @GestureState private var pressed = false
-
-    var body: some View {
-        Text(label)
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundColor(isAccent ? KBColors.accentFg : c.fnText)
-            .frame(width: width, height: height)
-            .background(
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(isAccent ? KBColors.accent : c.fn)
-                    .opacity(pressed ? 0.75 : 1.0)
-                    .shadow(color: isAccent ? KBColors.accentShadow.opacity(0.6) : c.shadow,
-                            radius: 0, y: 1)
-            )
-            .scaleEffect(pressed ? 0.94 : 1.0)
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .updating($pressed) { _, s, _ in s = true }
-                    .onEnded { _ in action() }
-            )
-    }
-}
-
-// MARK: - Reply Carousel
-
-struct ReplyCarousel: View {
-    let replies: [String]
-    let inputMode: KeyboardInputMode
-    let onSelect: (String) -> Void
-    let onRegenerate: () -> Void
-    @State private var currentPage = 0
-
-    var body: some View {
-        VStack(spacing: 0) {
-            TabView(selection: $currentPage) {
-                ForEach(Array(replies.enumerated()), id: \.offset) { index, reply in
-                    ReplyCard(
-                        text: reply,
-                        inputMode: inputMode,
-                        onTap: { onSelect(reply) },
-                        onRegenerate: onRegenerate
-                    )
-                    .padding(.horizontal, 4)
-                    .tag(index)
-                }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            if replies.count > 1 {
-                PageDots(count: replies.count, current: currentPage)
-                    .padding(.vertical, 8)
-            }
-        }
-        .padding(.horizontal, 8)
-        .padding(.top, 8)
-        .padding(.bottom, 4)
-    }
-}
-
-struct PageDots: View {
-    let count: Int; let current: Int
-    var body: some View {
-        HStack(spacing: 5) {
-            ForEach(0..<count, id: \.self) { i in
-                Circle()
-                    .fill(i == current ? KBColors.accent : KBColors.textDim)
-                    .frame(width: 5, height: 5)
-                    .animation(.easeInOut(duration: 0.2), value: current)
-            }
-        }
-    }
-}
-
-struct ReplyCard: View {
-    let text: String
-    let inputMode: KeyboardInputMode
-    let onTap: () -> Void
-    let onRegenerate: () -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Text(text)
-                .font(.system(size: 14))
-                .foregroundColor(KBColors.textPrimary)
-                .lineSpacing(3)
-                .multilineTextAlignment(.leading)
-                .lineLimit(nil)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .padding(.horizontal, 14)
-                .padding(.top, 13)
-
-            Divider().opacity(0.15)
-
-            if inputMode == .email {
-                emailFooter
-            } else {
-                chatFooter
-            }
-        }
-        .background(KBColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-    }
-
-    private var chatFooter: some View {
-        Button(action: onTap) {
-            HStack(spacing: 3) {
-                Image(systemName: "arrow.up").font(.system(size: 10))
-                Text("Send").font(.system(size: 11, weight: .medium))
-            }
-            .foregroundColor(KBColors.accent)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 9)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var emailFooter: some View {
-        HStack(spacing: 0) {
-            Button(action: onTap) {
-                HStack(spacing: 3) {
-                    Image(systemName: "doc.on.clipboard").font(.system(size: 10))
-                    Text("Paste").font(.system(size: 11, weight: .medium))
-                }
-                .foregroundColor(KBColors.accent)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 9)
-            }
-            .buttonStyle(.plain)
-
-            KBColors.borderHair.frame(width: 0.5)
-
-            Button(action: onRegenerate) {
-                HStack(spacing: 3) {
-                    Image(systemName: "arrow.clockwise").font(.system(size: 10))
-                    Text("Regenerate").font(.system(size: 11, weight: .medium))
-                }
-                .foregroundColor(KBColors.textDim)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 9)
-            }
-            .buttonStyle(.plain)
-        }
-    }
-}
-
-// MARK: - Step Row (B2 idle design)
-
-struct StepRow<Trailing: View>: View {
-    let number: String
-    let isActive: Bool
-    let label: String
-    let trailing: Trailing
-
-    init(number: String, isActive: Bool, label: String, @ViewBuilder trailing: () -> Trailing) {
-        self.number = number
-        self.isActive = isActive
-        self.label = label
-        self.trailing = trailing()
-    }
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Text(number)
-                .font(.system(size: 10, weight: .heavy))
-                .foregroundColor(isActive ? KBColors.accent : KBColors.textDim)
-                .frame(minWidth: 10)
-            Text(label)
-                .font(.system(size: 12))
-                .foregroundColor(isActive ? KBColors.accent : KBColors.textDim)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            trailing
-        }
-        .padding(.horizontal, 11)
-        .padding(.vertical, 9)
-        .background(isActive ? KBColors.surfaceActive : KBColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-        .overlay(alignment: .leading) {
-            Rectangle()
-                .fill(isActive ? KBColors.accent : KBColors.borderDim)
-                .frame(width: 2)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-    }
-}
-
-// MARK: - Collapsed Bar (full conversation visible for screenshot)
-
-struct CollapsedBar: View {
-    @ObservedObject var model: KeyboardModel
-
-    var body: some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.2)) { model.state = .idle }
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "chevron.up")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(KBColors.accent)
-                Text("Screenshot now · triple-tap to generate")
-                    .font(.system(size: 12))
-                    .foregroundColor(KBColors.accent)
-                Spacer()
-            }
-            .padding(.horizontal, 14)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-        .buttonStyle(.plain)
-        .background(KBColors.deep)
     }
 }
 
@@ -1388,20 +755,17 @@ struct ReplrStrip: View {
                         }
                         .buttonStyle(.plain)
                     } else {
-                        Button { model.collapse() } label: {
-                            Text("↑ Capture replies")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(KBColors.textDim)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 20)
-                                .background(KBColors.textDim.opacity(0.18))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                        .stroke(KBColors.textDim.opacity(0.5), lineWidth: 1)
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                        }
-                        .buttonStyle(.plain)
+                        Text("↑ Capture replies")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(KBColors.textDim)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 20)
+                            .background(KBColors.textDim.opacity(0.18))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .stroke(KBColors.textDim.opacity(0.5), lineWidth: 1)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                     }
                 }
             }
@@ -1421,100 +785,6 @@ struct ReplrStrip: View {
     }
 }
 
-// MARK: - Idle + Always-On Keyboard
-
-struct IdleWithKeyboard: View {
-    @ObservedObject var model: KeyboardModel
-    @Environment(\.colorScheme) private var cs
-
-    var body: some View {
-        VStack(spacing: 0) {
-            ReplrStrip(model: model)
-            ReplrKeyboard(
-                isShifted: model.isShifted,
-                kbMode: model.kbMode,
-                doneLabel: model.inputMode == .email ? "return" : "Send",
-                doneIsAccent: model.inputMode == .chat,
-                onChar: { model.type($0) },
-                onSpace: { model.space() },
-                onBackspace: { model.backspace() },
-                onShift: { model.toggleShift() },
-                onMode: { model.toggleMode() },
-                onDone: { model.confirmInput() }
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(KBColors.from(cs).bg)
-        }
-    }
-}
-
-// MARK: - Static State Views
-
-struct IdleStateView: View {
-    @ObservedObject var model: KeyboardModel
-
-    var body: some View {
-        VStack(spacing: 5) {
-            StepRow(number: "1", isActive: true, label: "Context") {
-                if model.pendingContext.isEmpty {
-                    Text("Start typing in chat…")
-                        .font(.system(size: 11))
-                        .foregroundColor(KBColors.accentSubtle)
-                } else {
-                    Text(model.pendingContext)
-                        .font(.system(size: 11))
-                        .foregroundColor(KBColors.accent)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .frame(maxWidth: 140, alignment: .trailing)
-                }
-            }
-
-            StepRow(number: "2", isActive: true, label: "Pick a tone below") {
-                EmptyView()
-            }
-
-            HStack {
-                Spacer()
-                Text("Triple-tap to generate →")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(KBColors.accent)
-            }
-            .padding(.horizontal, 14)
-            .padding(.top, 2)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-    }
-}
-
-// Compact 50px strip shown while the intent is generating — keeps conversation visible
-struct GeneratingView: View {
-    @State private var phase: Int = 0
-
-    var body: some View {
-        HStack(spacing: 8) {
-            ForEach(0..<3, id: \.self) { i in
-                Circle()
-                    .fill(KBColors.accent)
-                    .frame(width: 6, height: 6)
-                    .scaleEffect(phase == i ? 1.4 : 1.0)
-                    .animation(.easeInOut(duration: 0.4).delay(Double(i) * 0.15), value: phase)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .task {
-            while !Task.isCancelled {
-                for i in 0..<3 {
-                    phase = i
-                    try? await Task.sleep(nanoseconds: 500_000_000)
-                    if Task.isCancelled { return }
-                }
-            }
-        }
-    }
-}
-
 struct SkeletonLine: View {
     let fraction: CGFloat
     let pulse: Bool
@@ -1528,18 +798,3 @@ struct SkeletonLine: View {
     }
 }
 
-struct ErrorStateView: View {
-    let message: String
-
-    var body: some View {
-        VStack(spacing: 8) {
-            Text(message)
-                .font(.system(size: 12))
-                .foregroundColor(KBColors.textDim)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .contentShape(Rectangle())
-    }
-}

@@ -21,52 +21,11 @@ final class KeyboardViewController: UIInputViewController {
         model.onReplySelected = { [weak self] reply in self?.insert(reply) }
         model.onToneChanged = { tone in AppGroupService.shared.saveSelectedTone(tone) }
         model.onSwitchKeyboard = { [weak self] in self?.advanceToNextInputMode() }
-        model.onTypeChar   = { [weak self] c in self?.textDocumentProxy.insertText(c) }
-        model.onDeleteChar = { [weak self] in self?.textDocumentProxy.deleteBackward() }
-        model.onSpaceChar  = { [weak self] in self?.textDocumentProxy.insertText(" ") }
-        model.onReturnChar = { [weak self] in self?.textDocumentProxy.insertText("\n") }
         model.onUseAsContext = { [weak self] in
             guard let self else { return }
             AppGroupService.shared.savePendingContext(self.model.pendingContext)
             let draft = self.textDocumentProxy.documentContextBeforeInput ?? ""
             for _ in draft.unicodeScalars { self.textDocumentProxy.deleteBackward() }
-        }
-
-        model.onConfirmContact = { [weak self] newName in
-            guard let self else { return }
-            if let id = AppGroupService.shared.currentContactID {
-                var contacts = AppGroupService.shared.loadContacts()
-                if let i = contacts.firstIndex(where: { $0.id == id }) {
-                    contacts[i].displayName = newName
-                    AppGroupService.shared.saveContacts(contacts)
-                }
-            }
-            self.model.contactName = newName
-            withAnimation(.easeInOut(duration: 0.18)) {
-                self.model.state = self.model.currentReplies.isEmpty
-                    ? .idle
-                    : .replies(self.model.currentReplies)
-            }
-        }
-
-        model.onDifferentPerson = { [weak self] currentName in
-            guard let self else { return }
-            let others = AppGroupService.shared.findContacts(named: currentName)
-                .filter { $0.id != AppGroupService.shared.currentContactID }
-            if others.isEmpty {
-                let newContact = AppGroupService.shared.createContact(displayName: currentName)
-                AppGroupService.shared.currentContactID = newContact.id
-                self.model.contactName = currentName
-                withAnimation(.easeInOut(duration: 0.18)) {
-                    self.model.state = self.model.currentReplies.isEmpty
-                        ? .idle
-                        : .replies(self.model.currentReplies)
-                }
-            } else {
-                withAnimation(.easeInOut(duration: 0.18)) {
-                    self.model.state = .disambiguate(name: currentName, candidates: others)
-                }
-            }
         }
 
         model.onSelectContact = { [weak self] contact in
@@ -127,9 +86,6 @@ final class KeyboardViewController: UIInputViewController {
                     let newHeight: CGFloat
                     switch state {
                     case .idle:          newHeight = 316
-                    case .collapsed:     newHeight = 44
-                    case .editReply:     newHeight = 316
-                    case .editContact:   newHeight = 316
                     case .loading:       newHeight = 316
                     case .error:         newHeight = 316
                     case .disambiguate:  newHeight = 356
