@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var memoryWindowDays = AppGroupService.shared.memoryWindowDays
     @State private var memoryDepth = AppGroupService.shared.memoryDepth
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
+    @State private var activeToneName = AppGroupService.shared.readSelectedTone().name
 
     private static let accent = Replr.accent
 
@@ -34,17 +35,11 @@ struct SettingsView: View {
                     .padding(.vertical, 6)
                 }
 
-                Section("AI Model") {
-                    Picker("Model", selection: $preferredModel) {
-                        Text("Claude (Anthropic)").tag("claude")
-                        Text("GPT-4o (OpenAI)").tag("gpt4o")
-                    }
-                    .pickerStyle(.inline)
-                }
-
                 Section {
-                    NavigationLink(destination: TonesView()) {
-                        Text("Tones")
+                    NavigationLink(destination: TonesView().onDisappear {
+                        activeToneName = AppGroupService.shared.readSelectedTone().name
+                    }) {
+                        LabeledContent("Tones", value: activeToneName)
                     }
                     Toggle("Keep replies between sessions", isOn: $persistReplies)
                         .onChange(of: persistReplies) { newValue in
@@ -54,6 +49,14 @@ struct SettingsView: View {
                     Text("Keyboard")
                 } footer: {
                     Text("When enabled, your last generated replies stay visible the next time you open the keyboard.")
+                }
+
+                Section("AI Model") {
+                    Picker("Model", selection: $preferredModel) {
+                        Text("Claude (Anthropic)").tag("claude")
+                        Text("GPT-4o (OpenAI)").tag("gpt4o")
+                    }
+                    .pickerStyle(.inline)
                 }
 
                 Section {
