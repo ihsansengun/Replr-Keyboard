@@ -123,6 +123,7 @@ struct HistoryView: View {
                 }
             }
             .navigationTitle("History")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if !vm.sessions.isEmpty {
                     Button(role: .destructive) { vm.clearAll() } label: {
