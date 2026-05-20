@@ -79,16 +79,11 @@ private struct IntentIcon: View {
 
 enum KeyboardState: Equatable {
     case idle
-    case collapsed
     case loading
     case replies([String])
-    case editReply(String)
     case error(String)
-    case editContact(String)                                // current name pre-filled
-    case disambiguate(name: String, candidates: [Contact]) // same-name contact picker
+    case disambiguate(name: String, candidates: [Contact])
 }
-
-enum KBMode { case alpha, numeric }
 
 enum KeyboardInputMode { case chat, email }
 
