@@ -105,7 +105,6 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        model.needsGlobeKey = needsInputModeSwitchKey
 
         // Resolve contact display name from App Group
         if let id = AppGroupService.shared.currentContactID,
@@ -129,6 +128,8 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        // Connection to host app is established by now — safe to read needsInputModeSwitchKey.
+        model.needsGlobeKey = needsInputModeSwitchKey
         // documentContextBeforeInput is unreliable until the proxy fully connects;
         // a short delay ensures we read the actual pre-existing draft text.
         Task { @MainActor [weak self] in
@@ -146,7 +147,10 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        model?.needsGlobeKey = needsInputModeSwitchKey
+        // Only update after the view is visible — avoids the pre-connection warning.
+        if viewIfLoaded?.window != nil {
+            model?.needsGlobeKey = needsInputModeSwitchKey
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
