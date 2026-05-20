@@ -75,9 +75,11 @@ final class KeyboardViewController: UIInputViewController {
 
         stateCancellable = model.$state
             .combineLatest(model.$isCaptureMode)
+            .combineLatest(model.$inputMode)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] state, isCaptureMode in
+            .sink { [weak self] combined, inputMode in
                 guard let self else { return }
+                let (state, isCaptureMode) = combined
                 if isCaptureMode {
                     self.setHeight(0, duration: 0.15)
                     return
@@ -89,7 +91,9 @@ final class KeyboardViewController: UIInputViewController {
                 case .error:        height = 200
                 case .disambiguate: height = 300
                 case .replies(let replies):
-                    height = max(200, min(340, 100 + CGFloat(replies.count) * 52))
+                    height = inputMode == .email
+                        ? 380
+                        : max(200, min(340, 100 + CGFloat(replies.count) * 52))
                 }
                 self.setHeight(height)
             }

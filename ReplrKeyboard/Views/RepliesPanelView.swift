@@ -11,13 +11,23 @@ struct RepliesPanelView: View {
                 contactChipRow(name)
                 KBColors.borderHair.frame(height: 0.5)
             }
-            ReplyListView(
-                replies: replies,
-                lastInsertedReply: model.lastInsertedReply,
-                onSend: { model.selectReply($0) },
-                onEdit: { model.editReply($0) },
-                onUndo: { model.onUndoInsert?() }
-            )
+            if model.inputMode == .email {
+                EmailReplyPagerView(
+                    replies: replies,
+                    lastInsertedReply: model.lastInsertedReply,
+                    onSend: { model.selectReply($0) },
+                    onEdit: { model.editReply($0) },
+                    onUndo: { model.onUndoInsert?() }
+                )
+            } else {
+                ReplyListView(
+                    replies: replies,
+                    lastInsertedReply: model.lastInsertedReply,
+                    onSend: { model.selectReply($0) },
+                    onEdit: { model.editReply($0) },
+                    onUndo: { model.onUndoInsert?() }
+                )
+            }
         }
         .background(KBColors.background)
     }
