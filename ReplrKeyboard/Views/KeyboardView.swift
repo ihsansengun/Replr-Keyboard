@@ -96,9 +96,6 @@ final class KeyboardModel: ObservableObject {
     @Published var selectedTone: Tone
     @Published var needsGlobeKey: Bool = false
     @Published var pendingContext: String = ""
-    @Published var inputText: String = ""
-    @Published var isShifted: Bool = false
-    @Published var kbMode: KBMode = .alpha
     @Published var currentReplies: [String] = []
     @Published var contactName: String? = nil
     @Published var lastInsertedReply: String? = nil
@@ -109,16 +106,11 @@ final class KeyboardModel: ObservableObject {
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
     var onSwitchKeyboard: (() -> Void)?
-    var onTypeChar: ((String) -> Void)?
-    var onDeleteChar: (() -> Void)?
-    var onSpaceChar: (() -> Void)?
-    var onReturnChar: (() -> Void)?
     var onUseAsContext: (() -> Void)?
-    var onConfirmContact: ((String) -> Void)?
-    var onDifferentPerson: ((String) -> Void)?
     var onSelectContact: ((Contact) -> Void)?
     var onCreateNewContact: ((String) -> Void)?
     var onUndoInsert: (() -> Void)?
+    var onEditReply: ((String) -> Void)?
     var retryTrigger: (() -> Void)?
     var readTextProxy: (() -> String?)?   // reads documentContextBeforeInput from VC
     var onDeleteTextProxy: (() -> Void)?  // deletes draft from text proxy after intent capture
@@ -129,77 +121,6 @@ final class KeyboardModel: ObservableObject {
     }
 
     // MARK: - Input
-
-    func type(_ char: String) {
-        let out = isShifted ? char.uppercased() : char
-        switch state {
-        case .editReply, .editContact: inputText += out
-        default: onTypeChar?(out)
-        }
-        if isShifted, kbMode == .alpha { isShifted = false }
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-    }
-
-    func backspace() {
-        switch state {
-        case .editReply, .editContact:
-            guard !inputText.isEmpty else { return }
-            inputText.removeLast()
-        default:
-            onDeleteChar?()
-        }
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-    }
-
-    func space() {
-        switch state {
-        case .editReply, .editContact: inputText += " "
-        default: onSpaceChar?()
-        }
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-    }
-
-    func toggleShift() { isShifted.toggle() }
-
-    func toggleMode() { kbMode = kbMode == .alpha ? .numeric : .alpha }
-
-    func confirmInput() {
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        switch state {
-        case .editReply:
-            if !inputText.isEmpty { onReplySelected?(inputText) }
-            withAnimation(.easeInOut(duration: 0.18)) { state = .idle }
-        case .editContact:
-            if !inputText.isEmpty { onConfirmContact?(inputText) }
-        default:
-            onReturnChar?()
-        }
-    }
-
-    func cancelInput() {
-        withAnimation(.easeInOut(duration: 0.18)) {
-            switch state {
-            case .editReply, .editContact:
-                if !currentReplies.isEmpty {
-                    state = .replies(currentReplies)
-                } else {
-                    state = .idle
-                }
-            default:
-                state = .idle
-            }
-        }
-    }
-
-    func enterEditReply(_ text: String) {
-        inputText = text; isShifted = false; kbMode = .alpha
-        withAnimation(.easeInOut(duration: 0.18)) { state = .editReply(text) }
-    }
-
-    func enterEditContact(_ name: String) {
-        inputText = name; isShifted = false; kbMode = .alpha
-        withAnimation(.easeInOut(duration: 0.18)) { state = .editContact(name) }
-    }
 
     func captureIntent() {
         // Reads whatever the user typed in the host app's text field and saves it as intent
@@ -271,18 +192,14 @@ final class KeyboardModel: ObservableObject {
         }
     }
 
-    func collapse() {
-        withAnimation(.easeInOut(duration: 0.2)) { state = .collapsed }
-    }
-
     func useAsContext() {
         onUseAsContext?()
         pendingContext = ""
-        collapse()
     }
 
     func selectTone(_ tone: Tone) { selectedTone = tone; onToneChanged?(tone) }
     func selectReply(_ text: String) { onReplySelected?(text) }
+    func editReply(_ text: String) { onEditReply?(text) }
     func regenerate() {
         AppGroupService.shared.clearCachedReplies()
         currentReplies = []
