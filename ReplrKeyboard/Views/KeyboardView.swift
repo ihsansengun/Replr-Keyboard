@@ -344,13 +344,14 @@ struct ToneRow: View {
                         )
                     }
                 }
-                .padding(.horizontal, 8)
+                .padding(.leading, 8)
+                .padding(.trailing, 32)
             }
             .mask(
                 LinearGradient(
                     stops: [
                         .init(color: .black, location: 0.0),
-                        .init(color: .black, location: 0.85),
+                        .init(color: .black, location: 0.72),
                         .init(color: .clear, location: 1.0),
                     ],
                     startPoint: .leading,
