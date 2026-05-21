@@ -317,7 +317,17 @@ private struct FullAccessStep: View {
         ) {
             LockIcon()
         } cta: {
-            GhostCTAButton(label: "Done →", action: onNext)
+            VStack(spacing: 10) {
+                GhostCTAButton(label: "Open Settings →") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                Button("Done →", action: onNext)
+                    .font(.system(size: 13))
+                    .foregroundColor(OBColors.taupe)
+                    .buttonStyle(.plain)
+            }
         }
     }
 }
