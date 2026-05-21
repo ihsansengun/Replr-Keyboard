@@ -68,36 +68,27 @@ struct IdlePanelView: View {
                     Text("Generate from clipboard")
                         .font(.system(size: 14, weight: .semibold))
                 }
-                .foregroundColor(KBColors.accentFg)
+                .foregroundColor(hasClipboardText ? KBColors.accentFg : KBColors.textDim)
                 .frame(maxWidth: .infinity)
                 .frame(height: 46)
-                .background(KBColors.accent)
+                .background(KBColors.accent.opacity(hasClipboardText ? 1.0 : 0.30))
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 16)
-            .opacity(hasClipboardText ? 1.0 : 0.45)
             .disabled(!hasClipboardText)
 
-            Text("Copy the email you're replying to, then tap above")
-                .font(.system(size: 11))
-                .foregroundColor(KBColors.textDim)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
-                .padding(.top, 10)
-
-            // Live clipboard status — uses hasStrings (no paste banner)
             HStack(spacing: 4) {
                 if hasClipboardText {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 11))
                         .foregroundColor(.green)
                 }
-                Text(hasClipboardText ? "Email text ready" : "Nothing copied yet")
+                Text(hasClipboardText ? "Email ready — tap to generate" : "Copy an email, then tap to generate")
                     .font(.system(size: 11))
                     .foregroundColor(hasClipboardText ? .green : KBColors.textDim)
             }
-            .padding(.top, 8)
+            .padding(.top, 10)
             .animation(.easeInOut(duration: 0.2), value: hasClipboardText)
 
             Spacer(minLength: 0)
