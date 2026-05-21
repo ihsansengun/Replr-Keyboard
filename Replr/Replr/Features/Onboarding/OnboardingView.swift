@@ -336,7 +336,9 @@ private struct PhotosPermissionStep: View {
             glowSize: 80,
             onBack: onBack
         ) {
-            PaperPlaneIcon()
+            Image(systemName: "photo.on.rectangle")
+                .font(.system(size: 36, weight: .light))
+                .foregroundColor(OBColors.accent)
         } cta: {
             if status == .authorized || status == .limited {
                 GhostCTAButton(label: "Continue →", action: onNext)
