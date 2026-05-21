@@ -16,7 +16,7 @@ private enum OBColors {
 // MARK: - Shared wrapper
 
 private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
-    let stepLabel: String   // "STEP 1 OF 5" or "READY"
+    let stepLabel: String
     let currentStep: Int    // 1-based; drives progress dot highlight
     let headline: String
     let bodyText: String    // Renamed from `body` to avoid conflict with View's computed `body` property
