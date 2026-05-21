@@ -25,7 +25,7 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
     @ViewBuilder var icon: () -> Icon
     @ViewBuilder var cta: () -> CTA
 
-    private let totalSteps = 5
+    private let totalSteps = 6
 
     var body: some View {
         VStack(spacing: 0) {
@@ -284,7 +284,7 @@ private struct AddKeyboardStep: View {
 
     var body: some View {
         DarkOnboardingScreen(
-            stepLabel: "STEP 1 OF 5",
+            stepLabel: "STEP 1 OF 6",
             currentStep: 1,
             headline: "Add the Replr\nkeyboard",
             bodyText: "Settings → General → Keyboards → Add New",
@@ -308,7 +308,7 @@ private struct FullAccessStep: View {
 
     var body: some View {
         DarkOnboardingScreen(
-            stepLabel: "STEP 2 OF 5",
+            stepLabel: "STEP 2 OF 6",
             currentStep: 2,
             headline: "Enable Full\nAccess",
             bodyText: "Lets the keyboard connect to AI.",
@@ -329,7 +329,7 @@ private struct PhotosPermissionStep: View {
 
     var body: some View {
         DarkOnboardingScreen(
-            stepLabel: "STEP 3 OF 5",
+            stepLabel: "STEP 3 OF 6",
             currentStep: 3,
             headline: "Allow photos",
             bodyText: "Replr reads your latest screenshot.\nNothing is stored.",
@@ -377,8 +377,8 @@ private struct BackTapSetupStep: View {
 
     var body: some View {
         DarkOnboardingScreen(
-            stepLabel: "STEP 4 OF 5",
-            currentStep: 4,
+            stepLabel: subStep == 0 ? "STEP 4 OF 6" : "STEP 5 OF 6",
+            currentStep: subStep == 0 ? 4 : 5,
             headline: "Set up\ndouble tap",
             bodyText: subStep == 0
                 ? "First, install the Replr shortcut with one tap."
@@ -428,7 +428,7 @@ private struct DoneStep: View {
     var body: some View {
         DarkOnboardingScreen(
             stepLabel: "READY",
-            currentStep: 5,
+            currentStep: 6,
             headline: "You're in.",
             bodyText: "Double-tap the back of your phone while\nin any chat. Switch to Replr. Pick a reply.",
             glowSize: 120,
