@@ -80,10 +80,10 @@ enum ReplrTheme {
         static let lg:  CGFloat = 16
         static let xl:  CGFloat = 20
         static let xxl: CGFloat = 24
-        static let s32: CGFloat = 32
-        static let s40: CGFloat = 40
-        static let s56: CGFloat = 56
-        static let s72: CGFloat = 72
+        static let s3xl: CGFloat = 32
+        static let s4xl: CGFloat = 40
+        static let s5xl: CGFloat = 56
+        static let s6xl: CGFloat = 72
 
         static let screenMarginApp:      CGFloat = 24
         static let screenMarginKeyboard: CGFloat = 16
@@ -108,47 +108,6 @@ enum ReplrTheme {
         static let expressive = Animation.spring(response: 0.34, dampingFraction: 0.78)
     }
 
-    // MARK: Elevation (shadow definitions)
-
-    enum Elevation {
-        struct Level {
-            let shadows: [Shadow]
-            let topHighlight: Bool
-        }
-        struct Shadow {
-            let color: SwiftUI.Color
-            let radius: CGFloat
-            let x: CGFloat
-            let y: CGFloat
-        }
-
-        static let level1Light = Level(
-            shadows: [
-                Shadow(color: .init(white: 0, opacity: 0.06), radius: 2, x: 0, y: 1),
-                Shadow(color: .init(white: 0, opacity: 0.06), radius: 10, x: 0, y: 6),
-            ],
-            topHighlight: false
-        )
-        static let level1Dark = Level(
-            shadows: [
-                Shadow(color: .init(white: 0, opacity: 0.55), radius: 10, x: 0, y: 6),
-            ],
-            topHighlight: true
-        )
-        static let primaryActionLight = Level(
-            shadows: [
-                Shadow(color: .init(white: 0, opacity: 0.18), radius: 13, x: 0, y: 10),
-            ],
-            topHighlight: false
-        )
-        static let primaryActionDark = Level(
-            shadows: [
-                Shadow(color: .init(white: 0, opacity: 0.6),  radius: 12, x: 0, y: 8),
-                Shadow(color: .init(white: 1, opacity: 0.10), radius: 12, x: 0, y: 0),
-            ],
-            topHighlight: false
-        )
-    }
 }
 
 // MARK: - ElevatedSurface modifier
@@ -160,46 +119,46 @@ struct ElevatedSurface: ViewModifier {
     let level: ElevationLevel
 
     func body(content: Content) -> some View {
-        content
-            .overlay(alignment: .top) {
-                if needsHighlight {
-                    RoundedRectangle(cornerRadius: 0)
-                        .fill(ReplrTheme.Color.highlight)
-                        .frame(height: 1)
+        switch level {
+        case .level1, .level2:
+            content
+                .overlay(alignment: .top) {
+                    if scheme == .dark {
+                        Rectangle()
+                            .fill(ReplrTheme.Color.highlight)
+                            .frame(height: 1)
+                    }
                 }
-            }
-            .shadow(color: shadow1Color, radius: shadow1Radius, x: 0, y: shadow1Y)
-            .shadow(color: shadow2Color, radius: shadow2Radius, x: 0, y: shadow2Y)
+                .shadow(
+                    color: scheme == .dark
+                        ? Color(white: 0, opacity: 0.55)
+                        : Color(white: 0, opacity: 0.06),
+                    radius: scheme == .dark ? 10 : 2, x: 0,
+                    y: scheme == .dark ? 6 : 1
+                )
+                .shadow(
+                    color: scheme == .dark
+                        ? .clear
+                        : Color(white: 0, opacity: 0.06),
+                    radius: 10, x: 0, y: 6
+                )
+        case .primaryAction:
+            content
+                .shadow(
+                    color: scheme == .dark
+                        ? Color(white: 0, opacity: 0.60)
+                        : Color(white: 0, opacity: 0.18),
+                    radius: 12, x: 0,
+                    y: scheme == .dark ? 8 : 10
+                )
+                .shadow(
+                    color: scheme == .dark
+                        ? Color(white: 1, opacity: 0.10)
+                        : .clear,
+                    radius: 12, x: 0, y: 0
+                )
+        }
     }
-
-    private var isDark: Bool { scheme == .dark }
-
-    private var needsHighlight: Bool {
-        isDark && (level == .level1 || level == .level2)
-    }
-
-    private var shadow1Color:  Color  { isDark ? darkS1c  : lightS1c  }
-    private var shadow1Radius: CGFloat { isDark ? darkS1r  : lightS1r  }
-    private var shadow1Y:      CGFloat { isDark ? darkS1y  : lightS1y  }
-    private var shadow2Color:  Color  { isDark ? darkS2c  : lightS2c  }
-    private var shadow2Radius: CGFloat { isDark ? darkS2r  : lightS2r  }
-    private var shadow2Y:      CGFloat { isDark ? darkS2y  : lightS2y  }
-
-    // light
-    private var lightS1c: Color  { level == .primaryAction ? Color(white: 0, opacity: 0.18) : Color(white: 0, opacity: 0.06) }
-    private var lightS1r: CGFloat { level == .primaryAction ? 13 : 2 }
-    private var lightS1y: CGFloat { level == .primaryAction ? 10 : 1 }
-    private var lightS2c: Color  { level == .primaryAction ? .clear : Color(white: 0, opacity: 0.06) }
-    private var lightS2r: CGFloat { 10 }
-    private var lightS2y: CGFloat { 6 }
-
-    // dark
-    private var darkS1c: Color  { level == .primaryAction ? Color(white: 1, opacity: 0.10) : Color(white: 0, opacity: 0.55) }
-    private var darkS1r: CGFloat { 12 }
-    private var darkS1y: CGFloat { level == .primaryAction ? 0 : 6 }
-    private var darkS2c: Color  { level == .primaryAction ? Color(white: 0, opacity: 0.60) : .clear }
-    private var darkS2r: CGFloat { 12 }
-    private var darkS2y: CGFloat { 8 }
 }
 
 extension View {
