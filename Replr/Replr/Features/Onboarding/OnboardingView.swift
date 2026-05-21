@@ -295,7 +295,7 @@ private struct AddKeyboardStep: View {
         ) {
             KeyboardIcon()
         } cta: {
-            GhostCTAButton(label: "Open Settings →") {
+            SolidCTAButton(label: "Open Settings →") {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }
@@ -321,7 +321,7 @@ private struct FullAccessStep: View {
             LockIcon()
         } cta: {
             VStack(spacing: 10) {
-                GhostCTAButton(label: "Open Settings →") {
+                SolidCTAButton(label: "Open Settings →") {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
                     }
@@ -354,10 +354,10 @@ private struct PhotosPermissionStep: View {
                 .foregroundColor(OBColors.accent)
         } cta: {
             if status == .authorized || status == .limited {
-                GhostCTAButton(label: "Continue →", action: onNext)
+                SolidCTAButton(label: "Continue →", action: onNext)
             } else if status == .denied || status == .restricted {
                 VStack(spacing: 10) {
-                    GhostCTAButton(label: "Open Settings →") {
+                    SolidCTAButton(label: "Open Settings →") {
                         if let url = URL(string: UIApplication.openSettingsURLString) {
                             UIApplication.shared.open(url)
                         }
@@ -368,7 +368,7 @@ private struct PhotosPermissionStep: View {
                         .buttonStyle(.plain)
                 }
             } else {
-                GhostCTAButton(label: "Allow Photos →") {
+                SolidCTAButton(label: "Allow Photos →") {
                     PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
                         DispatchQueue.main.async {
                             status = newStatus
@@ -403,7 +403,7 @@ private struct BackTapSetupStep: View {
         } cta: {
             if subStep == 0 {
                 VStack(spacing: 10) {
-                    GhostCTAButton(label: "Add Shortcut →") {
+                    SolidCTAButton(label: "Add Shortcut →") {
                         if let url = URL(string: "https://www.icloud.com/shortcuts/4239b04c8d0d469b905ce6118c5ce706") {
                             UIApplication.shared.open(url)
                         }
@@ -415,7 +415,7 @@ private struct BackTapSetupStep: View {
                 }
             } else {
                 VStack(spacing: 10) {
-                    GhostCTAButton(label: "Open Settings →") {
+                    SolidCTAButton(label: "Open Settings →") {
                         if let url = URL(string: "prefs:root=ACCESSIBILITY") {
                             UIApplication.shared.open(url, options: [:]) { success in
                                 if !success, let fallback = URL(string: UIApplication.openSettingsURLString) {
