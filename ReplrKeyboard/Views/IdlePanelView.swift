@@ -52,6 +52,7 @@ struct IdlePanelView: View {
 
             Spacer(minLength: 0)
         }
+        .frame(maxHeight: .infinity)
     }
 
     // MARK: - Email idle
@@ -101,6 +102,7 @@ struct IdlePanelView: View {
 
             Spacer(minLength: 0)
         }
+        .frame(maxHeight: .infinity)
         .onAppear {
             hasClipboardText = UIPasteboard.general.hasStrings
         }

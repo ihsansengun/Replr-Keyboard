@@ -30,37 +30,38 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                    if let onBack {
-                        Button(action: onBack) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(OBColors.taupe)
-                        }
-                        .buttonStyle(.plain)
-                        .frame(width: 28)
-                    } else {
-                        Color.clear.frame(width: 28)
+                if let onBack {
+                    Button(action: onBack) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(OBColors.taupe)
                     }
-
-                    Spacer()
-
-                    Text(stepLabel)
-                        .font(.system(size: 10, weight: .medium))
-                        .tracking(1)
-                        .foregroundColor(
-                            currentStep == totalSteps
-                                ? OBColors.accent.opacity(0.56)
-                                : OBColors.taupe
-                        )
-
-                    Spacer()
+                    .buttonStyle(.plain)
+                    .frame(width: 28)
+                } else {
                     Color.clear.frame(width: 28)
                 }
-                .padding(.top, 72)
-                .padding(.horizontal, 24)
 
-                Spacer().frame(maxHeight: 80)
+                Spacer()
 
+                Text(stepLabel)
+                    .font(.system(size: 10, weight: .medium))
+                    .tracking(1)
+                    .foregroundColor(
+                        currentStep == totalSteps
+                            ? OBColors.accent.opacity(0.56)
+                            : OBColors.taupe
+                    )
+
+                Spacer()
+                Color.clear.frame(width: 28)
+            }
+            .padding(.top, 72)
+            .padding(.horizontal, 24)
+
+            Spacer()
+
+            VStack(spacing: 0) {
                 ZStack {
                     RadialGradient(
                         colors: [OBColors.accent.opacity(currentStep == totalSteps ? 0.22 : 0.16), .clear],
@@ -89,21 +90,23 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
                     .padding(.top, 12)
                     .padding(.horizontal, 40)
 
-                Spacer()
-
-                VStack(spacing: 16) {
+                VStack(spacing: 0) {
                     cta()
-
-                    HStack(spacing: 7) {
-                        ForEach(1...totalSteps, id: \.self) { i in
-                            Circle()
-                                .fill(i == currentStep ? OBColors.accent : OBColors.dotOff)
-                                .frame(width: 6, height: 6)
-                        }
-                    }
                 }
                 .padding(.horizontal, 32)
-                .padding(.bottom, 56)
+                .padding(.top, 32)
+            }
+
+            Spacer()
+
+            HStack(spacing: 7) {
+                ForEach(1...totalSteps, id: \.self) { i in
+                    Circle()
+                        .fill(i == currentStep ? OBColors.accent : OBColors.dotOff)
+                        .frame(width: 6, height: 6)
+                }
+            }
+            .padding(.bottom, 56)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
