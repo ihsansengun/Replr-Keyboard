@@ -43,7 +43,7 @@ struct IdlePanelView: View {
             .buttonStyle(.plain)
             .padding(.horizontal, 16)
 
-            Text("Minimises the keyboard so you can triple-tap to screenshot")
+            Text("Minimises the keyboard so you can double-tap to screenshot")
                 .font(.system(size: 11))
                 .foregroundColor(KBColors.textDim)
                 .multilineTextAlignment(.center)

@@ -195,7 +195,7 @@ struct CollapsedStripView: View {
                     }
 
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Triple-tap the back of your phone")
+                    Text("Double-tap the back of your phone")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(KBColors.textPrimary)
                     Text("to capture this chat")
