@@ -12,11 +12,11 @@ struct ReplyCarouselView: View {
             ForEach(Array(replies.enumerated()), id: \.offset) { idx, reply in
                 ScrollView(.vertical, showsIndicators: false) {
                     Text(reply)
-                        .font(.system(size: 15))
+                        .font(ReplrTheme.Font.callout)
                         .foregroundColor(
                             reply == lastInsertedReply
-                                ? KBColors.textDim
-                                : KBColors.textPrimary
+                                ? ReplrTheme.Color.textSecondary
+                                : ReplrTheme.Color.textPrimary
                         )
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16)

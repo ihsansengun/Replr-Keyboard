@@ -14,7 +14,7 @@ struct IdlePanelView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(KBColors.background)
+        .background(ReplrTheme.Color.bg)
     }
 
     // MARK: - Chat idle
@@ -34,18 +34,18 @@ struct IdlePanelView: View {
                     Text("Capture this chat")
                         .font(.system(size: 14, weight: .semibold))
                 }
-                .foregroundColor(KBColors.accentFg)
+                .foregroundColor(ReplrTheme.Color.onAccent)
                 .frame(maxWidth: .infinity)
                 .frame(height: 46)
-                .background(KBColors.accent)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .background(ReplrTheme.Color.accent)
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 16)
 
             Text("Minimises the keyboard so you can double-tap to screenshot")
-                .font(.system(size: 11))
-                .foregroundColor(KBColors.textDim)
+                .font(ReplrTheme.Font.caption)
+                .foregroundColor(ReplrTheme.Color.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
                 .padding(.top, 10)
@@ -68,11 +68,11 @@ struct IdlePanelView: View {
                     Text("Generate from clipboard")
                         .font(.system(size: 14, weight: .semibold))
                 }
-                .foregroundColor(hasClipboardText ? KBColors.accentFg : KBColors.textDim)
+                .foregroundColor(hasClipboardText ? ReplrTheme.Color.onAccent : ReplrTheme.Color.textSecondary)
                 .frame(maxWidth: .infinity)
                 .frame(height: 46)
-                .background(KBColors.accent.opacity(hasClipboardText ? 1.0 : 0.30))
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .background(ReplrTheme.Color.accent.opacity(hasClipboardText ? 1.0 : 0.30))
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 16)
@@ -85,8 +85,8 @@ struct IdlePanelView: View {
                         .foregroundColor(.green)
                 }
                 Text(hasClipboardText ? "Email ready — tap to generate" : "Copy an email, then tap to generate")
-                    .font(.system(size: 11))
-                    .foregroundColor(hasClipboardText ? .green : KBColors.textDim)
+                    .font(ReplrTheme.Font.caption)
+                    .foregroundColor(hasClipboardText ? .green : ReplrTheme.Color.textSecondary)
             }
             .padding(.top, 10)
             .animation(.easeInOut(duration: 0.2), value: hasClipboardText)

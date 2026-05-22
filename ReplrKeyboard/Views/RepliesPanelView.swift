@@ -15,13 +15,13 @@ struct RepliesPanelView: View {
             // Mode segmented control only — tone moves to bottom
             ModeSegmentedControl(model: model)
                 .padding(.bottom, 4)
-                .background(KBColors.deep)
-                .overlay(alignment: .bottom) { KBColors.borderHair.frame(height: 0.5) }
+                .background(ReplrTheme.Color.bg)
+                .overlay(alignment: .bottom) { ReplrTheme.Color.border.frame(height: 0.5) }
 
             // Contact header: name + rename + N of M
             if let name = model.contactName {
                 contactHeader(name)
-                KBColors.borderHair.frame(height: 0.5)
+                ReplrTheme.Color.border.frame(height: 0.5)
             }
 
             // Reply carousel
@@ -35,19 +35,19 @@ struct RepliesPanelView: View {
             pageDots
                 .padding(.vertical, 6)
 
-            KBColors.borderHair.frame(height: 0.5)
+            ReplrTheme.Color.border.frame(height: 0.5)
 
             // Action row: wide Insert primary + Edit secondary (or undo when sent)
             actionRow
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
 
-            KBColors.borderHair.frame(height: 0.5)
+            ReplrTheme.Color.border.frame(height: 0.5)
 
             // Tone strip at bottom + regenerate button
             toneRow
         }
-        .background(KBColors.background)
+        .background(ReplrTheme.Color.bg)
     }
 
     // MARK: - Contact header
@@ -65,12 +65,12 @@ struct RepliesPanelView: View {
                 } label: {
                     Image(systemName: "pencil")
                         .font(.system(size: 10))
-                        .foregroundColor(KBColors.textDim)
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
                         .frame(width: 20, height: 20)
                 }
                 .buttonStyle(.plain)
             }
-            .foregroundColor(KBColors.textPrimary)
+            .foregroundColor(ReplrTheme.Color.textPrimary)
             .padding(.leading, 14)
 
             Spacer()
@@ -78,7 +78,7 @@ struct RepliesPanelView: View {
             if replies.count > 1 {
                 Text("\(currentPage + 1) of \(replies.count)")
                     .font(.system(size: 11))
-                    .foregroundColor(KBColors.textDim)
+                    .foregroundColor(ReplrTheme.Color.textSecondary)
                     .padding(.trailing, 14)
             }
         }
@@ -91,7 +91,7 @@ struct RepliesPanelView: View {
         HStack(spacing: 5) {
             ForEach(0..<replies.count, id: \.self) { i in
                 Circle()
-                    .fill(i == currentPage ? KBColors.accent : KBColors.textDim.opacity(0.35))
+                    .fill(i == currentPage ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary.opacity(0.35))
                     .frame(width: 5, height: 5)
                     .animation(.easeInOut(duration: 0.15), value: currentPage)
             }
@@ -107,7 +107,7 @@ struct RepliesPanelView: View {
             HStack(spacing: 8) {
                 Text(sentReply)
                     .font(.system(size: 12))
-                    .foregroundColor(KBColors.textDim)
+                    .foregroundColor(ReplrTheme.Color.textSecondary)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -118,14 +118,14 @@ struct RepliesPanelView: View {
                         Text("Undo")
                             .font(.system(size: 12, weight: .medium))
                     }
-                    .foregroundColor(KBColors.accent)
+                    .foregroundColor(ReplrTheme.Color.accent)
                     .padding(.horizontal, 14)
                     .frame(height: 38)
-                    .background(KBColors.undoBtnBg)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .background(ReplrTheme.Color.accentSubtle)
+                    .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(KBColors.accent, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                            .stroke(ReplrTheme.Color.accent, lineWidth: 1)
                     )
                 }
                 .buttonStyle(.plain)
@@ -141,24 +141,24 @@ struct RepliesPanelView: View {
                         Text("Insert reply")
                             .font(.system(size: 14, weight: .semibold))
                     }
-                    .foregroundColor(KBColors.accentFg)
+                    .foregroundColor(ReplrTheme.Color.onAccent)
                     .frame(maxWidth: .infinity)
                     .frame(height: 42)
-                    .background(KBColors.accent)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .background(ReplrTheme.Color.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Insert reply")
 
                 Button("Edit") { model.editReply(currentReply) }
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(KBColors.textPrimary)
+                    .foregroundColor(ReplrTheme.Color.textPrimary)
                     .frame(width: 56, height: 42)
-                    .background(KBColors.raised)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .background(ReplrTheme.Color.surfaceRaised)
+                    .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(KBColors.borderHair, lineWidth: 0.5)
+                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                            .stroke(ReplrTheme.Color.border, lineWidth: 0.5)
                     )
                     .buttonStyle(.plain)
             }
@@ -174,8 +174,8 @@ struct RepliesPanelView: View {
                     ForEach(
                         model.tones.filter { model.inputMode == .chat || $0.name != "Dating" }
                     ) { tone in
-                        TonePill(
-                            name: tone.name,
+                        Chip(
+                            label: tone.name,
                             isSelected: tone.name == model.selectedTone.name,
                             action: {
                                 model.selectTone(tone)
@@ -202,29 +202,29 @@ struct RepliesPanelView: View {
                 )
             )
 
-            KBColors.borderDim.frame(width: 0.5, height: 16)
+            ReplrTheme.Color.borderStrong.frame(width: 0.5, height: 16)
 
             Button { model.regenerate() } label: {
                 Image(systemName: "arrow.counterclockwise")
                     .font(.system(size: 13))
-                    .foregroundColor(KBColors.textDim)
+                    .foregroundColor(ReplrTheme.Color.textSecondary)
                     .frame(width: 40, height: 38)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("New replies")
 
             if model.needsGlobeKey {
-                KBColors.borderDim.frame(width: 0.5, height: 16)
+                ReplrTheme.Color.borderStrong.frame(width: 0.5, height: 16)
                 Button { model.onSwitchKeyboard?() } label: {
                     Image(systemName: "globe")
                         .font(.system(size: 14))
-                        .foregroundColor(KBColors.textDim)
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
                         .frame(width: 36, height: 38)
                 }
                 .buttonStyle(.plain)
             }
         }
         .frame(height: 38)
-        .overlay(alignment: .top) { KBColors.borderHair.frame(height: 0.5) }
+        .overlay(alignment: .top) { ReplrTheme.Color.border.frame(height: 0.5) }
     }
 }

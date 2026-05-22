@@ -19,15 +19,15 @@ struct LoadingPanelView: View {
                 ProgressView()
                     .progressViewStyle(.circular)
                     .scaleEffect(0.5)
-                    .tint(KBColors.textDim)
+                    .tint(ReplrTheme.Color.textSecondary)
                 Text("Generating replies…")
-                    .font(.system(size: 11))
-                    .foregroundColor(KBColors.textDim)
+                    .font(ReplrTheme.Font.caption)
+                    .foregroundColor(ReplrTheme.Color.textSecondary)
             }
             .padding(.bottom, 14)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(KBColors.background)
+        .background(ReplrTheme.Color.bg)
     }
 
     private var skeletonCard: some View {
@@ -41,11 +41,11 @@ struct LoadingPanelView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(KBColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(ReplrTheme.Color.surface)
+        .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(KBColors.borderHair, lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                .stroke(ReplrTheme.Color.border, lineWidth: 0.5)
         )
     }
 }

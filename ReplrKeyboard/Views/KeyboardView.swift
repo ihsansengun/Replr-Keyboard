@@ -12,7 +12,7 @@ enum KeyboardState: Equatable {
     case disambiguate(name: String, candidates: [Contact])
 }
 
-enum KeyboardInputMode: Equatable { case chat, email }
+enum KeyboardInputMode: Equatable, Hashable { case chat, email }
 
 // MARK: - Model
 
@@ -154,7 +154,7 @@ struct KeyboardRootView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: model.isCollapsed)
         .animation(.easeInOut(duration: 0.2), value: stateTag)
-        .background(KBColors.background)
+        .background(ReplrTheme.Color.bg)
         .ignoresSafeArea()
     }
 
@@ -177,15 +177,15 @@ struct CollapsedStripView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Amber left edge
-            KBColors.accent
+            // Accent left edge
+            ReplrTheme.Color.accent
                 .frame(width: 3)
 
             HStack(spacing: 10) {
                 // Animated phone glyph
                 Image(systemName: "iphone.rear.camera")
                     .font(.system(size: 16, weight: .light))
-                    .foregroundColor(KBColors.accent)
+                    .foregroundColor(ReplrTheme.Color.accent)
                     .scaleEffect(phoneScale)
                     .onAppear {
                         withAnimation(
@@ -197,10 +197,10 @@ struct CollapsedStripView: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Double-tap the back of your phone")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(KBColors.textPrimary)
+                        .foregroundColor(ReplrTheme.Color.textPrimary)
                     Text("to capture this chat")
                         .font(.system(size: 11))
-                        .foregroundColor(KBColors.textDim)
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
                 }
 
                 Spacer()
@@ -213,7 +213,7 @@ struct CollapsedStripView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(KBColors.textDim)
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
                         .frame(width: 36, height: 44)
                 }
                 .buttonStyle(.plain)
@@ -221,59 +221,8 @@ struct CollapsedStripView: View {
             .padding(.leading, 12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(KBColors.surface)
+        .background(ReplrTheme.Color.surface)
     }
-}
-
-// MARK: - Tone Pill
-
-struct TonePill: View {
-    let name: String; let isSelected: Bool; let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(name)
-                .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
-                .foregroundColor(isSelected ? KBColors.background : KBColors.textDim)
-                .padding(.horizontal, 9).padding(.vertical, 5)
-                .background(isSelected ? KBColors.accent : KBColors.surface)
-                .clipShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .animation(.spring(response: 0.25, dampingFraction: 0.75), value: isSelected)
-    }
-}
-
-// MARK: - Keyboard Colors
-
-struct KBColors {
-    // MARK: - Design tokens
-
-    // Accent — brighter amber
-    static let accent        = Color(red: 0.949, green: 0.663, blue: 0.235) // #F2A93C
-    static let accentFg      = Color(red: 0.227, green: 0.141, blue: 0.004) // #3A2401
-    static let accentSubtle  = Color(red: 0.949, green: 0.663, blue: 0.235, opacity: 0.50)
-    static let accentBg      = Color(red: 0.949, green: 0.663, blue: 0.235, opacity: 0.12)
-    static let accentBgBorder = Color(red: 0.949, green: 0.663, blue: 0.235, opacity: 0.38)
-    static let accentShadow  = Color(red: 0.478, green: 0.353, blue: 0.000) // #7A5A00
-
-    // Shell backgrounds — neutral dark, no warm tint
-    static let background    = Color(red: 0.059, green: 0.059, blue: 0.071) // #0F0F12
-    static let deep          = Color(red: 0.082, green: 0.082, blue: 0.098) // #151519
-    static let surface       = Color(red: 0.106, green: 0.106, blue: 0.125) // #1B1B20
-    static let raised        = Color(red: 0.149, green: 0.149, blue: 0.173) // #26262C
-
-    // Borders + text
-    static let borderHair    = Color(red: 0.180, green: 0.180, blue: 0.212) // #2E2E36
-    static let borderDim     = Color(red: 0.250, green: 0.250, blue: 0.290)
-    static let textPrimary   = Color(red: 0.929, green: 0.914, blue: 0.890) // #EDE9E3
-    static let textDim       = Color(red: 0.604, green: 0.588, blue: 0.557) // #9A968E
-    static let textGhost     = Color(red: 0.430, green: 0.420, blue: 0.385)
-    static let segmentedBg   = Color(red: 0.106, green: 0.106, blue: 0.125) // same as surface
-    static let sentCard      = Color(red: 0.082, green: 0.082, blue: 0.110) // #15151C
-    static let undoBtnBg     = Color(red: 0.149, green: 0.090, blue: 0.000) // #261700
-    static let skeletonHighlight = Color(red: 0.200, green: 0.200, blue: 0.235) // #33333C
-    static let surfaceActive = Color(red: 0.180, green: 0.180, blue: 0.212)
 }
 
 // MARK: - Mode Segmented Control
@@ -287,7 +236,7 @@ struct ModeSegmentedControl: View {
             segmentBtn(mode: .email, iconName: "envelope.fill", label: "Email")
         }
         .padding(3)
-        .background(KBColors.segmentedBg)
+        .background(ReplrTheme.Color.surfaceSunken)
         .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
         .padding(.horizontal, 7)
         .padding(.top, 2)
@@ -313,12 +262,12 @@ struct ModeSegmentedControl: View {
                 Text(label)
                     .font(.system(size: 11, weight: .semibold))
             }
-            .foregroundColor(isActive ? KBColors.textPrimary : KBColors.textDim)
+            .foregroundColor(isActive ? ReplrTheme.Color.textPrimary : ReplrTheme.Color.textSecondary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 5)
             .background(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(isActive ? KBColors.raised : Color.clear)
+                    .fill(isActive ? ReplrTheme.Color.surfaceRaised : Color.clear)
             )
         }
         .buttonStyle(.plain)
@@ -337,8 +286,8 @@ struct ToneRow: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 2) {
                     ForEach(model.tones.filter { model.inputMode == .chat || $0.name != "Dating" }) { tone in
-                        TonePill(
-                            name: tone.name,
+                        Chip(
+                            label: tone.name,
                             isSelected: tone.name == model.selectedTone.name,
                             action: { model.selectTone(tone) }
                         )
@@ -360,18 +309,18 @@ struct ToneRow: View {
             )
 
             if model.needsGlobeKey {
-                KBColors.borderDim.frame(width: 0.5, height: 16)
+                ReplrTheme.Color.borderStrong.frame(width: 0.5, height: 16)
                 Button { model.onSwitchKeyboard?() } label: {
                     Image(systemName: "globe")
                         .font(.system(size: 14))
-                        .foregroundColor(KBColors.textDim)
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
                         .frame(width: 36, height: 30)
                 }
                 .buttonStyle(.plain)
             }
         }
         .frame(height: 38)
-        .overlay(alignment: .top) { KBColors.borderHair.frame(height: 0.5) }
+        .overlay(alignment: .top) { ReplrTheme.Color.border.frame(height: 0.5) }
         .opacity(isDimmed ? 0.35 : 1.0)
     }
 }
@@ -393,8 +342,8 @@ struct KeyboardHeader: View {
                 ToneRow(model: model, isDimmed: isToneDimmed)
             }
         }
-        .background(KBColors.deep)
-        .overlay(alignment: .bottom) { KBColors.borderHair.frame(height: 0.5) }
+        .background(ReplrTheme.Color.bg)
+        .overlay(alignment: .bottom) { ReplrTheme.Color.border.frame(height: 0.5) }
     }
 }
 
@@ -408,9 +357,9 @@ struct SkeletonLine: View {
             .fill(
                 LinearGradient(
                     stops: [
-                        .init(color: KBColors.surface, location: 0),
-                        .init(color: KBColors.skeletonHighlight, location: shimmer ? 0.5 : 0.15),
-                        .init(color: KBColors.surface, location: 1),
+                        .init(color: ReplrTheme.Color.surface, location: 0),
+                        .init(color: ReplrTheme.Color.surfaceRaised, location: shimmer ? 0.5 : 0.15),
+                        .init(color: ReplrTheme.Color.surface, location: 1),
                     ],
                     startPoint: .leading,
                     endPoint: .trailing

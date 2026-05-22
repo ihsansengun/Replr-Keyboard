@@ -10,7 +10,7 @@ struct ErrorPanelView: View {
             errorContent
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(KBColors.background)
+        .background(ReplrTheme.Color.bg)
     }
 
     private var errorContent: some View {
@@ -19,16 +19,16 @@ struct ErrorPanelView: View {
 
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 22))
-                .foregroundColor(KBColors.accent.opacity(0.85))
+                .foregroundColor(ReplrTheme.Color.accent.opacity(0.85))
                 .padding(.bottom, 8)
 
             Text("Couldn't generate replies")
                 .font(.system(size: 13, weight: .medium))
-                .foregroundColor(KBColors.textPrimary)
+                .foregroundColor(ReplrTheme.Color.textPrimary)
 
             Text(message)
                 .font(.system(size: 11))
-                .foregroundColor(KBColors.textDim)
+                .foregroundColor(ReplrTheme.Color.textSecondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .padding(.horizontal, 24)
@@ -43,11 +43,11 @@ struct ErrorPanelView: View {
                     Text("Try again")
                         .font(.system(size: 14, weight: .semibold))
                 }
-                .foregroundColor(KBColors.accentFg)
+                .foregroundColor(ReplrTheme.Color.onAccent)
                 .frame(maxWidth: .infinity)
                 .frame(height: 42)
-                .background(KBColors.accent)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .background(ReplrTheme.Color.accent)
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 16)

@@ -17,7 +17,7 @@ struct DisambiguatePanelView: View {
                 onCreateNew: { model.onCreateNewContact?($0) }
             )
         }
-        .background(KBColors.background)
+        .background(ReplrTheme.Color.bg)
     }
 }
 
@@ -53,13 +53,13 @@ struct DisambiguateView: View {
         VStack(spacing: 0) {
             Text("Which \(name)?")
                 .font(.system(size: 13, weight: .medium))
-                .foregroundColor(KBColors.textPrimary)
+                .foregroundColor(ReplrTheme.Color.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(KBColors.deep)
+                .background(ReplrTheme.Color.bg)
 
-            KBColors.borderHair.frame(height: 0.5)
+            ReplrTheme.Color.border.frame(height: 0.5)
 
             ScrollView {
                 VStack(spacing: 0) {
@@ -70,12 +70,12 @@ struct DisambiguateView: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(contact.displayName)
                                         .font(.system(size: 13))
-                                        .foregroundColor(KBColors.textPrimary)
+                                        .foregroundColor(ReplrTheme.Color.textPrimary)
                                     if let summary = AppGroupService.shared
                                             .recentSummaries(forContactID: contact.id, limit: 1).first {
                                         Text(summary)
                                             .font(.system(size: 11))
-                                            .foregroundColor(KBColors.textDim)
+                                            .foregroundColor(ReplrTheme.Color.textSecondary)
                                             .lineLimit(1)
                                     }
                                 }
@@ -85,9 +85,9 @@ struct DisambiguateView: View {
                             .frame(minHeight: 52)
                         }
                         .buttonStyle(.plain)
-                        .background(KBColors.surface)
+                        .background(ReplrTheme.Color.surface)
                         .overlay(alignment: .bottom) {
-                            KBColors.borderHair.frame(height: 0.5)
+                            ReplrTheme.Color.border.frame(height: 0.5)
                         }
                     }
 
@@ -98,7 +98,7 @@ struct DisambiguateView: View {
                             Text("New contact named \(name)")
                                 .font(.system(size: 13))
                         }
-                        .foregroundColor(KBColors.accent)
+                        .foregroundColor(ReplrTheme.Color.accent)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 14)
                         .frame(height: 44)
@@ -107,7 +107,7 @@ struct DisambiguateView: View {
                 }
             }
         }
-        .background(KBColors.background)
+        .background(ReplrTheme.Color.bg)
     }
 
     @ViewBuilder
@@ -120,12 +120,12 @@ struct DisambiguateView: View {
                 .clipShape(Circle())
         } else {
             Circle()
-                .fill(KBColors.surface)
+                .fill(ReplrTheme.Color.surface)
                 .frame(width: 32, height: 32)
                 .overlay(
                     Image(systemName: "person")
                         .font(.system(size: 12))
-                        .foregroundColor(KBColors.textDim)
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
                 )
         }
     }
