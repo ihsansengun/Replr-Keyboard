@@ -89,8 +89,8 @@ final class KeyboardViewController: UIInputViewController {
                 if isCollapsed {
                     let defaults = UserDefaults(suiteName: Constants.appGroupID)
                     defaults?.synchronize()
-                    let coachmarkSeen = defaults?.bool(forKey: "keyboard.coachmarkSeen") ?? false
-                    self.setHeight(coachmarkSeen ? 64 : 116)
+                    let coachmarkSeen = defaults?.bool(forKey: Constants.coachmarkSeenKey) ?? false
+                    self.setHeight(coachmarkSeen ? 64 : 140)
                     return
                 }
                 let height: CGFloat

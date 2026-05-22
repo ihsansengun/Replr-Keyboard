@@ -23,6 +23,7 @@ enum Constants {
     static let memoryEnabledKey       = "memory_enabled"
     static let intentHintKey          = "intent_hint"
     static let switchKeyboardKey      = "switch_keyboard_requested"
+    static let coachmarkSeenKey       = "keyboard.coachmarkSeen"
 
     // File-based keys (broadcast/scroll capture only)
     static let screenshotFilename     = "screenshot.png"

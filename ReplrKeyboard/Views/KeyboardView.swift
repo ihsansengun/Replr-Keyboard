@@ -191,7 +191,7 @@ struct TapGlyph: View {
         .frame(width: 22, height: 28)
         .onAppear {
             guard !UIAccessibility.isReduceMotionEnabled else { return }
-            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+            withAnimation(ReplrTheme.Motion.pulse) {
                 pulse = true
             }
         }
@@ -236,7 +236,7 @@ struct CollapsedStripView: View {
     @ObservedObject var model: KeyboardModel
     @State private var showCoachmark: Bool = false
 
-    private let coachmarkKey = "keyboard.coachmarkSeen"
+    private let coachmarkKey = Constants.coachmarkSeenKey
 
     var body: some View {
         VStack(spacing: 0) {
