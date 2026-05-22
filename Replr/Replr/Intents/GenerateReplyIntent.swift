@@ -28,6 +28,8 @@ struct GenerateReplyIntent: AppIntent {
 
         NSLog("[Replr][Intent] Image loaded: %.0fx%.0f", image.size.width, image.size.height)
 
+        AppGroupService.shared.isGenerating = true
+
         let context = AppGroupService.shared.readPendingContext()
         let txID = UserDefaults(suiteName: Constants.appGroupID)?.string(forKey: Constants.transactionIDKey)
         NSLog("[Replr][Intent] Calling API: tone=%@, hasContext=%d", tone.rawValue, context != nil ? 1 : 0)
@@ -72,10 +74,12 @@ struct GenerateReplyIntent: AppIntent {
                 contactID: resolvedContactID,
                 contactName: resolvedContactName
             )
+            AppGroupService.shared.isGenerating = false
             AppGroupService.shared.appendCaptureSession(session)
             AppGroupService.shared.saveReplies(result.replies)
         } catch {
             NSLog("[Replr][Intent] API error: %@", error.localizedDescription)
+            AppGroupService.shared.isGenerating = false
             AppGroupService.shared.saveError(error.localizedDescription)
         }
 
