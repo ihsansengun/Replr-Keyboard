@@ -109,9 +109,9 @@ enum ReplrTheme {
         static let quick      = Animation.easeOut(duration: 0.15)
         static let standard   = Animation.easeInOut(duration: 0.22)
         static let expressive = Animation.spring(response: 0.34, dampingFraction: 0.78)
-        static let shimmer   = Animation.linear(duration: 1.4).repeatForever(autoreverses: false)
-        static let pulse     = Animation.easeInOut(duration: 1.2).repeatForever(autoreverses: true)
-        static let coachmark = Animation.easeOut(duration: 0.24)
+        static let shimmer    = Animation.linear(duration: 1.4).repeatForever(autoreverses: false)
+        static let pulse      = Animation.easeInOut(duration: 1.2).repeatForever(autoreverses: true)
+        static let coachmark  = Animation.easeOut(duration: 0.24)
     }
 
 }
