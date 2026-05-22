@@ -234,55 +234,82 @@ struct CoachmarkBalloon: View {
 
 struct CollapsedStripView: View {
     @ObservedObject var model: KeyboardModel
-    @State private var phoneScale: CGFloat = 1.0
+    @State private var showCoachmark: Bool = false
+
+    private let coachmarkKey = "keyboard.coachmarkSeen"
 
     var body: some View {
-        HStack(spacing: 0) {
-            // Accent left edge
-            ReplrTheme.Color.accent
-                .frame(width: 3)
+        VStack(spacing: 0) {
+            // Coachmark — first run only, sits above the capture card
+            if showCoachmark {
+                CoachmarkBalloon()
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .padding(.bottom, 6)
+                    .transition(.opacity.animation(ReplrTheme.Motion.coachmark))
+            }
 
+            // Capture card
             HStack(spacing: 10) {
-                // Animated phone glyph
-                Image(systemName: "iphone.rear.camera")
-                    .font(.system(size: 16, weight: .light))
-                    .foregroundColor(ReplrTheme.Color.accent)
-                    .scaleEffect(phoneScale)
-                    .onAppear {
-                        withAnimation(
-                            .easeInOut(duration: 0.55)
-                            .repeatForever(autoreverses: true)
-                        ) { phoneScale = 0.82 }
-                    }
+                TapGlyph()
 
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Double-tap the back of your phone")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 13.5, weight: .medium))
                         .foregroundColor(ReplrTheme.Color.textPrimary)
                     Text("to capture this chat")
-                        .font(.system(size: 11))
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
+                        .font(.system(size: 11.5))
+                        .foregroundColor(ReplrTheme.Color.textTertiary)
                 }
 
                 Spacer()
 
-                // Cancel — return to idle
                 Button {
-                    withAnimation(.easeInOut(duration: 0.18)) {
-                        model.isCollapsed = false
-                    }
+                    dismissCoachmark()
+                    withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = false }
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(ReplrTheme.Color.textSecondary)
-                        .frame(width: 36, height: 44)
+                        .frame(width: 36, height: 36)
                 }
                 .buttonStyle(.plain)
             }
+            .padding(.vertical, 10)
             .padding(.leading, 12)
+            .padding(.trailing, 4)
+            .background(ReplrTheme.Color.surface)
+            .overlay(alignment: .leading) {
+                ReplrTheme.Color.accent.frame(width: 3)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(ReplrTheme.Color.border, lineWidth: 1)
+            )
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(ReplrTheme.Color.surface)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(ReplrTheme.Color.bg)
+        .onAppear {
+            let seen = UserDefaults(suiteName: Constants.appGroupID)?
+                .bool(forKey: coachmarkKey) ?? false
+            if !seen {
+                withAnimation(ReplrTheme.Motion.coachmark) { showCoachmark = true }
+            }
+        }
+        .onDisappear {
+            dismissCoachmark()
+        }
+    }
+
+    private func dismissCoachmark() {
+        guard showCoachmark else { return }
+        withAnimation(ReplrTheme.Motion.coachmark) { showCoachmark = false }
+        UserDefaults(suiteName: Constants.appGroupID)?
+            .set(true, forKey: coachmarkKey)
     }
 }
 
