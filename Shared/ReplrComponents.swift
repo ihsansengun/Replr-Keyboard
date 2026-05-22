@@ -224,3 +224,21 @@ struct ScreenScaffold<Center: View>: View {
         .background(ReplrTheme.Color.bg.ignoresSafeArea())
     }
 }
+
+// MARK: - ReplrMark
+
+struct ReplrMark: View {
+    var size: CGFloat = 14
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Text("replr")
+                .font(.system(size: size, weight: .medium, design: .rounded))
+                .tracking(size * -0.04)
+                .foregroundColor(ReplrTheme.Color.textPrimary)
+            Circle()
+                .fill(ReplrTheme.Color.accent)
+                .frame(width: size * 0.29, height: size * 0.29)
+        }
+    }
+}
