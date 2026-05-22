@@ -328,10 +328,10 @@ private struct BackTapSetupStep: View {
         DarkOnboardingScreen(
             stepLabel: subStep == 0 ? "STEP 4 OF 6" : "STEP 5 OF 6",
             currentStep: subStep == 0 ? 4 : 5,
-            headline: "Set up\ndouble tap",
+            headline: "Set up\ntriple tap",
             bodyText: subStep == 0
                 ? "First, install the Replr shortcut with one tap."
-                : "① Accessibility → Touch → Back Tap\n② Double Tap → Replr",
+                : "① Accessibility → Touch → Back Tap\n② Triple Tap → Replr",
             glowSize: 80,
             onBack: onBack
         ) {
@@ -369,7 +369,7 @@ private struct DoneStep: View {
             stepLabel: "READY",
             currentStep: 6,
             headline: "You're in.",
-            bodyText: "Double-tap the back of your phone while\nin any chat. Switch to Replr. Pick a reply.",
+            bodyText: "Triple-tap the back of your phone while\nin any chat. Switch to Replr. Pick a reply.",
             glowSize: 120,
             onBack: onBack
         ) {
@@ -435,14 +435,14 @@ struct BackTapSetupFullView: View {
                     Text("Set up Back Tap")
                         .font(.title2.bold())
 
-                    Text("Double-tapping the back of your iPhone triggers Replr to capture a screenshot and generate replies.")
+                    Text("Triple-tapping the back of your iPhone triggers Replr to capture a screenshot and generate replies.")
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal)
 
                     VStack(alignment: .leading, spacing: 12) {
                         SetupRow(number: "1", text: "Settings → Accessibility → Touch → Back Tap")
-                        SetupRow(number: "2", text: "Tap \"Double Tap\"")
+                        SetupRow(number: "2", text: "Tap \"Triple Tap\"")
                         SetupRow(number: "3", text: "Scroll down and choose Shortcuts → Replr")
                     }
                     .padding()
@@ -450,7 +450,7 @@ struct BackTapSetupFullView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.horizontal)
 
-                    Label("First time you double-tap, iOS will ask to share the screenshot with Replr. Tap \"Allow Always\".", systemImage: "info.circle")
+                    Label("First time you triple-tap, iOS will ask to share the screenshot with Replr. Tap \"Allow Always\".", systemImage: "info.circle")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
