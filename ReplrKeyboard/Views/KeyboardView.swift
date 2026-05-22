@@ -294,8 +294,9 @@ struct CollapsedStripView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(ReplrTheme.Color.bg)
         .onAppear {
-            let seen = UserDefaults(suiteName: Constants.appGroupID)?
-                .bool(forKey: coachmarkKey) ?? false
+            let defaults = UserDefaults(suiteName: Constants.appGroupID)
+            defaults?.synchronize()
+            let seen = defaults?.bool(forKey: coachmarkKey) ?? false
             if !seen {
                 withAnimation(ReplrTheme.Motion.coachmark) { showCoachmark = true }
             }
@@ -308,8 +309,9 @@ struct CollapsedStripView: View {
     private func dismissCoachmark() {
         guard showCoachmark else { return }
         withAnimation(ReplrTheme.Motion.coachmark) { showCoachmark = false }
-        UserDefaults(suiteName: Constants.appGroupID)?
-            .set(true, forKey: coachmarkKey)
+        let defaults = UserDefaults(suiteName: Constants.appGroupID)
+        defaults?.set(true, forKey: coachmarkKey)
+        defaults?.synchronize()
     }
 }
 
