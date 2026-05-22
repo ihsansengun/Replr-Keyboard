@@ -169,6 +169,67 @@ struct KeyboardRootView: View {
     }
 }
 
+// MARK: - TapGlyph
+
+struct TapGlyph: View {
+    @State private var pulse = false
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 3, style: .continuous)
+                .stroke(ReplrTheme.Color.textSecondary, lineWidth: 1.2)
+                .frame(width: 18, height: 24)
+            Circle()
+                .fill(ReplrTheme.Color.accent)
+                .frame(width: 4, height: 4)
+                .opacity(pulse ? 1.0 : 0.35)
+            Circle()
+                .stroke(ReplrTheme.Color.accent, lineWidth: 0.8)
+                .frame(width: 9, height: 9)
+                .opacity(pulse ? 0.4 : 0.1)
+        }
+        .frame(width: 22, height: 28)
+        .onAppear {
+            guard !UIAccessibility.isReduceMotionEnabled else { return }
+            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                pulse = true
+            }
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+// MARK: - CoachmarkBalloon
+
+struct CoachmarkBalloon: View {
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 12, weight: .medium))
+                .padding(.top, 1)
+            Text("① Keyboard's minimised. ② Double-tap the back.")
+                .font(.system(size: 12.5, weight: .medium))
+                .lineLimit(2)
+        }
+        .foregroundColor(ReplrTheme.Color.onAccent)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                .fill(ReplrTheme.Color.accent)
+        )
+        .shadow(color: .black.opacity(0.5), radius: 12, x: 0, y: 8)
+        .overlay(alignment: .bottomLeading) {
+            Rectangle()
+                .fill(ReplrTheme.Color.accent)
+                .frame(width: 10, height: 10)
+                .rotationEffect(.degrees(45))
+                .offset(x: 20, y: 5)
+        }
+        .accessibilityLabel("Coachmark: Keyboard's minimised. Double-tap the back.")
+    }
+}
+
 // MARK: - Collapsed Strip
 
 struct CollapsedStripView: View {
