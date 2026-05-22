@@ -332,9 +332,16 @@ struct KeyboardHeader: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ModeSegmentedControl(model: model)
-                .opacity(isSegmentedDisabled ? 0.4 : 1.0)
-                .allowsHitTesting(!isSegmentedDisabled)
+            HStack(spacing: 0) {
+                ModeSegmentedControl(model: model)
+                    .opacity(isSegmentedDisabled ? 0.4 : 1.0)
+                    .allowsHitTesting(!isSegmentedDisabled)
+                Spacer()
+                ReplrMark(size: 14)
+                    .opacity(isSegmentedDisabled ? 0.4 : 1.0)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
             if !isToneHidden {
                 ToneRow(model: model, isDimmed: isToneDimmed)
             }
