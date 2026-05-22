@@ -237,7 +237,7 @@ struct ModeSegmentedControl: View {
         }
         .padding(3)
         .background(ReplrTheme.Color.surfaceSunken)
-        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm + 3, style: .continuous))
         .padding(.horizontal, 7)
         .padding(.top, 2)
         .padding(.bottom, 2)
@@ -266,7 +266,7 @@ struct ModeSegmentedControl: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 5)
             .background(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
                     .fill(isActive ? ReplrTheme.Color.surfaceRaised : Color.clear)
             )
         }

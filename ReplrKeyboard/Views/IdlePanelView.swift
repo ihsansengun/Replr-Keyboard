@@ -82,11 +82,11 @@ struct IdlePanelView: View {
                 if hasClipboardText {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 11))
-                        .foregroundColor(.green)
+                        .foregroundColor(ReplrTheme.Color.success)
                 }
                 Text(hasClipboardText ? "Email ready — tap to generate" : "Copy an email, then tap to generate")
                     .font(ReplrTheme.Font.caption)
-                    .foregroundColor(hasClipboardText ? .green : ReplrTheme.Color.textSecondary)
+                    .foregroundColor(hasClipboardText ? ReplrTheme.Color.success : ReplrTheme.Color.textSecondary)
             }
             .padding(.top, 10)
             .animation(.easeInOut(duration: 0.2), value: hasClipboardText)
