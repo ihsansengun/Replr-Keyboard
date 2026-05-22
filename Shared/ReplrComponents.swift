@@ -34,6 +34,8 @@ struct PrimaryButton: View {
 // MARK: - SecondaryButton
 
 struct SecondaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(ReplrTheme.Font.headline)
@@ -42,10 +44,10 @@ struct SecondaryButtonStyle: ButtonStyle {
             .frame(height: 54)
             .background(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .fill(ReplrTheme.Color.surfaceRaised)
+                    .fill(ReplrTheme.Color.surfaceRaised.opacity(isEnabled ? 1 : 0.45))
                     .overlay(
                         RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                            .strokeBorder(ReplrTheme.Color.borderStrong, lineWidth: 1)
+                            .strokeBorder(ReplrTheme.Color.borderStrong.opacity(isEnabled ? 1 : 0.45), lineWidth: 1)
                     )
             )
             .elevatedSurface(.level1)
@@ -69,12 +71,13 @@ struct SecondaryButton: View {
 struct TertiaryButton: View {
     let label: String
     let action: () -> Void
+    @Environment(\.isEnabled) private var isEnabled
 
     var body: some View {
         Button(action: action) {
             Text(label)
                 .font(ReplrTheme.Font.headline)
-                .foregroundColor(ReplrTheme.Color.textPrimary)
+                .foregroundColor(ReplrTheme.Color.textPrimary.opacity(isEnabled ? 1 : 0.45))
                 .frame(minHeight: 44)
         }
         .buttonStyle(.plain)
@@ -114,8 +117,9 @@ struct Card<Content: View>: View {
             .background(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.lg, style: .continuous)
                     .fill(ReplrTheme.Color.surfaceRaised)
-                    .elevatedSurface(.level1)
             )
+            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.lg, style: .continuous))
+            .elevatedSurface(.level1)
     }
 }
 
@@ -173,7 +177,6 @@ struct SegmentedControl<Option: Hashable>: View {
                         .background(
                             RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
                                 .fill(isActive ? ReplrTheme.Color.surfaceRaised : Color.clear)
-                                .opacity(isActive ? 1 : 0)
                         )
                 }
                 .buttonStyle(.plain)
