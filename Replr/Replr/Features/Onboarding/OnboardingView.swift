@@ -9,20 +9,32 @@ private struct OnboardingStep<Content: View, CTA: View>: View {
     let sectionLabel: String
     let headline: String
     let bodyText: String
+    var onBack: (() -> Void)? = nil
     @ViewBuilder var content: () -> Content
     @ViewBuilder var cta: () -> CTA
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header row: replr• mark + step counter
+            // Header row: back button + replr• mark + step counter
             HStack(alignment: .center) {
+                if let onBack {
+                    Button(action: onBack) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(ReplrTheme.Color.textSecondary)
+                            .frame(width: 36, height: 36)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Color.clear.frame(width: 36)
+                }
                 ReplrMark(size: 14)
                 Spacer()
                 Text(String(format: "%02d / %02d", step, totalSteps))
                     .font(ReplrTheme.Font.caption)
                     .foregroundColor(ReplrTheme.Color.textTertiary)
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 16)
             .padding(.top, 16)
             .padding(.bottom, 10)
 
@@ -248,7 +260,8 @@ private struct FullAccessStep: View {
             step: 2, totalSteps: 5,
             sectionLabel: "Permissions",
             headline: "Enable Full Access.",
-            bodyText: "Lets the keyboard connect to AI. Settings → General → Keyboards → Replr → Full Access."
+            bodyText: "Lets the keyboard connect to AI. Settings → General → Keyboards → Replr → Full Access.",
+            onBack: onBack
         ) {
             EmptyView()
         } cta: {
@@ -260,17 +273,6 @@ private struct FullAccessStep: View {
                 }
                 TertiaryButton(label: "Done →", action: onNext)
             }
-        }
-        .overlay(alignment: .topLeading) {
-            Button(action: onBack) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(ReplrTheme.Color.textSecondary)
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
-            .padding(.leading, 8)
-            .padding(.top, 8)
         }
     }
 }
@@ -285,7 +287,8 @@ private struct PhotosPermissionStep: View {
             step: 3, totalSteps: 5,
             sectionLabel: "Permissions",
             headline: "Allow Photos.",
-            bodyText: "Replr reads your latest screenshot. Nothing is stored or uploaded."
+            bodyText: "Replr reads your latest screenshot. Nothing is stored or uploaded.",
+            onBack: onBack
         ) {
             EmptyView()
         } cta: {
@@ -313,17 +316,6 @@ private struct PhotosPermissionStep: View {
                 }
             }
         }
-        .overlay(alignment: .topLeading) {
-            Button(action: onBack) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(ReplrTheme.Color.textSecondary)
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
-            .padding(.leading, 8)
-            .padding(.top, 8)
-        }
     }
 }
 
@@ -338,7 +330,8 @@ private struct InstallShortcutStep: View {
             step: 4, totalSteps: 5,
             sectionLabel: "Shortcut",
             headline: "Install the Shortcut.",
-            bodyText: "A small recipe lives in iOS Shortcuts. It takes the screenshot, hands it to Replr, opens the keyboard."
+            bodyText: "A small recipe lives in iOS Shortcuts. It takes the screenshot, hands it to Replr, opens the keyboard.",
+            onBack: onBack
         ) {
             // Shortcut preview card
             VStack(alignment: .leading, spacing: 0) {
@@ -412,17 +405,6 @@ private struct InstallShortcutStep: View {
                 TertiaryButton(label: "Inspect the recipe", action: onNext)
             }
         }
-        .overlay(alignment: .topLeading) {
-            Button(action: onBack) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(ReplrTheme.Color.textSecondary)
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
-            .padding(.leading, 8)
-            .padding(.top, 8)
-        }
     }
 }
 
@@ -435,7 +417,8 @@ private struct BackTapStep: View {
             step: 5, totalSteps: 5,
             sectionLabel: "Back Tap",
             headline: "Triple-tap = capture.",
-            bodyText: "iOS Back Tap turns a tap on the back of the phone into a Shortcut. Wire triple-tap to Replr Capture."
+            bodyText: "iOS Back Tap turns a tap on the back of the phone into a Shortcut. Wire triple-tap to Replr Capture.",
+            onBack: onBack
         ) {
             // Accessibility navigation card
             VStack(alignment: .leading, spacing: 0) {
@@ -498,17 +481,6 @@ private struct BackTapStep: View {
                 TertiaryButton(label: "Done →", action: onNext)
             }
         }
-        .overlay(alignment: .topLeading) {
-            Button(action: onBack) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(ReplrTheme.Color.textSecondary)
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
-            .padding(.leading, 8)
-            .padding(.top, 8)
-        }
     }
 }
 
@@ -520,21 +492,26 @@ struct OnboardingView: View {
     @AppStorage("onboardingStep") private var step = 0
 
     var body: some View {
-        switch step {
-        case 0:
-            WelcomeStep(onNext: { step = 1 }, onSignIn: onSignIn)
-        case 1:
-            AddKeyboardStep(onNext: { step = 2 })
-        case 2:
-            FullAccessStep(onNext: { step = 3 }, onBack: { step = 1 })
-        case 3:
-            PhotosPermissionStep(onNext: { step = 4 }, onBack: { step = 2 })
-        case 4:
-            InstallShortcutStep(onNext: { step = 5 }, onBack: { step = 3 })
-        case 5:
-            BackTapStep(onNext: { step = 0; onComplete() }, onBack: { step = 4 })
-        default:
-            WelcomeStep(onNext: { step = 1 }, onSignIn: onSignIn)
+        Group {
+            switch step {
+            case 0:
+                WelcomeStep(onNext: { step = 1 }, onSignIn: onSignIn)
+            case 1:
+                AddKeyboardStep(onNext: { step = 2 })
+            case 2:
+                FullAccessStep(onNext: { step = 3 }, onBack: { step = 1 })
+            case 3:
+                PhotosPermissionStep(onNext: { step = 4 }, onBack: { step = 2 })
+            case 4:
+                InstallShortcutStep(onNext: { step = 5 }, onBack: { step = 3 })
+            case 5:
+                BackTapStep(onNext: { step = 0; onComplete() }, onBack: { step = 4 })
+            default:
+                WelcomeStep(onNext: { step = 1 }, onSignIn: onSignIn)
+            }
+        }
+        .onAppear {
+            if step > 5 { step = 0 }
         }
     }
 }
