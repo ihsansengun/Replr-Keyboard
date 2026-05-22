@@ -2,25 +2,6 @@ import SwiftUI
 import PhotosUI
 import AppIntents
 
-// MARK: - Brand colors
-
-enum Replr {
-    static let accent      = Color(red: 0.831, green: 0.627, blue: 0.090) // #D4A017
-    static let accentFg    = Color(red: 0.071, green: 0.055, blue: 0.000) // #120E00
-    static let background  = Color(red: 0.090, green: 0.071, blue: 0.035) // #171209
-    static let deep        = Color(red: 0.118, green: 0.098, blue: 0.071) // #1E1912
-    static let surface     = Color(red: 0.141, green: 0.118, blue: 0.075) // #241E13
-    static let borderHair  = Color(red: 0.180, green: 0.145, blue: 0.094) // #2E2518
-    static let textPrimary = Color(red: 0.929, green: 0.898, blue: 0.816) // #EDE5D0
-    static let textDim     = Color(red: 0.420, green: 0.376, blue: 0.314) // #6B6050
-
-    static let uiAccent      = UIColor(red: 0.831, green: 0.627, blue: 0.090, alpha: 1)
-    static let uiDeep        = UIColor(red: 0.118, green: 0.098, blue: 0.071, alpha: 1)
-    static let uiBackground  = UIColor(red: 0.090, green: 0.071, blue: 0.035, alpha: 1)
-    static let uiTextPrimary = UIColor(red: 0.929, green: 0.898, blue: 0.816, alpha: 1)
-    static let uiTextDim     = UIColor(red: 0.420, green: 0.376, blue: 0.314, alpha: 1)
-    static let uiBorderHair  = UIColor(red: 0.180, green: 0.145, blue: 0.094, alpha: 1)
-}
 
 @main
 struct ReplrApp: App {
@@ -36,28 +17,11 @@ struct ReplrApp: App {
     }
 
     private func applyBrandAppearance() {
-        let nav = UINavigationBarAppearance()
-        nav.configureWithOpaqueBackground()
-        nav.backgroundColor = Replr.uiDeep
-        nav.titleTextAttributes = [.foregroundColor: Replr.uiTextPrimary]
-        nav.largeTitleTextAttributes = [.foregroundColor: Replr.uiTextPrimary]
-        nav.shadowColor = Replr.uiBorderHair
-        UINavigationBar.appearance().standardAppearance = nav
-        UINavigationBar.appearance().scrollEdgeAppearance = nav
-        UINavigationBar.appearance().compactAppearance = nav
-        UINavigationBar.appearance().tintColor = Replr.uiAccent
-
-        let tab = UITabBarAppearance()
-        tab.configureWithOpaqueBackground()
-        tab.backgroundColor = Replr.uiDeep
-        tab.stackedLayoutAppearance.selected.iconColor = Replr.uiAccent
-        tab.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: Replr.uiAccent]
-        tab.stackedLayoutAppearance.normal.iconColor = Replr.uiTextDim
-        tab.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: Replr.uiTextDim]
-        UITabBar.appearance().standardAppearance = tab
-        UITabBar.appearance().scrollEdgeAppearance = tab
-
-        UITableView.appearance().backgroundColor = Replr.uiBackground
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithDefaultBackground()
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
     }
 
     var body: some Scene {
@@ -96,8 +60,7 @@ struct ContentView: View {
             HistoryView()
                 .tabItem { Label("History", systemImage: "clock") }
         }
-        .tint(Replr.accent)
-        .preferredColorScheme(.dark)
+        .tint(ReplrTheme.Color.accent)
         .task {
             let txID = await SubscriptionManager.shared.currentTransactionID()
             UserDefaults(suiteName: Constants.appGroupID)?.set(txID, forKey: "transaction_id")
@@ -145,10 +108,10 @@ struct CaptureView: View {
                     ) {
                         Text("Choose Screenshot")
                             .font(.title3.bold())
-                            .foregroundColor(Replr.accentFg)
+                            .foregroundColor(ReplrTheme.Color.onAccent)
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
-                            .background(Replr.accent)
+                            .background(ReplrTheme.Color.accent)
                             .cornerRadius(14)
                     }
                     .padding(.horizontal, 32)
@@ -169,7 +132,7 @@ struct CaptureView: View {
                 case .done:
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 56))
-                        .foregroundColor(.green)
+                        .foregroundColor(ReplrTheme.Color.success)
                     Text("Done! Switch back to your keyboard.")
                         .font(.title3.bold())
                         .foregroundColor(.white)

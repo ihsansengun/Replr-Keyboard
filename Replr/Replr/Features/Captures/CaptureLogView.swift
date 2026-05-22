@@ -101,10 +101,10 @@ struct HistoryView: View {
                                         Image(systemName: "chevron.right")
                                             .font(.system(size: 11))
                                     }
-                                    .foregroundStyle(Replr.accent)
+                                    .foregroundStyle(ReplrTheme.Color.accent)
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 10)
-                                    .background(Replr.accent.opacity(0.08))
+                                    .background(ReplrTheme.Color.accentSubtle)
                                 }
                                 .buttonStyle(.plain)
                                 Divider()
@@ -165,8 +165,8 @@ struct HistoryView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 5)
             .frame(maxWidth: 160)
-            .background(isSelected ? Replr.accent : Color(.secondarySystemGroupedBackground))
-            .foregroundStyle(isSelected ? Replr.accentFg : Color.primary)
+            .background(isSelected ? ReplrTheme.Color.accent : Color(.secondarySystemGroupedBackground))
+            .foregroundStyle(isSelected ? ReplrTheme.Color.onAccent : Color.primary)
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -179,7 +179,6 @@ struct HistoryView: View {
 
 struct CaptureRowView: View {
     let session: CaptureSession
-    private static let accent = Replr.accent
 
     var body: some View {
         HStack(spacing: 14) {
@@ -209,7 +208,7 @@ struct CaptureRowView: View {
                     if let name = session.contactName {
                         Text(name)
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(Self.accent)
+                            .foregroundStyle(ReplrTheme.Color.accent)
                             .lineLimit(1)
                     }
                     Spacer()
@@ -232,7 +231,7 @@ struct CaptureRowView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 10))
-                            .foregroundStyle(.green)
+                            .foregroundStyle(ReplrTheme.Color.success)
                         Text(selected)
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -260,7 +259,6 @@ struct CaptureRowView: View {
 struct CaptureDetailView: View {
     let session: CaptureSession
     @State private var copiedReply: String? = nil
-    private static let accent = Replr.accent
 
     var body: some View {
         List {
@@ -301,14 +299,14 @@ struct CaptureDetailView: View {
                             } label: {
                                 Image(systemName: copiedReply == reply ? "checkmark" : "doc.on.doc")
                                     .font(.system(size: 14))
-                                    .foregroundStyle(copiedReply == reply ? Color.green : Self.accent)
+                                    .foregroundStyle(copiedReply == reply ? ReplrTheme.Color.success : ReplrTheme.Color.accent)
                                     .animation(.spring(response: 0.25), value: copiedReply)
                             }
                             .buttonStyle(.plain)
                             if reply == session.selectedReply {
                                 Image(systemName: "checkmark.circle.fill")
                                     .font(.system(size: 14))
-                                    .foregroundStyle(.green)
+                                    .foregroundStyle(ReplrTheme.Color.success)
                             }
                         }
                     }

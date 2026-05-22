@@ -8,20 +8,18 @@ struct SettingsView: View {
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
     @State private var activeToneName = AppGroupService.shared.readSelectedTone().name
 
-    private static let accent = Replr.accent
-
     var body: some View {
         NavigationStack {
             Form {
                 Section {
                     HStack(spacing: 14) {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Self.accent)
+                            .fill(ReplrTheme.Color.accent)
                             .frame(width: 56, height: 56)
                             .overlay(
                                 Image(systemName: "arrowshape.turn.up.left.fill")
                                     .font(.system(size: 24))
-                                    .foregroundStyle(Replr.accentFg)
+                                    .foregroundStyle(ReplrTheme.Color.onAccent)
                             )
                         VStack(alignment: .leading, spacing: 3) {
                             Text("Replr")
