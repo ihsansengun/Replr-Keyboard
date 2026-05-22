@@ -207,7 +207,7 @@ struct CoachmarkBalloon: View {
             Image(systemName: "sparkles")
                 .font(.system(size: 12, weight: .medium))
                 .padding(.top, 1)
-            Text("① Keyboard's minimised. ② Double-tap the back.")
+            Text("① Keyboard's minimised. ② Triple-tap the back.")
                 .font(.system(size: 12.5, weight: .medium))
                 .lineLimit(2)
         }
@@ -254,7 +254,7 @@ struct CollapsedStripView: View {
                 TapGlyph()
 
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Double-tap the back of your phone")
+                    Text("Triple-tap the back of your phone")
                         .font(.system(size: 13.5, weight: .medium))
                         .foregroundColor(ReplrTheme.Color.textPrimary)
                     Text("to capture this chat")
