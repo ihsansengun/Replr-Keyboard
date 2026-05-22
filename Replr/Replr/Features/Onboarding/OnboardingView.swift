@@ -1,18 +1,6 @@
 import SwiftUI
 import Photos
 
-// MARK: - Palette
-
-private enum OBColors {
-    static let accent   = Color(red: 0.831, green: 0.627, blue: 0.090) // #D4A017 mustard
-    static let cream    = Color(red: 0.929, green: 0.898, blue: 0.816) // #EDE5D0
-    static let taupe    = Color(red: 0.420, green: 0.376, blue: 0.314) // #6B6050
-    static let dotOff   = Color(red: 0.180, green: 0.145, blue: 0.094) // #2E2518
-    static let bg0      = Color(red: 0.118, green: 0.086, blue: 0.031) // #1E1608
-    static let bg1      = Color(red: 0.059, green: 0.047, blue: 0.020) // #0F0C05
-    static let accentFg = Color(red: 0.059, green: 0.047, blue: 0.020) // #0F0C05
-}
-
 // MARK: - Shared wrapper
 
 private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
@@ -34,7 +22,7 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
                     Button(action: onBack) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(OBColors.taupe)
+                            .foregroundColor(ReplrTheme.Color.textSecondary)
                     }
                     .buttonStyle(.plain)
                     .frame(width: 28)
@@ -45,12 +33,12 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
                 Spacer()
 
                 Text(stepLabel)
-                    .font(.system(size: 10, weight: .medium))
-                    .tracking(1)
+                    .font(ReplrTheme.Font.overline)
+                    .tracking(1.5)
                     .foregroundColor(
                         currentStep == totalSteps
-                            ? OBColors.accent.opacity(0.56)
-                            : OBColors.taupe
+                            ? ReplrTheme.Color.accent.opacity(0.56)
+                            : ReplrTheme.Color.textSecondary
                     )
 
                 Spacer()
@@ -64,7 +52,7 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
             VStack(spacing: 0) {
                 ZStack {
                     RadialGradient(
-                        colors: [OBColors.accent.opacity(currentStep == totalSteps ? 0.22 : 0.16), .clear],
+                        colors: [ReplrTheme.Color.accent.opacity(currentStep == totalSteps ? 0.22 : 0.16), .clear],
                         center: .center,
                         startRadius: 0,
                         endRadius: glowSize / 2
@@ -76,15 +64,14 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
                 .padding(.bottom, 32)
 
                 Text(headline)
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(OBColors.cream)
+                    .font(ReplrTheme.Font.heading).tracking(-0.2)
+                    .foregroundColor(ReplrTheme.Color.textPrimary)
                     .multilineTextAlignment(.center)
-                    .tracking(-0.3)
                     .padding(.horizontal, 40)
 
                 Text(bodyText)
-                    .font(.system(size: 13))
-                    .foregroundColor(OBColors.taupe)
+                    .font(ReplrTheme.Font.footnote)
+                    .foregroundColor(ReplrTheme.Color.textSecondary)
                     .multilineTextAlignment(.center)
                     .lineSpacing(3)
                     .padding(.top, 12)
@@ -102,61 +89,14 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
             HStack(spacing: 7) {
                 ForEach(1...totalSteps, id: \.self) { i in
                     Circle()
-                        .fill(i == currentStep ? OBColors.accent : OBColors.dotOff)
+                        .fill(i == currentStep ? ReplrTheme.Color.accent : ReplrTheme.Color.border)
                         .frame(width: 6, height: 6)
                 }
             }
             .padding(.bottom, 56)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            LinearGradient(
-                colors: [OBColors.bg0, OBColors.bg1],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-        )
-    }
-}
-
-// MARK: - Button styles
-
-private struct GhostCTAButton: View {
-    let label: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(OBColors.accent)
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(OBColors.accent.opacity(0.55), lineWidth: 1)
-                )
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-private struct SolidCTAButton: View {
-    let label: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.system(size: 15, weight: .bold))
-                .foregroundColor(OBColors.accentFg)
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .background(OBColors.accent)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        }
-        .buttonStyle(.plain)
+        .background(ReplrTheme.Color.bg.ignoresSafeArea())
     }
 }
 
@@ -171,7 +111,7 @@ private struct KeyboardIcon: View {
                 in: CGRect(x: w*0.08, y: h*0.25, width: w*0.84, height: h*0.50),
                 cornerSize: CGSize(width: 4, height: 4)
             )
-            ctx.stroke(body_, with: .color(OBColors.accent),
+            ctx.stroke(body_, with: .color(ReplrTheme.Color.accent),
                        style: StrokeStyle(lineWidth: 1.5))
             let kw = w * 0.09, kh = h * 0.14
             var keys = Path()
@@ -183,7 +123,7 @@ private struct KeyboardIcon: View {
             }
             keys.addRoundedRect(in: CGRect(x: w*0.24, y: y2, width: w*0.52, height: kh),
                                 cornerSize: CGSize(width: 1.5, height: 1.5))
-            ctx.fill(keys, with: .color(OBColors.accent.opacity(0.45)))
+            ctx.fill(keys, with: .color(ReplrTheme.Color.accent.opacity(0.45)))
         }
         .frame(width: 52, height: 52)
     }
@@ -198,7 +138,7 @@ private struct LockIcon: View {
                 in: CGRect(x: w*0.22, y: h*0.44, width: w*0.56, height: h*0.42),
                 cornerSize: CGSize(width: 4, height: 4)
             )
-            ctx.stroke(body_, with: .color(OBColors.accent),
+            ctx.stroke(body_, with: .color(ReplrTheme.Color.accent),
                        style: StrokeStyle(lineWidth: 1.5))
             var shackle = Path()
             shackle.move(to: CGPoint(x: w*0.30, y: h*0.45))
@@ -208,11 +148,11 @@ private struct LockIcon: View {
                            startAngle: .degrees(180), endAngle: .degrees(0),
                            clockwise: false)
             shackle.addLine(to: CGPoint(x: w*0.70, y: h*0.45))
-            ctx.stroke(shackle, with: .color(OBColors.accent),
+            ctx.stroke(shackle, with: .color(ReplrTheme.Color.accent),
                        style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
             var dot = Path()
             dot.addEllipse(in: CGRect(x: w*0.44, y: h*0.60, width: w*0.12, height: h*0.12))
-            ctx.fill(dot, with: .color(OBColors.accent.opacity(0.65)))
+            ctx.fill(dot, with: .color(ReplrTheme.Color.accent.opacity(0.65)))
         }
         .frame(width: 52, height: 52)
     }
@@ -230,7 +170,7 @@ private struct PaperPlaneIcon: View {
             path.addLine(to: CGPoint(x: w*0.88, y: h*0.12))
             path.move(to: CGPoint(x: w*0.38, y: h*0.62))
             path.addLine(to: CGPoint(x: w*0.65, y: h*0.43))
-            ctx.stroke(path, with: .color(OBColors.accent),
+            ctx.stroke(path, with: .color(ReplrTheme.Color.accent),
                        style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
         }
         .frame(width: 52, height: 52)
@@ -245,11 +185,11 @@ private struct BullseyeIcon: View {
             var rings = Path()
             rings.addEllipse(in: CGRect(x: cx-w*0.44, y: cy-h*0.44, width: w*0.88, height: h*0.88))
             rings.addEllipse(in: CGRect(x: cx-w*0.27, y: cy-h*0.27, width: w*0.54, height: h*0.54))
-            ctx.stroke(rings, with: .color(OBColors.accent),
+            ctx.stroke(rings, with: .color(ReplrTheme.Color.accent),
                        style: StrokeStyle(lineWidth: 1.4))
             var dot = Path()
             dot.addEllipse(in: CGRect(x: cx-w*0.10, y: cy-h*0.10, width: w*0.20, height: h*0.20))
-            ctx.fill(dot, with: .color(OBColors.accent.opacity(0.70)))
+            ctx.fill(dot, with: .color(ReplrTheme.Color.accent.opacity(0.70)))
         }
         .frame(width: 52, height: 52)
     }
@@ -262,19 +202,19 @@ private struct BullseyeDoneIcon: View {
             let cx = w/2, cy = h/2
             var outer = Path()
             outer.addEllipse(in: CGRect(x: cx-w*0.46, y: cy-h*0.46, width: w*0.92, height: h*0.92))
-            ctx.stroke(outer, with: .color(OBColors.accent.opacity(0.30)),
+            ctx.stroke(outer, with: .color(ReplrTheme.Color.accent.opacity(0.30)),
                        style: StrokeStyle(lineWidth: 1.2))
             var mid = Path()
             mid.addEllipse(in: CGRect(x: cx-w*0.33, y: cy-h*0.33, width: w*0.66, height: h*0.66))
-            ctx.stroke(mid, with: .color(OBColors.accent.opacity(0.60)),
+            ctx.stroke(mid, with: .color(ReplrTheme.Color.accent.opacity(0.60)),
                        style: StrokeStyle(lineWidth: 1.3))
             var inner = Path()
             inner.addEllipse(in: CGRect(x: cx-w*0.19, y: cy-h*0.19, width: w*0.38, height: h*0.38))
-            ctx.stroke(inner, with: .color(OBColors.accent),
+            ctx.stroke(inner, with: .color(ReplrTheme.Color.accent),
                        style: StrokeStyle(lineWidth: 1.5))
             var dot = Path()
             dot.addEllipse(in: CGRect(x: cx-w*0.075, y: cy-h*0.075, width: w*0.15, height: h*0.15))
-            ctx.fill(dot, with: .color(OBColors.accent))
+            ctx.fill(dot, with: .color(ReplrTheme.Color.accent))
         }
         .frame(width: 60, height: 60)
     }
@@ -295,7 +235,7 @@ private struct AddKeyboardStep: View {
         ) {
             KeyboardIcon()
         } cta: {
-            SolidCTAButton(label: "Open Settings →") {
+            PrimaryButton(label: "Open Settings →") {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }
@@ -321,15 +261,12 @@ private struct FullAccessStep: View {
             LockIcon()
         } cta: {
             VStack(spacing: 10) {
-                SolidCTAButton(label: "Open Settings →") {
+                PrimaryButton(label: "Open Settings →") {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
                     }
                 }
-                Button("Done →", action: onNext)
-                    .font(.system(size: 13))
-                    .foregroundColor(OBColors.taupe)
-                    .buttonStyle(.plain)
+                TertiaryButton(label: "Done →", action: onNext)
             }
         }
     }
@@ -351,24 +288,21 @@ private struct PhotosPermissionStep: View {
         ) {
             Image(systemName: "photo.on.rectangle")
                 .font(.system(size: 36, weight: .light))
-                .foregroundColor(OBColors.accent)
+                .foregroundColor(ReplrTheme.Color.accent)
         } cta: {
             if status == .authorized || status == .limited {
-                SolidCTAButton(label: "Continue →", action: onNext)
+                PrimaryButton(label: "Continue →", action: onNext)
             } else if status == .denied || status == .restricted {
                 VStack(spacing: 10) {
-                    SolidCTAButton(label: "Open Settings →") {
+                    PrimaryButton(label: "Open Settings →") {
                         if let url = URL(string: UIApplication.openSettingsURLString) {
                             UIApplication.shared.open(url)
                         }
                     }
-                    Button("Skip", action: onNext)
-                        .font(.system(size: 13))
-                        .foregroundColor(OBColors.taupe)
-                        .buttonStyle(.plain)
+                    TertiaryButton(label: "Skip", action: onNext)
                 }
             } else {
-                SolidCTAButton(label: "Allow Photos →") {
+                PrimaryButton(label: "Allow Photos →") {
                     PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
                         DispatchQueue.main.async {
                             status = newStatus
@@ -403,19 +337,16 @@ private struct BackTapSetupStep: View {
         } cta: {
             if subStep == 0 {
                 VStack(spacing: 10) {
-                    SolidCTAButton(label: "Add Shortcut →") {
+                    PrimaryButton(label: "Add Shortcut →") {
                         if let url = URL(string: "https://www.icloud.com/shortcuts/4239b04c8d0d469b905ce6118c5ce706") {
                             UIApplication.shared.open(url)
                         }
                     }
-                    Button("Done — next step") { subStep = 1 }
-                        .font(.system(size: 13))
-                        .foregroundColor(OBColors.taupe)
-                        .buttonStyle(.plain)
+                    TertiaryButton(label: "Done — next step") { subStep = 1 }
                 }
             } else {
                 VStack(spacing: 10) {
-                    SolidCTAButton(label: "Open Settings →") {
+                    PrimaryButton(label: "Open Settings →") {
                         if let url = URL(string: "prefs:root=ACCESSIBILITY") {
                             UIApplication.shared.open(url, options: [:]) { success in
                                 if !success, let fallback = URL(string: UIApplication.openSettingsURLString) {
@@ -424,10 +355,7 @@ private struct BackTapSetupStep: View {
                             }
                         }
                     }
-                    Button("Done →", action: onNext)
-                        .font(.system(size: 13))
-                        .foregroundColor(OBColors.taupe)
-                        .buttonStyle(.plain)
+                    TertiaryButton(label: "Done →", action: onNext)
                 }
             }
         }
@@ -449,7 +377,7 @@ private struct DoneStep: View {
         ) {
             BullseyeDoneIcon()
         } cta: {
-            SolidCTAButton(label: "Start Replr", action: onComplete)
+            PrimaryButton(label: "Start Replr", action: onComplete)
         }
     }
 }
