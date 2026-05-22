@@ -39,7 +39,7 @@ struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(ReplrTheme.Font.headline)
-            .foregroundColor(ReplrTheme.Color.textPrimary)
+            .foregroundColor(ReplrTheme.Color.textPrimary.opacity(isEnabled ? 1 : 0.45))
             .frame(maxWidth: .infinity)
             .frame(height: 54)
             .background(
