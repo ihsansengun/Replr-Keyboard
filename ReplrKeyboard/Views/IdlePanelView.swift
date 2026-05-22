@@ -20,39 +20,33 @@ struct IdlePanelView: View {
     // MARK: - Chat idle
 
     private var chatContent: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: 0)
-
+        VStack(alignment: .leading, spacing: 12) {
             Button {
-                withAnimation(.easeInOut(duration: 0.18)) {
-                    model.isCollapsed = true
-                }
+                withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = true }
             } label: {
                 HStack(spacing: 8) {
-                    Image(systemName: "iphone.rear.camera")
+                    Image(systemName: "sparkles")
                         .font(.system(size: 14))
                     Text("Capture this chat")
                         .font(.system(size: 14, weight: .semibold))
                 }
                 .foregroundColor(ReplrTheme.Color.onAccent)
                 .frame(maxWidth: .infinity)
-                .frame(height: 46)
+                .frame(height: 48)
                 .background(ReplrTheme.Color.accent)
-                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
             }
             .buttonStyle(.plain)
-            .padding(.horizontal, 16)
 
             Text("Minimises the keyboard so you can double-tap to screenshot")
-                .font(ReplrTheme.Font.caption)
-                .foregroundColor(ReplrTheme.Color.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
-                .padding(.top, 10)
-
-            Spacer(minLength: 0)
+                .font(.system(size: 12))
+                .foregroundColor(ReplrTheme.Color.textTertiary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxHeight: .infinity)
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     // MARK: - Email idle
@@ -63,16 +57,16 @@ struct IdlePanelView: View {
 
             Button { model.generateEmailReply() } label: {
                 HStack(spacing: 8) {
-                    Image(systemName: "doc.on.clipboard.fill")
+                    Image(systemName: hasClipboardText ? "doc.on.clipboard.fill" : "doc.on.clipboard")
                         .font(.system(size: 14))
                     Text("Generate from clipboard")
                         .font(.system(size: 14, weight: .semibold))
                 }
                 .foregroundColor(hasClipboardText ? ReplrTheme.Color.onAccent : ReplrTheme.Color.textSecondary)
                 .frame(maxWidth: .infinity)
-                .frame(height: 46)
+                .frame(height: 48)
                 .background(ReplrTheme.Color.accent.opacity(hasClipboardText ? 1.0 : 0.30))
-                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 16)
