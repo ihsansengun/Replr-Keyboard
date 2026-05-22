@@ -17,6 +17,40 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            Spacer(minLength: 0)
+
+            ZStack {
+                RadialGradient(
+                    colors: [ReplrTheme.Color.accent.opacity(currentStep == totalSteps ? 0.22 : 0.16), .clear],
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: glowSize / 2
+                )
+                .frame(width: glowSize, height: glowSize)
+
+                icon()
+            }
+            .padding(.bottom, 32)
+
+            Text(headline)
+                .font(ReplrTheme.Font.heading).tracking(-0.2)
+                .foregroundColor(ReplrTheme.Color.textPrimary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+
+            Text(bodyText)
+                .font(ReplrTheme.Font.footnote)
+                .foregroundColor(ReplrTheme.Color.textSecondary)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+                .padding(.top, 12)
+                .padding(.horizontal, 40)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(ReplrTheme.Color.bg.ignoresSafeArea())
+        .safeAreaInset(edge: .top, spacing: 0) {
             HStack {
                 if let onBack {
                     Button(action: onBack) {
@@ -44,59 +78,27 @@ private struct DarkOnboardingScreen<Icon: View, CTA: View>: View {
                 Spacer()
                 Color.clear.frame(width: 28)
             }
-            .padding(.top, 72)
+            .padding(.top, 16)
+            .padding(.bottom, 16)
             .padding(.horizontal, 24)
-
-            Spacer()
-
-            VStack(spacing: 0) {
-                ZStack {
-                    RadialGradient(
-                        colors: [ReplrTheme.Color.accent.opacity(currentStep == totalSteps ? 0.22 : 0.16), .clear],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: glowSize / 2
-                    )
-                    .frame(width: glowSize, height: glowSize)
-
-                    icon()
-                }
-                .padding(.bottom, 32)
-
-                Text(headline)
-                    .font(ReplrTheme.Font.heading).tracking(-0.2)
-                    .foregroundColor(ReplrTheme.Color.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
-
-                Text(bodyText)
-                    .font(ReplrTheme.Font.footnote)
-                    .foregroundColor(ReplrTheme.Color.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(3)
-                    .padding(.top, 12)
-                    .padding(.horizontal, 40)
-
-                VStack(spacing: 0) {
-                    cta()
-                }
-                .padding(.horizontal, 32)
-                .padding(.top, 32)
-            }
-
-            Spacer()
-
-            HStack(spacing: 7) {
-                ForEach(1...totalSteps, id: \.self) { i in
-                    Circle()
-                        .fill(i == currentStep ? ReplrTheme.Color.accent : ReplrTheme.Color.border)
-                        .frame(width: 6, height: 6)
-                }
-            }
-            .padding(.bottom, 56)
+            .background(ReplrTheme.Color.bg)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(ReplrTheme.Color.bg.ignoresSafeArea())
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(spacing: 16) {
+                HStack(spacing: 7) {
+                    ForEach(1...totalSteps, id: \.self) { i in
+                        Circle()
+                            .fill(i == currentStep ? ReplrTheme.Color.accent : ReplrTheme.Color.border)
+                            .frame(width: 6, height: 6)
+                    }
+                }
+                cta()
+                    .padding(.horizontal, 24)
+            }
+            .padding(.top, 20)
+            .padding(.bottom, 32)
+            .background(ReplrTheme.Color.bg)
+        }
     }
 }
 
@@ -347,12 +349,8 @@ private struct BackTapSetupStep: View {
             } else {
                 VStack(spacing: 10) {
                     PrimaryButton(label: "Open Settings →") {
-                        if let url = URL(string: "prefs:root=ACCESSIBILITY") {
-                            UIApplication.shared.open(url, options: [:]) { success in
-                                if !success, let fallback = URL(string: UIApplication.openSettingsURLString) {
-                                    UIApplication.shared.open(fallback)
-                                }
-                            }
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
                         }
                     }
                     TertiaryButton(label: "Done →", action: onNext)
@@ -459,12 +457,8 @@ struct BackTapSetupFullView: View {
                         .padding(.horizontal)
 
                     Button {
-                        if let url = URL(string: "prefs:root=ACCESSIBILITY") {
-                            UIApplication.shared.open(url, options: [:]) { success in
-                                if !success, let fallback = URL(string: UIApplication.openSettingsURLString) {
-                                    UIApplication.shared.open(fallback)
-                                }
-                            }
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
                         }
                     } label: {
                         Label("Open Settings", systemImage: "gearshape")
