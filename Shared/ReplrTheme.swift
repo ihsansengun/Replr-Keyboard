@@ -29,30 +29,32 @@ enum ReplrTheme {
     // MARK: Color
 
     enum Color {
-        static let bg            = SwiftUI.Color(light: .init(hex: 0xF4F4F5), dark: .init(hex: 0x0B0B0C))
-        static let surface       = SwiftUI.Color(light: .init(hex: 0xFFFFFF), dark: .init(hex: 0x161617))
-        static let surfaceRaised = SwiftUI.Color(light: .init(hex: 0xFFFFFF), dark: .init(hex: 0x202022))
-        static let surfaceSunken = SwiftUI.Color(light: .init(hex: 0xECECEE), dark: .init(hex: 0x0B0B0C))
-        static let surfaceGlass  = SwiftUI.Color(light: SwiftUI.Color(hex: 0xFFFFFF, alpha: 0.72),
-                                                  dark: SwiftUI.Color(hex: 0x202022, alpha: 0.72))
+        static let bg              = SwiftUI.Color(light: .init(hex: 0xF5F5F5), dark: .init(hex: 0x0A0A0B))
+        static let surface         = SwiftUI.Color(light: .init(hex: 0xFFFFFF), dark: .init(hex: 0x131318))
+        static let surfaceRaised   = SwiftUI.Color(light: .init(hex: 0xFFFFFF), dark: .init(hex: 0x1E1E25))
+        static let surfaceRaisedHi = SwiftUI.Color(light: .init(hex: 0xECECEE), dark: .init(hex: 0x2A2A33))
+        static let surfaceSunken   = SwiftUI.Color(light: .init(hex: 0xECECEE), dark: .init(hex: 0x0A0A0B))
+        static let surfaceGlass    = SwiftUI.Color(light: SwiftUI.Color(hex: 0xFFFFFF, alpha: 0.72),
+                                                    dark: SwiftUI.Color(hex: 0x1E1E25, alpha: 0.72))
 
-        static let border        = SwiftUI.Color(light: .init(hex: 0xE4E4E6), dark: .init(hex: 0x2A2A2C))
-        static let borderStrong  = SwiftUI.Color(light: .init(hex: 0xD4D4D7), dark: .init(hex: 0x3A3A3D))
+        static let border          = SwiftUI.Color(light: .init(white: 0, opacity: 0.08),
+                                                    dark: .init(white: 1, opacity: 0.07))
+        static let borderStrong    = SwiftUI.Color(light: .init(white: 0, opacity: 0.14),
+                                                    dark: .init(white: 1, opacity: 0.12))
 
-        static let highlight     = SwiftUI.Color(white: 1, opacity: 0.06)
+        static let textPrimary     = SwiftUI.Color(light: .init(hex: 0x161618), dark: .init(hex: 0xF4F4F2))
+        static let textSecondary   = SwiftUI.Color(light: .init(hex: 0x5C5C61), dark: .init(hex: 0x8E8E92))
+        static let textTertiary    = SwiftUI.Color(light: .init(hex: 0x97979C), dark: .init(hex: 0x5C5C60))
 
-        static let textPrimary   = SwiftUI.Color(light: .init(hex: 0x161618), dark: .init(hex: 0xF5F5F6))
-        static let textSecondary = SwiftUI.Color(light: .init(hex: 0x5C5C61), dark: .init(hex: 0x9B9B9F))
-        static let textTertiary  = SwiftUI.Color(light: .init(hex: 0x97979C), dark: .init(hex: 0x65656A))
+        // Fixed coral — not adaptive. One coral per screen.
+        static let accent          = SwiftUI.Color(hex: 0xFF5A4D)
+        static let accentPressed   = SwiftUI.Color(hex: 0xB43E35)
+        static let onAccent        = SwiftUI.Color(hex: 0x1A0707)
+        static let accentSubtle    = SwiftUI.Color(hex: 0xFF5A4D, alpha: 0.12)
+        static let accentSoft      = SwiftUI.Color(hex: 0xFF5A4D, alpha: 0.12)
 
-        static let accent        = SwiftUI.Color(light: .init(hex: 0x161618), dark: .init(hex: 0xF5F5F6))
-        static let accentPressed = SwiftUI.Color(light: .init(hex: 0x363639), dark: .init(hex: 0xD4D4D6))
-        static let onAccent      = SwiftUI.Color(light: .init(hex: 0xFFFFFF), dark: .init(hex: 0x0B0B0C))
-        static let accentSubtle  = SwiftUI.Color(light: SwiftUI.Color(hex: 0x000000, alpha: 0.05),
-                                                  dark: SwiftUI.Color(hex: 0xFFFFFF, alpha: 0.08))
-
-        static let danger        = SwiftUI.Color(light: .init(hex: 0xC4453F), dark: .init(hex: 0xE06A66))
-        static let success       = SwiftUI.Color(light: .init(hex: 0x3F7A52), dark: .init(hex: 0x6FB389))
+        static let danger          = SwiftUI.Color(light: .init(hex: 0xC4453F), dark: .init(hex: 0xE06A66))
+        static let success         = SwiftUI.Color(light: .init(hex: 0x3F7A52), dark: .init(hex: 0x4ADE80))
     }
 
     // MARK: Font
@@ -93,10 +95,11 @@ enum ReplrTheme {
     // MARK: Radius
 
     enum Radius {
-        static let sm:   CGFloat = 10
-        static let md:   CGFloat = 15
-        static let lg:   CGFloat = 18
-        static let xl:   CGFloat = 26
+        static let xs:   CGFloat = 4
+        static let sm:   CGFloat = 8
+        static let md:   CGFloat = 12
+        static let lg:   CGFloat = 16
+        static let xl:   CGFloat = 20
         static let full: CGFloat = 999
     }
 
@@ -106,6 +109,9 @@ enum ReplrTheme {
         static let quick      = Animation.easeOut(duration: 0.15)
         static let standard   = Animation.easeInOut(duration: 0.22)
         static let expressive = Animation.spring(response: 0.34, dampingFraction: 0.78)
+        static let shimmer   = Animation.linear(duration: 1.4).repeatForever(autoreverses: false)
+        static let pulse     = Animation.easeInOut(duration: 1.2).repeatForever(autoreverses: true)
+        static let coachmark = Animation.easeOut(duration: 0.24)
     }
 
 }
@@ -122,13 +128,6 @@ struct ElevatedSurface: ViewModifier {
         switch level {
         case .level1, .level2:
             content
-                .overlay(alignment: .top) {
-                    if scheme == .dark {
-                        Rectangle()
-                            .fill(ReplrTheme.Color.highlight)
-                            .frame(height: 1)
-                    }
-                }
                 .shadow(
                     color: scheme == .dark
                         ? Color(white: 0, opacity: 0.55)
