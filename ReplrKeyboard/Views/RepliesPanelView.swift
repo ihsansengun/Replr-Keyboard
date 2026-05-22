@@ -13,10 +13,14 @@ struct RepliesPanelView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Mode segmented control only — tone moves to bottom
-            ModeSegmentedControl(model: model)
-                .padding(.bottom, 4)
-                .background(ReplrTheme.Color.bg)
-                .overlay(alignment: .bottom) { ReplrTheme.Color.border.frame(height: 0.5) }
+            HStack {
+                ModeSegmentedControl(model: model)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 4)
+            .background(ReplrTheme.Color.bg)
+            .overlay(alignment: .bottom) { ReplrTheme.Color.border.frame(height: 0.5) }
 
             // Contact header: name + rename + N of M
             if let name = model.contactName {

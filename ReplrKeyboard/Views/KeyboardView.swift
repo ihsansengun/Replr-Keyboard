@@ -232,19 +232,20 @@ struct ModeSegmentedControl: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            segmentBtn(mode: .chat,  iconName: "message.fill",  label: "Chat")
-            segmentBtn(mode: .email, iconName: "envelope.fill", label: "Email")
+            segmentBtn(mode: .chat,  label: "Chat")
+            segmentBtn(mode: .email, label: "Email")
         }
         .padding(3)
-        .background(ReplrTheme.Color.surfaceSunken)
-        .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm + 3, style: .continuous))
-        .padding(.horizontal, 7)
-        .padding(.top, 2)
-        .padding(.bottom, 2)
+        .background(ReplrTheme.Color.surface)
+        .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                .stroke(ReplrTheme.Color.border, lineWidth: 1)
+        )
     }
 
     @ViewBuilder
-    private func segmentBtn(mode: KeyboardInputMode, iconName: String, label: String) -> some View {
+    private func segmentBtn(mode: KeyboardInputMode, label: String) -> some View {
         let isActive = model.inputMode == mode
         Button {
             guard model.inputMode != mode else { return }
@@ -256,19 +257,15 @@ struct ModeSegmentedControl: View {
                 model.inputMode = mode
             }
         } label: {
-            HStack(spacing: 4) {
-                Image(systemName: iconName)
-                    .font(.system(size: 13))
-                Text(label)
-                    .font(.system(size: 11, weight: .semibold))
-            }
-            .foregroundColor(isActive ? ReplrTheme.Color.textPrimary : ReplrTheme.Color.textSecondary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 5)
-            .background(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                    .fill(isActive ? ReplrTheme.Color.surfaceRaised : Color.clear)
-            )
+            Text(label)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(isActive ? ReplrTheme.Color.textPrimary : ReplrTheme.Color.textSecondary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(isActive ? ReplrTheme.Color.surfaceRaised : Color.clear)
+                )
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.15), value: isActive)
