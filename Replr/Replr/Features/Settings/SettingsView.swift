@@ -14,12 +14,12 @@ struct SettingsView: View {
                 Section {
                     HStack(spacing: 14) {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(ReplrTheme.Color.accent)
+                            .fill(Color(hex: 0x0B1F3A))
                             .frame(width: 56, height: 56)
                             .overlay(
                                 Image(systemName: "arrowshape.turn.up.left.fill")
                                     .font(.system(size: 24))
-                                    .foregroundStyle(ReplrTheme.Color.onAccent)
+                                    .foregroundStyle(Color.white)
                             )
                         VStack(alignment: .leading, spacing: 3) {
                             Text("Replr")

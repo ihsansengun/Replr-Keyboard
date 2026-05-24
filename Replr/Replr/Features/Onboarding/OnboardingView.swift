@@ -15,24 +15,24 @@ private struct OnboardingStep<Content: View, CTA: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header row: back button + replr• mark + step counter
-            HStack(alignment: .center) {
-                if let onBack {
-                    Button(action: onBack) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(ReplrTheme.Color.textSecondary)
-                            .frame(width: 36, height: 36)
+            // Header row: back button | centered mark | step counter
+            ZStack {
+                HStack {
+                    if let onBack {
+                        Button(action: onBack) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(ReplrTheme.Color.textSecondary)
+                                .frame(width: 36, height: 36)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
-                } else {
-                    Color.clear.frame(width: 36)
+                    Spacer()
+                    Text(String(format: "%02d / %02d", step, totalSteps))
+                        .font(ReplrTheme.Font.caption)
+                        .foregroundColor(ReplrTheme.Color.textTertiary)
                 }
                 ReplrMark(size: 14)
-                Spacer()
-                Text(String(format: "%02d / %02d", step, totalSteps))
-                    .font(ReplrTheme.Font.caption)
-                    .foregroundColor(ReplrTheme.Color.textTertiary)
             }
             .padding(.horizontal, 16)
             .padding(.top, 16)
@@ -260,13 +260,56 @@ private struct FullAccessStep: View {
             step: 2, totalSteps: 5,
             sectionLabel: "Permissions",
             headline: "Enable Full Access.",
-            bodyText: "Lets the keyboard connect to AI. Settings → General → Keyboards → Replr → Full Access.",
+            bodyText: "Lets the keyboard connect to AI. Once in Settings, follow the path below.",
             onBack: onBack
         ) {
-            EmptyView()
+            // Navigation path card
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 4) {
+                    ForEach(["Settings", "General", "Keyboards", "Replr"], id: \.self) { item in
+                        if item != "Settings" {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 9, weight: .medium))
+                                .foregroundColor(ReplrTheme.Color.textTertiary)
+                        }
+                        Text(item)
+                            .font(.system(size: 12))
+                            .foregroundColor(ReplrTheme.Color.textSecondary)
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.top, 14)
+                .padding(.bottom, 8)
+
+                Divider().overlay(ReplrTheme.Color.border)
+
+                HStack(spacing: 12) {
+                    ReplrMark(size: 13)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Replr")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(ReplrTheme.Color.textPrimary)
+                        Text("Allow Full Access")
+                            .font(.system(size: 11))
+                            .foregroundColor(ReplrTheme.Color.textSecondary)
+                    }
+                    Spacer()
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(ReplrTheme.Color.success)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+            }
+            .background(ReplrTheme.Color.surfaceRaised)
+            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                    .stroke(ReplrTheme.Color.border, lineWidth: 1)
+            )
         } cta: {
             VStack(spacing: 12) {
-                PrimaryButton(label: "Open Settings →") {
+                PrimaryButton(label: "Open Keyboard Settings →") {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
                     }
@@ -402,7 +445,7 @@ private struct InstallShortcutStep: View {
                         UIApplication.shared.open(url)
                     }
                 }
-                TertiaryButton(label: "Inspect the recipe", action: onNext)
+                TertiaryButton(label: "Already installed →", action: onNext)
             }
         }
     }
@@ -471,14 +514,17 @@ private struct BackTapStep: View {
                     .stroke(ReplrTheme.Color.border, lineWidth: 1)
             )
         } cta: {
-            VStack(spacing: 12) {
+            VStack(spacing: 10) {
                 PrimaryButton(label: "Open Back Tap Settings →") {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
                     }
                 }
-                TertiaryButton(label: "Use double-tap instead", action: onNext)
                 TertiaryButton(label: "Done →", action: onNext)
+                Text("You can use Double Tap instead of Triple Tap — just choose whichever feels natural.")
+                    .font(ReplrTheme.Font.caption)
+                    .foregroundColor(ReplrTheme.Color.textTertiary)
+                    .multilineTextAlignment(.center)
             }
         }
     }
