@@ -6,7 +6,7 @@ struct IdlePanelView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            KeyboardHeader(model: model)
+            KeyboardHeader(model: model, isToneHidden: model.inputMode == .chat)
             if model.inputMode == .chat {
                 chatContent
             } else {
