@@ -18,8 +18,6 @@ final class KeyboardViewController: UIInputViewController {
         heightConstraint.priority = UILayoutPriority(999)
         heightConstraint.isActive = true
 
-        view.backgroundColor = .clear
-
         let defaultTone = AppGroupService.shared.readSelectedTone()
         model = KeyboardModel(initialTone: defaultTone)
         model.onReplySelected = { [weak self] reply in self?.insert(reply) }
@@ -84,6 +82,13 @@ final class KeyboardViewController: UIInputViewController {
             .sink { [weak self] combined, isCollapsed in
                 guard let self else { return }
                 let ((state, isCaptureMode), inputMode) = combined
+                // Clear UIKit bg when collapsed so native iOS chrome fills the slot;
+                // solid bg when expanded to prevent system chrome bleeding at the top edge.
+                self.view.backgroundColor = (isCaptureMode || isCollapsed) ? .clear : UIColor { traits in
+                    traits.userInterfaceStyle == .dark
+                        ? UIColor(red: 10/255, green: 10/255, blue: 11/255, alpha: 1)
+                        : UIColor(red: 245/255, green: 245/255, blue: 245/255, alpha: 1)
+                }
                 if isCaptureMode {
                     self.setHeight(0, duration: 0.15)
                     return
@@ -101,8 +106,7 @@ final class KeyboardViewController: UIInputViewController {
                 case .loading:      height = 250
                 case .error:        height = 240
                 case .disambiguate: height = 300
-                case .replies:
-                    height = inputMode == .email ? 275 : 270
+                case .replies:      height = 240
                 }
                 self.setHeight(height)
             }

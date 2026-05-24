@@ -12,20 +12,11 @@ struct RepliesPanelView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Mode segmented control + reset + mark
+            // Mode segmented control + mark
             HStack(spacing: 0) {
                 ModeSegmentedControl(model: model)
                 Spacer()
-                Button { model.regenerate() } label: {
-                    Image(systemName: "arrow.counterclockwise")
-                        .font(.system(size: 13))
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
-                        .frame(width: 36, height: 36)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("New replies")
                 ReplrMark(size: 14)
-                    .padding(.leading, 4)
                     .padding(.trailing, 16)
             }
             .padding(.leading, 16)
@@ -58,10 +49,6 @@ struct RepliesPanelView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
 
-            ReplrTheme.Color.border.frame(height: 0.5)
-
-            // Tone strip at bottom + regenerate button
-            toneRow
         }
         .background(ReplrTheme.Color.bg)
     }
@@ -148,7 +135,7 @@ struct RepliesPanelView: View {
             }
             .animation(.easeInOut(duration: 0.2), value: model.lastInsertedReply)
         } else {
-            // Normal state: Insert primary + Edit secondary
+            // Normal state: Insert primary + Edit + Reset
             HStack(spacing: 8) {
                 Button(action: { model.selectReply(currentReply) }) {
                     HStack(spacing: 6) {
@@ -177,59 +164,23 @@ struct RepliesPanelView: View {
                             .stroke(ReplrTheme.Color.border, lineWidth: 0.5)
                     )
                     .buttonStyle(.plain)
-            }
-        }
-    }
 
-    // MARK: - Tone row at bottom + regenerate
-
-    private var toneRow: some View {
-        HStack(spacing: 0) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 2) {
-                    ForEach(
-                        model.tones.filter { model.inputMode == .chat || $0.name != "Dating" }
-                    ) { tone in
-                        Chip(
-                            label: tone.name,
-                            isSelected: tone.name == model.selectedTone.name,
-                            action: {
-                                model.selectTone(tone)
-                                if model.inputMode == .email {
-                                    model.generateEmailReply()
-                                } else {
-                                    model.regenerate()
-                                }
-                            }
-                        )
-                    }
+                Button { model.regenerate() } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(ReplrTheme.Color.textPrimary)
                 }
-                .padding(.horizontal, 8)
-            }
-            .mask(
-                LinearGradient(
-                    stops: [
-                        .init(color: .black, location: 0.0),
-                        .init(color: .black, location: 0.85),
-                        .init(color: .clear, location: 1.0),
-                    ],
-                    startPoint: .leading,
-                    endPoint: .trailing
+                .frame(width: 42, height: 42)
+                .background(ReplrTheme.Color.surfaceRaised)
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                        .stroke(ReplrTheme.Color.border, lineWidth: 0.5)
                 )
-            )
-
-            if model.needsGlobeKey {
-                ReplrTheme.Color.borderStrong.frame(width: 0.5, height: 16)
-                Button { model.onSwitchKeyboard?() } label: {
-                    Image(systemName: "globe")
-                        .font(.system(size: 14))
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
-                        .frame(width: 36, height: 38)
-                }
                 .buttonStyle(.plain)
+                .accessibilityLabel("New replies")
             }
         }
-        .frame(height: 38)
-        .overlay(alignment: .top) { ReplrTheme.Color.border.frame(height: 0.5) }
     }
+
 }
