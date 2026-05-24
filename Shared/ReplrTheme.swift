@@ -46,12 +46,12 @@ enum ReplrTheme {
         static let textSecondary   = SwiftUI.Color(light: .init(hex: 0x5C5C61), dark: .init(hex: 0x8E8E92))
         static let textTertiary    = SwiftUI.Color(light: .init(hex: 0x97979C), dark: .init(hex: 0x5C5C60))
 
-        // Fixed coral — not adaptive. One coral per screen.
-        static let accent          = SwiftUI.Color(hex: 0xFF5A4D)
-        static let accentPressed   = SwiftUI.Color(hex: 0xB43E35)
-        static let onAccent        = SwiftUI.Color(hex: 0x1A0707)
-        static let accentSubtle    = SwiftUI.Color(hex: 0xFF5A4D, alpha: 0.12)
-        static let accentSoft      = SwiftUI.Color(hex: 0xFF5A4D, alpha: 0.12)
+        // Fixed amber — not adaptive. One amber per screen.
+        static let accent          = SwiftUI.Color(hex: 0xF2A93C)
+        static let accentPressed   = SwiftUI.Color(hex: 0xD4891A)
+        static let onAccent        = SwiftUI.Color(hex: 0x3A2401)
+        static let accentSubtle    = SwiftUI.Color(hex: 0xF2A93C, alpha: 0.12)
+        static let accentSoft      = SwiftUI.Color(hex: 0xF2A93C, alpha: 0.12)
 
         static let danger          = SwiftUI.Color(light: .init(hex: 0xC4453F), dark: .init(hex: 0xE06A66))
         static let success         = SwiftUI.Color(light: .init(hex: 0x3F7A52), dark: .init(hex: 0x4ADE80))
