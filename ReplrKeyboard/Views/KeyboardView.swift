@@ -111,6 +111,14 @@ final class KeyboardModel: ObservableObject {
         withAnimation(.easeInOut(duration: 0.2)) { state = .idle }
     }
 
+    func clearRepliesForCapture() {
+        lastInsertedReply = nil
+        contactName = nil
+        AppGroupService.shared.clearCachedReplies()
+        currentReplies = []
+        state = .idle
+    }
+
     func startRenameContact() {
         let name = contactName ?? ""
         let allContacts = AppGroupService.shared.loadContacts()
@@ -351,7 +359,6 @@ struct ModeSegmentedControl: View {
         Button {
             guard model.inputMode != mode else { return }
             withAnimation(.easeInOut(duration: 0.2)) {
-                if case .replies = model.state { model.regenerate() }
                 if mode == .email, model.selectedTone.name == "Dating" {
                     model.selectedTone = model.tones.first { $0.name != "Dating" } ?? model.selectedTone
                 }

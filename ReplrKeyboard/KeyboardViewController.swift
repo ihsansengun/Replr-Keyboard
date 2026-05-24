@@ -106,7 +106,7 @@ final class KeyboardViewController: UIInputViewController {
                 case .loading:      height = 250
                 case .error:        height = 240
                 case .disambiguate: height = 300
-                case .replies:      height = 240
+                case .replies:      height = 248
                 }
                 self.setHeight(height)
             }
@@ -121,6 +121,7 @@ final class KeyboardViewController: UIInputViewController {
                 AppGroupService.shared.savePendingContext(ctx)
                 let fieldText = self.textDocumentProxy.documentContextBeforeInput ?? ""
                 for _ in fieldText.unicodeScalars { self.textDocumentProxy.deleteBackward() }
+                self.model.clearRepliesForCapture()
             }
     }
 

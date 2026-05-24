@@ -20,6 +20,7 @@ struct RepliesPanelView: View {
                     .padding(.trailing, 16)
             }
             .padding(.leading, 16)
+            .padding(.top, 8)
             .padding(.bottom, 4)
             .background(ReplrTheme.Color.bg)
             .overlay(alignment: .bottom) { ReplrTheme.Color.border.frame(height: 0.5) }
