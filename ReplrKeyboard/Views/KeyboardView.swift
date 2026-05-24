@@ -134,6 +134,12 @@ struct KeyboardRootView: View {
 
     var body: some View {
         ZStack {
+            // Solid bg only when expanded — collapsed lets native iOS chrome show through
+            if !model.isCollapsed {
+                ReplrTheme.Color.bg
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+            }
             if model.isCollapsed {
                 CollapsedStripView(model: model).transition(.opacity)
             } else {
@@ -154,7 +160,6 @@ struct KeyboardRootView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: model.isCollapsed)
         .animation(.easeInOut(duration: 0.2), value: stateTag)
-        .background(ReplrTheme.Color.bg)
         .ignoresSafeArea()
     }
 
@@ -298,7 +303,7 @@ struct CollapsedStripView: View {
             .padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(ReplrTheme.Color.bg)
+        .background(Color.clear)
         .onAppear {
             let defaults = UserDefaults(suiteName: Constants.appGroupID)
             defaults?.synchronize()

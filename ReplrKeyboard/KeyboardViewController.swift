@@ -18,6 +18,8 @@ final class KeyboardViewController: UIInputViewController {
         heightConstraint.priority = UILayoutPriority(999)
         heightConstraint.isActive = true
 
+        view.backgroundColor = .clear
+
         let defaultTone = AppGroupService.shared.readSelectedTone()
         model = KeyboardModel(initialTone: defaultTone)
         model.onReplySelected = { [weak self] reply in self?.insert(reply) }
@@ -90,7 +92,7 @@ final class KeyboardViewController: UIInputViewController {
                     let defaults = UserDefaults(suiteName: Constants.appGroupID)
                     defaults?.synchronize()
                     let coachmarkSeen = defaults?.bool(forKey: Constants.coachmarkSeenKey) ?? false
-                    self.setHeight(coachmarkSeen ? 64 : 140)
+                    self.setHeight(coachmarkSeen ? 90 : 140)
                     return
                 }
                 let height: CGFloat
