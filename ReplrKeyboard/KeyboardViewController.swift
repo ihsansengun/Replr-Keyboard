@@ -124,6 +124,7 @@ final class KeyboardViewController: UIInputViewController {
         model.isCollapsed = false
 
         // Resolve contact display name from App Group
+        AppGroupService.shared.synchronize()
         if let id = AppGroupService.shared.currentContactID,
            let contact = AppGroupService.shared.loadContacts().first(where: { $0.id == id }) {
             model.contactName = contact.displayName
@@ -199,6 +200,7 @@ final class KeyboardViewController: UIInputViewController {
                         self.model.isCollapsed = false
                         self.model.currentReplies = replies
                         // Refresh contact chip — intent may have switched contact during this capture
+                        AppGroupService.shared.synchronize()
                         if let id = AppGroupService.shared.currentContactID,
                            let contact = AppGroupService.shared.loadContacts().first(where: { $0.id == id }) {
                             self.model.contactName = contact.displayName

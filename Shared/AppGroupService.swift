@@ -43,6 +43,11 @@ final class AppGroupService {
         return replies
     }
 
+    /// Call this in the keyboard process before reading any value the intent process may have just written.
+    func synchronize() {
+        defaults.synchronize()
+    }
+
     // MARK: - Error relay
 
     func saveError(_ message: String) {
