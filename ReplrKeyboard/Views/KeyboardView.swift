@@ -154,7 +154,7 @@ struct KeyboardRootView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: model.isCollapsed)
         .animation(.easeInOut(duration: 0.2), value: stateTag)
-        .background(.regularMaterial)
+        .background(ReplrTheme.Color.bg)
         .ignoresSafeArea()
     }
 
@@ -298,7 +298,7 @@ struct CollapsedStripView: View {
             .padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color.clear)
+        .background(ReplrTheme.Color.bg)
         .onAppear {
             let defaults = UserDefaults(suiteName: Constants.appGroupID)
             defaults?.synchronize()

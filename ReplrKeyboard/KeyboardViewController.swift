@@ -18,8 +18,6 @@ final class KeyboardViewController: UIInputViewController {
         heightConstraint.priority = UILayoutPriority(999)
         heightConstraint.isActive = true
 
-        view.backgroundColor = .clear
-
         let defaultTone = AppGroupService.shared.readSelectedTone()
         model = KeyboardModel(initialTone: defaultTone)
         model.onReplySelected = { [weak self] reply in self?.insert(reply) }
