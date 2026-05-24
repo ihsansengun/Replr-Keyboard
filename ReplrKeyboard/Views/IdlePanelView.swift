@@ -20,28 +20,64 @@ struct IdlePanelView: View {
     // MARK: - Chat idle
 
     private var chatContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = true }
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 14))
-                    Text("Capture this chat")
-                        .font(.system(size: 14, weight: .semibold))
-                }
-                .foregroundColor(ReplrTheme.Color.onAccent)
-                .frame(maxWidth: .infinity)
-                .frame(height: 48)
-                .background(ReplrTheme.Color.accent)
-                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
-            }
-            .buttonStyle(.plain)
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Top: how-to explanation
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("HOW TO CAPTURE")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
+                        .tracking(0.8)
 
-            Text("Minimises the keyboard so you can triple-tap to screenshot")
-                .font(.system(size: 12))
-                .foregroundColor(ReplrTheme.Color.textTertiary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                    Text("Open the chat, then collapse this keyboard — Replr records what's on screen when you double-tap.")
+                        .font(.system(size: 13))
+                        .foregroundColor(ReplrTheme.Color.textPrimary)
+                        .lineSpacing(2)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    HStack(spacing: 5) {
+                        Text("✦")
+                            .font(.system(size: 10))
+                            .foregroundColor(ReplrTheme.Color.accent)
+                        Text("Anything you've typed is sent as context automatically")
+                            .font(.system(size: 11.5))
+                            .foregroundColor(ReplrTheme.Color.textSecondary)
+                    }
+                }
+                .padding(14)
+
+                ReplrTheme.Color.border.frame(height: 0.5)
+
+                // Bottom: prompt + small action button
+                HStack {
+                    Text("Ready? Collapse to start")
+                        .font(.system(size: 12))
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
+
+                    Spacer()
+
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = true }
+                    } label: {
+                        Text("Start capture ↓")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(ReplrTheme.Color.onAccent)
+                            .padding(.horizontal, 12)
+                            .frame(height: 32)
+                            .background(ReplrTheme.Color.accent)
+                            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+            }
+            .background(ReplrTheme.Color.surface)
+            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                    .stroke(ReplrTheme.Color.border, lineWidth: 1)
+            )
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)
