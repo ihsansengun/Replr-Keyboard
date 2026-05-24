@@ -207,7 +207,7 @@ struct CoachmarkBalloon: View {
             Image(systemName: "sparkles")
                 .font(.system(size: 12, weight: .medium))
                 .padding(.top, 1)
-            Text("① Keyboard's minimised. ② Triple-tap the back.")
+            Text("① Keyboard's minimised. ② Double-tap the back.")
                 .font(.system(size: 12.5, weight: .medium))
                 .lineLimit(2)
         }
@@ -240,7 +240,7 @@ struct CollapsedStripView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Coachmark — first run only, sits above the capture card
+            // Coachmark — first run only
             if showCoachmark {
                 CoachmarkBalloon()
                     .padding(.horizontal, 16)
@@ -249,46 +249,52 @@ struct CollapsedStripView: View {
                     .transition(.opacity.animation(ReplrTheme.Motion.coachmark))
             }
 
-            // Capture card
-            HStack(spacing: 10) {
-                TapGlyph()
+            // Pill handle
+            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                .fill(Color.white.opacity(0.25))
+                .frame(width: 36, height: 4)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
 
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("Triple-tap the back of your phone")
-                        .font(.system(size: 13.5, weight: .medium))
-                        .foregroundColor(ReplrTheme.Color.textPrimary)
-                    Text("to capture this chat")
-                        .font(.system(size: 11.5))
-                        .foregroundColor(ReplrTheme.Color.textTertiary)
-                }
+            // Capture card — entire card is the tap target
+            Button {
+                dismissCoachmark()
+                withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = false }
+            } label: {
+                HStack(spacing: 10) {
+                    TapGlyph()
 
-                Spacer()
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Double-tap the back of your phone")
+                            .font(.system(size: 13.5, weight: .medium))
+                            .foregroundColor(ReplrTheme.Color.textPrimary)
+                        Text("to capture this chat")
+                            .font(.system(size: 11.5))
+                            .foregroundColor(ReplrTheme.Color.textTertiary)
+                    }
 
-                Button {
-                    dismissCoachmark()
-                    withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = false }
-                } label: {
-                    Image(systemName: "xmark")
+                    Spacer()
+
+                    Image(systemName: "chevron.up")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .frame(width: 36, height: 36)
                 }
-                .buttonStyle(.plain)
+                .padding(.vertical, 10)
+                .padding(.leading, 12)
+                .padding(.trailing, 4)
+                .background(ReplrTheme.Color.surface)
+                .overlay(alignment: .leading) {
+                    ReplrTheme.Color.accent.frame(width: 3)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(ReplrTheme.Color.border, lineWidth: 1)
+                )
             }
-            .padding(.vertical, 10)
-            .padding(.leading, 12)
-            .padding(.trailing, 4)
-            .background(ReplrTheme.Color.surface)
-            .overlay(alignment: .leading) {
-                ReplrTheme.Color.accent.frame(width: 3)
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(ReplrTheme.Color.border, lineWidth: 1)
-            )
+            .buttonStyle(.plain)
             .padding(.horizontal, 16)
-            .padding(.top, 12)
             .padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
