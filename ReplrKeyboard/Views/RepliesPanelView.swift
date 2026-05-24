@@ -47,7 +47,7 @@ struct RepliesPanelView: View {
 
             // Action row: wide Insert primary + Edit secondary (or undo when sent)
             actionRow
-                .padding(.horizontal, 10)
+                .padding(.horizontal, 16)
                 .padding(.vertical, 8)
 
         }
@@ -75,7 +75,7 @@ struct RepliesPanelView: View {
                 .buttonStyle(.plain)
             }
             .foregroundColor(ReplrTheme.Color.textPrimary)
-            .padding(.leading, 14)
+            .padding(.leading, 16)
 
             Spacer()
 
@@ -83,7 +83,7 @@ struct RepliesPanelView: View {
                 Text("\(currentPage + 1) of \(replies.count)")
                     .font(.system(size: 11))
                     .foregroundColor(ReplrTheme.Color.textSecondary)
-                    .padding(.trailing, 14)
+                    .padding(.trailing, 16)
             }
         }
         .frame(height: 28)
