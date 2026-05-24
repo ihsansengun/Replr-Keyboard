@@ -100,7 +100,7 @@ final class KeyboardViewController: UIInputViewController {
                 case .error:        height = 240
                 case .disambiguate: height = 300
                 case .replies:
-                    height = inputMode == .email ? 380 : 320
+                    height = inputMode == .email ? 275 : 270
                 }
                 self.setHeight(height)
             }

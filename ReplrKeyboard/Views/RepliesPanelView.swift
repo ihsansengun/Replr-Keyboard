@@ -34,6 +34,7 @@ struct RepliesPanelView: View {
                 lastInsertedReply: model.lastInsertedReply,
                 currentPage: $currentPage
             )
+            .frame(height: 88)
 
             // Page dots
             pageDots
