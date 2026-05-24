@@ -22,9 +22,11 @@ struct ReplyCarouselView: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
                 }
+                .background(Color.clear)
                 .tag(idx)
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
+        .background(Color.clear)
     }
 }

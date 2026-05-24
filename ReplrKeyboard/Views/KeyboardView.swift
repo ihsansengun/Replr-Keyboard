@@ -262,9 +262,9 @@ struct CollapsedStripView: View {
                     .transition(.opacity.animation(ReplrTheme.Motion.coachmark))
             }
 
-            // Pill handle
+            // Pill handle — adaptive: visible on both native light and dark keyboard chrome
             RoundedRectangle(cornerRadius: 2, style: .continuous)
-                .fill(Color.white.opacity(0.25))
+                .fill(ReplrTheme.Color.textSecondary.opacity(0.5))
                 .frame(width: 36, height: 4)
                 .padding(.top, 8)
                 .padding(.bottom, 4)
@@ -345,7 +345,7 @@ struct ModeSegmentedControl: View {
             segmentBtn(mode: .email, label: "Email")
         }
         .padding(3)
-        .background(ReplrTheme.Color.surface)
+        .background(ReplrTheme.Color.surfaceSunken)
         .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
