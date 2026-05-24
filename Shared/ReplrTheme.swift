@@ -29,32 +29,32 @@ enum ReplrTheme {
     // MARK: Color
 
     enum Color {
-        static let bg              = SwiftUI.Color(light: .init(hex: 0xF5F5F5), dark: .init(hex: 0x0A0A0B))
-        static let surface         = SwiftUI.Color(light: .init(hex: 0xFFFFFF), dark: .init(hex: 0x131318))
-        static let surfaceRaised   = SwiftUI.Color(light: .init(hex: 0xFFFFFF), dark: .init(hex: 0x1E1E25))
-        static let surfaceRaisedHi = SwiftUI.Color(light: .init(hex: 0xECECEE), dark: .init(hex: 0x2A2A33))
-        static let surfaceSunken   = SwiftUI.Color(light: .init(hex: 0xECECEE), dark: .init(hex: 0x0A0A0B))
+        static let bg              = SwiftUI.Color(light: .init(hex: 0xF8FAFC), dark: .init(hex: 0x0B1F3A))
+        static let surface         = SwiftUI.Color(light: .init(hex: 0xFFFFFF), dark: .init(hex: 0x112240))
+        static let surfaceRaised   = SwiftUI.Color(light: .init(hex: 0xFFFFFF), dark: .init(hex: 0x1A3252))
+        static let surfaceRaisedHi = SwiftUI.Color(light: .init(hex: 0xF1F5F9), dark: .init(hex: 0x334155))
+        static let surfaceSunken   = SwiftUI.Color(light: .init(hex: 0xF1F5F9), dark: .init(hex: 0x071629))
         static let surfaceGlass    = SwiftUI.Color(light: SwiftUI.Color(hex: 0xFFFFFF, alpha: 0.72),
-                                                    dark: SwiftUI.Color(hex: 0x1E1E25, alpha: 0.72))
+                                                    dark: SwiftUI.Color(hex: 0x1A3252, alpha: 0.72))
 
         static let border          = SwiftUI.Color(light: .init(white: 0, opacity: 0.08),
-                                                    dark: .init(white: 1, opacity: 0.07))
+                                                    dark: .init(white: 1, opacity: 0.09))
         static let borderStrong    = SwiftUI.Color(light: .init(white: 0, opacity: 0.14),
-                                                    dark: .init(white: 1, opacity: 0.12))
+                                                    dark: .init(white: 1, opacity: 0.15))
 
-        static let textPrimary     = SwiftUI.Color(light: .init(hex: 0x161618), dark: .init(hex: 0xF4F4F2))
-        static let textSecondary   = SwiftUI.Color(light: .init(hex: 0x5C5C61), dark: .init(hex: 0x8E8E92))
-        static let textTertiary    = SwiftUI.Color(light: .init(hex: 0x97979C), dark: .init(hex: 0x5C5C60))
+        static let textPrimary     = SwiftUI.Color(light: .init(hex: 0x0F172A), dark: .init(hex: 0xF8FAFC))
+        static let textSecondary   = SwiftUI.Color(light: .init(hex: 0x475569), dark: .init(hex: 0xCBD5E1))
+        static let textTertiary    = SwiftUI.Color(light: .init(hex: 0x94A3B8), dark: .init(hex: 0x64748B))
 
-        // Fixed amber — not adaptive. One amber per screen.
-        static let accent          = SwiftUI.Color(hex: 0xF2A93C)
-        static let accentPressed   = SwiftUI.Color(hex: 0xD4891A)
-        static let onAccent        = SwiftUI.Color(hex: 0x3A2401)
-        static let accentSubtle    = SwiftUI.Color(hex: 0xF2A93C, alpha: 0.12)
-        static let accentSoft      = SwiftUI.Color(hex: 0xF2A93C, alpha: 0.12)
+        // Fixed blue accent — not adaptive
+        static let accent          = SwiftUI.Color(hex: 0x2563EB)
+        static let accentPressed   = SwiftUI.Color(hex: 0x1D4ED8)
+        static let onAccent        = SwiftUI.Color(hex: 0xFFFFFF)
+        static let accentSubtle    = SwiftUI.Color(hex: 0x2563EB, alpha: 0.12)
+        static let accentSoft      = SwiftUI.Color(hex: 0x2563EB, alpha: 0.12)
 
-        static let danger          = SwiftUI.Color(light: .init(hex: 0xC4453F), dark: .init(hex: 0xE06A66))
-        static let success         = SwiftUI.Color(light: .init(hex: 0x3F7A52), dark: .init(hex: 0x4ADE80))
+        static let danger          = SwiftUI.Color(light: .init(hex: 0xDC2626), dark: .init(hex: 0xF87171))
+        static let success         = SwiftUI.Color(light: .init(hex: 0x16A34A), dark: .init(hex: 0x4ADE80))
     }
 
     // MARK: Font
