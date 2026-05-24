@@ -12,12 +12,23 @@ struct RepliesPanelView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Mode segmented control only — tone moves to bottom
-            HStack {
+            // Mode segmented control + reset + mark
+            HStack(spacing: 0) {
                 ModeSegmentedControl(model: model)
                 Spacer()
+                Button { model.regenerate() } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 13))
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
+                        .frame(width: 36, height: 36)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("New replies")
+                ReplrMark(size: 14)
+                    .padding(.leading, 4)
+                    .padding(.trailing, 16)
             }
-            .padding(.horizontal, 16)
+            .padding(.leading, 16)
             .padding(.bottom, 4)
             .background(ReplrTheme.Color.bg)
             .overlay(alignment: .bottom) { ReplrTheme.Color.border.frame(height: 0.5) }
@@ -206,17 +217,6 @@ struct RepliesPanelView: View {
                     endPoint: .trailing
                 )
             )
-
-            ReplrTheme.Color.borderStrong.frame(width: 0.5, height: 16)
-
-            Button { model.regenerate() } label: {
-                Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 13))
-                    .foregroundColor(ReplrTheme.Color.textSecondary)
-                    .frame(width: 40, height: 38)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("New replies")
 
             if model.needsGlobeKey {
                 ReplrTheme.Color.borderStrong.frame(width: 0.5, height: 16)
