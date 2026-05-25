@@ -240,7 +240,8 @@ struct RepliesPanelView: View {
                             .fill(ReplrTheme.Color.accent)
                             .overlay(ShimmerOverlay(cornerRadius: ReplrTheme.Radius.sm))
                     )
-                    .shadow(color: ReplrTheme.Color.accent.opacity(0.40), radius: 14, x: 0, y: 6)
+                    .shadow(color: ReplrTheme.Color.accent.opacity(0.55), radius: 18, x: 0, y: 6)
+                    .shadow(color: .black.opacity(0.22), radius: 6, x: 0, y: 3)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Insert reply")

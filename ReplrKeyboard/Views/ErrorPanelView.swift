@@ -48,7 +48,8 @@ struct ErrorPanelView: View {
                 .frame(height: 42)
                 .background(ReplrTheme.Color.accent)
                 .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-                .shadow(color: ReplrTheme.Color.accent.opacity(0.40), radius: 14, x: 0, y: 6)
+                .shadow(color: ReplrTheme.Color.accent.opacity(0.55), radius: 18, x: 0, y: 6)
+                .shadow(color: .black.opacity(0.22), radius: 6, x: 0, y: 3)
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 16)

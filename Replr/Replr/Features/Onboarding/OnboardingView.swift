@@ -78,7 +78,7 @@ private struct OnboardingStep<Content: View, CTA: View>: View {
             .padding(.bottom, 40)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color(UIColor.secondarySystemBackground).ignoresSafeArea())
+        .background(ReplrTheme.Color.bg.ignoresSafeArea())
     }
 }
 
@@ -90,7 +90,7 @@ private struct WelcomeStep: View {
 
     var body: some View {
         ZStack {
-            Color(UIColor.secondarySystemBackground).ignoresSafeArea()
+            ReplrTheme.Color.bg.ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
@@ -182,7 +182,7 @@ private struct AddKeyboardStep: View {
                 .padding(.top, 14)
                 .padding(.bottom, 8)
 
-                Divider().overlay(ReplrTheme.Color.border)
+                Divider().overlay(ReplrTheme.Color.glassBorder)
 
                 HStack(spacing: 12) {
                     ReplrMark(size: 13)
@@ -202,7 +202,7 @@ private struct AddKeyboardStep: View {
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .stroke(ReplrTheme.Color.border, lineWidth: 1)
+                    .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
             )
         } cta: {
             VStack(spacing: 12) {
@@ -255,7 +255,7 @@ private struct FullAccessStep: View {
                 .padding(.top, 14)
                 .padding(.bottom, 8)
 
-                Divider().overlay(ReplrTheme.Color.border)
+                Divider().overlay(ReplrTheme.Color.glassBorder)
 
                 HStack(spacing: 12) {
                     ReplrMark(size: 13)
@@ -281,7 +281,7 @@ private struct FullAccessStep: View {
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .stroke(ReplrTheme.Color.border, lineWidth: 1)
+                    .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
             )
         } cta: {
             VStack(spacing: 12) {
@@ -337,7 +337,7 @@ private struct InstallShortcutStep: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
 
-                Divider().overlay(ReplrTheme.Color.border)
+                Divider().overlay(ReplrTheme.Color.glassBorder)
 
                 VStack(spacing: 0) {
                     ForEach(Array(["Take Screenshot", "Generate Reply"].enumerated()), id: \.offset) { idx, action in
@@ -357,7 +357,7 @@ private struct InstallShortcutStep: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                         if idx < 1 {
-                            Divider().overlay(ReplrTheme.Color.border).padding(.leading, 52)
+                            Divider().overlay(ReplrTheme.Color.glassBorder).padding(.leading, 52)
                         }
                     }
                 }
@@ -366,7 +366,7 @@ private struct InstallShortcutStep: View {
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .stroke(ReplrTheme.Color.border, lineWidth: 1)
+                    .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
             )
         } cta: {
             VStack(spacing: 12) {
@@ -411,7 +411,7 @@ private struct BackTapStep: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
 
-                Divider().overlay(ReplrTheme.Color.border)
+                Divider().overlay(ReplrTheme.Color.glassBorder)
 
                 HStack(spacing: 12) {
                     ZStack {
@@ -439,7 +439,7 @@ private struct BackTapStep: View {
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .stroke(ReplrTheme.Color.border, lineWidth: 1)
+                    .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
             )
         } cta: {
             VStack(spacing: 10) {
@@ -547,7 +547,7 @@ struct BackTapSetupFullView: View {
                     .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                            .stroke(ReplrTheme.Color.border, lineWidth: 1)
+                            .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
                     )
 
                     Text("First time you triple-tap, iOS will ask to share the screenshot with Replr. Tap \"Allow Always\".")
@@ -566,7 +566,7 @@ struct BackTapSetupFullView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
             }
-            .background(Color(UIColor.secondarySystemBackground).ignoresSafeArea())
+            .background(ReplrTheme.Color.bg.ignoresSafeArea())
             .navigationTitle("Set up Back Tap")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

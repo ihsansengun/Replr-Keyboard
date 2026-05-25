@@ -45,11 +45,24 @@ struct PrimaryButtonStyle: ButtonStyle {
             .frame(height: 54)
             .background(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .fill(ReplrTheme.Color.accent.opacity(isEnabled ? 1 : 0.45))
+                    .fill(ReplrTheme.Color.accent.opacity(isEnabled ? 1 : 0.40))
                     .overlay(isEnabled ? ShimmerOverlay(cornerRadius: ReplrTheme.Radius.md) : nil)
             )
-            .elevatedSurface(.primaryAction)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            // Specular top-edge highlight — mimics Superwall's lit glass CTA
+            .overlay(
+                LinearGradient(
+                    colors: [Color.white.opacity(0.18), Color.clear],
+                    startPoint: .top,
+                    endPoint: .init(x: 0.5, y: 0.65)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+                .allowsHitTesting(false)
+            )
+            // Accent bloom glow
+            .shadow(color: ReplrTheme.Color.accent.opacity(isEnabled ? 0.55 : 0), radius: 24, x: 0, y: 8)
+            // Depth shadow
+            .shadow(color: .black.opacity(0.28), radius: 8, x: 0, y: 4)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
             .animation(ReplrTheme.Motion.quick, value: configuration.isPressed)
     }
 }
