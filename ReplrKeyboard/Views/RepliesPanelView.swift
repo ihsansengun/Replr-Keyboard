@@ -31,6 +31,23 @@ struct RepliesPanelView: View {
                 ReplrTheme.Color.border.frame(height: 0.5)
             }
 
+            // Memory cue
+            if let memoryName = model.memoryContactName {
+                HStack(spacing: 5) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 9))
+                    Text("Remembering your last chat with \(memoryName)")
+                        .font(.system(size: 11))
+                        .lineLimit(1)
+                }
+                .foregroundStyle(ReplrTheme.Color.accent)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 5)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(ReplrTheme.Color.accentSubtle)
+                ReplrTheme.Color.border.frame(height: 0.5)
+            }
+
             // Reply carousel
             ReplyCarouselView(
                 replies: replies,

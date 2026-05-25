@@ -218,9 +218,12 @@ final class KeyboardViewController: UIInputViewController {
                 } else if let replies = AppGroupService.shared.consumeReplies() {
                     NSLog("[Replr][Keyboard] poll: %d replies", replies.count)
                     AppGroupService.shared.savePendingContext("")  // context consumed, reset for next use
+                    let memoryContact = AppGroupService.shared.memoryUsedContactName
+                    AppGroupService.shared.memoryUsedContactName = nil
                     await MainActor.run {
                         self.model.isCaptureMode = false
                         self.model.isCollapsed = false
+                        self.model.memoryContactName = memoryContact
                         self.model.currentReplies = replies
                         // Refresh contact chip — intent may have switched contact during this capture
                         AppGroupService.shared.synchronize()

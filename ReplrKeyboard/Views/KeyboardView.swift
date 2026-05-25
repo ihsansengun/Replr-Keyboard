@@ -30,6 +30,7 @@ final class KeyboardModel: ObservableObject {
     @Published var inputMode: KeyboardInputMode = .chat
     @Published var isCaptureMode: Bool = false
     @Published var isCollapsed: Bool = false
+    @Published var memoryContactName: String? = nil
 
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
