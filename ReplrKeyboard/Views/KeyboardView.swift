@@ -241,7 +241,7 @@ struct CoachmarkBalloon: View {
                 .rotationEffect(.degrees(45))
                 .offset(x: 20, y: 5)
         }
-        .accessibilityLabel("Coachmark: Keyboard's minimised. Double-tap the back.")
+        .accessibilityLabel("Coachmark: Keyboard's minimised. Triple-tap the back.")
     }
 }
 
@@ -280,7 +280,7 @@ struct CollapsedStripView: View {
                     TapGlyph()
 
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("Double-tap the back of your phone")
+                        Text("Triple-tap the back of your phone")
                             .font(.system(size: 13.5, weight: .medium))
                             .foregroundColor(ReplrTheme.Color.textPrimary)
                         Text("to capture this chat")
