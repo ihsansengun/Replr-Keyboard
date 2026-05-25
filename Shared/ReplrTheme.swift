@@ -9,13 +9,19 @@ enum ReplrTheme {
     // MARK: Color
 
     enum Color {
-        // Backgrounds — iOS semantic, auto-adapt to light/dark
-        static let bg              = SwiftUI.Color(UIColor.secondarySystemBackground)
-        static let surface         = SwiftUI.Color(UIColor.tertiarySystemBackground)
+        // Backgrounds — adaptive: white floor in light (matches app chrome), dark gray in dark (matches native keyboard)
+        private static let _bg = UIColor { tc in
+            tc.userInterfaceStyle == .dark ? .secondarySystemBackground : .systemBackground
+        }
+        private static let _surface = UIColor { tc in
+            tc.userInterfaceStyle == .dark ? .tertiarySystemBackground : .secondarySystemBackground
+        }
+        static let bg              = SwiftUI.Color(_bg)
+        static let surface         = SwiftUI.Color(_surface)
         static let surfaceRaised   = SwiftUI.Color(UIColor.tertiarySystemBackground)
         static let surfaceRaisedHi = SwiftUI.Color(UIColor.systemFill)
         static let surfaceSunken   = SwiftUI.Color(UIColor.secondarySystemFill)
-        static let surfaceGlass    = SwiftUI.Color(UIColor.secondarySystemBackground).opacity(0.72)
+        static let surfaceGlass    = SwiftUI.Color(_bg).opacity(0.72)
 
         // Borders / separators
         static let border          = SwiftUI.Color(UIColor.separator).opacity(0.5)

@@ -60,7 +60,10 @@ final class KeyboardViewController: UIInputViewController {
             }
         }
 
-        view.backgroundColor = .clear
+        let adaptiveBg = UIColor { tc in
+            tc.userInterfaceStyle == .dark ? .secondarySystemBackground : .systemBackground
+        }
+        view.backgroundColor = adaptiveBg
         view.layer.cornerRadius = 12
         view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         view.layer.masksToBounds = true
