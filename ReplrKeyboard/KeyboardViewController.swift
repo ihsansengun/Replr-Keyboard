@@ -115,7 +115,7 @@ final class KeyboardViewController: UIInputViewController {
                 case .loading:      height = 250
                 case .error:        height = 240
                 case .disambiguate: height = 300
-                case .replies:      height = 248
+                case .replies:      height = 400
                 }
                 self.setHeight(height)
             }
@@ -224,6 +224,9 @@ final class KeyboardViewController: UIInputViewController {
                         self.model.isCaptureMode = false
                         self.model.isCollapsed = false
                         self.model.memoryContactName = memoryContact
+                        if !AppGroupService.shared.hasConsentedToCapture {
+                            self.model.showConsentPrompt = true
+                        }
                         self.model.currentReplies = replies
                         // Refresh contact chip — intent may have switched contact during this capture
                         AppGroupService.shared.synchronize()

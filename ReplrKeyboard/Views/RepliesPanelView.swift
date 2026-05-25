@@ -4,10 +4,10 @@ struct RepliesPanelView: View {
     @ObservedObject var model: KeyboardModel
     let replies: [String]
 
-    @State private var currentPage: Int = 0
+    @State private var selectedIndex: Int = 0
 
     private var currentReply: String {
-        replies.indices.contains(currentPage) ? replies[currentPage] : ""
+        replies.indices.contains(selectedIndex) ? replies[selectedIndex] : replies.first ?? ""
     }
 
     var body: some View {
@@ -48,17 +48,58 @@ struct RepliesPanelView: View {
                 ReplrTheme.Color.border.frame(height: 0.5)
             }
 
-            // Reply carousel
-            ReplyCarouselView(
-                replies: replies,
-                lastInsertedReply: model.lastInsertedReply,
-                currentPage: $currentPage
-            )
-            .frame(height: 88)
-
-            // Page dots
-            pageDots
-                .padding(.vertical, 6)
+            // Stacked reply list
+            ScrollView {
+                VStack(spacing: 8) {
+                    ForEach(Array(replies.enumerated()), id: \.offset) { idx, reply in
+                        Button {
+                            selectedIndex = idx
+                        } label: {
+                            HStack(alignment: .top, spacing: 10) {
+                                Text("\(idx + 1)")
+                                    .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                                    .foregroundStyle(
+                                        selectedIndex == idx
+                                            ? ReplrTheme.Color.onAccent
+                                            : ReplrTheme.Color.textTertiary
+                                    )
+                                    .frame(width: 18)
+                                Text(reply)
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(
+                                        selectedIndex == idx
+                                            ? ReplrTheme.Color.onAccent
+                                            : ReplrTheme.Color.textPrimary
+                                    )
+                                    .multilineTextAlignment(.leading)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .padding(12)
+                            .background(
+                                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                                    .fill(
+                                        selectedIndex == idx
+                                            ? ReplrTheme.Color.accent
+                                            : ReplrTheme.Color.surfaceRaised
+                                    )
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                                    .stroke(
+                                        selectedIndex == idx ? Color.clear : ReplrTheme.Color.border,
+                                        lineWidth: 0.5
+                                    )
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .animation(.easeInOut(duration: 0.12), value: selectedIndex)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+            }
+            .frame(maxHeight: 240)
 
             ReplrTheme.Color.border.frame(height: 0.5)
 
@@ -69,6 +110,40 @@ struct RepliesPanelView: View {
 
         }
         .background(ReplrTheme.Color.bg)
+        .overlay {
+            if model.showConsentPrompt {
+                ZStack {
+                    Color.black.opacity(0.55)
+                        .ignoresSafeArea()
+                    VStack(spacing: 14) {
+                        Text("Before your first reply")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(.white)
+                        Text("Replr sent this screenshot to its server to generate these replies. The screenshot is not stored. Only a one-line summary stays on your device for the memory feature.")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.white.opacity(0.85))
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(2)
+                        Button("Got it — show my replies") {
+                            AppGroupService.shared.hasConsentedToCapture = true
+                            model.showConsentPrompt = false
+                        }
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.onAccent)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 42)
+                        .background(ReplrTheme.Color.accent)
+                        .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
+                    }
+                    .padding(20)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(Color(UIColor.systemGray5))
+                    )
+                    .padding(.horizontal, 16)
+                }
+            }
+        }
     }
 
     // MARK: - Contact header
@@ -97,26 +172,13 @@ struct RepliesPanelView: View {
             Spacer()
 
             if replies.count > 1 {
-                Text("\(currentPage + 1) of \(replies.count)")
+                Text("\(selectedIndex + 1) of \(replies.count)")
                     .font(.system(size: 11))
                     .foregroundColor(ReplrTheme.Color.textSecondary)
                     .padding(.trailing, 16)
             }
         }
         .frame(height: 28)
-    }
-
-    // MARK: - Page dots
-
-    private var pageDots: some View {
-        HStack(spacing: 5) {
-            ForEach(0..<replies.count, id: \.self) { i in
-                Circle()
-                    .fill(i == currentPage ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary.opacity(0.35))
-                    .frame(width: 5, height: 5)
-                    .animation(.easeInOut(duration: 0.15), value: currentPage)
-            }
-        }
     }
 
     // MARK: - Action row

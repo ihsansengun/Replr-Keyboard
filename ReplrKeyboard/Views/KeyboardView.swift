@@ -31,6 +31,7 @@ final class KeyboardModel: ObservableObject {
     @Published var isCaptureMode: Bool = false
     @Published var isCollapsed: Bool = false
     @Published var memoryContactName: String? = nil
+    @Published var showConsentPrompt: Bool = false
 
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
