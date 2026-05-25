@@ -1,0 +1,61 @@
+/* Replr v2 — dark, modern, single-typeface system */
+:root {
+  /* Surfaces */
+  --base: #0A0A0B;
+  --surface: #131318;
+  --raised: #1E1E25;
+  --raised-hi: #2A2A33;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.12);
+
+  /* Text */
+  --t-primary: #F4F4F2;
+  --t-secondary: #8E8E92;
+  --t-tertiary: #5C5C60;
+  --t-disabled: #3D3D42;
+
+  /* Accents */
+  --accent: #FF5A4D;
+  --accent-dim: #B43E35;
+  --accent-soft: rgba(255, 90, 77, 0.12);
+  --accent-text: #1A0707;
+
+  --success: #4ADE80;
+  --warning: #F5C24E;
+
+  /* Type */
+  --font: "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Spacing scale — 8px grid */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+
+  /* Radii */
+  --r-xs: 4px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #1a1a1f;  /* Slightly lighter than --base so the canvas reads as a frame */
+  color: var(--t-primary);
+  font-family: var(--font);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+
+::-webkit-scrollbar { display: none; }

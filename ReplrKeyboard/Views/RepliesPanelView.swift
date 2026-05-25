@@ -145,7 +145,11 @@ struct RepliesPanelView: View {
                     .padding(20)
                     .background(
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(Color(UIColor.systemGray5))
+                            .fill(ReplrTheme.Color.surface)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                            )
                     )
                     .padding(.horizontal, 16)
                 }

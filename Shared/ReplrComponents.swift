@@ -80,7 +80,7 @@ struct SecondaryButtonStyle: ButtonStyle {
                     .fill(ReplrTheme.Color.surfaceRaised.opacity(isEnabled ? 1 : 0.45))
                     .overlay(
                         RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                            .strokeBorder(ReplrTheme.Color.borderStrong.opacity(isEnabled ? 1 : 0.45), lineWidth: 1)
+                            .strokeBorder(ReplrTheme.Color.glassBorder.opacity(isEnabled ? 1 : 0.45), lineWidth: 1)
                     )
             )
             .elevatedSurface(.level1)
@@ -152,6 +152,10 @@ struct Card<Content: View>: View {
                     .fill(ReplrTheme.Color.surfaceRaised)
             )
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.lg, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.lg, style: .continuous)
+                    .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
+            )
             .elevatedSurface(.level1)
     }
 }

@@ -20,10 +20,6 @@
 		57BB31C72FB6112700CE9E4D /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 57BB31C62FB6112700CE9E4D /* AppIntents.framework */; };
 		57CF47D02FB38B860034657F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CE2FB38B860034657F /* Constants.swift */; };
 		57CF47D12FB38B860034657F /* AppGroupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CD2FB38B860034657F /* AppGroupService.swift */; };
-		AA00001100AA0000001100BB /* ReplrTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001100AA0000001100AA /* ReplrTheme.swift */; };
-		AA00001100AA0000001100CC /* ReplrTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001100AA0000001100AA /* ReplrTheme.swift */; };
-		AA00002200AA0000002200BB /* ReplrComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002200AA0000002200AA /* ReplrComponents.swift */; };
-		AA00002200AA0000002200CC /* ReplrComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002200AA0000002200AA /* ReplrComponents.swift */; };
 		57CF47D22FB38B860034657F /* ConversationSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CA2FB38B860034657F /* ConversationSummary.swift */; };
 		57CF47D32FB38B860034657F /* Tone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CB2FB38B860034657F /* Tone.swift */; };
 		57CF47E02FB38DD70034657F /* ReplrKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 57CF47D82FB38DD70034657F /* ReplrKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -52,6 +48,10 @@
 		9239BA911EE141E6ABB05CFE /* ErrorPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42D2C67B4BFD4668A093B8BF /* ErrorPanelView.swift */; };
 		9716598EFAAC4EDEB2269AA3 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
 		97NFFLHM7VMCKWGF5XR93Z6Y /* ReplyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9UQQVONMO98OVYUWSM6VSM /* ReplyListView.swift */; };
+		AA00001100AA0000001100BB /* ReplrTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001100AA0000001100AA /* ReplrTheme.swift */; };
+		AA00001100AA0000001100CC /* ReplrTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001100AA0000001100AA /* ReplrTheme.swift */; };
+		AA00002200AA0000002200BB /* ReplrComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002200AA0000002200AA /* ReplrComponents.swift */; };
+		AA00002200AA0000002200CC /* ReplrComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002200AA0000002200AA /* ReplrComponents.swift */; };
 		B6C4868C80B147D5B844BA70 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
 		BA77ACE356C940B2ACEF3AD8 /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */; };
 		BB3396FD4C094C68848A5DFB /* IdlePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9D9AE8AD804A3FAF344942 /* IdlePanelView.swift */; };
@@ -133,8 +133,6 @@
 		57CF47CB2FB38B860034657F /* Tone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tone.swift; sourceTree = "<group>"; };
 		57CF47CD2FB38B860034657F /* AppGroupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupService.swift; sourceTree = "<group>"; };
 		57CF47CE2FB38B860034657F /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		AA00001100AA0000001100AA /* ReplrTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplrTheme.swift; sourceTree = "<group>"; };
-		AA00002200AA0000002200AA /* ReplrComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplrComponents.swift; sourceTree = "<group>"; };
 		57CF47D82FB38DD70034657F /* ReplrKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ReplrKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		57CF47F02FB38FA40034657F /* CaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureService.swift; sourceTree = "<group>"; };
 		57CF47F22FB38FA40034657F /* ScrollCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollCaptureService.swift; sourceTree = "<group>"; };
@@ -150,6 +148,8 @@
 		901023AA25EF4F65B91E4A72 /* CaptureSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSession.swift; sourceTree = "<group>"; };
 		973E39972E254D88BA792D61 /* LoadingPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingPanelView.swift; sourceTree = "<group>"; };
 		9E9UQQVONMO98OVYUWSM6VSM /* ReplyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyListView.swift; sourceTree = "<group>"; };
+		AA00001100AA0000001100AA /* ReplrTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplrTheme.swift; sourceTree = "<group>"; };
+		AA00002200AA0000002200AA /* ReplrComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplrComponents.swift; sourceTree = "<group>"; };
 		CC00000000CC0000000000A1 /* ContactResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactResolver.swift; sourceTree = "<group>"; };
 		D479986D87FD41BAA0E7D9AB /* RepliesPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepliesPanelView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
