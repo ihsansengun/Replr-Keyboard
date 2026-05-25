@@ -35,6 +35,35 @@ struct TonesView: View {
                     }
                     .onDelete { vm.delete(at: $0) }
                 }
+                let hasDating = vm.tones.filter { !$0.isPreset }.contains { $0.name.lowercased() == "dating" }
+                if !hasDating {
+                    Section("Suggested") {
+                        HStack(alignment: .top, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Dating")
+                                    .font(.body)
+                                Text("Confident and genuine. Light wit when it fits. Never desperate, never try-hard.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineSpacing(2)
+                            }
+                            Spacer()
+                            Button("Add") {
+                                let dating = Tone(
+                                    id: UUID(),
+                                    name: "Dating",
+                                    instruction: "Confident and genuine. Light wit when it fits. Never desperate, never try-hard.",
+                                    isPreset: false
+                                )
+                                vm.add(dating)
+                            }
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(ReplrTheme.Color.accent)
+                            .buttonStyle(.plain)
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
             }
             .navigationTitle("Tones")
             .toolbar {
