@@ -55,10 +55,12 @@ struct ReplrApp: App {
 struct ContentView: View {
     var body: some View {
         TabView {
+            RepliesView()
+                .tabItem { Label("Replies", systemImage: "clock") }
+            MemoryView()
+                .tabItem { Label("Memory", systemImage: "brain") }
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape") }
-            HistoryView()
-                .tabItem { Label("History", systemImage: "clock") }
         }
         .tint(ReplrTheme.Color.accent)
         .task {

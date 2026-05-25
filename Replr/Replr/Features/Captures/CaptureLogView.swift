@@ -2,7 +2,7 @@ import Combine
 import SwiftUI
 import UIKit
 
-final class HistoryViewModel: ObservableObject {
+final class RepliesViewModel: ObservableObject {
     @Published var sessions: [CaptureSession] = []
     @Published var selectedContactID: UUID? = nil  // nil = "All"
 
@@ -44,8 +44,8 @@ final class HistoryViewModel: ObservableObject {
     }
 }
 
-struct HistoryView: View {
-    @StateObject private var vm = HistoryViewModel()
+struct RepliesView: View {
+    @StateObject private var vm = RepliesViewModel()
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
     @State private var memoryContact: Contact? = nil
 
@@ -122,7 +122,7 @@ struct HistoryView: View {
                     }
                 }
             }
-            .navigationTitle("History")
+            .navigationTitle("Replies")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if !vm.sessions.isEmpty {
