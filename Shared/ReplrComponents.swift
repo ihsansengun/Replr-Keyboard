@@ -1,5 +1,37 @@
 import SwiftUI
 
+// MARK: - ShimmerOverlay
+
+struct ShimmerOverlay: View {
+    let cornerRadius: CGFloat
+    @State private var phase: CGFloat = 0
+
+    var body: some View {
+        GeometryReader { geo in
+            LinearGradient(
+                stops: [
+                    .init(color: .clear,                  location: 0),
+                    .init(color: .white.opacity(0.18),    location: 0.4),
+                    .init(color: .white.opacity(0.32),    location: 0.5),
+                    .init(color: .white.opacity(0.18),    location: 0.6),
+                    .init(color: .clear,                  location: 1),
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            .frame(width: geo.size.width * 2)
+            .offset(x: -2 * geo.size.width + phase * 3 * geo.size.width)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        .allowsHitTesting(false)
+        .onAppear {
+            withAnimation(.linear(duration: 3.0).repeatForever(autoreverses: false)) {
+                phase = 1
+            }
+        }
+    }
+}
+
 // MARK: - PrimaryButton
 
 struct PrimaryButtonStyle: ButtonStyle {
@@ -14,6 +46,7 @@ struct PrimaryButtonStyle: ButtonStyle {
             .background(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
                     .fill(ReplrTheme.Color.accent.opacity(isEnabled ? 1 : 0.45))
+                    .overlay(isEnabled ? ShimmerOverlay(cornerRadius: ReplrTheme.Radius.md) : nil)
             )
             .elevatedSurface(.primaryAction)
             .scaleEffect(configuration.isPressed ? 0.97 : 1)

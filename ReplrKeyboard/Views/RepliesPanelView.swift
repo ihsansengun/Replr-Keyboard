@@ -148,8 +148,11 @@ struct RepliesPanelView: View {
                     .foregroundColor(ReplrTheme.Color.onAccent)
                     .frame(maxWidth: .infinity)
                     .frame(height: 42)
-                    .background(ReplrTheme.Color.accent)
-                    .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
+                    .background(
+                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                            .fill(ReplrTheme.Color.accent)
+                            .overlay(ShimmerOverlay(cornerRadius: ReplrTheme.Radius.sm))
+                    )
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Insert reply")
