@@ -24,6 +24,13 @@ enum Constants {
     static let intentHintKey          = "intent_hint"
     static let switchKeyboardKey      = "switch_keyboard_requested"
     static let coachmarkSeenKey       = "keyboard.coachmarkSeen"
+    static let keyboardInstalledKey       = "keyboard_installed"
+    static let fullAccessGrantedKey       = "full_access_granted"
+    static let memoryUsedContactKey       = "memory_used_contact"
+    static let hasConsentedToCaptureKey   = "has_consented_to_capture"
+    static let backTapSkippedKey          = "back_tap_skipped"
+    // Update this URL once the new shortcut (Take Screenshot → Generate Reply) is created:
+    static let shortcutInstallURL         = "https://www.icloud.com/shortcuts/REPLACE_WITH_NEW_URL"
 
     // File-based keys (broadcast/scroll capture only)
     static let screenshotFilename     = "screenshot.png"
