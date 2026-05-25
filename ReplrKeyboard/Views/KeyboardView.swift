@@ -340,43 +340,17 @@ struct ModeSegmentedControl: View {
     @ObservedObject var model: KeyboardModel
 
     var body: some View {
-        HStack(spacing: 2) {
-            segmentBtn(mode: .chat,  label: "Chat")
-            segmentBtn(mode: .email, label: "Email")
+        Picker("Mode", selection: $model.inputMode) {
+            Text("Chat").tag(KeyboardInputMode.chat)
+            Text("Email").tag(KeyboardInputMode.email)
         }
-        .padding(3)
-        .background(ReplrTheme.Color.surfaceSunken)
-        .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                .stroke(ReplrTheme.Color.border, lineWidth: 1)
-        )
-    }
-
-    @ViewBuilder
-    private func segmentBtn(mode: KeyboardInputMode, label: String) -> some View {
-        let isActive = model.inputMode == mode
-        Button {
-            guard model.inputMode != mode else { return }
-            withAnimation(.easeInOut(duration: 0.2)) {
-                if mode == .email, model.selectedTone.name == "Dating" {
-                    model.selectedTone = model.tones.first { $0.name != "Dating" } ?? model.selectedTone
-                }
-                model.inputMode = mode
+        .pickerStyle(.segmented)
+        .frame(width: 130)
+        .onChange(of: model.inputMode) { newMode in
+            if newMode == .email, model.selectedTone.name == "Dating" {
+                model.selectedTone = model.tones.first { $0.name != "Dating" } ?? model.selectedTone
             }
-        } label: {
-            Text(label)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(isActive ? ReplrTheme.Color.textPrimary : ReplrTheme.Color.textSecondary)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 6)
-                .background(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(isActive ? ReplrTheme.Color.surfaceRaised : Color.clear)
-                )
         }
-        .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.15), value: isActive)
     }
 }
 
