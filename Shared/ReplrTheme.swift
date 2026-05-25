@@ -36,12 +36,17 @@ enum ReplrTheme {
         static let textSecondary   = SwiftUI.Color.secondary
         static let textTertiary    = SwiftUI.Color(UIColor.tertiaryLabel)
 
-        // Accent — follows iOS system tint (user-configurable in Settings)
-        static let accent          = SwiftUI.Color.accentColor
-        static let accentPressed   = SwiftUI.Color.accentColor
+        // Accent — Electric Coral, hardcoded so keyboard extension bundle gets it too
+        private static let _accent = UIColor { tc in
+            tc.userInterfaceStyle == .dark
+                ? UIColor(red: 1.000, green: 0.420, blue: 0.290, alpha: 1) // #FF6B4A
+                : UIColor(red: 0.918, green: 0.298, blue: 0.173, alpha: 1) // #EA4C2C
+        }
+        static let accent          = SwiftUI.Color(_accent)
+        static let accentPressed   = SwiftUI.Color(_accent)
         static let onAccent        = SwiftUI.Color.white
-        static let accentSubtle    = SwiftUI.Color.accentColor.opacity(0.12)
-        static let accentSoft      = SwiftUI.Color.accentColor.opacity(0.12)
+        static let accentSubtle    = SwiftUI.Color(_accent).opacity(0.12)
+        static let accentSoft      = SwiftUI.Color(_accent).opacity(0.12)
 
         // Semantic status colors — iOS adaptive
         static let danger          = SwiftUI.Color(UIColor.systemRed)

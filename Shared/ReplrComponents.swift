@@ -334,7 +334,7 @@ struct ReplrMark: View {
 
     var body: some View {
         ReplrBirdShape()
-            .fill(ReplrTheme.Color.textPrimary, style: FillStyle(eoFill: true))
+            .fill(ReplrTheme.Color.accent, style: FillStyle(eoFill: true))
             .frame(width: size * 1.6, height: size)
     }
 }
