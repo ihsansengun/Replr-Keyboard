@@ -60,8 +60,10 @@ final class KeyboardViewController: UIInputViewController {
             }
         }
 
-        // Set background immediately so there's no black flash before the Combine sink fires.
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .clear
+        view.layer.cornerRadius = 12
+        view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        view.layer.masksToBounds = true
 
         hostingVC = UIHostingController(rootView: KeyboardRootView(model: model))
         hostingVC.view.backgroundColor = .clear
@@ -88,9 +90,6 @@ final class KeyboardViewController: UIInputViewController {
             .sink { [weak self] combined, isCollapsed in
                 guard let self else { return }
                 let ((state, isCaptureMode), inputMode) = combined
-                // Clear UIKit bg when collapsed so native iOS chrome fills the slot;
-                // solid bg when expanded to prevent system chrome bleeding at the top edge.
-                self.view.backgroundColor = (isCaptureMode || isCollapsed) ? .clear : .systemBackground
                 if isCaptureMode {
                     self.setHeight(0, duration: 0.15)
                     return
