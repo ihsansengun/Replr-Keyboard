@@ -24,7 +24,7 @@ struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 3) {
                             Text("Replr")
                                 .font(.title3.bold())
-                            Text("AI-powered reply keyboard")
+                            Text("Know what to say.")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
@@ -86,6 +86,9 @@ struct SettingsView: View {
                     NavigationLink("Subscription") { SubscriptionView() }
                 }
                 Section("About") {
+                    NavigationLink(destination: PrivacyView()) {
+                        Label("Privacy", systemImage: "lock.shield")
+                    }
                     LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                 }
             }
