@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 final class MemoryViewModel: ObservableObject {
     @Published var contacts: [Contact] = []
