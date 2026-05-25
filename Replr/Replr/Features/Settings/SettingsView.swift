@@ -17,9 +17,9 @@ struct SettingsView: View {
                             .fill(Color.primary)
                             .frame(width: 56, height: 56)
                             .overlay(
-                                Image(systemName: "arrowshape.turn.up.left.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundStyle(Color(UIColor.systemBackground))
+                                ReplrBirdShape()
+                                    .fill(Color(UIColor.systemBackground), style: FillStyle(eoFill: true))
+                                    .frame(width: 34, height: 22)
                             )
                         VStack(alignment: .leading, spacing: 3) {
                             Text("Replr")
