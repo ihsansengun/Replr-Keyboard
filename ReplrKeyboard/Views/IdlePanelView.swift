@@ -66,6 +66,7 @@ struct IdlePanelView: View {
                             .frame(height: 32)
                             .background(ReplrTheme.Color.accent)
                             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
+                            .shadow(color: ReplrTheme.Color.accent.opacity(0.40), radius: 10, x: 0, y: 4)
                     }
                     .buttonStyle(.plain)
                 }
@@ -74,6 +75,10 @@ struct IdlePanelView: View {
             }
             .background(ReplrTheme.Color.surface)
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                    .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
+            )
             .elevatedSurface(.level1)
         }
         .padding(.horizontal, 16)

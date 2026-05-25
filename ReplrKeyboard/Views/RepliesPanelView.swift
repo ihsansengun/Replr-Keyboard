@@ -81,13 +81,24 @@ struct RepliesPanelView: View {
                                     .fill(
                                         selectedIndex == idx
                                             ? ReplrTheme.Color.accent
-                                            : ReplrTheme.Color.surfaceRaised
+                                            : ReplrTheme.Color.surface
+                                    )
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                                    .stroke(
+                                        selectedIndex == idx
+                                            ? ReplrTheme.Color.accent.opacity(0.4)
+                                            : ReplrTheme.Color.glassBorder,
+                                        lineWidth: 1
                                     )
                             )
                             .shadow(
-                                color: .black.opacity(selectedIndex == idx ? 0.20 : 0.08),
-                                radius: selectedIndex == idx ? 4 : 2,
-                                x: 0, y: selectedIndex == idx ? 2 : 1
+                                color: selectedIndex == idx
+                                    ? ReplrTheme.Color.accent.opacity(0.25)
+                                    : .black.opacity(0.10),
+                                radius: selectedIndex == idx ? 8 : 2,
+                                x: 0, y: selectedIndex == idx ? 4 : 1
                             )
                         }
                         .buttonStyle(.plain)
@@ -230,6 +241,7 @@ struct RepliesPanelView: View {
                             .fill(ReplrTheme.Color.accent)
                             .overlay(ShimmerOverlay(cornerRadius: ReplrTheme.Radius.sm))
                     )
+                    .shadow(color: ReplrTheme.Color.accent.opacity(0.40), radius: 14, x: 0, y: 6)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Insert reply")

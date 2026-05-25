@@ -172,11 +172,22 @@ struct Chip: View {
                 .padding(.vertical, 7)
                 .background(
                     Capsule()
-                        .fill(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.surfaceRaised)
+                        .fill(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.surface)
+                )
+                .overlay(
+                    Capsule()
+                        .strokeBorder(
+                            isSelected
+                                ? ReplrTheme.Color.accent.opacity(0.5)
+                                : ReplrTheme.Color.glassBorder,
+                            lineWidth: 1
+                        )
                 )
                 .shadow(
-                    color: .black.opacity(isSelected ? 0.20 : 0.08),
-                    radius: isSelected ? 4 : 2, x: 0, y: isSelected ? 2 : 1
+                    color: isSelected
+                        ? ReplrTheme.Color.accent.opacity(0.30)
+                        : .black.opacity(0.08),
+                    radius: isSelected ? 8 : 2, x: 0, y: isSelected ? 3 : 1
                 )
         }
         .buttonStyle(.plain)

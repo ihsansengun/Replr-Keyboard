@@ -9,16 +9,18 @@ enum ReplrTheme {
     // MARK: Color
 
     enum Color {
-        // Backgrounds — adaptive native keyboard tones
-        // Light: systemGray4 (#D1D1D6) = native keyboard gray; Dark: secondarySystemBackground (#1C1C1E)
+        // Backgrounds — dark: deep navy-slate; light: native keyboard gray
+        // Dark #111827 has a very subtle blue undertone that reads premium without being "blue"
         private static let _bg = UIColor { tc in
-            tc.userInterfaceStyle == .dark ? .secondarySystemBackground : .systemGray4
+            tc.userInterfaceStyle == .dark
+                ? UIColor(red: 0.067, green: 0.094, blue: 0.153, alpha: 1) // #111827
+                : .systemGray4
         }
-        // Surface sits one level above the floor:
-        // Light: systemBackground (#FFFFFF) = white cards on gray keyboard floor (native key look)
-        // Dark: tertiarySystemBackground (#2C2C2E)
+        // Surface one level above floor — dark: #1C2739 (navy-slate), light: white card
         private static let _surface = UIColor { tc in
-            tc.userInterfaceStyle == .dark ? .tertiarySystemBackground : .systemBackground
+            tc.userInterfaceStyle == .dark
+                ? UIColor(red: 0.110, green: 0.153, blue: 0.224, alpha: 1) // #1C2739
+                : .systemBackground
         }
         static let bg              = SwiftUI.Color(_bg)
         static let surface         = SwiftUI.Color(_surface)
@@ -30,6 +32,8 @@ enum ReplrTheme {
         // Borders / separators
         static let border          = SwiftUI.Color(UIColor.separator).opacity(0.5)
         static let borderStrong    = SwiftUI.Color(UIColor.separator)
+        // Glass border: 1px white at 8% — the Superwall "glass card" signature look
+        static let glassBorder     = SwiftUI.Color.white.opacity(0.08)
 
         // Text — iOS semantic labels
         static let textPrimary     = SwiftUI.Color.primary
