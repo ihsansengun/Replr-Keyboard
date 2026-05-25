@@ -67,7 +67,7 @@ final class KeyboardViewController: UIInputViewController {
 
         let adaptiveBg = UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.067, green: 0.094, blue: 0.153, alpha: 1) // #111827 navy
+                ? UIColor(red: 0.051, green: 0.067, blue: 0.090, alpha: 1) // #0D1117
                 : .systemGray4
         }
         view.backgroundColor = adaptiveBg
