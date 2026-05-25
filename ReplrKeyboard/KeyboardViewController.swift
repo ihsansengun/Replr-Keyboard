@@ -14,6 +14,11 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        if hasFullAccess {
+            AppGroupService.shared.keyboardInstalled = true
+            AppGroupService.shared.fullAccessGranted = true
+        }
+
         heightConstraint = view.heightAnchor.constraint(equalToConstant: 270)
         heightConstraint.priority = UILayoutPriority(999)
         heightConstraint.isActive = true
