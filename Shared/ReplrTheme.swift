@@ -51,12 +51,8 @@ enum ReplrTheme {
         }
         static let accent          = SwiftUI.Color(_accent)
         static let accentPressed   = SwiftUI.Color(_accent)
-        // onAccent: dark navy in dark mode (text on bright teal), white in light mode
-        static let onAccent        = SwiftUI.Color(UIColor { tc in
-            tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.051, green: 0.067, blue: 0.090, alpha: 1) // #0D1117
-                : .white
-        })
+        // onAccent: dark navy on both teal variants — passes WCAG AAA on dark (#17EAD9) and light (#00B4A0)
+        static let onAccent        = SwiftUI.Color(UIColor(red: 0.051, green: 0.067, blue: 0.090, alpha: 1)) // #0D1117
         static let accentSubtle    = SwiftUI.Color(_accent).opacity(0.12)
         static let accentSoft      = SwiftUI.Color(_accent).opacity(0.12)
 
