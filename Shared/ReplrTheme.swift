@@ -9,12 +9,16 @@ enum ReplrTheme {
     // MARK: Color
 
     enum Color {
-        // Backgrounds — adaptive: white floor in light (matches app chrome), dark gray in dark (matches native keyboard)
+        // Backgrounds — adaptive native keyboard tones
+        // Light: systemGray4 (#D1D1D6) = native keyboard gray; Dark: secondarySystemBackground (#1C1C1E)
         private static let _bg = UIColor { tc in
-            tc.userInterfaceStyle == .dark ? .secondarySystemBackground : .systemBackground
+            tc.userInterfaceStyle == .dark ? .secondarySystemBackground : .systemGray4
         }
+        // Surface sits one level above the floor:
+        // Light: systemBackground (#FFFFFF) = white cards on gray keyboard floor (native key look)
+        // Dark: tertiarySystemBackground (#2C2C2E)
         private static let _surface = UIColor { tc in
-            tc.userInterfaceStyle == .dark ? .tertiarySystemBackground : .secondarySystemBackground
+            tc.userInterfaceStyle == .dark ? .tertiarySystemBackground : .systemBackground
         }
         static let bg              = SwiftUI.Color(_bg)
         static let surface         = SwiftUI.Color(_surface)

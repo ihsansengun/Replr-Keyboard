@@ -83,7 +83,7 @@ private struct OnboardingStep<Content: View, CTA: View>: View {
             .padding(.bottom, 40)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(ReplrTheme.Color.bg.ignoresSafeArea())
+        .background(Color(UIColor.systemBackground).ignoresSafeArea())
     }
 }
 
@@ -95,7 +95,7 @@ private struct WelcomeStep: View {
 
     var body: some View {
         ZStack {
-            ReplrTheme.Color.bg.ignoresSafeArea()
+            Color(UIColor.systemBackground).ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 0) {
                 // Nav bar row
@@ -629,7 +629,7 @@ struct BackTapSetupFullView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 24)
             }
-            .background(ReplrTheme.Color.bg.ignoresSafeArea())
+            .background(Color(UIColor.systemBackground).ignoresSafeArea())
             .navigationTitle("Set up Back Tap")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
