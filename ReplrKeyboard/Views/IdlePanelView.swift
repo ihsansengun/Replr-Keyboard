@@ -74,10 +74,7 @@ struct IdlePanelView: View {
             }
             .background(ReplrTheme.Color.surface)
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .stroke(ReplrTheme.Color.border, lineWidth: 1)
-            )
+            .elevatedSurface(.level1)
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)

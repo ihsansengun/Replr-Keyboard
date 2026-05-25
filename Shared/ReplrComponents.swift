@@ -172,13 +172,11 @@ struct Chip: View {
                 .padding(.vertical, 7)
                 .background(
                     Capsule()
-                        .fill(isSelected ? ReplrTheme.Color.accent : Color.clear)
-                        .overlay(
-                            Capsule().strokeBorder(
-                                isSelected ? Color.clear : ReplrTheme.Color.border,
-                                lineWidth: 1
-                            )
-                        )
+                        .fill(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.surfaceRaised)
+                )
+                .shadow(
+                    color: .black.opacity(isSelected ? 0.20 : 0.08),
+                    radius: isSelected ? 4 : 2, x: 0, y: isSelected ? 2 : 1
                 )
         }
         .buttonStyle(.plain)
@@ -210,6 +208,10 @@ struct SegmentedControl<Option: Hashable>: View {
                         .background(
                             RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
                                 .fill(isActive ? ReplrTheme.Color.surfaceRaised : Color.clear)
+                        )
+                        .shadow(
+                            color: .black.opacity(isActive ? 0.12 : 0),
+                            radius: 3, x: 0, y: 1
                         )
                 }
                 .buttonStyle(.plain)

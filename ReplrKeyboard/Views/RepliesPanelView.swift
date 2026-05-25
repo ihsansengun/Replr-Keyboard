@@ -84,12 +84,10 @@ struct RepliesPanelView: View {
                                             : ReplrTheme.Color.surfaceRaised
                                     )
                             )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                                    .stroke(
-                                        selectedIndex == idx ? Color.clear : ReplrTheme.Color.border,
-                                        lineWidth: 0.5
-                                    )
+                            .shadow(
+                                color: .black.opacity(selectedIndex == idx ? 0.20 : 0.08),
+                                radius: selectedIndex == idx ? 4 : 2,
+                                x: 0, y: selectedIndex == idx ? 2 : 1
                             )
                         }
                         .buttonStyle(.plain)
@@ -209,10 +207,7 @@ struct RepliesPanelView: View {
                     .frame(height: 38)
                     .background(ReplrTheme.Color.accentSubtle)
                     .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                            .stroke(ReplrTheme.Color.accent, lineWidth: 1)
-                    )
+                    .shadow(color: ReplrTheme.Color.accent.opacity(0.18), radius: 4, x: 0, y: 2)
                 }
                 .buttonStyle(.plain)
             }
@@ -245,10 +240,7 @@ struct RepliesPanelView: View {
                     .frame(width: 56, height: 42)
                     .background(ReplrTheme.Color.surfaceRaised)
                     .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                            .stroke(ReplrTheme.Color.border, lineWidth: 0.5)
-                    )
+                    .shadow(color: .black.opacity(0.10), radius: 2, x: 0, y: 1)
                     .buttonStyle(.plain)
 
                 Button { model.regenerate() } label: {
@@ -259,10 +251,7 @@ struct RepliesPanelView: View {
                 .frame(width: 42, height: 42)
                 .background(ReplrTheme.Color.surfaceRaised)
                 .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                        .stroke(ReplrTheme.Color.border, lineWidth: 0.5)
-                )
+                .shadow(color: .black.opacity(0.10), radius: 2, x: 0, y: 1)
                 .buttonStyle(.plain)
                 .accessibilityLabel("New replies")
             }

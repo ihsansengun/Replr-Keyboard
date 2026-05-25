@@ -43,9 +43,6 @@ struct LoadingPanelView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(ReplrTheme.Color.surface)
         .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                .stroke(ReplrTheme.Color.border, lineWidth: 0.5)
-        )
+        .elevatedSurface(.level1)
     }
 }

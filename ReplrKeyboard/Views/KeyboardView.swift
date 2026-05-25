@@ -307,10 +307,7 @@ struct CollapsedStripView: View {
                     ReplrTheme.Color.accent.frame(width: 3)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(ReplrTheme.Color.border, lineWidth: 1)
-                )
+                .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 16)
