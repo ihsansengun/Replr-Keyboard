@@ -48,9 +48,42 @@ struct RepliesView: View {
     @StateObject private var vm = RepliesViewModel()
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
     @State private var memoryContact: Contact? = nil
+    @State private var backTapSkipped = AppGroupService.shared.backTapSkipped
+    @State private var showSetupSheet = false
 
     var body: some View {
         NavigationStack {
+            if backTapSkipped {
+                HStack(spacing: 12) {
+                    Image(systemName: "hand.tap")
+                        .font(.system(size: 16))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Finish setup")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("Set up Back Tap for one-gesture capture")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button("Set up") { showSetupSheet = true }
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                    Button {
+                        AppGroupService.shared.backTapSkipped = false
+                        backTapSkipped = false
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(ReplrTheme.Color.accentSubtle)
+            }
+
             Group {
                 if vm.sessions.isEmpty {
                     VStack(spacing: 16) {
@@ -131,10 +164,14 @@ struct RepliesView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showSetupSheet) {
+                BackTapSetupFullView(isPresented: $showSetupSheet)
+            }
         }
         .onAppear {
             vm.load()
             memoryEnabled = AppGroupService.shared.memoryEnabled
+            backTapSkipped = AppGroupService.shared.backTapSkipped
         }
         .sheet(item: $memoryContact) { contact in
             NavigationStack {
