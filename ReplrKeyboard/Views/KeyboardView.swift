@@ -108,6 +108,8 @@ final class KeyboardModel: ObservableObject {
         isCollapsed = false
         lastInsertedReply = nil
         contactName = nil
+        memoryContactName = nil
+        AppGroupService.shared.currentContactID = nil
         AppGroupService.shared.clearCachedReplies()
         currentReplies = []
         withAnimation(.easeInOut(duration: 0.2)) { state = .idle }
@@ -116,6 +118,8 @@ final class KeyboardModel: ObservableObject {
     func clearRepliesForCapture() {
         lastInsertedReply = nil
         contactName = nil
+        memoryContactName = nil
+        AppGroupService.shared.currentContactID = nil
         AppGroupService.shared.clearCachedReplies()
         currentReplies = []
         state = .idle

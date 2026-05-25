@@ -25,6 +25,8 @@ struct RepliesPanelView: View {
             .background(ReplrTheme.Color.bg)
             .overlay(alignment: .bottom) { ReplrTheme.Color.border.frame(height: 0.5) }
 
+            ToneRow(model: model)
+
             // Contact header: name + rename + N of M
             if let name = model.contactName {
                 contactHeader(name)
@@ -99,7 +101,8 @@ struct RepliesPanelView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
             }
-            .frame(maxHeight: 240)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxHeight: 210)
 
             ReplrTheme.Color.border.frame(height: 0.5)
 
