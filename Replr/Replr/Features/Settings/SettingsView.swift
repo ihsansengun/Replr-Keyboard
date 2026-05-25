@@ -14,11 +14,11 @@ struct SettingsView: View {
                 Section {
                     HStack(spacing: 14) {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Color.primary)
+                            .fill(ReplrTheme.Color.accent)
                             .frame(width: 56, height: 56)
                             .overlay(
                                 ReplrBirdShape()
-                                    .fill(Color(UIColor.systemBackground), style: FillStyle(eoFill: true))
+                                    .fill(Color.white, style: FillStyle(eoFill: true))
                                     .frame(width: 34, height: 22)
                             )
                         VStack(alignment: .leading, spacing: 3) {

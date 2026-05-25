@@ -29,7 +29,7 @@ struct IdlePanelView: View {
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .tracking(0.8)
 
-                    Text("Open the chat, then collapse this keyboard — Replr records what's on screen when you double-tap.")
+                    Text("Open the chat, then collapse this keyboard — Replr records what's on screen when you triple-tap.")
                         .font(.system(size: 13))
                         .foregroundColor(ReplrTheme.Color.textPrimary)
                         .lineSpacing(2)

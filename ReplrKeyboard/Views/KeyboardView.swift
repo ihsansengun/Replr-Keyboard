@@ -220,7 +220,7 @@ struct CoachmarkBalloon: View {
             Image(systemName: "sparkles")
                 .font(.system(size: 12, weight: .medium))
                 .padding(.top, 1)
-            Text("① Keyboard's minimised. ② Double-tap the back.")
+            Text("① Keyboard's minimised. ② Triple-tap the back.")
                 .font(.system(size: 12.5, weight: .medium))
                 .lineLimit(2)
         }
@@ -372,7 +372,7 @@ struct ToneRow: View {
                         )
                     }
                 }
-                .padding(.leading, 8)
+                .padding(.leading, 16)
                 .padding(.trailing, 32)
             }
             .mask(
@@ -419,7 +419,7 @@ struct KeyboardHeader: View {
                     .opacity(isSegmentedDisabled ? 0.4 : 1.0)
                     .allowsHitTesting(!isSegmentedDisabled)
                 Spacer()
-                ReplrMark(size: 14)
+                ReplrMark(size: 16)
                     .opacity(isSegmentedDisabled ? 0.4 : 1.0)
             }
             .padding(.horizontal, 16)
