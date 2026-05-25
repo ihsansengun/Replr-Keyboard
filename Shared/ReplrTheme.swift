@@ -4,14 +4,6 @@ import UIKit
 // MARK: - Color helpers
 
 extension Color {
-    init(light: Color, dark: Color) {
-        self.init(UIColor { tc in
-            tc.userInterfaceStyle == .dark
-                ? UIColor(dark)
-                : UIColor(light)
-        })
-    }
-
     init(hex: UInt32, alpha: Double = 1) {
         self.init(
             red:   Double((hex >> 16) & 0xFF) / 255,
@@ -29,32 +21,33 @@ enum ReplrTheme {
     // MARK: Color
 
     enum Color {
-        static let bg              = SwiftUI.Color(light: .init(hex: 0xF8FAFC), dark: .init(hex: 0x0B1F3A))
-        static let surface         = SwiftUI.Color(light: .init(hex: 0xFFFFFF), dark: .init(hex: 0x112240))
-        static let surfaceRaised   = SwiftUI.Color(light: .init(hex: 0xFFFFFF), dark: .init(hex: 0x1A3252))
-        static let surfaceRaisedHi = SwiftUI.Color(light: .init(hex: 0xF1F5F9), dark: .init(hex: 0x334155))
-        static let surfaceSunken   = SwiftUI.Color(light: .init(hex: 0xF1F5F9), dark: .init(hex: 0x071629))
-        static let surfaceGlass    = SwiftUI.Color(light: SwiftUI.Color(hex: 0xFFFFFF, alpha: 0.72),
-                                                    dark: SwiftUI.Color(hex: 0x1A3252, alpha: 0.72))
+        // Backgrounds — iOS semantic, auto-adapt to light/dark
+        static let bg              = SwiftUI.Color(UIColor.systemBackground)
+        static let surface         = SwiftUI.Color(UIColor.secondarySystemBackground)
+        static let surfaceRaised   = SwiftUI.Color(UIColor.tertiarySystemBackground)
+        static let surfaceRaisedHi = SwiftUI.Color(UIColor.systemFill)
+        static let surfaceSunken   = SwiftUI.Color(UIColor.secondarySystemFill)
+        static let surfaceGlass    = SwiftUI.Color(UIColor.systemBackground).opacity(0.72)
 
-        static let border          = SwiftUI.Color(light: .init(white: 0, opacity: 0.08),
-                                                    dark: .init(white: 1, opacity: 0.09))
-        static let borderStrong    = SwiftUI.Color(light: .init(white: 0, opacity: 0.14),
-                                                    dark: .init(white: 1, opacity: 0.15))
+        // Borders / separators
+        static let border          = SwiftUI.Color(UIColor.separator).opacity(0.5)
+        static let borderStrong    = SwiftUI.Color(UIColor.separator)
 
-        static let textPrimary     = SwiftUI.Color(light: .init(hex: 0x0F172A), dark: .init(hex: 0xF8FAFC))
-        static let textSecondary   = SwiftUI.Color(light: .init(hex: 0x475569), dark: .init(hex: 0xCBD5E1))
-        static let textTertiary    = SwiftUI.Color(light: .init(hex: 0x94A3B8), dark: .init(hex: 0x64748B))
+        // Text — iOS semantic labels
+        static let textPrimary     = SwiftUI.Color.primary
+        static let textSecondary   = SwiftUI.Color.secondary
+        static let textTertiary    = SwiftUI.Color(UIColor.tertiaryLabel)
 
-        // Fixed blue accent — not adaptive
+        // Brand accent — fixed blue, not adaptive
         static let accent          = SwiftUI.Color(hex: 0x2563EB)
         static let accentPressed   = SwiftUI.Color(hex: 0x1D4ED8)
-        static let onAccent        = SwiftUI.Color(hex: 0xFFFFFF)
+        static let onAccent        = SwiftUI.Color.white
         static let accentSubtle    = SwiftUI.Color(hex: 0x2563EB, alpha: 0.12)
         static let accentSoft      = SwiftUI.Color(hex: 0x2563EB, alpha: 0.12)
 
-        static let danger          = SwiftUI.Color(light: .init(hex: 0xDC2626), dark: .init(hex: 0xF87171))
-        static let success         = SwiftUI.Color(light: .init(hex: 0x16A34A), dark: .init(hex: 0x4ADE80))
+        // Semantic status colors — iOS adaptive
+        static let danger          = SwiftUI.Color(UIColor.systemRed)
+        static let success         = SwiftUI.Color(UIColor.systemGreen)
     }
 
     // MARK: Font

@@ -84,11 +84,7 @@ final class KeyboardViewController: UIInputViewController {
                 let ((state, isCaptureMode), inputMode) = combined
                 // Clear UIKit bg when collapsed so native iOS chrome fills the slot;
                 // solid bg when expanded to prevent system chrome bleeding at the top edge.
-                self.view.backgroundColor = (isCaptureMode || isCollapsed) ? .clear : UIColor { traits in
-                    traits.userInterfaceStyle == .dark
-                        ? UIColor(red: 11/255, green: 31/255, blue: 58/255, alpha: 1)   // #0B1F3A
-                        : UIColor(red: 248/255, green: 250/255, blue: 252/255, alpha: 1) // #F8FAFC
-                }
+                self.view.backgroundColor = (isCaptureMode || isCollapsed) ? .clear : .systemBackground
                 if isCaptureMode {
                     self.setHeight(0, duration: 0.15)
                     return
