@@ -1,11 +1,11 @@
 import SwiftUI
-import Photos
+import Combine
 
 // MARK: - Shared step wrapper
 
 private struct OnboardingStep<Content: View, CTA: View>: View {
-    let step: Int           // 1-based, 1–5
-    let totalSteps: Int     // always 5
+    let step: Int
+    let totalSteps: Int
     let sectionLabel: String
     let headline: String
     let bodyText: String
@@ -15,7 +15,6 @@ private struct OnboardingStep<Content: View, CTA: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header row: back button | centered mark | step counter
             ZStack {
                 HStack {
                     if let onBack {
@@ -38,7 +37,6 @@ private struct OnboardingStep<Content: View, CTA: View>: View {
             .padding(.top, 16)
             .padding(.bottom, 10)
 
-            // Segmented progress bar
             HStack(spacing: 4) {
                 ForEach(1...totalSteps, id: \.self) { i in
                     RoundedRectangle(cornerRadius: 2, style: .continuous)
@@ -49,7 +47,6 @@ private struct OnboardingStep<Content: View, CTA: View>: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 32)
 
-            // Text block
             VStack(alignment: .leading, spacing: 8) {
                 Text(sectionLabel)
                     .font(ReplrTheme.Font.overline)
@@ -69,13 +66,11 @@ private struct OnboardingStep<Content: View, CTA: View>: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 24)
 
-            // Variable content
             content()
                 .padding(.horizontal, 24)
 
             Spacer(minLength: 16)
 
-            // CTA area
             VStack(spacing: 12) {
                 cta()
             }
@@ -98,7 +93,6 @@ private struct WelcomeStep: View {
             Color(UIColor.secondarySystemBackground).ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 0) {
-                // Nav bar row
                 HStack {
                     ReplrMark(size: 14)
                     Spacer()
@@ -111,7 +105,6 @@ private struct WelcomeStep: View {
 
                 Spacer()
 
-                // Hero content
                 VStack(alignment: .leading, spacing: 16) {
                     ReplrMark(size: 22)
 
@@ -131,7 +124,12 @@ private struct WelcomeStep: View {
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .lineSpacing(4)
 
-                    // Badges
+                    Text("Your conversations are sent to generate replies, then discarded — nothing stored on any server. See Privacy in Settings.")
+                        .font(.system(size: 12))
+                        .foregroundColor(ReplrTheme.Color.textTertiary)
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
+
                     HStack(spacing: 16) {
                         Label("On-device", systemImage: "lock.shield")
                             .font(.system(size: 12, weight: .medium))
@@ -145,7 +143,6 @@ private struct WelcomeStep: View {
 
                 Spacer()
 
-                // CTAs
                 VStack(spacing: 12) {
                     PrimaryButton(label: "Set it up →", action: onNext)
                     TertiaryButton(label: "I have an account", action: onSignIn)
@@ -159,74 +156,44 @@ private struct WelcomeStep: View {
 
 private struct AddKeyboardStep: View {
     let onNext: () -> Void
+    @State private var detected = AppGroupService.shared.keyboardInstalled
 
     var body: some View {
         OnboardingStep(
-            step: 1, totalSteps: 5,
+            step: 1, totalSteps: 4,
             sectionLabel: "Keyboard",
             headline: "Add Replr to iOS.",
             bodyText: "The keyboard is where the replies show up. iOS will ask you to add it from Settings."
         ) {
-            // Settings navigation card
             VStack(alignment: .leading, spacing: 0) {
-                // Breadcrumb path
                 HStack(spacing: 4) {
-                    ForEach(["Settings", "General", "Keyboard", "Keyboards"], id: \.self) { step in
-                        if step != "Settings" {
+                    ForEach(["Settings", "General", "Keyboard", "Keyboards"], id: \.self) { item in
+                        if item != "Settings" {
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 9, weight: .medium))
                                 .foregroundColor(ReplrTheme.Color.textTertiary)
                         }
-                        Text(step)
+                        Text(item)
                             .font(.system(size: 12))
                             .foregroundColor(ReplrTheme.Color.textSecondary)
                     }
                 }
                 .padding(.horizontal, 14)
                 .padding(.top, 14)
+                .padding(.bottom, 8)
 
-                // Indented path continuation
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(ReplrTheme.Color.textTertiary)
-                        Text("Add New")
-                            .font(.system(size: 12))
-                            .foregroundColor(ReplrTheme.Color.textSecondary)
-                    }
-                    .padding(.leading, 14)
+                Divider().overlay(ReplrTheme.Color.border)
 
-                    HStack(spacing: 6) {
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(ReplrTheme.Color.accent)
-                        Text("Replr")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(ReplrTheme.Color.accent)
-                    }
-                    .padding(.leading, 28)
-                }
-                .padding(.horizontal, 14)
-                .padding(.top, 8)
-                .padding(.bottom, 14)
-
-                Divider()
-                    .overlay(ReplrTheme.Color.border)
-
-                // Keyboard preview row
                 HStack(spacing: 12) {
                     ReplrMark(size: 13)
                     Text("Replr")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(ReplrTheme.Color.textPrimary)
-                    Text("English (US)")
-                        .font(.system(size: 12))
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
                     Spacer()
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(ReplrTheme.Color.success)
+                    if detected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(ReplrTheme.Color.success)
+                    }
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
@@ -239,14 +206,21 @@ private struct AddKeyboardStep: View {
             )
         } cta: {
             VStack(spacing: 12) {
-                PrimaryButton(label: "Open Keyboard Settings →") {
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                PrimaryButton(label: detected ? "Keyboard added ✓ — Continue →" : "Open Keyboard Settings →") {
+                    if !detected, let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
                     }
                     onNext()
                 }
-                TertiaryButton(label: "Already added", action: onNext)
+                if !detected {
+                    TertiaryButton(label: "Already added", action: onNext)
+                }
             }
+        }
+        .onReceive(
+            Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
+        ) { _ in
+            if !detected { detected = AppGroupService.shared.keyboardInstalled }
         }
     }
 }
@@ -254,16 +228,16 @@ private struct AddKeyboardStep: View {
 private struct FullAccessStep: View {
     let onNext: () -> Void
     let onBack: () -> Void
+    @State private var detected = AppGroupService.shared.fullAccessGranted
 
     var body: some View {
         OnboardingStep(
-            step: 2, totalSteps: 5,
+            step: 2, totalSteps: 4,
             sectionLabel: "Permissions",
             headline: "Enable Full Access.",
-            bodyText: "Lets the keyboard connect to AI. Once in Settings, follow the path below.",
+            bodyText: "Lets the keyboard connect to AI. Open Settings and follow the path below, then return here.",
             onBack: onBack
         ) {
-            // Navigation path card
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 4) {
                     ForEach(["Settings", "General", "Keyboards", "Replr"], id: \.self) { item in
@@ -294,9 +268,11 @@ private struct FullAccessStep: View {
                             .foregroundColor(ReplrTheme.Color.textSecondary)
                     }
                     Spacer()
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundColor(ReplrTheme.Color.success)
+                    if detected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(ReplrTheme.Color.success)
+                    }
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
@@ -309,55 +285,19 @@ private struct FullAccessStep: View {
             )
         } cta: {
             VStack(spacing: 12) {
-                PrimaryButton(label: "Open Keyboard Settings →") {
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                PrimaryButton(label: detected ? "Full Access enabled ✓ — Continue →" : "Open Keyboard Settings →") {
+                    if !detected, let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
                     }
+                    if detected { onNext() }
                 }
                 TertiaryButton(label: "Done →", action: onNext)
             }
         }
-    }
-}
-
-private struct PhotosPermissionStep: View {
-    let onNext: () -> Void
-    let onBack: () -> Void
-    @State private var status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
-
-    var body: some View {
-        OnboardingStep(
-            step: 3, totalSteps: 5,
-            sectionLabel: "Permissions",
-            headline: "Allow Photos.",
-            bodyText: "Replr reads your latest screenshot. Nothing is stored or uploaded.",
-            onBack: onBack
-        ) {
-            EmptyView()
-        } cta: {
-            if status == .authorized || status == .limited {
-                PrimaryButton(label: "Continue →", action: onNext)
-            } else if status == .denied || status == .restricted {
-                VStack(spacing: 12) {
-                    PrimaryButton(label: "Open Settings →") {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
-                        }
-                    }
-                    TertiaryButton(label: "Skip", action: onNext)
-                }
-            } else {
-                PrimaryButton(label: "Allow Photos →") {
-                    PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
-                        DispatchQueue.main.async {
-                            status = newStatus
-                            if newStatus == .authorized || newStatus == .limited {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { onNext() }
-                            }
-                        }
-                    }
-                }
-            }
+        .onReceive(
+            Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
+        ) { _ in
+            if !detected { detected = AppGroupService.shared.fullAccessGranted }
         }
     }
 }
@@ -366,19 +306,15 @@ private struct InstallShortcutStep: View {
     let onNext: () -> Void
     let onBack: () -> Void
 
-    private let shortcutURL = "https://www.icloud.com/shortcuts/4239b04c8d0d469b905ce6118c5ce706"
-
     var body: some View {
         OnboardingStep(
-            step: 4, totalSteps: 5,
+            step: 3, totalSteps: 4,
             sectionLabel: "Shortcut",
             headline: "Install the Shortcut.",
-            bodyText: "A small recipe lives in iOS Shortcuts. It takes the screenshot, hands it to Replr, opens the keyboard.",
+            bodyText: "A two-step recipe in iOS Shortcuts takes the screenshot and hands it to Replr — no Photos access needed.",
             onBack: onBack
         ) {
-            // Shortcut preview card
             VStack(alignment: .leading, spacing: 0) {
-                // Header row
                 HStack {
                     ZStack {
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -392,7 +328,7 @@ private struct InstallShortcutStep: View {
                         Text("Replr Capture")
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(ReplrTheme.Color.textPrimary)
-                        Text("4 actions")
+                        Text("2 actions")
                             .font(.system(size: 11))
                             .foregroundColor(ReplrTheme.Color.textTertiary)
                     }
@@ -403,14 +339,8 @@ private struct InstallShortcutStep: View {
 
                 Divider().overlay(ReplrTheme.Color.border)
 
-                // Actions list
                 VStack(spacing: 0) {
-                    ForEach(Array([
-                        "Take Screenshot",
-                        "Save to Photos",
-                        "Open Replr",
-                        "Show Keyboard"
-                    ].enumerated()), id: \.offset) { idx, action in
+                    ForEach(Array(["Take Screenshot", "Generate Reply"].enumerated()), id: \.offset) { idx, action in
                         HStack {
                             Text(String(format: "%02d", idx + 1))
                                 .font(.system(size: 11, weight: .medium).monospacedDigit())
@@ -426,7 +356,7 @@ private struct InstallShortcutStep: View {
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
-                        if idx < 3 {
+                        if idx < 1 {
                             Divider().overlay(ReplrTheme.Color.border).padding(.leading, 52)
                         }
                     }
@@ -441,7 +371,7 @@ private struct InstallShortcutStep: View {
         } cta: {
             VStack(spacing: 12) {
                 PrimaryButton(label: "Add to Shortcuts →") {
-                    if let url = URL(string: shortcutURL) {
+                    if let url = URL(string: Constants.shortcutInstallURL) {
                         UIApplication.shared.open(url)
                     }
                 }
@@ -452,29 +382,28 @@ private struct InstallShortcutStep: View {
 }
 
 private struct BackTapStep: View {
-    let onNext: () -> Void     // completes onboarding
+    let onNext: () -> Void
+    let onSkip: () -> Void
     let onBack: () -> Void
 
     var body: some View {
         OnboardingStep(
-            step: 5, totalSteps: 5,
+            step: 4, totalSteps: 4,
             sectionLabel: "Back Tap",
             headline: "Triple-tap = capture.",
-            bodyText: "iOS Back Tap turns a tap on the back of the phone into a Shortcut. Wire triple-tap to Replr Capture.",
+            bodyText: "Wire triple-tap to \"Replr Capture\" in iOS Accessibility. This is a one-time setup — then it's one gesture, forever.",
             onBack: onBack
         ) {
-            // Accessibility navigation card
             VStack(alignment: .leading, spacing: 0) {
-                // Breadcrumb path
                 HStack(spacing: 4) {
-                    ForEach(["Accessibility", "Touch", "Back Tap", "Triple Tap"], id: \.self) { step in
-                        if step != "Accessibility" {
+                    ForEach(["Accessibility", "Touch", "Back Tap", "Triple Tap"], id: \.self) { item in
+                        if item != "Accessibility" {
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 9, weight: .medium))
                                 .foregroundColor(ReplrTheme.Color.textTertiary)
                         }
-                        let isLast = step == "Triple Tap"
-                        Text(step)
+                        let isLast = item == "Triple Tap"
+                        Text(item)
                             .font(.system(size: 12, weight: isLast ? .semibold : .regular))
                             .foregroundColor(isLast ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
                     }
@@ -484,7 +413,6 @@ private struct BackTapStep: View {
 
                 Divider().overlay(ReplrTheme.Color.border)
 
-                // Shortcut action row
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
@@ -498,7 +426,7 @@ private struct BackTapStep: View {
                         Text("Replr Capture")
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(ReplrTheme.Color.textPrimary)
-                        Text("Three taps. The apple, the back, anywhere.")
+                        Text("Three taps on the back. Anywhere.")
                             .font(.system(size: 11))
                             .foregroundColor(ReplrTheme.Color.textTertiary)
                     }
@@ -521,9 +449,12 @@ private struct BackTapStep: View {
                     }
                 }
                 TertiaryButton(label: "Done →", action: onNext)
-                Text("You can use Double Tap instead of Triple Tap — just choose whichever feels natural.")
+                Button("Skip for now — use Shortcuts.app instead") { onSkip() }
                     .font(ReplrTheme.Font.caption)
                     .foregroundColor(ReplrTheme.Color.textTertiary)
+                Text("You can set up Back Tap later from the Replies tab.")
+                    .font(ReplrTheme.Font.caption)
+                    .foregroundColor(ReplrTheme.Color.textTertiary.opacity(0.7))
                     .multilineTextAlignment(.center)
             }
         }
@@ -547,17 +478,23 @@ struct OnboardingView: View {
             case 2:
                 FullAccessStep(onNext: { step = 3 }, onBack: { step = 1 })
             case 3:
-                PhotosPermissionStep(onNext: { step = 4 }, onBack: { step = 2 })
+                InstallShortcutStep(onNext: { step = 4 }, onBack: { step = 2 })
             case 4:
-                InstallShortcutStep(onNext: { step = 5 }, onBack: { step = 3 })
-            case 5:
-                BackTapStep(onNext: { step = 0; onComplete() }, onBack: { step = 4 })
+                BackTapStep(
+                    onNext: { step = 0; onComplete() },
+                    onSkip: {
+                        AppGroupService.shared.backTapSkipped = true
+                        step = 0
+                        onComplete()
+                    },
+                    onBack: { step = 3 }
+                )
             default:
                 WelcomeStep(onNext: { step = 1 }, onSignIn: onSignIn)
             }
         }
         .onAppear {
-            if step > 5 { step = 0 }
+            if step > 4 { step = 0 }
         }
     }
 }
