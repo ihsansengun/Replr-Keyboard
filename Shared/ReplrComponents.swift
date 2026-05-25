@@ -221,7 +221,7 @@ struct ScreenScaffold<Center: View>: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(UIColor.systemBackground).ignoresSafeArea())
+        .background(Color(UIColor.secondarySystemBackground).ignoresSafeArea())
     }
 }
 
