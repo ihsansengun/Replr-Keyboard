@@ -1,18 +1,6 @@
 import SwiftUI
 import UIKit
 
-// MARK: - Color helpers
-
-extension Color {
-    init(hex: UInt32, alpha: Double = 1) {
-        self.init(
-            red:   Double((hex >> 16) & 0xFF) / 255,
-            green: Double((hex >> 8)  & 0xFF) / 255,
-            blue:  Double( hex        & 0xFF) / 255,
-            opacity: alpha
-        )
-    }
-}
 
 // MARK: - ReplrTheme
 
@@ -38,12 +26,12 @@ enum ReplrTheme {
         static let textSecondary   = SwiftUI.Color.secondary
         static let textTertiary    = SwiftUI.Color(UIColor.tertiaryLabel)
 
-        // Brand accent — fixed blue, not adaptive
-        static let accent          = SwiftUI.Color(hex: 0x2563EB)
-        static let accentPressed   = SwiftUI.Color(hex: 0x1D4ED8)
+        // Accent — follows iOS system tint (user-configurable in Settings)
+        static let accent          = SwiftUI.Color.accentColor
+        static let accentPressed   = SwiftUI.Color.accentColor
         static let onAccent        = SwiftUI.Color.white
-        static let accentSubtle    = SwiftUI.Color(hex: 0x2563EB, alpha: 0.12)
-        static let accentSoft      = SwiftUI.Color(hex: 0x2563EB, alpha: 0.12)
+        static let accentSubtle    = SwiftUI.Color.accentColor.opacity(0.12)
+        static let accentSoft      = SwiftUI.Color.accentColor.opacity(0.12)
 
         // Semantic status colors — iOS adaptive
         static let danger          = SwiftUI.Color(UIColor.systemRed)

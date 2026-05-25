@@ -60,9 +60,15 @@ final class KeyboardViewController: UIInputViewController {
             }
         }
 
+        // Set background immediately so there's no black flash before the Combine sink fires.
+        view.backgroundColor = .systemBackground
+
         hostingVC = UIHostingController(rootView: KeyboardRootView(model: model))
         hostingVC.view.backgroundColor = .clear
         hostingVC.view.insetsLayoutMarginsFromSafeArea = false
+        // Mirror the input controller's style so SwiftUI always gets the right color scheme —
+        // keyboard extensions sometimes inherit a stale dark trait from the host app.
+        hostingVC.overrideUserInterfaceStyle = traitCollection.userInterfaceStyle
         addChild(hostingVC)
         hostingVC.view.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(hostingVC.view)
@@ -163,6 +169,13 @@ final class KeyboardViewController: UIInputViewController {
     override func textDidChange(_ textInput: UITextInput?) {
         let draft = textDocumentProxy.documentContextBeforeInput ?? ""
         model.pendingContext = draft   // display only — not saved to App Group
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            hostingVC?.overrideUserInterfaceStyle = traitCollection.userInterfaceStyle
+        }
     }
 
     override func viewWillLayoutSubviews() {
