@@ -47,6 +47,14 @@ struct GenerateReplyIntent: AppIntent {
             previousContext = nil
         }
 
+        if previousContext != nil,
+           let contactID = AppGroupService.shared.currentContactID,
+           let contact = AppGroupService.shared.loadContacts().first(where: { $0.id == contactID }) {
+            AppGroupService.shared.memoryUsedContactName = contact.displayName
+        } else {
+            AppGroupService.shared.memoryUsedContactName = nil
+        }
+
         do {
             let result = try await ReplyService.shared.generateReplies(
                 screenshot: image,
