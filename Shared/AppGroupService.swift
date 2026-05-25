@@ -71,6 +71,43 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.isGeneratingKey); defaults.synchronize() }
     }
 
+    // MARK: - Setup detection flags (written by keyboard extension, read by companion onboarding)
+
+    var keyboardInstalled: Bool {
+        get { defaults.bool(forKey: Constants.keyboardInstalledKey) }
+        set { defaults.set(newValue, forKey: Constants.keyboardInstalledKey); defaults.synchronize() }
+    }
+
+    var fullAccessGranted: Bool {
+        get { defaults.bool(forKey: Constants.fullAccessGrantedKey) }
+        set { defaults.set(newValue, forKey: Constants.fullAccessGrantedKey); defaults.synchronize() }
+    }
+
+    // MARK: - Memory cue (written by GenerateReplyIntent, read + consumed by keyboard)
+
+    var memoryUsedContactName: String? {
+        get { defaults.string(forKey: Constants.memoryUsedContactKey) }
+        set {
+            if let v = newValue { defaults.set(v, forKey: Constants.memoryUsedContactKey) }
+            else { defaults.removeObject(forKey: Constants.memoryUsedContactKey) }
+            defaults.synchronize()
+        }
+    }
+
+    // MARK: - First-capture consent (set once by keyboard after user acknowledges)
+
+    var hasConsentedToCapture: Bool {
+        get { defaults.bool(forKey: Constants.hasConsentedToCaptureKey) }
+        set { defaults.set(newValue, forKey: Constants.hasConsentedToCaptureKey); defaults.synchronize() }
+    }
+
+    // MARK: - Back Tap skipped during onboarding
+
+    var backTapSkipped: Bool {
+        get { defaults.bool(forKey: Constants.backTapSkippedKey) }
+        set { defaults.set(newValue, forKey: Constants.backTapSkippedKey); defaults.synchronize() }
+    }
+
     // MARK: - Capture sessions
 
     private static let maxSessions = 50
@@ -158,6 +195,12 @@ final class AppGroupService {
         guard let data = defaults.data(forKey: Constants.selectedToneKey),
               let tone = try? JSONDecoder().decode(Tone.self, from: data) else {
             return readTones().first ?? Tone.presets[0]
+        }
+        // If the stored tone is a preset whose name no longer exists (e.g. Casual, Formal, Bold, Dating),
+        // fall back to the first current preset so the user never sees a dangling tone name.
+        let validPresetNames = Set(Tone.presets.map(\.name))
+        if tone.isPreset && !validPresetNames.contains(tone.name) {
+            return Tone.presets[0]
         }
         return tone
     }
