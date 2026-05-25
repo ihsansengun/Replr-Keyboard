@@ -216,8 +216,14 @@ final class AppGroupService {
     func readTones() -> [Tone] {
         defaults.synchronize()
         guard let data = defaults.data(forKey: Constants.tonesKey),
-              let tones = try? JSONDecoder().decode([Tone].self, from: data) else { return Tone.presets }
-        return tones
+              let saved = try? JSONDecoder().decode([Tone].self, from: data) else { return Tone.presets }
+        // Merge: add any new presets that aren't in the saved array yet (e.g. after an app update).
+        // Existing presets keep their saved isEnabled value; new ones use the preset default.
+        let savedPresetNames = Set(saved.filter(\.isPreset).map(\.name))
+        let addedPresets = Tone.presets.filter { !savedPresetNames.contains($0.name) }
+        let presets = saved.filter(\.isPreset) + addedPresets
+        let custom  = saved.filter { !$0.isPreset }
+        return presets + custom
     }
 
     // MARK: - User ID

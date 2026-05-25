@@ -25,7 +25,7 @@ struct ToneBuilderView: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        onSave(Tone(id: UUID(), name: name, instruction: instruction, isPreset: false))
+                        onSave(Tone(id: UUID(), name: name, instruction: instruction, isPreset: false, isEnabled: true))
                     }.disabled(name.isEmpty || instruction.isEmpty)
                 }
             }

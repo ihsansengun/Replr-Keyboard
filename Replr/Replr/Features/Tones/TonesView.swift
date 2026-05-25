@@ -4,14 +4,25 @@ import Combine
 final class TonesViewModel: ObservableObject {
     @Published var tones: [Tone] = []
 
+    var presets: [Tone] { tones.filter(\.isPreset) }
+    var custom: [Tone]  { tones.filter { !$0.isPreset } }
+    var enabledCount: Int { tones.filter(\.isEnabled).count }
+
     func load() { tones = AppGroupService.shared.readTones() }
 
     func save() { try? AppGroupService.shared.writeTones(tones) }
 
+    func toggle(_ tone: Tone) {
+        guard let idx = tones.firstIndex(where: { $0.id == tone.id }) else { return }
+        tones[idx].isEnabled.toggle()
+        save()
+    }
+
     func add(_ tone: Tone) { tones.append(tone); save() }
 
     func delete(at offsets: IndexSet) {
-        let toDelete = offsets.map { tones[$0] }.filter { !$0.isPreset }
+        let customTones = tones.filter { !$0.isPreset }
+        let toDelete = offsets.map { customTones[$0] }
         tones.removeAll { t in toDelete.contains(where: { $0.id == t.id }) }
         save()
     }
@@ -24,44 +35,28 @@ struct TonesView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Presets") {
-                    ForEach(vm.tones.filter(\.isPreset)) { tone in
-                        ToneRow(tone: tone)
+                Section {
+                    ForEach(vm.presets) { tone in
+                        PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) })
                     }
-                }
-                Section("Custom") {
-                    ForEach(vm.tones.filter { !$0.isPreset }) { tone in
-                        ToneRow(tone: tone)
-                    }
-                    .onDelete { vm.delete(at: $0) }
-                }
-                let hasDating = vm.tones.filter { !$0.isPreset }.contains { $0.name.lowercased() == "dating" }
-                if !hasDating {
-                    Section("Suggested") {
-                        HStack(alignment: .top, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text("Dating")
-                                    .font(.body)
-                                Text("Confident and genuine. Light wit when it fits. Never desperate, never try-hard.")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineSpacing(2)
-                            }
-                            Spacer()
-                            Button("Add") {
-                                let dating = Tone(
-                                    id: UUID(),
-                                    name: "Dating",
-                                    instruction: "Confident and genuine. Light wit when it fits. Never desperate, never try-hard.",
-                                    isPreset: false
-                                )
-                                vm.add(dating)
-                            }
-                            .font(.subheadline.weight(.medium))
+                } header: {
+                    HStack {
+                        Text("Presets")
+                        Spacer()
+                        Text("\(vm.enabledCount) on keyboard")
+                            .font(.caption)
                             .foregroundStyle(ReplrTheme.Color.accent)
-                            .buttonStyle(.plain)
+                    }
+                } footer: {
+                    Text("Default tones are on by default. Tap the toggle to add or remove any tone from your keyboard.")
+                }
+
+                if !vm.custom.isEmpty {
+                    Section("Custom") {
+                        ForEach(vm.custom) { tone in
+                            PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) })
                         }
-                        .padding(.vertical, 2)
+                        .onDelete { vm.delete(at: $0) }
                     }
                 }
             }
@@ -77,18 +72,42 @@ struct TonesView: View {
     }
 }
 
-struct ToneRow: View {
+struct PresetToneRow: View {
     let tone: Tone
+    let onToggle: () -> Void
+
     var body: some View {
         HStack(spacing: 12) {
             RoundedRectangle(cornerRadius: 2, style: .continuous)
-                .fill(ReplrTheme.Color.accent.opacity(tone.isPreset ? 0.85 : 0.35))
+                .fill(ReplrTheme.Color.accent.opacity(tone.isEnabled ? 0.85 : 0.2))
                 .frame(width: 3, height: 34)
             VStack(alignment: .leading, spacing: 2) {
-                Text(tone.name).font(.headline)
-                Text(tone.instruction).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                HStack(spacing: 6) {
+                    Text(tone.name).font(.headline)
+                    if tone.isPreset && tone.isEnabled && isDefaultPreset(tone) {
+                        Text("default")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(ReplrTheme.Color.accent)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(ReplrTheme.Color.accentSubtle)
+                            .clipShape(Capsule())
+                    }
+                }
+                Text(tone.instruction)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
             }
+            Spacer()
+            Toggle("", isOn: Binding(get: { tone.isEnabled }, set: { _ in onToggle() }))
+                .labelsHidden()
+                .tint(ReplrTheme.Color.accent)
         }
         .padding(.vertical, 2)
+    }
+
+    private func isDefaultPreset(_ tone: Tone) -> Bool {
+        ["Friendly", "Professional", "Direct", "Witty"].contains(tone.name)
     }
 }

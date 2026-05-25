@@ -370,7 +370,7 @@ struct ToneRow: View {
         HStack(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 2) {
-                    ForEach(model.tones.filter { model.inputMode == .chat || $0.name != "Dating" }) { tone in
+                    ForEach(model.tones.filter { $0.isEnabled && (model.inputMode == .chat || $0.name != "Dating") }) { tone in
                         Chip(
                             label: tone.name,
                             isSelected: tone.name == model.selectedTone.name,
