@@ -29,8 +29,7 @@ enum Constants {
     static let memoryUsedContactKey       = "memory_used_contact"
     static let hasConsentedToCaptureKey   = "has_consented_to_capture"
     static let backTapSkippedKey          = "back_tap_skipped"
-    // Update this URL once the new shortcut (Take Screenshot → Generate Reply) is created:
-    static let shortcutInstallURL         = "https://www.icloud.com/shortcuts/REPLACE_WITH_NEW_URL"
+    static let shortcutInstallURL         = "https://www.icloud.com/shortcuts/73472454024d4a48b1d2a9108fec4bc8"
 
     // File-based keys (broadcast/scroll capture only)
     static let screenshotFilename     = "screenshot.png"
