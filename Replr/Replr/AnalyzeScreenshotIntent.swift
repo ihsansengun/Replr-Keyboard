@@ -1,5 +1,4 @@
 import AppIntents
-import UIKit
 
 struct AnalyzeScreenshotIntent: AppIntent {
     static var title: LocalizedStringResource = "Analyze Screenshot"
