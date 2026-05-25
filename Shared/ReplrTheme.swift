@@ -9,24 +9,23 @@ enum ReplrTheme {
     // MARK: Color
 
     enum Color {
-        // Backgrounds — dark: deep navy-slate; light: native keyboard gray
-        // Dark #111827 has a very subtle blue undertone that reads premium without being "blue"
+        // Backgrounds — dark: Superwall deep navy; light: native gray
         private static let _bg = UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.067, green: 0.094, blue: 0.153, alpha: 1) // #111827
-                : .systemGray4
+                ? UIColor(red: 0.051, green: 0.067, blue: 0.090, alpha: 1) // #0D1117
+                : .systemGray6
         }
-        // Surface one level above floor — dark: #1C2739 (navy-slate), light: white card
+        // Surface — dark: #131929, light: white card
         private static let _surface = UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.110, green: 0.153, blue: 0.224, alpha: 1) // #1C2739
+                ? UIColor(red: 0.075, green: 0.098, blue: 0.161, alpha: 1) // #131929
                 : .systemBackground
         }
         static let bg              = SwiftUI.Color(_bg)
         static let surface         = SwiftUI.Color(_surface)
         static let surfaceRaised   = SwiftUI.Color(UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.141, green: 0.200, blue: 0.322, alpha: 1) // #243352
+                ? UIColor(red: 0.110, green: 0.145, blue: 0.224, alpha: 1) // #1C2539
                 : UIColor.tertiarySystemBackground
         })
         static let surfaceRaisedHi = SwiftUI.Color(UIColor.systemFill)
@@ -36,7 +35,7 @@ enum ReplrTheme {
         // Borders / separators
         static let border          = SwiftUI.Color(UIColor.separator).opacity(0.5)
         static let borderStrong    = SwiftUI.Color(UIColor.separator)
-        // Glass border: 1px white at 12% — the Superwall "glass card" signature look
+        // Glass border: 1px white at 12%
         static let glassBorder     = SwiftUI.Color.white.opacity(0.12)
 
         // Text — iOS semantic labels
@@ -44,15 +43,20 @@ enum ReplrTheme {
         static let textSecondary   = SwiftUI.Color.secondary
         static let textTertiary    = SwiftUI.Color(UIColor.tertiaryLabel)
 
-        // Accent — Electric Coral, hardcoded so keyboard extension bundle gets it too
+        // Accent — Superwall Teal, hardcoded so keyboard extension bundle gets it too
         private static let _accent = UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 1.000, green: 0.420, blue: 0.290, alpha: 1) // #FF6B4A
-                : UIColor(red: 0.918, green: 0.298, blue: 0.173, alpha: 1) // #EA4C2C
+                ? UIColor(red: 0.090, green: 0.918, blue: 0.851, alpha: 1) // #17EAD9
+                : UIColor(red: 0.000, green: 0.706, blue: 0.627, alpha: 1) // #00B4A0
         }
         static let accent          = SwiftUI.Color(_accent)
         static let accentPressed   = SwiftUI.Color(_accent)
-        static let onAccent        = SwiftUI.Color.white
+        // onAccent: dark navy in dark mode (text on bright teal), white in light mode
+        static let onAccent        = SwiftUI.Color(UIColor { tc in
+            tc.userInterfaceStyle == .dark
+                ? UIColor(red: 0.051, green: 0.067, blue: 0.090, alpha: 1) // #0D1117
+                : .white
+        })
         static let accentSubtle    = SwiftUI.Color(_accent).opacity(0.12)
         static let accentSoft      = SwiftUI.Color(_accent).opacity(0.12)
 
