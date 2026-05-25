@@ -48,16 +48,6 @@ struct PrimaryButtonStyle: ButtonStyle {
                     .fill(ReplrTheme.Color.accent.opacity(isEnabled ? 1 : 0.40))
                     .overlay(isEnabled ? ShimmerOverlay(cornerRadius: ReplrTheme.Radius.md) : nil)
             )
-            // Specular top-edge highlight — mimics Superwall's lit glass CTA
-            .overlay(
-                LinearGradient(
-                    colors: [Color.white.opacity(0.18), Color.clear],
-                    startPoint: .top,
-                    endPoint: .init(x: 0.5, y: 0.65)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-                .allowsHitTesting(false)
-            )
             // Accent bloom glow
             .shadow(color: ReplrTheme.Color.accent.opacity(isEnabled ? 0.55 : 0), radius: 24, x: 0, y: 8)
             // Depth shadow
@@ -90,13 +80,12 @@ struct SecondaryButtonStyle: ButtonStyle {
             .frame(height: 54)
             .background(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .fill(ReplrTheme.Color.surfaceRaised.opacity(isEnabled ? 1 : 0.45))
+                    .fill(Color.white.opacity(isEnabled ? 0.04 : 0.02))
                     .overlay(
                         RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                            .strokeBorder(ReplrTheme.Color.glassBorder.opacity(isEnabled ? 1 : 0.45), lineWidth: 1)
+                            .strokeBorder(Color.white.opacity(isEnabled ? 0.18 : 0.08), lineWidth: 1)
                     )
             )
-            .elevatedSurface(.level1)
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(ReplrTheme.Motion.quick, value: configuration.isPressed)
     }
@@ -195,7 +184,7 @@ struct Chip: View {
                     Capsule()
                         .strokeBorder(
                             isSelected
-                                ? ReplrTheme.Color.accent.opacity(0.5)
+                                ? ReplrTheme.Color.accent.opacity(0.50)
                                 : ReplrTheme.Color.glassBorder,
                             lineWidth: 1
                         )
@@ -210,6 +199,35 @@ struct Chip: View {
         .buttonStyle(.plain)
         .frame(height: 34)
         .animation(ReplrTheme.Motion.expressive, value: isSelected)
+    }
+}
+
+// MARK: - Badge
+
+struct Badge: View {
+    let systemImage: String?
+    let label: String
+
+    init(_ label: String, systemImage: String? = nil) {
+        self.label = label
+        self.systemImage = systemImage
+    }
+
+    var body: some View {
+        HStack(spacing: 5) {
+            if let systemImage {
+                Image(systemName: systemImage)
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            Text(label)
+                .font(.system(size: 12, weight: .semibold))
+        }
+        .foregroundColor(ReplrTheme.Color.accent)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(ReplrTheme.Color.accentSubtle)
+        .clipShape(Capsule())
+        .overlay(Capsule().strokeBorder(ReplrTheme.Color.accent.opacity(0.30), lineWidth: 1))
     }
 }
 
