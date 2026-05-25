@@ -14,7 +14,7 @@ struct GenerateReplyIntent: AppIntent {
     )
     var screenshot: IntentFile
 
-    @Parameter(title: "Tone", default: .casual)
+    @Parameter(title: "Tone", default: .friendly)
     var tone: ReplyTone
 
     func perform() async throws -> some IntentResult {
