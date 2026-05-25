@@ -16,12 +16,10 @@ struct RepliesPanelView: View {
             HStack(spacing: 0) {
                 ModeSegmentedControl(model: model)
                 Spacer()
-                ReplrMark(size: 14)
-                    .padding(.trailing, 16)
+                ReplrMark(size: 16)
             }
-            .padding(.leading, 16)
-            .padding(.top, 8)
-            .padding(.bottom, 4)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
             .background(ReplrTheme.Color.bg)
             .overlay(alignment: .bottom) { ReplrTheme.Color.border.frame(height: 0.5) }
 
@@ -101,7 +99,10 @@ struct RepliesPanelView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
             }
-            .frame(maxHeight: .infinity)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxHeight: 220)
+
+            Spacer(minLength: 0)
 
             ReplrTheme.Color.border.frame(height: 0.5)
 
