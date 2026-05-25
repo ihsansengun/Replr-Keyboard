@@ -395,7 +395,7 @@ struct ToneRow: View {
             )
 
             if model.needsGlobeKey {
-                ReplrTheme.Color.borderStrong.frame(width: 0.5, height: 16)
+                ReplrTheme.Color.glassBorder.frame(width: 0.5, height: 16)
                 Button { model.onSwitchKeyboard?() } label: {
                     Image(systemName: "globe")
                         .font(.system(size: 14))
@@ -406,7 +406,6 @@ struct ToneRow: View {
             }
         }
         .frame(height: 44)
-        .overlay(alignment: .top) { ReplrTheme.Color.border.frame(height: 0.5) }
         .opacity(isDimmed ? 0.35 : 1.0)
     }
 }
@@ -436,7 +435,6 @@ struct KeyboardHeader: View {
             }
         }
         .background(ReplrTheme.Color.bg)
-        .overlay(alignment: .bottom) { ReplrTheme.Color.border.frame(height: 0.5) }
     }
 }
 

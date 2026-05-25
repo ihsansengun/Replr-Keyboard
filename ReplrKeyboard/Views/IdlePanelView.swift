@@ -46,7 +46,7 @@ struct IdlePanelView: View {
                 }
                 .padding(14)
 
-                ReplrTheme.Color.border.frame(height: 0.5)
+                Divider().opacity(0.2)
 
                 // Bottom: prompt + small action button
                 HStack {

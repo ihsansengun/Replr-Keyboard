@@ -24,7 +24,11 @@ enum ReplrTheme {
         }
         static let bg              = SwiftUI.Color(_bg)
         static let surface         = SwiftUI.Color(_surface)
-        static let surfaceRaised   = SwiftUI.Color(UIColor.tertiarySystemBackground)
+        static let surfaceRaised   = SwiftUI.Color(UIColor { tc in
+            tc.userInterfaceStyle == .dark
+                ? UIColor(red: 0.141, green: 0.200, blue: 0.322, alpha: 1) // #243352
+                : UIColor.tertiarySystemBackground
+        })
         static let surfaceRaisedHi = SwiftUI.Color(UIColor.systemFill)
         static let surfaceSunken   = SwiftUI.Color(UIColor.secondarySystemFill)
         static let surfaceGlass    = SwiftUI.Color(_bg).opacity(0.72)
@@ -32,8 +36,8 @@ enum ReplrTheme {
         // Borders / separators
         static let border          = SwiftUI.Color(UIColor.separator).opacity(0.5)
         static let borderStrong    = SwiftUI.Color(UIColor.separator)
-        // Glass border: 1px white at 8% — the Superwall "glass card" signature look
-        static let glassBorder     = SwiftUI.Color.white.opacity(0.08)
+        // Glass border: 1px white at 12% — the Superwall "glass card" signature look
+        static let glassBorder     = SwiftUI.Color.white.opacity(0.12)
 
         // Text — iOS semantic labels
         static let textPrimary     = SwiftUI.Color.primary

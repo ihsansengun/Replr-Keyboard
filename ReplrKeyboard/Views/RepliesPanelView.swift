@@ -21,14 +21,12 @@ struct RepliesPanelView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
             .background(ReplrTheme.Color.bg)
-            .overlay(alignment: .bottom) { ReplrTheme.Color.border.frame(height: 0.5) }
 
             ToneRow(model: model)
 
             // Contact header: name + rename + N of M
             if let name = model.contactName {
                 contactHeader(name)
-                ReplrTheme.Color.border.frame(height: 0.5)
             }
 
             // Memory cue
@@ -45,7 +43,6 @@ struct RepliesPanelView: View {
                 .padding(.vertical, 5)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(ReplrTheme.Color.accentSubtle)
-                ReplrTheme.Color.border.frame(height: 0.5)
             }
 
             // Stacked reply list
@@ -105,20 +102,18 @@ struct RepliesPanelView: View {
                         .animation(.easeInOut(duration: 0.12), value: selectedIndex)
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
             }
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxHeight: 220)
 
             Spacer(minLength: 0)
 
-            ReplrTheme.Color.border.frame(height: 0.5)
-
             // Action row: wide Insert primary + Edit secondary (or undo when sent)
             actionRow
                 .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .padding(.vertical, 10)
 
         }
         .background(ReplrTheme.Color.bg)
