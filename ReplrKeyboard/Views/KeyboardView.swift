@@ -404,7 +404,7 @@ struct ToneRow: View {
                 .buttonStyle(.plain)
             }
         }
-        .frame(height: 38)
+        .frame(height: 44)
         .overlay(alignment: .top) { ReplrTheme.Color.border.frame(height: 0.5) }
         .opacity(isDimmed ? 0.35 : 1.0)
     }

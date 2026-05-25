@@ -101,8 +101,7 @@ struct RepliesPanelView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
             }
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxHeight: 210)
+            .frame(maxHeight: .infinity)
 
             ReplrTheme.Color.border.frame(height: 0.5)
 
