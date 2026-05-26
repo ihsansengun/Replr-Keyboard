@@ -231,6 +231,8 @@ private struct FullAccessStep: View {
     let onNext: () -> Void
     let onBack: () -> Void
     @State private var detected = AppGroupService.shared.fullAccessGranted
+    @State private var settingsOpened = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         OnboardingStep(
@@ -287,15 +289,21 @@ private struct FullAccessStep: View {
             )
         } cta: {
             VStack(spacing: 12) {
-                PrimaryButton(label: detected ? "Full Access enabled ✓ — Continue →" : "Open Keyboard Settings →") {
-                    if !detected, let url = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(url)
-                    } else {
+                PrimaryButton(label: fullAccessButtonLabel) {
+                    if detected || settingsOpened {
                         onNext()
+                    } else if let url = URL(string: UIApplication.openSettingsURLString) {
+                        settingsOpened = true
+                        UIApplication.shared.open(url)
                     }
                 }
                 TertiaryButton(label: "Skip for now →", action: onNext)
             }
+        }
+        .onChange(of: scenePhase) { newPhase in
+            guard newPhase == .active, settingsOpened else { return }
+            detected = AppGroupService.shared.fullAccessGranted
+            if detected { onNext() }
         }
         .onReceive(
             Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
@@ -305,6 +313,12 @@ private struct FullAccessStep: View {
                 if detected { onNext() }
             }
         }
+    }
+
+    private var fullAccessButtonLabel: String {
+        if detected { return "Full Access enabled ✓ — Continue →" }
+        if settingsOpened { return "Continue →" }
+        return "Open Keyboard Settings →"
     }
 }
 

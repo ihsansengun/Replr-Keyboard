@@ -564,6 +564,7 @@ struct BackTapStep: View {
 
     @State private var state: SetupState = .preview(substep: 1)
     @State private var confirmEnteredAt: Date?
+    @State private var goingForward = true
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -641,7 +642,12 @@ struct BackTapStep: View {
         switch state {
         case .preview(let substep):
             if substep == 1 { return onBack }
-            return { state = .preview(substep: substep - 1) }
+            return {
+                goingForward = false
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    state = .preview(substep: substep - 1)
+                }
+            }
         case .confirm:
             return { state = .preview(substep: 5) }
         case .success:
@@ -664,10 +670,29 @@ struct BackTapStep: View {
                 default: BackTapSubStep5()
                 }
             }
+            .id("preview-\(substep)")
             .transition(.asymmetric(
-                insertion: .move(edge: .trailing).combined(with: .opacity),
-                removal: .move(edge: .leading).combined(with: .opacity)
+                insertion: .move(edge: goingForward ? .trailing : .leading).combined(with: .opacity),
+                removal: .move(edge: goingForward ? .leading : .trailing).combined(with: .opacity)
             ))
+            .gesture(
+                DragGesture(minimumDistance: 40)
+                    .onEnded { value in
+                        let isLeftSwipe = value.translation.width < -60
+                        let isRightSwipe = value.translation.width > 60
+                        if isLeftSwipe, substep < 5 {
+                            goingForward = true
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                state = .preview(substep: substep + 1)
+                            }
+                        } else if isRightSwipe, substep > 1 {
+                            goingForward = false
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                state = .preview(substep: substep - 1)
+                            }
+                        }
+                    }
+            )
         case .confirm:
             BackTapConfirmScreen()
                 .transition(.opacity)
@@ -685,6 +710,7 @@ struct BackTapStep: View {
         case .preview(let substep):
             if substep < 5 {
                 PrimaryButton(label: "Next →") {
+                    goingForward = true
                     withAnimation(.easeInOut(duration: 0.25)) {
                         state = .preview(substep: substep + 1)
                     }
