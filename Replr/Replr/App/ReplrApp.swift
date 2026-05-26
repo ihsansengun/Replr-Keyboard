@@ -20,12 +20,12 @@ struct ReplrApp: App {
         let navBg = UIColor { tc in
             tc.userInterfaceStyle == .dark
                 ? UIColor(red: 0.051, green: 0.067, blue: 0.090, alpha: 1) // #0D1117
-                : .systemGray6
+                : UIColor(red: 0.961, green: 0.945, blue: 0.922, alpha: 1) // #F5F1EB warm cream
         }
         let surfaceColor = UIColor { tc in
             tc.userInterfaceStyle == .dark
                 ? UIColor(red: 0.075, green: 0.098, blue: 0.161, alpha: 1) // #131929
-                : .systemBackground
+                : UIColor(red: 0.992, green: 0.988, blue: 0.980, alpha: 1) // #FDFCFA
         }
         let accentColor = UIColor { tc in
             tc.userInterfaceStyle == .dark

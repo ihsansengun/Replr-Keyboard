@@ -9,24 +9,24 @@ enum ReplrTheme {
     // MARK: Color
 
     enum Color {
-        // Backgrounds — dark: Superwall deep navy; light: native gray
+        // Backgrounds — dark: deep navy; light: warm cream
         private static let _bg = UIColor { tc in
             tc.userInterfaceStyle == .dark
                 ? UIColor(red: 0.051, green: 0.067, blue: 0.090, alpha: 1) // #0D1117
-                : .systemGray6
+                : UIColor(red: 0.961, green: 0.945, blue: 0.922, alpha: 1) // #F5F1EB warm cream
         }
-        // Surface — dark: #131929, light: white card
+        // Surface — dark: #131929, light: near-white warm
         private static let _surface = UIColor { tc in
             tc.userInterfaceStyle == .dark
                 ? UIColor(red: 0.075, green: 0.098, blue: 0.161, alpha: 1) // #131929
-                : .systemBackground
+                : UIColor(red: 0.992, green: 0.988, blue: 0.980, alpha: 1) // #FDFCFA
         }
         static let bg              = SwiftUI.Color(_bg)
         static let surface         = SwiftUI.Color(_surface)
         static let surfaceRaised   = SwiftUI.Color(UIColor { tc in
             tc.userInterfaceStyle == .dark
                 ? UIColor(red: 0.110, green: 0.145, blue: 0.224, alpha: 1) // #1C2539
-                : UIColor.tertiarySystemBackground
+                : UIColor.white
         })
         static let surfaceRaisedHi = SwiftUI.Color(UIColor.systemFill)
         static let surfaceSunken   = SwiftUI.Color(UIColor.secondarySystemFill)
