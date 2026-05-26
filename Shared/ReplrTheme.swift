@@ -39,7 +39,7 @@ enum ReplrTheme {
         static let glassBorder     = SwiftUI.Color(UIColor { tc in
             tc.userInterfaceStyle == .dark
                 ? UIColor.white.withAlphaComponent(0.12)
-                : UIColor.black.withAlphaComponent(0.07)
+                : UIColor.black.withAlphaComponent(0.12)
         })
 
         // Text — iOS semantic labels
@@ -57,7 +57,11 @@ enum ReplrTheme {
         static let accentPressed   = SwiftUI.Color(_accent)
         // onAccent: white — sufficient contrast on #0DB5A4 (dark) and #00897B (light)
         static let onAccent        = SwiftUI.Color.white
-        static let accentSubtle    = SwiftUI.Color(_accent).opacity(0.12)
+        static let accentSubtle    = SwiftUI.Color(UIColor { tc in
+            tc.userInterfaceStyle == .dark
+                ? _accent.withAlphaComponent(0.12)
+                : _accent.withAlphaComponent(0.18)
+        })
         static let accentSoft      = SwiftUI.Color(_accent).opacity(0.12)
 
         // Semantic status colors — iOS adaptive
