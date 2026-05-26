@@ -32,7 +32,9 @@ struct RepliesPanelView: View {
     init(model: KeyboardModel, replies: [String]) {
         self.model = model
         self.replies = replies
-        _cardsH = State(initialValue: CGFloat(max(1, replies.count)) * 56 + 16)
+        // 80pt per card (generous 2-line estimate) ensures first render is never clipped;
+        // TotalHeightKey measurement corrects it downward after first layout.
+        _cardsH = State(initialValue: CGFloat(max(1, replies.count)) * 80 + 16)
     }
 
     private var fixedH: CGFloat {

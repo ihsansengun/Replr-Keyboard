@@ -110,9 +110,11 @@ final class KeyboardViewController: UIInputViewController {
                 case .error:        height = 240
                 case .disambiguate: height = 300
                 case .replies:
-                    // RepliesPanelView measures actual content and calls onContentHeightChanged;
-                    // set a safe initial floor here so the keyboard is never invisible on transition.
-                    height = 300
+                    // Generous upfront estimate so first render is never clipped.
+                    // RepliesPanelView's TotalHeightKey measurement refines this downward.
+                    let n = CGFloat(max(1, self.model.currentReplies.count))
+                    let contactExtra: CGFloat = self.model.contactName != nil ? 28 : 0
+                    height = min(400, max(280, 180 + n * 80 + contactExtra))
                 }
                 self.setHeight(height)
             }
