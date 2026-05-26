@@ -17,11 +17,38 @@ struct ReplrApp: App {
     }
 
     private func applyBrandAppearance() {
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithDefaultBackground()
-        UINavigationBar.appearance().standardAppearance = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
-        UINavigationBar.appearance().compactAppearance = appearance
+        let navBg = UIColor { tc in
+            tc.userInterfaceStyle == .dark
+                ? UIColor(red: 0.051, green: 0.067, blue: 0.090, alpha: 1) // #0D1117
+                : .systemGray6
+        }
+        let surfaceColor = UIColor { tc in
+            tc.userInterfaceStyle == .dark
+                ? UIColor(red: 0.075, green: 0.098, blue: 0.161, alpha: 1) // #131929
+                : .systemBackground
+        }
+        let accentColor = UIColor { tc in
+            tc.userInterfaceStyle == .dark
+                ? UIColor(red: 0.090, green: 0.918, blue: 0.851, alpha: 1) // #17EAD9
+                : UIColor(red: 0.000, green: 0.706, blue: 0.627, alpha: 1) // #00B4A0
+        }
+
+        let nav = UINavigationBarAppearance()
+        nav.configureWithOpaqueBackground()
+        nav.backgroundColor = navBg
+        nav.shadowColor = .clear
+        nav.titleTextAttributes = [.foregroundColor: UIColor.label]
+        nav.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
+        UINavigationBar.appearance().standardAppearance = nav
+        UINavigationBar.appearance().scrollEdgeAppearance = nav
+        UINavigationBar.appearance().compactAppearance = nav
+        UINavigationBar.appearance().tintColor = accentColor
+
+        let tab = UITabBarAppearance()
+        tab.configureWithOpaqueBackground()
+        tab.backgroundColor = surfaceColor
+        UITabBar.appearance().standardAppearance = tab
+        UITabBar.appearance().scrollEdgeAppearance = tab
     }
 
     var body: some Scene {
@@ -134,7 +161,7 @@ struct CaptureView: View {
                 case .done:
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 56))
-                        .foregroundColor(ReplrTheme.Color.success)
+                        .foregroundColor(ReplrTheme.Color.accent)
                     Text("Done! Switch back to your keyboard.")
                         .font(.title3.bold())
                         .foregroundColor(.white)

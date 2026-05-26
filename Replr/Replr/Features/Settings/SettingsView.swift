@@ -11,6 +11,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // MARK: App identity
                 Section {
                     HStack(spacing: 14) {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -26,40 +27,62 @@ struct SettingsView: View {
                                 .font(.title3.bold())
                             Text("Know what to say.")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(ReplrTheme.Color.textSecondary)
                         }
                         Spacer()
                     }
                     .padding(.vertical, 6)
+                    .listRowBackground(ReplrTheme.Color.surface)
+                    .listRowSeparator(.hidden)
                 }
 
+                // MARK: Keyboard
                 Section {
                     NavigationLink(destination: TonesView().onDisappear {
                         activeToneName = AppGroupService.shared.readSelectedTone().name
                     }) {
                         LabeledContent("Tones", value: activeToneName)
                     }
+                    .listRowBackground(ReplrTheme.Color.surface)
+                    .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
+
                     Toggle("Keep replies between sessions", isOn: $persistReplies)
+                        .tint(ReplrTheme.Color.accent)
                         .onChange(of: persistReplies) { newValue in
                             AppGroupService.shared.persistReplies = newValue
                         }
+                    .listRowBackground(ReplrTheme.Color.surface)
+                    .listRowSeparator(.hidden)
                 } header: {
                     Text("Keyboard")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                 } footer: {
                     Text("When enabled, your last generated replies stay visible the next time you open the keyboard.")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
 
-                Section("AI Model") {
+                // MARK: AI Model
+                Section {
                     Picker("Model", selection: $preferredModel) {
                         Text("Claude (Anthropic)").tag("claude")
                         Text("GPT-4o (OpenAI)").tag("gpt4o")
                     }
                     .pickerStyle(.inline)
+                    .listRowBackground(ReplrTheme.Color.surface)
+                    .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
+                } header: {
+                    Text("AI Model")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
 
+                // MARK: Memory
                 Section {
                     Toggle("Enable Memory", isOn: $memoryEnabled)
+                        .tint(ReplrTheme.Color.accent)
                         .onChange(of: memoryEnabled) { AppGroupService.shared.memoryEnabled = $0 }
+                    .listRowBackground(ReplrTheme.Color.surface)
+                    .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
+
                     if memoryEnabled {
                         Picker("Time window", selection: $memoryWindowDays) {
                             Text("7 days").tag(7)
@@ -68,6 +91,8 @@ struct SettingsView: View {
                             Text("All time").tag(0)
                         }
                         .onChange(of: memoryWindowDays) { AppGroupService.shared.memoryWindowDays = $0 }
+                        .listRowBackground(ReplrTheme.Color.surface)
+                        .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
 
                         Picker("Conversations per contact", selection: $memoryDepth) {
                             Text("5").tag(5)
@@ -75,23 +100,47 @@ struct SettingsView: View {
                             Text("20").tag(20)
                         }
                         .onChange(of: memoryDepth) { AppGroupService.shared.memoryDepth = $0 }
+                        .listRowBackground(ReplrTheme.Color.surface)
+                        .listRowSeparator(.hidden)
                     }
                 } header: {
                     Text("Memory")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                 } footer: {
                     Text("When enabled, Replr summarises each conversation and uses it as context when generating future replies for the same contact.")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
 
-                Section("Account") {
+                // MARK: Account
+                Section {
                     NavigationLink("Subscription") { SubscriptionView() }
+                        .listRowBackground(ReplrTheme.Color.surface)
+                        .listRowSeparator(.hidden)
+                } header: {
+                    Text("Account")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
-                Section("About") {
+
+                // MARK: About
+                Section {
                     NavigationLink(destination: PrivacyView()) {
                         Label("Privacy", systemImage: "lock.shield")
                     }
+                    .listRowBackground(ReplrTheme.Color.surface)
+                    .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
+
                     LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                        .listRowBackground(ReplrTheme.Color.surface)
+                        .listRowSeparator(.hidden)
+                } header: {
+                    Text("About")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(ReplrTheme.Color.bg.ignoresSafeArea())
+            .tint(ReplrTheme.Color.accent)
             .navigationBarTitleDisplayMode(.inline)
         }
     }

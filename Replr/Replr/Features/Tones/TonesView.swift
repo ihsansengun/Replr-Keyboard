@@ -38,10 +38,13 @@ struct TonesView: View {
                 Section {
                     ForEach(vm.presets) { tone in
                         PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) })
+                            .listRowBackground(ReplrTheme.Color.surface)
+                            .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                     }
                 } header: {
                     HStack {
                         Text("Presets")
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
                         Spacer()
                         Text("\(vm.enabledCount) on keyboard")
                             .font(.caption)
@@ -49,20 +52,31 @@ struct TonesView: View {
                     }
                 } footer: {
                     Text("Default tones are on by default. Tap the toggle to add or remove any tone from your keyboard.")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
 
                 if !vm.custom.isEmpty {
-                    Section("Custom") {
+                    Section {
                         ForEach(vm.custom) { tone in
                             PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) })
+                                .listRowBackground(ReplrTheme.Color.surface)
+                                .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                         }
                         .onDelete { vm.delete(at: $0) }
+                    } header: {
+                        Text("Custom")
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(ReplrTheme.Color.bg.ignoresSafeArea())
+            .tint(ReplrTheme.Color.accent)
             .navigationTitle("Tones")
             .toolbar {
-                Button { showBuilder = true } label: { Image(systemName: "plus") }
+                Button { showBuilder = true } label: {
+                    Image(systemName: "plus")
+                }
             }
             .sheet(isPresented: $showBuilder) {
                 ToneBuilderView(onSave: { vm.add($0); showBuilder = false })
@@ -96,7 +110,7 @@ struct PresetToneRow: View {
                 }
                 Text(tone.instruction)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ReplrTheme.Color.textSecondary)
                     .lineLimit(2)
             }
             Spacer()

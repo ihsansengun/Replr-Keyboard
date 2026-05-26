@@ -18,15 +18,20 @@ struct ContactMemoryDetailView: View {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(formattedTimestamp(session.timestamp))
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                     if let summary = session.llmSummary {
                         Text(summary)
                             .font(.subheadline)
                     }
                 }
                 .padding(.vertical, 4)
+                .listRowBackground(ReplrTheme.Color.surface)
+                .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(ReplrTheme.Color.bg.ignoresSafeArea())
+        .tint(ReplrTheme.Color.accent)
         .navigationTitle(contact.displayName)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {

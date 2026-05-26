@@ -44,26 +44,32 @@ struct MemoryView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "brain")
                             .font(.system(size: 48))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
                         Text("No memory yet")
                             .font(.headline)
                         Text("Replr builds memory as you generate replies. Each contact gets a summary of your conversation history.")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 32)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(ReplrTheme.Color.bg.ignoresSafeArea())
                 } else {
                     List {
                         if !memoryEnabled {
                             Section {
-                                Label(
-                                    "Memory is off. Enable it in Settings → Memory to use past context in future replies.",
-                                    systemImage: "exclamationmark.triangle"
-                                )
-                                .font(.callout)
-                                .foregroundStyle(.secondary)
+                                HStack(spacing: 10) {
+                                    Image(systemName: "exclamationmark.triangle")
+                                        .font(.system(size: 14))
+                                        .foregroundStyle(ReplrTheme.Color.accent)
+                                    Text("Memory is off. Enable it in Settings → Memory to use past context in future replies.")
+                                        .font(.callout)
+                                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                                }
+                                .padding(.vertical, 4)
+                                .listRowBackground(ReplrTheme.Color.accentSubtle)
+                                .listRowSeparator(.hidden)
                             }
                         }
 
@@ -82,7 +88,7 @@ struct MemoryView: View {
                                             let count = vm.summaryCount(for: contact)
                                             Text("\(count) conversation\(count == 1 ? "" : "s") remembered")
                                                 .font(.caption)
-                                                .foregroundStyle(.secondary)
+                                                .foregroundStyle(ReplrTheme.Color.textSecondary)
                                         }
                                         Spacer()
                                         Image(systemName: "sparkles")
@@ -90,13 +96,18 @@ struct MemoryView: View {
                                             .foregroundStyle(ReplrTheme.Color.accent)
                                     }
                                 }
+                                .listRowBackground(ReplrTheme.Color.surface)
+                                .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                             }
                         }
                     }
+                    .scrollContentBackground(.hidden)
+                    .background(ReplrTheme.Color.bg.ignoresSafeArea())
                 }
             }
             .navigationTitle("Memory")
             .navigationBarTitleDisplayMode(.inline)
+            .tint(ReplrTheme.Color.accent)
             .toolbar {
                 if !vm.contacts.isEmpty {
                     Menu {

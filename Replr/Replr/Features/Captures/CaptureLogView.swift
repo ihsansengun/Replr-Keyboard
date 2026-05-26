@@ -53,110 +53,122 @@ struct RepliesView: View {
 
     var body: some View {
         NavigationStack {
-            if backTapSkipped {
-                HStack(spacing: 12) {
-                    Image(systemName: "hand.tap")
-                        .font(.system(size: 16))
-                        .foregroundStyle(ReplrTheme.Color.accent)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Finish setup")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text("Set up Back Tap for one-gesture capture")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+            VStack(spacing: 0) {
+                // Back-tap setup banner
+                if backTapSkipped {
+                    HStack(spacing: 12) {
+                        Image(systemName: "hand.tap")
+                            .font(.system(size: 16))
+                            .foregroundStyle(ReplrTheme.Color.accent)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Finish setup")
+                                .font(.system(size: 13, weight: .semibold))
+                            Text("Set up Back Tap for one-gesture capture")
+                                .font(.caption)
+                                .foregroundStyle(ReplrTheme.Color.textSecondary)
+                        }
+                        Spacer()
+                        Button("Set up") { showSetupSheet = true }
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(ReplrTheme.Color.accent)
+                        Button {
+                            AppGroupService.shared.backTapSkipped = false
+                            backTapSkipped = false
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 12))
+                                .foregroundStyle(ReplrTheme.Color.textSecondary)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    Spacer()
-                    Button("Set up") { showSetupSheet = true }
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(ReplrTheme.Color.accent)
-                    Button {
-                        AppGroupService.shared.backTapSkipped = false
-                        backTapSkipped = false
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.secondary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(ReplrTheme.Color.accentSubtle)
+                    .overlay(alignment: .bottom) {
+                        ReplrTheme.Color.glassBorder.frame(height: 1)
                     }
-                    .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(ReplrTheme.Color.accentSubtle)
-            }
 
-            Group {
                 if vm.sessions.isEmpty {
                     VStack(spacing: 16) {
+                        Spacer()
                         Image(systemName: "camera.viewfinder")
                             .font(.system(size: 48))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
                         Text("No captures yet")
                             .font(.headline)
                         Text("Generate replies from the Replr keyboard to see them here.")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
+                        Spacer()
                     }
+                    .frame(maxWidth: .infinity)
                 } else {
-                    VStack(spacing: 0) {
-                        // Contact filter chips
-                        if !vm.allContacts.isEmpty {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    filterChip(label: "All", id: nil)
-                                    ForEach(vm.allContacts) { contact in
-                                        filterChip(label: contact.displayName, id: contact.id)
-                                            .contextMenu {
-                                                Button(role: .destructive) {
-                                                    vm.clearMemory(for: contact)
-                                                } label: {
-                                                    Label("Clear Memory", systemImage: "brain.slash")
-                                                }
+                    // Contact filter chips
+                    if !vm.allContacts.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                filterChip(label: "All", id: nil)
+                                ForEach(vm.allContacts) { contact in
+                                    filterChip(label: contact.displayName, id: contact.id)
+                                        .contextMenu {
+                                            Button(role: .destructive) {
+                                                vm.clearMemory(for: contact)
+                                            } label: {
+                                                Label("Clear Memory", systemImage: "brain.slash")
                                             }
-                                    }
+                                        }
                                 }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
                             }
-                            Divider()
-                            if let id = vm.selectedContactID,
-                               memoryEnabled,
-                               let contact = vm.allContacts.first(where: { $0.id == id }),
-                               contactHasMemory(id: id) {
-                                Button { memoryContact = contact } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "sparkles")
-                                            .font(.system(size: 12))
-                                        Text("View Memory for \(contact.displayName)")
-                                            .font(.system(size: 13, weight: .semibold))
-                                        Spacer()
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 11))
-                                    }
-                                    .foregroundStyle(ReplrTheme.Color.accent)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 10)
-                                    .background(ReplrTheme.Color.accentSubtle)
-                                }
-                                .buttonStyle(.plain)
-                                Divider()
-                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
                         }
+                        ReplrTheme.Color.glassBorder.frame(height: 1)
 
-                        List {
-                            ForEach(vm.filteredSessions) { session in
-                                NavigationLink(destination: CaptureDetailView(session: session)) {
-                                    CaptureRowView(session: session)
+                        if let id = vm.selectedContactID,
+                           memoryEnabled,
+                           let contact = vm.allContacts.first(where: { $0.id == id }),
+                           contactHasMemory(id: id) {
+                            Button { memoryContact = contact } label: {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "sparkles")
+                                        .font(.system(size: 12))
+                                    Text("View Memory for \(contact.displayName)")
+                                        .font(.system(size: 13, weight: .semibold))
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 11))
                                 }
+                                .foregroundStyle(ReplrTheme.Color.accent)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                                .background(ReplrTheme.Color.accentSubtle)
                             }
-                            .onDelete(perform: vm.delete)
+                            .buttonStyle(.plain)
+                            ReplrTheme.Color.glassBorder.frame(height: 1)
                         }
                     }
+
+                    List {
+                        ForEach(vm.filteredSessions) { session in
+                            NavigationLink(destination: CaptureDetailView(session: session)) {
+                                CaptureRowView(session: session)
+                            }
+                            .listRowBackground(ReplrTheme.Color.surface)
+                            .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
+                        }
+                        .onDelete(perform: vm.delete)
+                    }
+                    .scrollContentBackground(.hidden)
+                    .background(ReplrTheme.Color.bg)
                 }
             }
+            .background(ReplrTheme.Color.bg.ignoresSafeArea())
             .navigationTitle("Replies")
             .navigationBarTitleDisplayMode(.inline)
+            .tint(ReplrTheme.Color.accent)
             .toolbar {
                 if !vm.sessions.isEmpty {
                     Button(role: .destructive) { vm.clearAll() } label: {
@@ -202,9 +214,10 @@ struct RepliesView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 5)
             .frame(maxWidth: 160)
-            .background(isSelected ? ReplrTheme.Color.accent : Color(.secondarySystemGroupedBackground))
-            .foregroundStyle(isSelected ? ReplrTheme.Color.onAccent : Color.primary)
+            .foregroundStyle(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
+            .background(isSelected ? ReplrTheme.Color.accentSubtle : ReplrTheme.Color.surface)
             .clipShape(Capsule())
+            .overlay(Capsule().strokeBorder(isSelected ? ReplrTheme.Color.accent.opacity(0.55) : ReplrTheme.Color.glassBorder, lineWidth: 1))
         }
         .buttonStyle(.plain)
     }
@@ -230,17 +243,16 @@ struct CaptureRowView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
                 } else {
                     RoundedRectangle(cornerRadius: 9, style: .continuous)
-                        .fill(Color.secondary.opacity(0.12))
+                        .fill(ReplrTheme.Color.surfaceRaised)
                         .frame(width: 46, height: 80)
                         .overlay(
                             Image(systemName: "text.bubble")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(ReplrTheme.Color.textSecondary)
                         )
                 }
             }
 
             VStack(alignment: .leading, spacing: 6) {
-                // Contact name + timestamp
                 HStack(alignment: .center, spacing: 6) {
                     if let name = session.contactName {
                         Text(name)
@@ -251,27 +263,24 @@ struct CaptureRowView: View {
                     Spacer()
                     Text(formattedTimestamp(session.timestamp))
                         .font(.system(size: 11))
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(ReplrTheme.Color.textTertiary)
                 }
 
-                // Summary
                 if let summary = session.llmSummary {
                     Text(summary)
                         .font(.subheadline)
-                        .foregroundStyle(.primary)
                         .lineLimit(3)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                // Sent reply
                 if let selected = session.selectedReply {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 10))
-                            .foregroundStyle(ReplrTheme.Color.success)
+                            .foregroundStyle(ReplrTheme.Color.accent)
                         Text(selected)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
                             .lineLimit(1)
                     }
                 }
@@ -300,30 +309,48 @@ struct CaptureDetailView: View {
     var body: some View {
         List {
             if let data = session.thumbnailData, let img = UIImage(data: data) {
-                Section("Screenshot") {
+                Section {
                     Image(uiImage: img)
                         .resizable()
                         .scaledToFit()
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .listRowBackground(ReplrTheme.Color.surface)
+                        .listRowSeparator(.hidden)
+                } header: {
+                    Text("Screenshot")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
             }
 
             if let summary = session.llmSummary {
-                Section("Conversation Summary") {
+                Section {
                     Text(summary)
+                        .foregroundStyle(ReplrTheme.Color.textPrimary)
+                        .listRowBackground(ReplrTheme.Color.surface)
+                        .listRowSeparator(.hidden)
+                } header: {
+                    Text("Conversation Summary")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
             }
 
             if let hint = session.contextHint {
-                Section("Context Provided") {
+                Section {
                     Text(hint)
+                        .foregroundStyle(ReplrTheme.Color.textPrimary)
+                        .listRowBackground(ReplrTheme.Color.surface)
+                        .listRowSeparator(.hidden)
+                } header: {
+                    Text("Context Provided")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
             }
 
-            Section("Generated Replies") {
+            Section {
                 ForEach(session.generatedReplies, id: \.self) { reply in
                     HStack(alignment: .top, spacing: 12) {
                         Text(reply)
+                            .foregroundStyle(ReplrTheme.Color.textPrimary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         VStack(spacing: 8) {
                             Button {
@@ -336,21 +363,29 @@ struct CaptureDetailView: View {
                             } label: {
                                 Image(systemName: copiedReply == reply ? "checkmark" : "doc.on.doc")
                                     .font(.system(size: 14))
-                                    .foregroundStyle(copiedReply == reply ? ReplrTheme.Color.success : ReplrTheme.Color.accent)
+                                    .foregroundStyle(ReplrTheme.Color.accent)
                                     .animation(.spring(response: 0.25), value: copiedReply)
                             }
                             .buttonStyle(.plain)
                             if reply == session.selectedReply {
                                 Image(systemName: "checkmark.circle.fill")
                                     .font(.system(size: 14))
-                                    .foregroundStyle(ReplrTheme.Color.success)
+                                    .foregroundStyle(ReplrTheme.Color.accent)
                             }
                         }
                     }
                     .padding(.vertical, 2)
+                    .listRowBackground(ReplrTheme.Color.surface)
+                    .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                 }
+            } header: {
+                Text("Generated Replies")
+                    .foregroundStyle(ReplrTheme.Color.textSecondary)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(ReplrTheme.Color.bg.ignoresSafeArea())
+        .tint(ReplrTheme.Color.accent)
         .navigationTitle(session.timestamp.formatted(date: .abbreviated, time: .shortened))
         .navigationBarTitleDisplayMode(.inline)
     }

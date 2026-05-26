@@ -6,14 +6,33 @@ struct SummaryDetailView: View {
 
     var body: some View {
         Form {
-            Section("Person") {
+            Section {
                 TextField("Name", text: $summary.personName)
+                    .listRowBackground(ReplrTheme.Color.surface)
+                    .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                 TextField("Platform", text: $summary.platform)
+                    .listRowBackground(ReplrTheme.Color.surface)
+                    .listRowSeparator(.hidden)
+            } header: {
+                Text("Person")
+                    .foregroundStyle(ReplrTheme.Color.textSecondary)
             }
-            Section("Context Notes") {
-                TextEditor(text: $summary.notes).frame(minHeight: 120)
+
+            Section {
+                TextEditor(text: $summary.notes)
+                    .frame(minHeight: 120)
+                    .scrollContentBackground(.hidden)
+                    .background(ReplrTheme.Color.surface)
+                    .listRowBackground(ReplrTheme.Color.surface)
+                    .listRowSeparator(.hidden)
+            } header: {
+                Text("Context Notes")
+                    .foregroundStyle(ReplrTheme.Color.textSecondary)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(ReplrTheme.Color.bg.ignoresSafeArea())
+        .tint(ReplrTheme.Color.accent)
         .navigationTitle(summary.personName)
         .toolbar {
             Button("Save") {
