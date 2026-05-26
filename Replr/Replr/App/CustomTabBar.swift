@@ -11,7 +11,7 @@ struct CustomTabBar: View {
             tabButton(.memory,   icon: "brain",     activeIcon: "brain.fill",       label: "Memory")
             tabButton(.settings, icon: "gearshape", activeIcon: "gearshape.fill",   label: "Settings")
         }
-        .frame(height: 52)
+        .padding(.vertical, 7)
         .background(ReplrTheme.Color.surface.ignoresSafeArea(edges: .bottom))
         .overlay(alignment: .top) {
             ReplrTheme.Color.glassBorder.frame(height: 1)
