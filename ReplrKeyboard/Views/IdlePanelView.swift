@@ -97,7 +97,7 @@ struct IdlePanelView: View {
                         .font(.system(size: 14, weight: .semibold))
                 }
                 .foregroundColor(ReplrTheme.Color.onAccent.opacity(hasClipboardText ? 1 : 0.45))
-                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 24)
                 .frame(height: 42)
                 .background(
                     RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
@@ -115,11 +115,11 @@ struct IdlePanelView: View {
                 if hasClipboardText {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 11))
-                        .foregroundColor(ReplrTheme.Color.success)
+                        .foregroundColor(ReplrTheme.Color.accent)
                 }
                 Text(hasClipboardText ? "Email ready — tap to generate" : "Copy an email, then tap to generate")
                     .font(ReplrTheme.Font.caption)
-                    .foregroundColor(hasClipboardText ? ReplrTheme.Color.success : ReplrTheme.Color.textSecondary)
+                    .foregroundColor(hasClipboardText ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
             }
             .padding(.top, 10)
             .animation(.easeInOut(duration: 0.2), value: hasClipboardText)
