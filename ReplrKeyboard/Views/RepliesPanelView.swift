@@ -1,10 +1,57 @@
 import SwiftUI
 
+// Measures the cards VStack natural height (for ScrollView constraint)
+private struct CardsHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+// Measures the outer VStack actual rendered total (for accurate keyboard height)
+private struct TotalHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
 struct RepliesPanelView: View {
     @ObservedObject var model: KeyboardModel
     let replies: [String]
 
     @State private var selectedIndex: Int = 0
+    // Measured natural height of the cards VStack content
+    @State private var cardsH: CGFloat
+    // Measured actual total height of the outer VStack (used for keyboard height — no estimates)
+    @State private var totalH: CGFloat = 0
+
+    // Estimates used only for the ScrollView cap — not for keyboard height
+    private let headerH:  CGFloat = 90   // KeyboardHeader (46pt segmented row + 44pt tones)
+    private let contactH: CGFloat = 28
+    private let memoryH:  CGFloat = 28
+    private let actionH:  CGFloat = 62
+    private let maxKbH:   CGFloat = 400
+
+    init(model: KeyboardModel, replies: [String]) {
+        self.model = model
+        self.replies = replies
+        _cardsH = State(initialValue: CGFloat(max(1, replies.count)) * 56 + 16)
+    }
+
+    private var fixedH: CGFloat {
+        headerH
+            + (model.contactName        != nil ? contactH : 0)
+            + (model.memoryContactName  != nil ? memoryH  : 0)
+            + actionH
+    }
+
+    // ScrollView frame height — equals content when it fits, caps at available space
+    private var scrollFrameH: CGFloat {
+        max(40, min(cardsH, maxKbH - fixedH))
+    }
+
+    // Keyboard height: use measured total when available, formula as fallback
+    private var totalKbH: CGFloat {
+        let base = totalH > 10 ? totalH : (fixedH + cardsH)
+        return min(maxKbH, max(260, base))
+    }
 
     private var currentReply: String {
         replies.indices.contains(selectedIndex) ? replies[selectedIndex] : replies.first ?? ""
@@ -14,16 +61,11 @@ struct RepliesPanelView: View {
         VStack(spacing: 0) {
             KeyboardHeader(model: model)
 
-            // Contact header: name + rename + N of M
-            if let name = model.contactName {
-                contactHeader(name)
-            }
+            if let name = model.contactName { contactHeader(name) }
 
-            // Memory cue
             if let memoryName = model.memoryContactName {
                 HStack(spacing: 5) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 9))
+                    Image(systemName: "sparkles").font(.system(size: 9))
                     Text("Remembering your last chat with \(memoryName)")
                         .font(.system(size: 11))
                         .lineLimit(1)
@@ -35,78 +77,53 @@ struct RepliesPanelView: View {
                 .background(ReplrTheme.Color.accentSubtle)
             }
 
-            // Stacked reply list
-            ScrollView {
+            // Cards — ScrollView constrained to measured content height
+            ScrollView(showsIndicators: false) {
                 VStack(spacing: 8) {
                     ForEach(Array(replies.enumerated()), id: \.offset) { idx, reply in
-                        Button {
-                            selectedIndex = idx
-                        } label: {
-                            HStack(alignment: .top, spacing: 10) {
-                                Text("\(idx + 1)")
-                                    .font(.system(size: 11, weight: .semibold).monospacedDigit())
-                                    .foregroundStyle(
-                                        selectedIndex == idx
-                                            ? ReplrTheme.Color.accent
-                                            : ReplrTheme.Color.textTertiary
-                                    )
-                                    .frame(width: 18)
-                                Text(reply)
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(
-                                        selectedIndex == idx
-                                            ? ReplrTheme.Color.accent
-                                            : ReplrTheme.Color.textPrimary
-                                    )
-                                    .multilineTextAlignment(.leading)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .padding(12)
-                            .background(
-                                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                                    .fill(
-                                        selectedIndex == idx
-                                            ? ReplrTheme.Color.accentSubtle
-                                            : ReplrTheme.Color.surface
-                                    )
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                                    .stroke(
-                                        selectedIndex == idx
-                                            ? ReplrTheme.Color.accent.opacity(0.60)
-                                            : ReplrTheme.Color.glassBorder,
-                                        lineWidth: 1
-                                    )
-                            )
-                            .shadow(
-                                color: selectedIndex == idx
-                                    ? ReplrTheme.Color.accent.opacity(0.18)
-                                    : .black.opacity(0.10),
-                                radius: selectedIndex == idx ? 6 : 2,
-                                x: 0, y: selectedIndex == idx ? 3 : 1
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .animation(.easeInOut(duration: 0.12), value: selectedIndex)
+                        replyCard(idx: idx, reply: reply)
                     }
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
+                // Measure natural content height from within the ScrollView
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.preference(key: CardsHeightKey.self, value: geo.size.height)
+                    }
+                )
             }
-            // Action row: wide Insert primary + Edit secondary (or undo when sent)
+            // Pin ScrollView to exact content height → eliminates the gap
+            .frame(height: scrollFrameH)
+
             actionRow
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-
         }
-        .background(ReplrTheme.Color.bg)
+        // Measure the outer VStack's actual rendered height for accurate keyboard sizing
+        .background(
+            GeometryReader { geo in
+                Color.clear.preference(key: TotalHeightKey.self, value: geo.size.height)
+            }
+        )
+        .background(ReplrTheme.Color.bg.ignoresSafeArea())
+        .onPreferenceChange(CardsHeightKey.self) { measured in
+            guard measured > 0, abs(measured - cardsH) > 1 else { return }
+            cardsH = measured
+        }
+        .onPreferenceChange(TotalHeightKey.self) { measured in
+            guard measured > 10, abs(measured - totalH) > 1 else { return }
+            totalH = measured
+            reportHeight()
+        }
+        .onChange(of: cardsH)           { _ in reportHeight() }
+        .onChange(of: model.contactName)       { _ in reportHeight() }
+        .onChange(of: model.memoryContactName) { _ in reportHeight() }
+        .onAppear { reportHeight() }
         .overlay {
             if model.showConsentPrompt {
                 ZStack {
-                    Color.black.opacity(0.55)
-                        .ignoresSafeArea()
+                    Color.black.opacity(0.55).ignoresSafeArea()
                     VStack(spacing: 14) {
                         Text("Before your first reply")
                             .font(.system(size: 15, weight: .bold))
@@ -142,19 +159,64 @@ struct RepliesPanelView: View {
         }
     }
 
+    private func reportHeight() {
+        model.onContentHeightChanged?(totalKbH)
+    }
+
+    // MARK: - Reply card
+
+    private func replyCard(idx: Int, reply: String) -> some View {
+        Button { selectedIndex = idx } label: {
+            HStack(alignment: .top, spacing: 10) {
+                Text("\(idx + 1)")
+                    .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(
+                        selectedIndex == idx ? ReplrTheme.Color.accent : ReplrTheme.Color.textTertiary
+                    )
+                    .frame(width: 18)
+                Text(reply)
+                    .font(.system(size: 14))
+                    .foregroundStyle(
+                        selectedIndex == idx ? ReplrTheme.Color.accent : ReplrTheme.Color.textPrimary
+                    )
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                    .fill(selectedIndex == idx ? ReplrTheme.Color.accentSubtle : ReplrTheme.Color.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                    .stroke(
+                        selectedIndex == idx
+                            ? ReplrTheme.Color.accent.opacity(0.60)
+                            : ReplrTheme.Color.glassBorder,
+                        lineWidth: 1
+                    )
+            )
+            .shadow(
+                color: selectedIndex == idx ? ReplrTheme.Color.accent.opacity(0.18) : .black.opacity(0.10),
+                radius: selectedIndex == idx ? 6 : 2,
+                x: 0, y: selectedIndex == idx ? 3 : 1
+            )
+        }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.12), value: selectedIndex)
+    }
+
     // MARK: - Contact header
 
     private func contactHeader(_ name: String) -> some View {
         HStack(spacing: 0) {
             HStack(spacing: 5) {
-                Image(systemName: "person.fill")
-                    .font(.system(size: 9))
+                Image(systemName: "person.fill").font(.system(size: 9))
                 Text(name.capitalized)
                     .font(.system(size: 13, weight: .medium))
                     .lineLimit(1)
-                Button {
-                    model.startRenameContact()
-                } label: {
+                Button { model.startRenameContact() } label: {
                     Image(systemName: "pencil")
                         .font(.system(size: 10))
                         .foregroundColor(ReplrTheme.Color.textSecondary)
@@ -182,20 +244,16 @@ struct RepliesPanelView: View {
     @ViewBuilder
     private var actionRow: some View {
         if let sentReply = model.lastInsertedReply {
-            // Sent state: undo button
             HStack(spacing: 8) {
                 Text(sentReply)
                     .font(.system(size: 12))
                     .foregroundColor(ReplrTheme.Color.textSecondary)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
-
                 Button(action: { model.onUndoInsert?() }) {
                     HStack(spacing: 4) {
-                        Image(systemName: "arrow.uturn.backward")
-                            .font(.system(size: 11, weight: .semibold))
-                        Text("Undo")
-                            .font(.system(size: 12, weight: .medium))
+                        Image(systemName: "arrow.uturn.backward").font(.system(size: 11, weight: .semibold))
+                        Text("Undo").font(.system(size: 12, weight: .medium))
                     }
                     .foregroundColor(ReplrTheme.Color.accent)
                     .padding(.horizontal, 14)
@@ -208,14 +266,11 @@ struct RepliesPanelView: View {
             }
             .animation(.easeInOut(duration: 0.2), value: model.lastInsertedReply)
         } else {
-            // Normal state: Insert primary + Edit + Reset
             HStack(spacing: 8) {
                 Button(action: { model.selectReply(currentReply) }) {
                     HStack(spacing: 6) {
-                        Image(systemName: "arrow.up")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text("Insert reply")
-                            .font(.system(size: 14, weight: .semibold))
+                        Image(systemName: "arrow.up").font(.system(size: 13, weight: .semibold))
+                        Text("Insert reply").font(.system(size: 14, weight: .semibold))
                     }
                     .foregroundColor(ReplrTheme.Color.onAccent)
                     .frame(maxWidth: .infinity)
@@ -241,8 +296,7 @@ struct RepliesPanelView: View {
                     .buttonStyle(.plain)
 
                 Button { model.regenerate() } label: {
-                    Image(systemName: "arrow.counterclockwise")
-                        .font(.system(size: 14, weight: .medium))
+                    Image(systemName: "arrow.counterclockwise").font(.system(size: 14, weight: .medium))
                         .foregroundColor(ReplrTheme.Color.textPrimary)
                 }
                 .frame(width: 42, height: 42)
@@ -254,5 +308,4 @@ struct RepliesPanelView: View {
             }
         }
     }
-
 }
