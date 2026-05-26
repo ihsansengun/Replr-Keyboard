@@ -477,14 +477,17 @@ private func cancelBackTapReminder() {
 // Only the visual element — OnboardingStep renders the badge/headline/body above this.
 
 private struct BackTapConfirmScreen: View {
+    @State private var pulsing = false
+
     var body: some View {
         VStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .stroke(ReplrTheme.Color.accent.opacity(0.1), lineWidth: 16)
+                    .stroke(ReplrTheme.Color.accent.opacity(pulsing ? 0 : 0.25), lineWidth: 1.5)
                     .frame(width: 80, height: 80)
+                    .scaleEffect(pulsing ? 1.2 : 1.0)
                 Circle()
-                    .stroke(ReplrTheme.Color.accent.opacity(0.25), lineWidth: 1.5)
+                    .stroke(ReplrTheme.Color.accent.opacity(0.1), lineWidth: 16)
                     .frame(width: 80, height: 80)
                 Image(systemName: "iphone.rear.camera")
                     .font(.system(size: 28))
@@ -492,6 +495,11 @@ private struct BackTapConfirmScreen: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: false)) {
+                    pulsing = true
+                }
+            }
 
             Text("Tap-tap on the back of your phone. The app will react when it detects the gesture.")
                 .font(ReplrTheme.Font.callout)
