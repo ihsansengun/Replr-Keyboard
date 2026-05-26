@@ -24,10 +24,7 @@ struct IdlePanelView: View {
             VStack(alignment: .leading, spacing: 0) {
                 // Top: how-to explanation
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("HOW TO CAPTURE")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
-                        .tracking(0.8)
+                    Badge("Capture", systemImage: "scope")
 
                     Text("Open the chat, then collapse this keyboard — Replr records what's on screen when you triple-tap.")
                         .font(.system(size: 13))

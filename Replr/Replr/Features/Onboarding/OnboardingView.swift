@@ -48,10 +48,7 @@ private struct OnboardingStep<Content: View, CTA: View>: View {
             .padding(.bottom, 32)
 
             VStack(alignment: .leading, spacing: 8) {
-                Text(sectionLabel)
-                    .font(ReplrTheme.Font.overline)
-                    .tracking(1.5)
-                    .foregroundColor(ReplrTheme.Color.accent)
+                Badge(sectionLabel)
                 Text(headline)
                     .font(.system(size: 28, weight: .bold))
                     .tracking(-0.3)
