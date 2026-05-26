@@ -96,13 +96,17 @@ struct IdlePanelView: View {
                     Text("Generate from clipboard")
                         .font(.system(size: 14, weight: .semibold))
                 }
-                .foregroundColor(ReplrTheme.Color.onAccent.opacity(hasClipboardText ? 1 : 0.45))
+                .foregroundColor(hasClipboardText ? ReplrTheme.Color.onAccent : ReplrTheme.Color.accent.opacity(0.40))
                 .padding(.horizontal, 24)
                 .frame(height: 42)
                 .background(
                     RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                        .fill(ReplrTheme.Color.accent.opacity(hasClipboardText ? 1.0 : 0.35))
+                        .fill(hasClipboardText ? ReplrTheme.Color.accent : ReplrTheme.Color.surface)
                         .overlay(hasClipboardText ? ShimmerOverlay(cornerRadius: ReplrTheme.Radius.sm) : nil)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                        .strokeBorder(hasClipboardText ? Color.clear : ReplrTheme.Color.accent.opacity(0.25), lineWidth: 1)
                 )
                 .shadow(color: ReplrTheme.Color.accent.opacity(hasClipboardText ? 0.55 : 0), radius: 18, x: 0, y: 6)
                 .shadow(color: .black.opacity(hasClipboardText ? 0.22 : 0), radius: 6, x: 0, y: 3)
