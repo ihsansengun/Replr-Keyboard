@@ -158,17 +158,9 @@ struct RepliesView: View {
             .toolbar {
                 if !vm.sessions.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button { vm.clearAll() } label: {
-                            Text("Clear All")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(ReplrTheme.Color.danger)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(ReplrTheme.Color.danger.opacity(0.10))
-                                .clipShape(Capsule())
-                                .overlay(Capsule().strokeBorder(ReplrTheme.Color.danger.opacity(0.30), lineWidth: 1))
-                        }
-                        .buttonStyle(.plain)
+                        Button("Clear All") { vm.clearAll() }
+                            .font(ReplrTheme.Font.callout)
+                            .foregroundStyle(ReplrTheme.Color.danger)
                     }
                 }
             }
@@ -218,28 +210,14 @@ struct RepliesView: View {
     private func filterChip(label: String, id: UUID?) -> some View {
         let isSelected = vm.selectedContactID == id
         let showSparkles = id.map { contactHasMemory(id: $0) && memoryEnabled } ?? false
-        Button { vm.selectedContactID = id } label: {
-            HStack(spacing: 4) {
-                Text(label)
-                    .lineLimit(1)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                if showSparkles {
-                    Image(systemName: "sparkles").font(.system(size: 9))
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .frame(maxWidth: 160)
-            .foregroundStyle(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
-            .background(isSelected ? ReplrTheme.Color.accentSubtle : ReplrTheme.Color.surface)
-            .clipShape(Capsule())
-            .overlay(Capsule().strokeBorder(
-                isSelected ? ReplrTheme.Color.accent.opacity(0.55) : ReplrTheme.Color.glassBorder,
-                lineWidth: 1
-            ))
+        Chip(
+            label: label,
+            isSelected: isSelected,
+            icon: showSparkles ? "sparkles" : nil
+        ) {
+            vm.selectedContactID = id
         }
-        .buttonStyle(.plain)
-        .animation(ReplrTheme.Motion.quick, value: isSelected)
+        .frame(maxWidth: 160)
     }
 
     private func contactHasMemory(id: UUID) -> Bool {
