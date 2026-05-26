@@ -153,6 +153,7 @@ private struct WelcomeStep: View {
 
 private struct AddKeyboardStep: View {
     let onNext: () -> Void
+    var onBack: (() -> Void)? = nil
     @State private var detected = AppGroupService.shared.keyboardInstalled
 
     var body: some View {
@@ -160,7 +161,8 @@ private struct AddKeyboardStep: View {
             step: 1, totalSteps: 4,
             sectionLabel: "Keyboard",
             headline: "Add Replr to iOS.",
-            bodyText: "The keyboard is where the replies show up. iOS will ask you to add it from Settings."
+            bodyText: "The keyboard is where the replies show up. iOS will ask you to add it from Settings.",
+            onBack: onBack
         ) {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 4) {
@@ -217,7 +219,10 @@ private struct AddKeyboardStep: View {
         .onReceive(
             Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
         ) { _ in
-            if !detected { detected = AppGroupService.shared.keyboardInstalled }
+            if !detected {
+                detected = AppGroupService.shared.keyboardInstalled
+                if detected { onNext() }
+            }
         }
     }
 }
@@ -285,16 +290,20 @@ private struct FullAccessStep: View {
                 PrimaryButton(label: detected ? "Full Access enabled ✓ — Continue →" : "Open Keyboard Settings →") {
                     if !detected, let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
+                    } else {
+                        onNext()
                     }
-                    if detected { onNext() }
                 }
-                TertiaryButton(label: "Done →", action: onNext)
+                TertiaryButton(label: "Skip for now →", action: onNext)
             }
         }
         .onReceive(
             Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
         ) { _ in
-            if !detected { detected = AppGroupService.shared.fullAccessGranted }
+            if !detected {
+                detected = AppGroupService.shared.fullAccessGranted
+                if detected { onNext() }
+            }
         }
     }
 }
@@ -302,6 +311,8 @@ private struct FullAccessStep: View {
 private struct InstallShortcutStep: View {
     let onNext: () -> Void
     let onBack: () -> Void
+    @State private var shortcutOpened = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         OnboardingStep(
@@ -368,11 +379,17 @@ private struct InstallShortcutStep: View {
         } cta: {
             VStack(spacing: 12) {
                 PrimaryButton(label: "Add to Shortcuts →") {
+                    shortcutOpened = true
                     if let url = URL(string: Constants.shortcutInstallURL) {
                         UIApplication.shared.open(url)
                     }
                 }
                 TertiaryButton(label: "Already installed →", action: onNext)
+            }
+        }
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .active, shortcutOpened {
+                onNext()
             }
         }
     }
@@ -391,7 +408,7 @@ struct OnboardingView: View {
             case 0:
                 WelcomeStep(onNext: { step = 1 }, onSignIn: onSignIn)
             case 1:
-                AddKeyboardStep(onNext: { step = 2 })
+                AddKeyboardStep(onNext: { step = 2 }, onBack: { step = 0 })
             case 2:
                 FullAccessStep(onNext: { step = 3 }, onBack: { step = 1 })
             case 3:

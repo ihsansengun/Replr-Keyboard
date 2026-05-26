@@ -232,7 +232,7 @@ struct BackTapSubStep1: View {
                 }
                 .padding(.vertical, 8)
             }
-            .background(IOSMock.bg)
+            .background(ReplrTheme.Color.surfaceRaised)
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
@@ -279,7 +279,7 @@ struct BackTapSubStep2: View {
                 }
                 .padding(.vertical, 8)
             }
-            .background(IOSMock.bg)
+            .background(ReplrTheme.Color.surfaceRaised)
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
@@ -324,7 +324,7 @@ struct BackTapSubStep3: View {
                 }
                 .padding(.vertical, 8)
             }
-            .background(IOSMock.bg)
+            .background(ReplrTheme.Color.surfaceRaised)
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
@@ -357,7 +357,7 @@ struct BackTapSubStep4: View {
                 }
                 .padding(.vertical, 8)
             }
-            .background(IOSMock.bg)
+            .background(ReplrTheme.Color.surfaceRaised)
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
@@ -421,7 +421,7 @@ struct BackTapSubStep5: View {
                     .padding(.vertical, 6)
                     .background(IOSMock.bg)
             }
-            .background(IOSMock.bg)
+            .background(ReplrTheme.Color.surfaceRaised)
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
