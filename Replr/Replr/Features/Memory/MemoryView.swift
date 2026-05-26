@@ -26,9 +26,7 @@ final class MemoryViewModel: ObservableObject {
     }
 
     func clearAll() {
-        for contact in contacts {
-            AppGroupService.shared.clearMemory(forContactID: contact.id)
-        }
+        for contact in contacts { AppGroupService.shared.clearMemory(forContactID: contact.id) }
         contacts = []
     }
 }
@@ -41,70 +39,62 @@ struct MemoryView: View {
         NavigationStack {
             Group {
                 if vm.contacts.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "brain")
-                            .font(.system(size: 48))
-                            .foregroundStyle(ReplrTheme.Color.textSecondary)
-                        Text("No memory yet")
-                            .font(.headline)
-                        Text("Replr builds memory as you generate replies. Each contact gets a summary of your conversation history.")
-                            .font(.subheadline)
-                            .foregroundStyle(ReplrTheme.Color.textSecondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(ReplrTheme.Color.bg.ignoresSafeArea())
+                    emptyState
                 } else {
-                    List {
-                        if !memoryEnabled {
-                            Section {
-                                HStack(spacing: 10) {
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            // Memory-off warning
+                            if !memoryEnabled {
+                                HStack(spacing: 12) {
                                     Image(systemName: "exclamationmark.triangle")
-                                        .font(.system(size: 14))
+                                        .font(.system(size: 15))
                                         .foregroundStyle(ReplrTheme.Color.accent)
                                     Text("Memory is off. Enable it in Settings → Memory to use past context in future replies.")
-                                        .font(.callout)
+                                        .font(.system(size: 13))
                                         .foregroundStyle(ReplrTheme.Color.textSecondary)
+                                        .lineSpacing(2)
                                 }
-                                .padding(.vertical, 4)
-                                .listRowBackground(ReplrTheme.Color.accentSubtle)
-                                .listRowSeparator(.hidden)
+                                .padding(14)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(ReplrTheme.Color.accentSubtle)
+                                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                                        .strokeBorder(ReplrTheme.Color.accent.opacity(0.25), lineWidth: 1)
+                                )
                             }
-                        }
 
-                        Section {
-                            ForEach(vm.contacts) { contact in
-                                NavigationLink(
-                                    destination: ContactMemoryDetailView(
-                                        contact: contact,
-                                        onClearMemory: { vm.clearMemory(for: contact) }
+                            // Contact cards
+                            VStack(spacing: 10) {
+                                ForEach(vm.contacts) { contact in
+                                    NavigationLink(
+                                        destination: ContactMemoryDetailView(
+                                            contact: contact,
+                                            onClearMemory: { vm.clearMemory(for: contact) }
+                                        )
+                                    ) {
+                                        contactCard(contact)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .background(ReplrTheme.Color.surface)
+                                    .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                                            .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
                                     )
-                                ) {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(contact.displayName)
-                                                .font(.body.weight(.medium))
-                                            let count = vm.summaryCount(for: contact)
-                                            Text("\(count) conversation\(count == 1 ? "" : "s") remembered")
-                                                .font(.caption)
-                                                .foregroundStyle(ReplrTheme.Color.textSecondary)
+                                    .contextMenu {
+                                        Button(role: .destructive) { vm.clearMemory(for: contact) } label: {
+                                            Label("Clear Memory", systemImage: "brain.slash")
                                         }
-                                        Spacer()
-                                        Image(systemName: "sparkles")
-                                            .font(.system(size: 12))
-                                            .foregroundStyle(ReplrTheme.Color.accent)
                                     }
                                 }
-                                .listRowBackground(ReplrTheme.Color.surface)
-                                .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                             }
                         }
+                        .padding(16)
                     }
-                    .scrollContentBackground(.hidden)
-                    .background(ReplrTheme.Color.bg.ignoresSafeArea())
                 }
             }
+            .background(ReplrTheme.Color.bg.ignoresSafeArea())
             .navigationTitle("Memory")
             .navigationBarTitleDisplayMode(.inline)
             .tint(ReplrTheme.Color.accent)
@@ -116,6 +106,7 @@ struct MemoryView: View {
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
+                            .foregroundStyle(ReplrTheme.Color.accent)
                     }
                 }
             }
@@ -124,5 +115,64 @@ struct MemoryView: View {
             vm.load()
             memoryEnabled = AppGroupService.shared.memoryEnabled
         }
+    }
+
+    // MARK: - Empty state
+
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Spacer()
+            Image(systemName: "brain")
+                .font(.system(size: 48))
+                .foregroundStyle(ReplrTheme.Color.textSecondary)
+            Text("No memory yet")
+                .font(.headline)
+            Text("Replr builds memory as you generate replies. Each contact gets a summary of your conversation history.")
+                .font(.subheadline)
+                .foregroundStyle(ReplrTheme.Color.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+        .background(ReplrTheme.Color.bg.ignoresSafeArea())
+    }
+
+    // MARK: - Contact card content
+
+    private func contactCard(_ contact: Contact) -> some View {
+        HStack(spacing: 14) {
+            // Avatar placeholder
+            Circle()
+                .fill(ReplrTheme.Color.accentSubtle)
+                .frame(width: 42, height: 42)
+                .overlay(
+                    Text(String(contact.displayName.prefix(1)).uppercased())
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                )
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(contact.displayName)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(ReplrTheme.Color.textPrimary)
+                let count = vm.summaryCount(for: contact)
+                HStack(spacing: 4) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 10))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                    Text("\(count) conversation\(count == 1 ? "" : "s") remembered")
+                        .font(.system(size: 12))
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                }
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(ReplrTheme.Color.textTertiary)
+        }
+        .padding(14)
     }
 }
