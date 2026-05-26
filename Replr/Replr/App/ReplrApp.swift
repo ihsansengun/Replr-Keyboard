@@ -22,11 +22,6 @@ struct ReplrApp: App {
                 ? UIColor(red: 0.051, green: 0.067, blue: 0.090, alpha: 1) // #0D1117
                 : UIColor(red: 0.961, green: 0.945, blue: 0.922, alpha: 1) // #F5F1EB warm cream
         }
-        let surfaceColor = UIColor { tc in
-            tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.075, green: 0.098, blue: 0.161, alpha: 1) // #131929
-                : UIColor(red: 0.992, green: 0.988, blue: 0.980, alpha: 1) // #FDFCFA
-        }
         let accentColor = UIColor { tc in
             tc.userInterfaceStyle == .dark
                 ? UIColor(red: 0.051, green: 0.710, blue: 0.643, alpha: 1) // #0DB5A4
@@ -43,12 +38,6 @@ struct ReplrApp: App {
         UINavigationBar.appearance().scrollEdgeAppearance = nav
         UINavigationBar.appearance().compactAppearance = nav
         UINavigationBar.appearance().tintColor = accentColor
-
-        let tab = UITabBarAppearance()
-        tab.configureWithOpaqueBackground()
-        tab.backgroundColor = surfaceColor
-        UITabBar.appearance().standardAppearance = tab
-        UITabBar.appearance().scrollEdgeAppearance = tab
     }
 
     var body: some Scene {
@@ -80,16 +69,23 @@ struct ReplrApp: App {
 }
 
 struct ContentView: View {
+    @State private var selectedTab: TabSelection = .replies
+
     var body: some View {
-        TabView {
+        ZStack {
             RepliesView()
-                .tabItem { Label("Replies", systemImage: "clock") }
+                .opacity(selectedTab == .replies ? 1 : 0)
+                .allowsHitTesting(selectedTab == .replies)
             MemoryView()
-                .tabItem { Label("Memory", systemImage: "brain") }
+                .opacity(selectedTab == .memory ? 1 : 0)
+                .allowsHitTesting(selectedTab == .memory)
             SettingsView()
-                .tabItem { Label("Settings", systemImage: "gearshape") }
+                .opacity(selectedTab == .settings ? 1 : 0)
+                .allowsHitTesting(selectedTab == .settings)
         }
-        .tint(ReplrTheme.Color.accent)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            CustomTabBar(selection: $selectedTab)
+        }
         .task {
             let txID = await SubscriptionManager.shared.currentTransactionID()
             UserDefaults(suiteName: Constants.appGroupID)?.set(txID, forKey: "transaction_id")
