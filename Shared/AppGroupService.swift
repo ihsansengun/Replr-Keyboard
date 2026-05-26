@@ -108,6 +108,20 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.backTapSkippedKey); defaults.synchronize() }
     }
 
+    var backTapSetupStarted: Bool {
+        get { defaults.bool(forKey: Constants.backTapSetupStartedKey) }
+        set { defaults.set(newValue, forKey: Constants.backTapSetupStartedKey); defaults.synchronize() }
+    }
+
+    var lastIntentFiredAt: Date? {
+        get { defaults.object(forKey: Constants.lastIntentFiredAtKey) as? Date }
+        set {
+            if let v = newValue { defaults.set(v, forKey: Constants.lastIntentFiredAtKey) }
+            else { defaults.removeObject(forKey: Constants.lastIntentFiredAtKey) }
+            defaults.synchronize()
+        }
+    }
+
     // MARK: - Capture sessions
 
     private static let maxSessions = 50

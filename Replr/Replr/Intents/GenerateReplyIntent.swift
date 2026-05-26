@@ -19,6 +19,7 @@ struct GenerateReplyIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         NSLog("[Replr][Intent] GenerateReplyIntent fired")
+        AppGroupService.shared.lastIntentFiredAt = Date()
 
         guard let image = UIImage(data: screenshot.data) else {
             NSLog("[Replr][Intent] Could not decode screenshot data")
