@@ -173,27 +173,27 @@ struct Chip: View {
         Button(action: action) {
             Text(label)
                 .font(ReplrTheme.Font.footnote)
-                .foregroundColor(isSelected ? ReplrTheme.Color.onAccent : ReplrTheme.Color.textSecondary)
+                .foregroundColor(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
                 .background(
                     Capsule()
-                        .fill(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.surface)
+                        .fill(isSelected ? ReplrTheme.Color.accentSubtle : ReplrTheme.Color.surface)
                 )
                 .overlay(
                     Capsule()
                         .strokeBorder(
                             isSelected
-                                ? ReplrTheme.Color.accent.opacity(0.50)
+                                ? ReplrTheme.Color.accent.opacity(0.55)
                                 : ReplrTheme.Color.glassBorder,
                             lineWidth: 1
                         )
                 )
                 .shadow(
                     color: isSelected
-                        ? ReplrTheme.Color.accent.opacity(0.30)
+                        ? ReplrTheme.Color.accent.opacity(0.20)
                         : .black.opacity(0.08),
-                    radius: isSelected ? 8 : 2, x: 0, y: isSelected ? 3 : 1
+                    radius: isSelected ? 6 : 2, x: 0, y: isSelected ? 3 : 1
                 )
         }
         .buttonStyle(.plain)

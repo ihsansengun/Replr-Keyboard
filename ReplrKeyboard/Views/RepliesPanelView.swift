@@ -47,7 +47,7 @@ struct RepliesPanelView: View {
                                     .font(.system(size: 11, weight: .semibold).monospacedDigit())
                                     .foregroundStyle(
                                         selectedIndex == idx
-                                            ? ReplrTheme.Color.onAccent
+                                            ? ReplrTheme.Color.accent
                                             : ReplrTheme.Color.textTertiary
                                     )
                                     .frame(width: 18)
@@ -55,7 +55,7 @@ struct RepliesPanelView: View {
                                     .font(.system(size: 14))
                                     .foregroundStyle(
                                         selectedIndex == idx
-                                            ? ReplrTheme.Color.onAccent
+                                            ? ReplrTheme.Color.accent
                                             : ReplrTheme.Color.textPrimary
                                     )
                                     .multilineTextAlignment(.leading)
@@ -67,7 +67,7 @@ struct RepliesPanelView: View {
                                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
                                     .fill(
                                         selectedIndex == idx
-                                            ? ReplrTheme.Color.accent
+                                            ? ReplrTheme.Color.accentSubtle
                                             : ReplrTheme.Color.surface
                                     )
                             )
@@ -75,17 +75,17 @@ struct RepliesPanelView: View {
                                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
                                     .stroke(
                                         selectedIndex == idx
-                                            ? ReplrTheme.Color.accent.opacity(0.4)
+                                            ? ReplrTheme.Color.accent.opacity(0.60)
                                             : ReplrTheme.Color.glassBorder,
                                         lineWidth: 1
                                     )
                             )
                             .shadow(
                                 color: selectedIndex == idx
-                                    ? ReplrTheme.Color.accent.opacity(0.25)
+                                    ? ReplrTheme.Color.accent.opacity(0.18)
                                     : .black.opacity(0.10),
-                                radius: selectedIndex == idx ? 8 : 2,
-                                x: 0, y: selectedIndex == idx ? 4 : 1
+                                radius: selectedIndex == idx ? 6 : 2,
+                                x: 0, y: selectedIndex == idx ? 3 : 1
                             )
                         }
                         .buttonStyle(.plain)
@@ -237,7 +237,7 @@ struct RepliesPanelView: View {
                     .frame(width: 56, height: 42)
                     .background(ReplrTheme.Color.surfaceRaised)
                     .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
-                    .shadow(color: .black.opacity(0.10), radius: 2, x: 0, y: 1)
+                    .overlay(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous).stroke(ReplrTheme.Color.glassBorder, lineWidth: 1))
                     .buttonStyle(.plain)
 
                 Button { model.regenerate() } label: {
@@ -248,7 +248,7 @@ struct RepliesPanelView: View {
                 .frame(width: 42, height: 42)
                 .background(ReplrTheme.Color.surfaceRaised)
                 .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
-                .shadow(color: .black.opacity(0.10), radius: 2, x: 0, y: 1)
+                .overlay(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous).stroke(ReplrTheme.Color.glassBorder, lineWidth: 1))
                 .buttonStyle(.plain)
                 .accessibilityLabel("New replies")
             }
