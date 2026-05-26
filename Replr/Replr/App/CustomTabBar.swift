@@ -39,9 +39,9 @@ struct CustomTabBar: View {
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
                     .fill(active ? ReplrTheme.Color.accent.opacity(0.15) : .clear)
             )
-            .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
         .animation(ReplrTheme.Motion.quick, value: active)
     }
 }
