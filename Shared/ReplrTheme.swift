@@ -176,15 +176,29 @@ extension View {
 // MARK: - BrandCard modifier
 
 struct BrandCard: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+
     func body(content: Content) -> some View {
         content
             .background(ReplrTheme.Color.surface)
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                    .strokeBorder(
+                        scheme == .dark
+                            ? ReplrTheme.Color.glassBorder
+                            : ReplrTheme.Color.accent.opacity(0.28),
+                        lineWidth: 1
+                    )
             )
-            .elevatedSurface(.level1)
+            .shadow(
+                color: scheme == .dark
+                    ? Color(white: 0, opacity: 0.55)
+                    : ReplrTheme.Color.accent.opacity(0.10),
+                radius: scheme == .dark ? 10 : 20,
+                x: 0,
+                y: scheme == .dark ? 6 : 2
+            )
     }
 }
 
