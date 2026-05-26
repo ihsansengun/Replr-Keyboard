@@ -143,15 +143,10 @@ struct ElevatedSurface: ViewModifier {
                 .shadow(
                     color: scheme == .dark
                         ? Color(white: 0, opacity: 0.55)
-                        : Color(white: 0, opacity: 0.06),
-                    radius: scheme == .dark ? 10 : 2, x: 0,
-                    y: scheme == .dark ? 6 : 1
-                )
-                .shadow(
-                    color: scheme == .dark
-                        ? .clear
-                        : Color(white: 0, opacity: 0.06),
-                    radius: 10, x: 0, y: 6
+                        : Color(white: 0, opacity: 0.07),
+                    radius: scheme == .dark ? 10 : 20,
+                    x: 0,
+                    y: scheme == .dark ? 6 : 4
                 )
         case .primaryAction:
             content

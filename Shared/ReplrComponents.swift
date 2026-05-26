@@ -174,6 +174,8 @@ struct Chip: View {
     let icon: String?
     let action: () -> Void
 
+    @Environment(\.colorScheme) private var scheme
+
     init(label: String, isSelected: Bool, icon: String? = nil, action: @escaping () -> Void) {
         self.label = label
         self.isSelected = isSelected
@@ -208,9 +210,9 @@ struct Chip: View {
                     )
             )
             .shadow(
-                color: isSelected
-                    ? ReplrTheme.Color.accent.opacity(0.20)
-                    : .black.opacity(0.08),
+                color: scheme == .dark
+                    ? (isSelected ? ReplrTheme.Color.accent.opacity(0.20) : .black.opacity(0.08))
+                    : .clear,
                 radius: isSelected ? 6 : 2, x: 0, y: isSelected ? 3 : 1
             )
         }
