@@ -1,12 +1,6 @@
 import SwiftUI
 
-// Measures the cards VStack natural height (for ScrollView constraint)
-private struct CardsHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
-}
-
-// Measures the outer VStack actual rendered total (for accurate keyboard height)
+// Measures the outer VStack's actual rendered height for keyboard sizing
 private struct TotalHeightKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
@@ -17,43 +11,9 @@ struct RepliesPanelView: View {
     let replies: [String]
 
     @State private var selectedIndex: Int = 0
-    // Measured natural height of the cards VStack content
-    @State private var cardsH: CGFloat
-    // Measured actual total height of the outer VStack (used for keyboard height — no estimates)
     @State private var totalH: CGFloat = 0
 
-    // Estimates used only for the ScrollView cap — not for keyboard height
-    private let headerH:  CGFloat = 90   // KeyboardHeader (46pt segmented row + 44pt tones)
-    private let contactH: CGFloat = 28
-    private let memoryH:  CGFloat = 28
-    private let actionH:  CGFloat = 62
-    private let maxKbH:   CGFloat = 400
-
-    init(model: KeyboardModel, replies: [String]) {
-        self.model = model
-        self.replies = replies
-        // 80pt per card (generous 2-line estimate) ensures first render is never clipped;
-        // TotalHeightKey measurement corrects it downward after first layout.
-        _cardsH = State(initialValue: CGFloat(max(1, replies.count)) * 80 + 16)
-    }
-
-    private var fixedH: CGFloat {
-        headerH
-            + (model.contactName        != nil ? contactH : 0)
-            + (model.memoryContactName  != nil ? memoryH  : 0)
-            + actionH
-    }
-
-    // ScrollView frame height — equals content when it fits, caps at available space
-    private var scrollFrameH: CGFloat {
-        max(40, min(cardsH, maxKbH - fixedH))
-    }
-
-    // Keyboard height: use measured total when available, formula as fallback
-    private var totalKbH: CGFloat {
-        let base = totalH > 10 ? totalH : (fixedH + cardsH)
-        return min(maxKbH, max(260, base))
-    }
+    private let maxKbH: CGFloat = 400
 
     private var currentReply: String {
         replies.indices.contains(selectedIndex) ? replies[selectedIndex] : replies.first ?? ""
@@ -79,7 +39,8 @@ struct RepliesPanelView: View {
                 .background(ReplrTheme.Color.accentSubtle)
             }
 
-            // Cards — ScrollView constrained to measured content height
+            // fixedSize forces the ScrollView to take its content's natural height —
+            // no frame estimation needed, no gap, scroll kicks in when content overflows.
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 8) {
                     ForEach(Array(replies.enumerated()), id: \.offset) { idx, reply in
@@ -88,37 +49,26 @@ struct RepliesPanelView: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                // Measure natural content height from within the ScrollView
-                .background(
-                    GeometryReader { geo in
-                        Color.clear.preference(key: CardsHeightKey.self, value: geo.size.height)
-                    }
-                )
             }
-            // Pin ScrollView to exact content height → eliminates the gap
-            .frame(height: scrollFrameH)
+            .fixedSize(horizontal: false, vertical: true)
 
             actionRow
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
         }
-        // Measure the outer VStack's actual rendered height for accurate keyboard sizing
+        // Measure the outer VStack's rendered height — reliable because every child has
+        // a definite height (ScrollView is content-sized via fixedSize above).
         .background(
             GeometryReader { geo in
                 Color.clear.preference(key: TotalHeightKey.self, value: geo.size.height)
             }
         )
         .background(ReplrTheme.Color.bg.ignoresSafeArea())
-        .onPreferenceChange(CardsHeightKey.self) { measured in
-            guard measured > 0, abs(measured - cardsH) > 1 else { return }
-            cardsH = measured
-        }
         .onPreferenceChange(TotalHeightKey.self) { measured in
             guard measured > 10, abs(measured - totalH) > 1 else { return }
             totalH = measured
             reportHeight()
         }
-        .onChange(of: cardsH)           { _ in reportHeight() }
         .onChange(of: model.contactName)       { _ in reportHeight() }
         .onChange(of: model.memoryContactName) { _ in reportHeight() }
         .onAppear { reportHeight() }
@@ -162,7 +112,8 @@ struct RepliesPanelView: View {
     }
 
     private func reportHeight() {
-        model.onContentHeightChanged?(totalKbH)
+        guard totalH > 10 else { return }
+        model.onContentHeightChanged?(min(maxKbH, max(260, totalH)))
     }
 
     // MARK: - Reply card

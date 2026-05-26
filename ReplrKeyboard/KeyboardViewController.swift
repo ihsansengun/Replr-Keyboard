@@ -110,11 +110,12 @@ final class KeyboardViewController: UIInputViewController {
                 case .error:        height = 240
                 case .disambiguate: height = 300
                 case .replies:
-                    // Generous upfront estimate so first render is never clipped.
-                    // RepliesPanelView's TotalHeightKey measurement refines this downward.
+                    // Upfront estimate; TotalHeightKey in RepliesPanelView refines to exact fit.
+                    // fixedSize on the ScrollView means the VStack is always content-sized,
+                    // so any gap is at the keyboard bottom (not between cards and action row).
                     let n = CGFloat(max(1, self.model.currentReplies.count))
                     let contactExtra: CGFloat = self.model.contactName != nil ? 28 : 0
-                    height = min(400, max(280, 180 + n * 80 + contactExtra))
+                    height = min(400, max(280, 152 + n * 62 + contactExtra))
                 }
                 self.setHeight(height)
             }

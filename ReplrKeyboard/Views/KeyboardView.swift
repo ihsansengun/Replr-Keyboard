@@ -149,7 +149,7 @@ struct KeyboardRootView: View {
     @ObservedObject var model: KeyboardModel
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             // Solid bg only when expanded — collapsed lets native iOS chrome show through
             if !model.isCollapsed {
                 ReplrTheme.Color.bg
