@@ -377,7 +377,6 @@ struct ModeSegmentedControl: View {
             .foregroundColor(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
             .padding(.horizontal, 11)
             .padding(.vertical, 6)
-            .frame(maxHeight: .infinity)
             .background(isSelected ? ReplrTheme.Color.accentSubtle : Color.clear)
         }
         .buttonStyle(.plain)
