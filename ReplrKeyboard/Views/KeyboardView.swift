@@ -452,7 +452,8 @@ struct KeyboardHeader: View {
                     .opacity(isSegmentedDisabled ? 0.4 : 1.0)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
             if !isToneHidden {
                 ToneRow(model: model, isDimmed: isToneDimmed)
             }
