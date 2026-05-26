@@ -231,7 +231,7 @@ private struct FullAccessStep: View {
     let onNext: () -> Void
     let onBack: () -> Void
     @State private var detected = AppGroupService.shared.fullAccessGranted
-    @State private var settingsOpened = false
+    @AppStorage("onboarding.fullAccessSettingsOpened") private var settingsOpened = false
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -289,8 +289,8 @@ private struct FullAccessStep: View {
             )
         } cta: {
             VStack(spacing: 12) {
-                PrimaryButton(label: fullAccessButtonLabel) {
-                    if detected || settingsOpened {
+                PrimaryButton(label: detected ? "Full Access enabled ✓ — Continue →" : "Open Keyboard Settings →") {
+                    if detected {
                         onNext()
                     } else if let url = URL(string: UIApplication.openSettingsURLString) {
                         settingsOpened = true
@@ -302,9 +302,10 @@ private struct FullAccessStep: View {
         }
         .onChange(of: scenePhase) { newPhase in
             guard newPhase == .active, settingsOpened else { return }
-            detected = AppGroupService.shared.fullAccessGranted
-            if detected { onNext() }
+            settingsOpened = false
+            onNext()
         }
+        .onDisappear { settingsOpened = false }
         .onReceive(
             Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
         ) { _ in
@@ -314,18 +315,12 @@ private struct FullAccessStep: View {
             }
         }
     }
-
-    private var fullAccessButtonLabel: String {
-        if detected { return "Full Access enabled ✓ — Continue →" }
-        if settingsOpened { return "Continue →" }
-        return "Open Keyboard Settings →"
-    }
 }
 
 private struct InstallShortcutStep: View {
     let onNext: () -> Void
     let onBack: () -> Void
-    @State private var shortcutOpened = false
+    @AppStorage("onboarding.shortcutOpened") private var shortcutOpened = false
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -403,9 +398,11 @@ private struct InstallShortcutStep: View {
         }
         .onChange(of: scenePhase) { newPhase in
             if newPhase == .active, shortcutOpened {
+                shortcutOpened = false
                 onNext()
             }
         }
+        .onDisappear { shortcutOpened = false }
     }
 }
 
