@@ -52,6 +52,10 @@ final class KeyboardViewController: UIInputViewController {
             self.advanceToNextInputMode()
         }
         model.retryTrigger = { [weak self] in self?.triggerRetry() }
+        model.onContentHeightChanged = { [weak self] height in
+            guard let self else { return }
+            self.setHeight(min(400, max(260, height)), duration: 0.15)
+        }
 
         let adaptiveBg = UIColor { tc in
             tc.userInterfaceStyle == .dark
@@ -106,10 +110,9 @@ final class KeyboardViewController: UIInputViewController {
                 case .error:        height = 240
                 case .disambiguate: height = 300
                 case .replies:
-                    let n = CGFloat(max(1, self.model.currentReplies.count))
-                    let contactExtra: CGFloat = self.model.contactName != nil ? 28 : 0
-                    // 190pt base (header + action + padding) + 65pt per reply (fits ~2 lines)
-                    height = min(400, max(300, 190 + n * 65 + contactExtra))
+                    // RepliesPanelView measures actual content and calls onContentHeightChanged;
+                    // set a safe initial floor here so the keyboard is never invisible on transition.
+                    height = 300
                 }
                 self.setHeight(height)
             }

@@ -41,6 +41,7 @@ final class KeyboardModel: ObservableObject {
     var onUndoInsert: (() -> Void)?
     var onEditReply: ((String) -> Void)?
     var retryTrigger: (() -> Void)?
+    var onContentHeightChanged: ((CGFloat) -> Void)?
 
     init(initialTone: Tone) {
         self.selectedTone = initialTone
