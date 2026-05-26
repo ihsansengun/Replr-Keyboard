@@ -3,7 +3,7 @@ import Combine
 
 // MARK: - Shared step wrapper
 
-private struct OnboardingStep<Content: View, CTA: View>: View {
+struct OnboardingStep<Content: View, CTA: View>: View {
     let step: Int
     let totalSteps: Int
     let sectionLabel: String
@@ -378,7 +378,7 @@ private struct InstallShortcutStep: View {
     }
 }
 
-private struct BackTapStep: View {
+private struct BackTapStepLegacy: View {
     let onNext: () -> Void
     let onSkip: () -> Void
     let onBack: () -> Void
@@ -479,11 +479,6 @@ struct OnboardingView: View {
             case 4:
                 BackTapStep(
                     onNext: { step = 0; onComplete() },
-                    onSkip: {
-                        AppGroupService.shared.backTapSkipped = true
-                        step = 0
-                        onComplete()
-                    },
                     onBack: { step = 3 }
                 )
             default:
