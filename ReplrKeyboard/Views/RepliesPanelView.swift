@@ -12,17 +12,7 @@ struct RepliesPanelView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Mode segmented control + mark
-            HStack(spacing: 0) {
-                ModeSegmentedControl(model: model)
-                Spacer()
-                ReplrMark(size: 16)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(ReplrTheme.Color.bg)
-
-            ToneRow(model: model)
+            KeyboardHeader(model: model)
 
             // Contact header: name + rename + N of M
             if let name = model.contactName {
@@ -105,11 +95,6 @@ struct RepliesPanelView: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
             }
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxHeight: 220)
-
-            Spacer(minLength: 0)
-
             // Action row: wide Insert primary + Edit secondary (or undo when sent)
             actionRow
                 .padding(.horizontal, 16)
