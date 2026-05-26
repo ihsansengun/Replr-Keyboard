@@ -213,10 +213,9 @@ struct RepliesView: View {
         Chip(
             label: label,
             isSelected: isSelected,
-            icon: showSparkles ? "sparkles" : nil
-        ) {
-            vm.selectedContactID = id
-        }
+            icon: showSparkles ? "sparkles" : nil,
+            action: { vm.selectedContactID = id }
+        )
         .frame(maxWidth: 160)
     }
 

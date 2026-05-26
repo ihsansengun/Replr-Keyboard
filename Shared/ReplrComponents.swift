@@ -171,8 +171,15 @@ struct Card<Content: View>: View {
 struct Chip: View {
     let label: String
     let isSelected: Bool
-    let icon: String? = nil
+    let icon: String?
     let action: () -> Void
+
+    init(label: String, isSelected: Bool, icon: String? = nil, action: @escaping () -> Void) {
+        self.label = label
+        self.isSelected = isSelected
+        self.icon = icon
+        self.action = action
+    }
 
     var body: some View {
         Button(action: action) {
