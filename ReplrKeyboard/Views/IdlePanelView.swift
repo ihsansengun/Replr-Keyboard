@@ -92,19 +92,24 @@ struct IdlePanelView: View {
             Button { model.generateEmailReply() } label: {
                 HStack(spacing: 8) {
                     Image(systemName: hasClipboardText ? "doc.on.clipboard.fill" : "doc.on.clipboard")
-                        .font(.system(size: 14))
+                        .font(.system(size: 13, weight: .semibold))
                     Text("Generate from clipboard")
                         .font(.system(size: 14, weight: .semibold))
                 }
-                .foregroundColor(hasClipboardText ? ReplrTheme.Color.onAccent : ReplrTheme.Color.textSecondary)
+                .foregroundColor(ReplrTheme.Color.onAccent.opacity(hasClipboardText ? 1 : 0.45))
                 .frame(maxWidth: .infinity)
-                .frame(height: 48)
-                .background(ReplrTheme.Color.accent.opacity(hasClipboardText ? 1.0 : 0.30))
-                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
+                .frame(height: 42)
+                .background(
+                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                        .fill(ReplrTheme.Color.accent.opacity(hasClipboardText ? 1.0 : 0.35))
+                        .overlay(hasClipboardText ? ShimmerOverlay(cornerRadius: ReplrTheme.Radius.sm) : nil)
+                )
+                .shadow(color: ReplrTheme.Color.accent.opacity(hasClipboardText ? 0.55 : 0), radius: 18, x: 0, y: 6)
+                .shadow(color: .black.opacity(hasClipboardText ? 0.22 : 0), radius: 6, x: 0, y: 3)
             }
             .buttonStyle(.plain)
-            .padding(.horizontal, 16)
             .disabled(!hasClipboardText)
+            .padding(.horizontal, 16)
 
             HStack(spacing: 4) {
                 if hasClipboardText {
