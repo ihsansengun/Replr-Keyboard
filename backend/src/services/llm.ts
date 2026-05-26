@@ -11,16 +11,6 @@ Rules:
 - Each option must be distinct in angle or energy
 - Match the reply length rhythm of the conversation`
 
-const TONE_PROMPTS: Record<string, string> = {
-  casual:       'Relaxed, warm, natural. Contractions always. Match their energy exactly.',
-  friendly:     'Warm, positive, and genuine. Light energy without being over-the-top.',
-  dating:       'Confident and genuine. Light wit when it fits. Never desperate, never try-hard.',
-  professional: 'Clear, competent, respectful. Formal but not stiff.',
-  formal:       'Polished and structured. Appropriate for official or high-stakes messages.',
-  email:        'Structured email reply. Match the formality of the email. Clear, purposeful, no fluff.',
-  bold:         'Short, direct, punchy. No filler. Gets to the point.',
-  witty:        'Smart and playful. A touch of dry humor. Never forced.',
-}
 
 const DECISIONS = `Before generating replies, assess:
 1. Language and cultural dialect → reply in the exact same register, not translated English
@@ -203,7 +193,7 @@ ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
 export async function generateReplies(params: GenerateParams): Promise<LlmResult> {
   const { screenshotBase64, tone, summary, previousContext, model, tier, anthropicKey, openaiKey } = params
   const count = tier === 'premium' ? PREMIUM_REPLY_COUNT : 3
-  const toneInstruction = TONE_PROMPTS[tone] ?? tone
+  const toneInstruction = tone
 
   const system = [IDENTITY, `ROLE: ${toneInstruction}`].join('\n\n')
 
@@ -221,7 +211,7 @@ ${buildReplyFormat(count)}`
 export async function generateRepliesFromMultiple(params: GenerateMultipleParams): Promise<LlmResult> {
   const { screenshots, tone, summary, previousContext, model, anthropicKey, openaiKey } = params
   const count = PREMIUM_REPLY_COUNT
-  const toneInstruction = TONE_PROMPTS[tone] ?? tone
+  const toneInstruction = tone
 
   const system = [IDENTITY, `ROLE: ${toneInstruction}`].join('\n\n')
 
@@ -241,7 +231,7 @@ ${buildReplyFormat(count)}`
 export async function generateRepliesFromEmail(params: GenerateEmailParams): Promise<LlmResult> {
   const { emailText, tone, summary, previousContext, model, tier, anthropicKey, openaiKey } = params
   const count = tier === 'premium' ? PREMIUM_REPLY_COUNT : 3
-  const toneInstruction = TONE_PROMPTS[tone.toLowerCase()] ?? tone
+  const toneInstruction = tone
 
   const system = [IDENTITY, `ROLE: ${toneInstruction}`].join('\n\n')
 
