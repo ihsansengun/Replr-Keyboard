@@ -80,9 +80,7 @@ struct IdlePanelView: View {
             .elevatedSurface(.level1)
         }
         .padding(.horizontal, 14)
-        .padding(.top, 12)
-        .padding(.bottom, 12)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Email idle
