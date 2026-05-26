@@ -108,8 +108,8 @@ final class KeyboardViewController: UIInputViewController {
                 case .replies:
                     let n = CGFloat(max(1, self.model.currentReplies.count))
                     let contactExtra: CGFloat = self.model.contactName != nil ? 28 : 0
-                    // 170pt base (header + action + padding) + 49pt per reply + optional contact row
-                    height = min(400, max(280, 170 + n * 49 + contactExtra))
+                    // 190pt base (header + action + padding) + 65pt per reply (fits ~2 lines)
+                    height = min(400, max(300, 190 + n * 65 + contactExtra))
                 }
                 self.setHeight(height)
             }
