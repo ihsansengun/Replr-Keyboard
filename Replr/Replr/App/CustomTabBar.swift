@@ -18,6 +18,8 @@ struct CustomTabBar: View {
         }
     }
 
+    @Environment(\.colorScheme) private var scheme
+
     @ViewBuilder
     private func tabButton(_ tab: TabSelection, icon: String, activeIcon: String, label: String) -> some View {
         let active = selection == tab
@@ -26,7 +28,7 @@ struct CustomTabBar: View {
                 Image(systemName: active ? activeIcon : icon)
                     .font(.system(size: 21, weight: .semibold))
                     .scaleEffect(active ? 1.1 : 1.0)
-                    .shadow(color: active ? ReplrTheme.Color.accent.opacity(0.55) : .clear,
+                    .shadow(color: active && scheme == .dark ? ReplrTheme.Color.accent.opacity(0.55) : .clear,
                             radius: 8, x: 0, y: 2)
                 Text(label)
                     .font(ReplrTheme.Font.caption)

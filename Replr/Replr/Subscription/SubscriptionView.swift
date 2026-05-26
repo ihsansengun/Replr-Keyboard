@@ -5,6 +5,7 @@ struct SubscriptionView: View {
     @StateObject private var manager = SubscriptionManager.shared
     @State private var purchasing = false
     @State private var errorMessage: String?
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         ScrollView {
@@ -68,8 +69,8 @@ struct SubscriptionView: View {
                                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
                                     .fill(ReplrTheme.Color.accent.opacity(purchasing || manager.isPremium ? 0.35 : 1))
                             )
-                            .shadow(color: ReplrTheme.Color.accent.opacity(purchasing || manager.isPremium ? 0 : 0.55), radius: 18, x: 0, y: 6)
-                            .shadow(color: .black.opacity(purchasing || manager.isPremium ? 0 : 0.22), radius: 6, x: 0, y: 3)
+                            .shadow(color: ReplrTheme.Color.accent.opacity(purchasing || manager.isPremium ? 0 : (scheme == .dark ? 0.55 : 0)), radius: 18, x: 0, y: 6)
+                            .shadow(color: .black.opacity(purchasing || manager.isPremium ? 0 : (scheme == .dark ? 0.22 : 0.10)), radius: scheme == .dark ? 6 : 16, x: 0, y: scheme == .dark ? 3 : 4)
                         }
                         .buttonStyle(.plain)
                         .disabled(purchasing || manager.isPremium)
