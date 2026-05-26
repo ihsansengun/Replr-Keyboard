@@ -347,17 +347,33 @@ struct ModeSegmentedControl: View {
     @ObservedObject var model: KeyboardModel
 
     var body: some View {
-        Picker("Mode", selection: $model.inputMode) {
-            Text("Chat").tag(KeyboardInputMode.chat)
-            Text("Email").tag(KeyboardInputMode.email)
+        HStack(spacing: 6) {
+            modeTab(.chat, label: "Chat")
+            modeTab(.email, label: "Email")
         }
-        .pickerStyle(.segmented)
-        .frame(width: 130)
-        .onChange(of: model.inputMode) { newMode in
-            if newMode == .email, model.selectedTone.name == "Dating" {
-                model.selectedTone = model.tones.first { $0.name != "Dating" } ?? model.selectedTone
+    }
+
+    @ViewBuilder
+    private func modeTab(_ mode: KeyboardInputMode, label: String) -> some View {
+        let isSelected = model.inputMode == mode
+        Button {
+            withAnimation(ReplrTheme.Motion.quick) {
+                model.inputMode = mode
+                if mode == .email, model.selectedTone.name == "Dating" {
+                    model.selectedTone = model.tones.first { $0.name != "Dating" } ?? model.selectedTone
+                }
             }
+        } label: {
+            Text(label)
+                .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                .foregroundColor(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 6)
+                .background(Capsule().fill(isSelected ? ReplrTheme.Color.accentSubtle : Color.clear))
+                .overlay(Capsule().strokeBorder(isSelected ? ReplrTheme.Color.accent.opacity(0.55) : ReplrTheme.Color.glassBorder, lineWidth: 1))
         }
+        .buttonStyle(.plain)
+        .animation(ReplrTheme.Motion.quick, value: isSelected)
     }
 }
 
