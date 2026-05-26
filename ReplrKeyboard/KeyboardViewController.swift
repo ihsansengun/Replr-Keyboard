@@ -53,18 +53,6 @@ final class KeyboardViewController: UIInputViewController {
         }
         model.retryTrigger = { [weak self] in self?.triggerRetry() }
 
-        model.onCreateNewContact = { [weak self] name in
-            guard let self else { return }
-            let newContact = AppGroupService.shared.createContact(displayName: name)
-            AppGroupService.shared.currentContactID = newContact.id
-            self.model.contactName = name
-            withAnimation(.easeInOut(duration: 0.18)) {
-                self.model.state = self.model.currentReplies.isEmpty
-                    ? .idle
-                    : .replies(self.model.currentReplies)
-            }
-        }
-
         let adaptiveBg = UIColor { tc in
             tc.userInterfaceStyle == .dark
                 ? UIColor(red: 0.051, green: 0.067, blue: 0.090, alpha: 1) // #0D1117

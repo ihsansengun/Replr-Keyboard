@@ -13,8 +13,7 @@ struct DisambiguatePanelView: View {
             DisambiguateView(
                 name: name,
                 candidates: candidates,
-                onSelectContact: { model.onSelectContact?($0) },
-                onCreateNew: { model.onCreateNewContact?($0) }
+                onSelectContact: { model.onSelectContact?($0) }
             )
         }
         .background(ReplrTheme.Color.bg)
@@ -27,17 +26,14 @@ struct DisambiguateView: View {
     let name: String
     let candidates: [Contact]
     var onSelectContact: ((Contact) -> Void)?
-    var onCreateNew: ((String) -> Void)?
 
     private let thumbnails: [UUID: UIImage]
 
     init(name: String, candidates: [Contact],
-         onSelectContact: ((Contact) -> Void)? = nil,
-         onCreateNew: ((String) -> Void)? = nil) {
+         onSelectContact: ((Contact) -> Void)? = nil) {
         self.name = name
         self.candidates = candidates
         self.onSelectContact = onSelectContact
-        self.onCreateNew = onCreateNew
         var map: [UUID: UIImage] = [:]
         for contact in candidates {
             if let data = AppGroupService.shared.sessions(forContactID: contact.id)
@@ -91,19 +87,7 @@ struct DisambiguateView: View {
                         }
                     }
 
-                    Button { onCreateNew?(name) } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "plus.circle")
-                                .font(.system(size: 13))
-                            Text("New contact named \(name)")
-                                .font(.system(size: 13))
-                        }
-                        .foregroundColor(ReplrTheme.Color.accent)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 14)
-                        .frame(height: 44)
-                    }
-                    .buttonStyle(.plain)
+
                 }
             }
         }

@@ -37,7 +37,6 @@ final class KeyboardModel: ObservableObject {
     var onToneChanged: ((Tone) -> Void)?
     var onSwitchKeyboard: (() -> Void)?
     var onSelectContact: ((Contact) -> Void)?
-    var onCreateNewContact: ((String) -> Void)?
     var onUndoInsert: (() -> Void)?
     var onEditReply: ((String) -> Void)?
     var retryTrigger: (() -> Void)?
