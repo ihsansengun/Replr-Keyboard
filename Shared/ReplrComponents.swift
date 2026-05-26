@@ -36,6 +36,7 @@ struct ShimmerOverlay: View {
 
 struct PrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.colorScheme) private var colorScheme
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -48,10 +49,13 @@ struct PrimaryButtonStyle: ButtonStyle {
                     .fill(ReplrTheme.Color.accent.opacity(isEnabled ? 1 : 0.40))
                     .overlay(isEnabled ? ShimmerOverlay(cornerRadius: ReplrTheme.Radius.md) : nil)
             )
-            // Accent bloom glow
-            .shadow(color: ReplrTheme.Color.accent.opacity(isEnabled ? 0.55 : 0), radius: 24, x: 0, y: 8)
-            // Depth shadow
-            .shadow(color: .black.opacity(0.28), radius: 8, x: 0, y: 4)
+            .shadow(
+                color: colorScheme == .dark
+                    ? ReplrTheme.Color.accent.opacity(isEnabled ? 0.45 : 0)
+                    : .black.opacity(isEnabled ? 0.12 : 0),
+                radius: colorScheme == .dark ? 18 : 8,
+                x: 0, y: colorScheme == .dark ? 6 : 4
+            )
             .scaleEffect(configuration.isPressed ? 0.96 : 1)
             .animation(ReplrTheme.Motion.quick, value: configuration.isPressed)
     }

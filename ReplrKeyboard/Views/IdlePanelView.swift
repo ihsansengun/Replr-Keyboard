@@ -3,6 +3,7 @@ import SwiftUI
 struct IdlePanelView: View {
     @ObservedObject var model: KeyboardModel
     @State private var hasClipboardText: Bool = false
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 0) {
@@ -61,10 +62,18 @@ struct IdlePanelView: View {
                             .foregroundColor(ReplrTheme.Color.onAccent)
                             .padding(.horizontal, 12)
                             .frame(height: 32)
-                            .background(ReplrTheme.Color.accent)
-                            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
-                            .shadow(color: ReplrTheme.Color.accent.opacity(0.55), radius: 18, x: 0, y: 6)
-                            .shadow(color: .black.opacity(0.22), radius: 6, x: 0, y: 3)
+                            .background(
+                                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                                    .fill(ReplrTheme.Color.accent)
+                                    .overlay(ShimmerOverlay(cornerRadius: ReplrTheme.Radius.sm))
+                            )
+                            .shadow(
+                                color: colorScheme == .dark
+                                    ? ReplrTheme.Color.accent.opacity(0.45)
+                                    : .black.opacity(0.10),
+                                radius: colorScheme == .dark ? 14 : 6,
+                                x: 0, y: colorScheme == .dark ? 5 : 3
+                            )
                     }
                     .buttonStyle(.plain)
                 }
@@ -108,8 +117,13 @@ struct IdlePanelView: View {
                     RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
                         .strokeBorder(hasClipboardText ? Color.clear : ReplrTheme.Color.accent.opacity(0.25), lineWidth: 1)
                 )
-                .shadow(color: ReplrTheme.Color.accent.opacity(hasClipboardText ? 0.55 : 0), radius: 18, x: 0, y: 6)
-                .shadow(color: .black.opacity(hasClipboardText ? 0.22 : 0), radius: 6, x: 0, y: 3)
+                .shadow(
+                    color: colorScheme == .dark
+                        ? ReplrTheme.Color.accent.opacity(hasClipboardText ? 0.45 : 0)
+                        : .black.opacity(hasClipboardText ? 0.10 : 0),
+                    radius: colorScheme == .dark ? 14 : 6,
+                    x: 0, y: colorScheme == .dark ? 5 : 3
+                )
             }
             .buttonStyle(.plain)
             .disabled(!hasClipboardText)
