@@ -105,7 +105,11 @@ final class KeyboardViewController: UIInputViewController {
                 case .loading:      height = 250
                 case .error:        height = 240
                 case .disambiguate: height = 300
-                case .replies:      height = 400
+                case .replies:
+                    let n = CGFloat(max(1, self.model.currentReplies.count))
+                    let contactExtra: CGFloat = self.model.contactName != nil ? 28 : 0
+                    // 170pt base (header + action + padding) + 49pt per reply + optional contact row
+                    height = min(400, max(280, 170 + n * 49 + contactExtra))
                 }
                 self.setHeight(height)
             }
@@ -144,6 +148,7 @@ final class KeyboardViewController: UIInputViewController {
         } else if AppGroupService.shared.persistReplies,
                   let cached = AppGroupService.shared.readCachedReplies() {
             model.currentReplies = cached
+            model.repliesGeneratedInMode = .chat
             model.state = .replies(cached)
         }
         startCapturePoll()
@@ -218,6 +223,7 @@ final class KeyboardViewController: UIInputViewController {
                             self.model.showConsentPrompt = true
                         }
                         self.model.currentReplies = replies
+                        self.model.repliesGeneratedInMode = .chat
                         // Refresh contact chip — intent may have switched contact during this capture
                         AppGroupService.shared.synchronize()
                         if let id = AppGroupService.shared.currentContactID,

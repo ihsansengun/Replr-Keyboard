@@ -28,6 +28,7 @@ final class KeyboardModel: ObservableObject {
     @Published var lastInsertedReply: String? = nil
     @Published var hasAnySessions: Bool = false
     @Published var inputMode: KeyboardInputMode = .chat
+    @Published var repliesGeneratedInMode: KeyboardInputMode = .chat
     @Published var isCaptureMode: Bool = false
     @Published var isCollapsed: Bool = false
     @Published var memoryContactName: String? = nil
@@ -91,6 +92,7 @@ final class KeyboardModel: ObservableObject {
                 AppGroupService.shared.appendCaptureSession(session)
                 AppGroupService.shared.saveReplies(result.replies)
                 currentReplies = result.replies
+                repliesGeneratedInMode = .email
                 hasAnySessions = true
                 withAnimation(.easeInOut(duration: 0.2)) { state = .replies(result.replies) }
             } catch {
@@ -174,6 +176,11 @@ struct KeyboardRootView: View {
         .animation(.easeInOut(duration: 0.2), value: model.isCollapsed)
         .animation(.easeInOut(duration: 0.2), value: stateTag)
         .ignoresSafeArea()
+        .onChange(of: model.inputMode) { newMode in
+            if case .replies = model.state, model.repliesGeneratedInMode != newMode {
+                withAnimation(.easeInOut(duration: 0.2)) { model.state = .idle }
+            }
+        }
     }
 
     private var stateTag: Int {
@@ -392,7 +399,7 @@ struct ToneRow: View {
     var body: some View {
         HStack(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 2) {
+                HStack(spacing: 6) {
                     ForEach(model.tones.filter { $0.isEnabled && (model.inputMode == .chat || $0.name != "Dating") }) { tone in
                         Chip(
                             label: tone.name,
