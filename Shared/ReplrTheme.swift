@@ -35,8 +35,12 @@ enum ReplrTheme {
         // Borders / separators
         static let border          = SwiftUI.Color(UIColor.separator).opacity(0.5)
         static let borderStrong    = SwiftUI.Color(UIColor.separator)
-        // Glass border: 1px white at 12%
-        static let glassBorder     = SwiftUI.Color.white.opacity(0.12)
+        // Glass border: adaptive — subtle gray in light, subtle white in dark
+        static let glassBorder     = SwiftUI.Color(UIColor { tc in
+            tc.userInterfaceStyle == .dark
+                ? UIColor.white.withAlphaComponent(0.12)
+                : UIColor.black.withAlphaComponent(0.07)
+        })
 
         // Text — iOS semantic labels
         static let textPrimary     = SwiftUI.Color.primary
@@ -167,5 +171,26 @@ struct ElevatedSurface: ViewModifier {
 extension View {
     func elevatedSurface(_ level: ElevationLevel = .level1) -> some View {
         modifier(ElevatedSurface(level: level))
+    }
+}
+
+// MARK: - BrandCard modifier
+
+struct BrandCard: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background(ReplrTheme.Color.surface)
+            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                    .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
+            )
+            .elevatedSurface(.level1)
+    }
+}
+
+extension View {
+    func brandCard() -> some View {
+        modifier(BrandCard())
     }
 }

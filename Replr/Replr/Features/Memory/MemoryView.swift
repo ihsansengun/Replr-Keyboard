@@ -76,12 +76,7 @@ struct MemoryView: View {
                                         contactCard(contact)
                                     }
                                     .buttonStyle(.plain)
-                                    .background(ReplrTheme.Color.surface)
-                                    .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                                            .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
-                                    )
+                                    .brandCard()
                                     .contextMenu {
                                         Button(role: .destructive) { vm.clearMemory(for: contact) } label: {
                                             Label("Clear Memory", systemImage: "brain.slash")

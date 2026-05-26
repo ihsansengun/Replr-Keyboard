@@ -139,12 +139,7 @@ struct RepliesView: View {
                                     CaptureRowView(session: session)
                                 }
                                 .buttonStyle(.plain)
-                                .background(ReplrTheme.Color.surface)
-                                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                                        .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
-                                )
+                                .brandCard()
                                 .contextMenu {
                                     Button(role: .destructive) { vm.deleteSession(session) } label: {
                                         Label("Delete", systemImage: "trash")
@@ -423,12 +418,7 @@ struct CaptureDetailView: View {
 
             content()
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(ReplrTheme.Color.surface)
-                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                        .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
-                )
+                .brandCard()
         }
     }
 }

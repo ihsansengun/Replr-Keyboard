@@ -48,7 +48,7 @@ struct SettingsView: View {
             Spacer()
         }
         .padding(16)
-        .settingsCard()
+        .brandCard()
     }
 
     // MARK: - Keyboard
@@ -231,7 +231,7 @@ struct SettingsView: View {
             VStack(spacing: 0) {
                 content()
             }
-            .settingsCard()
+            .brandCard()
         }
     }
 
@@ -266,16 +266,3 @@ struct SettingsView: View {
     }
 }
 
-// MARK: - Card style modifier
-
-private extension View {
-    func settingsCard() -> some View {
-        self
-            .background(ReplrTheme.Color.surface)
-            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
-            )
-    }
-}
