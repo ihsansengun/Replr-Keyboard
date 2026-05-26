@@ -46,8 +46,8 @@ enum ReplrTheme {
         // Accent — Superwall Teal, hardcoded so keyboard extension bundle gets it too
         private static let _accent = UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.090, green: 0.918, blue: 0.851, alpha: 1) // #17EAD9
-                : UIColor(red: 0.000, green: 0.706, blue: 0.627, alpha: 1) // #00B4A0
+                ? UIColor(red: 0.051, green: 0.710, blue: 0.643, alpha: 1) // #0DB5A4
+                : UIColor(red: 0.000, green: 0.537, blue: 0.482, alpha: 1) // #00897B
         }
         static let accent          = SwiftUI.Color(_accent)
         static let accentPressed   = SwiftUI.Color(_accent)

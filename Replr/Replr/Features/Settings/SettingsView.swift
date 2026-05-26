@@ -10,138 +10,272 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                // MARK: App identity
-                Section {
-                    HStack(spacing: 14) {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(ReplrTheme.Color.accent)
-                            .frame(width: 56, height: 56)
-                            .overlay(
-                                ReplrBirdShape()
-                                    .fill(Color.white, style: FillStyle(eoFill: true))
-                                    .frame(width: 34, height: 22)
-                            )
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("Replr")
-                                .font(.title3.bold())
-                            Text("Know what to say.")
-                                .font(.subheadline)
-                                .foregroundStyle(ReplrTheme.Color.textSecondary)
-                        }
-                        Spacer()
-                    }
-                    .padding(.vertical, 6)
-                    .listRowBackground(ReplrTheme.Color.surface)
-                    .listRowSeparator(.hidden)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    identityCard
+                    keyboardSection
+                    aiModelSection
+                    memorySection
+                    accountSection
+                    aboutSection
                 }
-
-                // MARK: Keyboard
-                Section {
-                    NavigationLink(destination: TonesView().onDisappear {
-                        activeToneName = AppGroupService.shared.readSelectedTone().name
-                    }) {
-                        LabeledContent("Tones", value: activeToneName)
-                    }
-                    .listRowBackground(ReplrTheme.Color.surface)
-                    .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
-
-                    Toggle("Keep replies between sessions", isOn: $persistReplies)
-                        .tint(ReplrTheme.Color.accent)
-                        .onChange(of: persistReplies) { newValue in
-                            AppGroupService.shared.persistReplies = newValue
-                        }
-                    .listRowBackground(ReplrTheme.Color.surface)
-                    .listRowSeparator(.hidden)
-                } header: {
-                    Text("Keyboard")
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
-                } footer: {
-                    Text("When enabled, your last generated replies stay visible the next time you open the keyboard.")
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
-                }
-
-                // MARK: AI Model
-                Section {
-                    Picker("Model", selection: $preferredModel) {
-                        Text("Claude (Anthropic)").tag("claude")
-                        Text("GPT-4o (OpenAI)").tag("gpt4o")
-                    }
-                    .pickerStyle(.inline)
-                    .listRowBackground(ReplrTheme.Color.surface)
-                    .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
-                } header: {
-                    Text("AI Model")
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
-                }
-
-                // MARK: Memory
-                Section {
-                    Toggle("Enable Memory", isOn: $memoryEnabled)
-                        .tint(ReplrTheme.Color.accent)
-                        .onChange(of: memoryEnabled) { AppGroupService.shared.memoryEnabled = $0 }
-                    .listRowBackground(ReplrTheme.Color.surface)
-                    .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
-
-                    if memoryEnabled {
-                        Picker("Time window", selection: $memoryWindowDays) {
-                            Text("7 days").tag(7)
-                            Text("30 days").tag(30)
-                            Text("90 days").tag(90)
-                            Text("All time").tag(0)
-                        }
-                        .onChange(of: memoryWindowDays) { AppGroupService.shared.memoryWindowDays = $0 }
-                        .listRowBackground(ReplrTheme.Color.surface)
-                        .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
-
-                        Picker("Conversations per contact", selection: $memoryDepth) {
-                            Text("5").tag(5)
-                            Text("10").tag(10)
-                            Text("20").tag(20)
-                        }
-                        .onChange(of: memoryDepth) { AppGroupService.shared.memoryDepth = $0 }
-                        .listRowBackground(ReplrTheme.Color.surface)
-                        .listRowSeparator(.hidden)
-                    }
-                } header: {
-                    Text("Memory")
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
-                } footer: {
-                    Text("When enabled, Replr summarises each conversation and uses it as context when generating future replies for the same contact.")
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
-                }
-
-                // MARK: Account
-                Section {
-                    NavigationLink("Subscription") { SubscriptionView() }
-                        .listRowBackground(ReplrTheme.Color.surface)
-                        .listRowSeparator(.hidden)
-                } header: {
-                    Text("Account")
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
-                }
-
-                // MARK: About
-                Section {
-                    NavigationLink(destination: PrivacyView()) {
-                        Label("Privacy", systemImage: "lock.shield")
-                    }
-                    .listRowBackground(ReplrTheme.Color.surface)
-                    .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
-
-                    LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
-                        .listRowBackground(ReplrTheme.Color.surface)
-                        .listRowSeparator(.hidden)
-                } header: {
-                    Text("About")
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
-                }
+                .padding(20)
             }
-            .scrollContentBackground(.hidden)
             .background(ReplrTheme.Color.bg.ignoresSafeArea())
-            .tint(ReplrTheme.Color.accent)
             .navigationBarTitleDisplayMode(.inline)
         }
+    }
+
+    // MARK: - App identity
+
+    private var identityCard: some View {
+        HStack(spacing: 16) {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(ReplrTheme.Color.accent)
+                .frame(width: 60, height: 60)
+                .overlay(
+                    ReplrBirdShape()
+                        .fill(Color.white, style: FillStyle(eoFill: true))
+                        .frame(width: 36, height: 24)
+                )
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Replr")
+                    .font(.system(size: 19, weight: .bold))
+                Text("Know what to say.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(ReplrTheme.Color.textSecondary)
+            }
+            Spacer()
+        }
+        .padding(16)
+        .settingsCard()
+    }
+
+    // MARK: - Keyboard
+
+    private var keyboardSection: some View {
+        settingsSection("Keyboard") {
+            NavigationLink(destination: TonesView().onDisappear {
+                activeToneName = AppGroupService.shared.readSelectedTone().name
+            }) {
+                settingsRow {
+                    Text("Tones")
+                        .font(.system(size: 17))
+                    Spacer()
+                    Text(activeToneName)
+                        .font(.system(size: 15))
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.textTertiary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            cardDivider
+
+            settingsRow {
+                Text("Keep replies between sessions")
+                    .font(.system(size: 17))
+                Spacer()
+                Toggle("", isOn: $persistReplies)
+                    .labelsHidden()
+                    .tint(ReplrTheme.Color.accent)
+                    .onChange(of: persistReplies) { AppGroupService.shared.persistReplies = $0 }
+            }
+        }
+    }
+
+    // MARK: - AI Model
+
+    private var aiModelSection: some View {
+        settingsSection("AI Model") {
+            HStack(spacing: 0) {
+                modelOption("claude", label: "Claude (Anthropic)")
+                ReplrTheme.Color.glassBorder.frame(width: 1, height: 24)
+                modelOption("gpt4o", label: "GPT-4o (OpenAI)")
+            }
+            .padding(6)
+        }
+    }
+
+    @ViewBuilder
+    private func modelOption(_ tag: String, label: String) -> some View {
+        let isSelected = preferredModel == tag
+        Button { preferredModel = tag } label: {
+            Text(label)
+                .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                .foregroundStyle(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
+                .frame(maxWidth: .infinity)
+                .frame(height: 38)
+                .background(isSelected ? ReplrTheme.Color.accentSubtle : Color.clear)
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                        .strokeBorder(isSelected ? ReplrTheme.Color.accent.opacity(0.55) : Color.clear, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+        .animation(ReplrTheme.Motion.quick, value: isSelected)
+    }
+
+    // MARK: - Memory
+
+    private var memorySection: some View {
+        settingsSection("Memory") {
+            settingsRow {
+                Text("Enable Memory")
+                    .font(.system(size: 17))
+                Spacer()
+                Toggle("", isOn: $memoryEnabled)
+                    .labelsHidden()
+                    .tint(ReplrTheme.Color.accent)
+                    .onChange(of: memoryEnabled) { AppGroupService.shared.memoryEnabled = $0 }
+            }
+
+            if memoryEnabled {
+                cardDivider
+
+                settingsRow {
+                    Text("Time window")
+                        .font(.system(size: 17))
+                    Spacer()
+                    menuPicker(
+                        label: memoryWindowDays == 0 ? "All time" : "\(memoryWindowDays) days"
+                    ) {
+                        Button("7 days") { memoryWindowDays = 7; AppGroupService.shared.memoryWindowDays = 7 }
+                        Button("30 days") { memoryWindowDays = 30; AppGroupService.shared.memoryWindowDays = 30 }
+                        Button("90 days") { memoryWindowDays = 90; AppGroupService.shared.memoryWindowDays = 90 }
+                        Button("All time") { memoryWindowDays = 0; AppGroupService.shared.memoryWindowDays = 0 }
+                    }
+                }
+
+                cardDivider
+
+                settingsRow {
+                    Text("Conversations per contact")
+                        .font(.system(size: 17))
+                    Spacer()
+                    menuPicker(label: "\(memoryDepth)") {
+                        Button("5") { memoryDepth = 5; AppGroupService.shared.memoryDepth = 5 }
+                        Button("10") { memoryDepth = 10; AppGroupService.shared.memoryDepth = 10 }
+                        Button("20") { memoryDepth = 20; AppGroupService.shared.memoryDepth = 20 }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Account
+
+    private var accountSection: some View {
+        settingsSection("Account") {
+            NavigationLink(destination: SubscriptionView()) {
+                settingsRow {
+                    Text("Subscription")
+                        .font(.system(size: 17))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.textTertiary)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    // MARK: - About
+
+    private var aboutSection: some View {
+        settingsSection("About") {
+            NavigationLink(destination: PrivacyView()) {
+                settingsRow {
+                    Image(systemName: "lock.shield")
+                        .font(.system(size: 15))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                        .frame(width: 22)
+                    Text("Privacy")
+                        .font(.system(size: 17))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.textTertiary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            cardDivider
+
+            settingsRow {
+                Text("Version")
+                    .font(.system(size: 17))
+                Spacer()
+                Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
+                    .font(.system(size: 15))
+                    .foregroundStyle(ReplrTheme.Color.textSecondary)
+            }
+        }
+    }
+
+    // MARK: - Reusable helpers
+
+    @ViewBuilder
+    private func settingsSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title.uppercased())
+                .font(.system(size: 11, weight: .semibold))
+                .tracking(1.0)
+                .foregroundStyle(ReplrTheme.Color.textSecondary)
+                .padding(.horizontal, 4)
+
+            VStack(spacing: 0) {
+                content()
+            }
+            .settingsCard()
+        }
+    }
+
+    private func settingsRow<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        HStack(spacing: 10) {
+            content()
+        }
+        .padding(.horizontal, 16)
+        .frame(minHeight: 52)
+        .contentShape(Rectangle())
+    }
+
+    private var cardDivider: some View {
+        ReplrTheme.Color.glassBorder
+            .frame(height: 0.5)
+            .padding(.horizontal, 16)
+    }
+
+    @ViewBuilder
+    private func menuPicker<Content: View>(label: String, @ViewBuilder items: () -> Content) -> some View {
+        Menu { items() } label: {
+            HStack(spacing: 4) {
+                Text(label)
+                    .font(.system(size: 15))
+                    .foregroundStyle(ReplrTheme.Color.accent)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(ReplrTheme.Color.accent)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Card style modifier
+
+private extension View {
+    func settingsCard() -> some View {
+        self
+            .background(ReplrTheme.Color.surface)
+            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                    .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
+            )
     }
 }
