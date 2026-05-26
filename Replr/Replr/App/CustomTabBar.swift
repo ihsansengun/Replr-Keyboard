@@ -6,11 +6,12 @@ struct CustomTabBar: View {
     @Binding var selection: TabSelection
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 4) {
             tabButton(.replies,  icon: "clock",     activeIcon: "clock.fill",      label: "Replies")
             tabButton(.memory,   icon: "brain",     activeIcon: "brain.fill",       label: "Memory")
             tabButton(.settings, icon: "gearshape", activeIcon: "gearshape.fill",   label: "Settings")
         }
+        .padding(.horizontal, 10)
         .frame(height: 60)
         .background(ReplrTheme.Color.surface.ignoresSafeArea(edges: .bottom))
         .overlay(alignment: .top) {
@@ -35,10 +36,10 @@ struct CustomTabBar: View {
             .foregroundStyle(active ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 7)
+            .padding(.horizontal, 4)
             .background(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
                     .fill(active ? ReplrTheme.Color.accent.opacity(0.15) : .clear)
-                    .padding(.horizontal, 6)
             )
         }
         .buttonStyle(.plain)
