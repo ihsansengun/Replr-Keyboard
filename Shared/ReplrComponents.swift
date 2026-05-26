@@ -171,18 +171,18 @@ struct Card<Content: View>: View {
 struct Chip: View {
     let label: String
     let isSelected: Bool
-    var icon: String? = nil
+    let icon: String? = nil
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {
-                Text(label)
-                    .font(ReplrTheme.Font.footnote)
                 if let icon {
                     Image(systemName: icon)
                         .font(.system(size: 9))
                 }
+                Text(label)
+                    .font(ReplrTheme.Font.footnote)
             }
             .foregroundColor(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
             .padding(.horizontal, 12)
