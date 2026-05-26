@@ -347,14 +347,18 @@ struct ModeSegmentedControl: View {
     @ObservedObject var model: KeyboardModel
 
     var body: some View {
-        HStack(spacing: 6) {
-            modeTab(.chat, label: "Chat")
-            modeTab(.email, label: "Email")
+        HStack(spacing: 0) {
+            modeButton(.chat, label: "Chat", icon: "bubble.left.fill")
+            ReplrTheme.Color.glassBorder.frame(width: 1, height: 18)
+            modeButton(.email, label: "Email", icon: "envelope.fill")
         }
+        .background(ReplrTheme.Color.surface)
+        .clipShape(Capsule())
+        .overlay(Capsule().strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1))
     }
 
     @ViewBuilder
-    private func modeTab(_ mode: KeyboardInputMode, label: String) -> some View {
+    private func modeButton(_ mode: KeyboardInputMode, label: String, icon: String) -> some View {
         let isSelected = model.inputMode == mode
         Button {
             withAnimation(ReplrTheme.Motion.quick) {
@@ -364,13 +368,17 @@ struct ModeSegmentedControl: View {
                 }
             }
         } label: {
-            Text(label)
-                .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                .foregroundColor(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 6)
-                .background(Capsule().fill(isSelected ? ReplrTheme.Color.accentSubtle : Color.clear))
-                .overlay(Capsule().strokeBorder(isSelected ? ReplrTheme.Color.accent.opacity(0.55) : ReplrTheme.Color.glassBorder, lineWidth: 1))
+            HStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 10, weight: .medium))
+                Text(label)
+                    .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
+            }
+            .foregroundColor(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
+            .padding(.horizontal, 11)
+            .padding(.vertical, 6)
+            .frame(maxHeight: .infinity)
+            .background(isSelected ? ReplrTheme.Color.accentSubtle : Color.clear)
         }
         .buttonStyle(.plain)
         .animation(ReplrTheme.Motion.quick, value: isSelected)
