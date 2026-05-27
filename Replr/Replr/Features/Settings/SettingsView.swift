@@ -18,6 +18,7 @@ struct SettingsView: View {
                     memorySection
                     accountSection
                     aboutSection
+                    Spacer(minLength: 110) // clearance for floating tab pill
                 }
                 .padding(20)
             }
@@ -78,9 +79,7 @@ struct SettingsView: View {
                 Text("Keep replies between sessions")
                     .font(.system(size: 17))
                 Spacer()
-                Toggle("", isOn: $persistReplies)
-                    .labelsHidden()
-                    .tint(ReplrTheme.Color.accent)
+                BrandToggle(isOn: $persistReplies)
                     .onChange(of: persistReplies) { AppGroupService.shared.persistReplies = $0 }
             }
         }
@@ -127,9 +126,7 @@ struct SettingsView: View {
                 Text("Enable Memory")
                     .font(.system(size: 17))
                 Spacer()
-                Toggle("", isOn: $memoryEnabled)
-                    .labelsHidden()
-                    .tint(ReplrTheme.Color.accent)
+                BrandToggle(isOn: $memoryEnabled)
                     .onChange(of: memoryEnabled) { AppGroupService.shared.memoryEnabled = $0 }
             }
 
