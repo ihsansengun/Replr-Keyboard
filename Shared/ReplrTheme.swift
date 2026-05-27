@@ -99,6 +99,11 @@ enum ReplrTheme {
         static let s5xl: CGFloat = 56
         static let s6xl: CGFloat = 72
 
+        // 8pt grid extras
+        static let s48:  CGFloat = 48
+        static let s64:  CGFloat = 64
+        static let s96:  CGFloat = 96
+
         static let screenMarginApp:      CGFloat = 24
         static let screenMarginKeyboard: CGFloat = 16
         static let rowVertical:          CGFloat = 12
