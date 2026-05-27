@@ -255,10 +255,17 @@ struct CaptureRowView: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .center, spacing: 6) {
                     if let name = session.contactName {
-                        Text(name)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(ReplrTheme.Color.accent)
-                            .lineLimit(1)
+                        HStack(spacing: 4) {
+                            Text(name)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(ReplrTheme.Color.textPrimary)
+                                .lineLimit(1)
+                            if hasMemory {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 9, weight: .semibold))
+                                    .foregroundStyle(ReplrTheme.Color.accent)
+                            }
+                        }
                     }
                     Spacer()
                     Text(formattedTimestamp(session.timestamp))
@@ -292,6 +299,11 @@ struct CaptureRowView: View {
                 .foregroundStyle(ReplrTheme.Color.textTertiary)
         }
         .padding(14)
+    }
+
+    private var hasMemory: Bool {
+        guard let id = session.contactID else { return false }
+        return AppGroupService.shared.sessions(forContactID: id).contains { $0.llmSummary != nil }
     }
 
     private func formattedTimestamp(_ date: Date) -> String {
