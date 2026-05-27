@@ -84,17 +84,18 @@ struct SecondaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(ReplrTheme.Font.headline)
+            .font(.system(size: 15, weight: .semibold))
             .foregroundColor(ReplrTheme.Color.textPrimary.opacity(isEnabled ? 1 : 0.45))
             .frame(maxWidth: .infinity)
-            .frame(height: 54)
+            .frame(height: 48)
+            .padding(.horizontal, 22)
             .background(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                Capsule()
                     .fill(Color.white.opacity(isEnabled ? 0.04 : 0.02))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                            .strokeBorder(Color.white.opacity(isEnabled ? 0.18 : 0.08), lineWidth: 1)
-                    )
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(Color.white.opacity(isEnabled ? 0.18 : 0.08), lineWidth: 1)
             )
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(ReplrTheme.Motion.quick, value: configuration.isPressed)
