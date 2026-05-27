@@ -232,7 +232,6 @@ private struct FullAccessStep: View {
     let onBack: () -> Void
     @State private var detected = AppGroupService.shared.fullAccessGranted
     @AppStorage("onboarding.fullAccessSettingsOpened") private var settingsOpened = false
-    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         OnboardingStep(
@@ -288,22 +287,28 @@ private struct FullAccessStep: View {
                     .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
             )
         } cta: {
-            VStack(spacing: 12) {
-                PrimaryButton(label: detected ? "Full Access enabled ✓ — Continue →" : "Open Keyboard Settings →") {
-                    if detected {
-                        onNext()
-                    } else if let url = URL(string: UIApplication.openSettingsURLString) {
-                        settingsOpened = true
-                        UIApplication.shared.open(url)
+            if detected {
+                PrimaryButton(label: "Full Access enabled ✓ — Continue →", action: onNext)
+            } else if settingsOpened {
+                VStack(spacing: 12) {
+                    PrimaryButton(label: "Done →", action: onNext)
+                    TertiaryButton(label: "Open Settings again →") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
                     }
                 }
-                TertiaryButton(label: "Skip for now →", action: onNext)
+            } else {
+                VStack(spacing: 12) {
+                    PrimaryButton(label: "Open Keyboard Settings →") {
+                        settingsOpened = true
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    TertiaryButton(label: "Done →", action: onNext)
+                }
             }
-        }
-        .onChange(of: scenePhase) { newPhase in
-            guard newPhase == .active, settingsOpened else { return }
-            settingsOpened = false
-            onNext()
         }
         .onDisappear { settingsOpened = false }
         .onReceive(
