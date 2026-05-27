@@ -47,6 +47,7 @@ struct RepliesView: View {
     @State private var memoryContact: Contact? = nil
     @State private var backTapSkipped = AppGroupService.shared.backTapSkipped
     @State private var showSetupSheet = false
+    @State private var showClearConfirm = false
 
     var body: some View {
         NavigationStack {
@@ -158,11 +159,26 @@ struct RepliesView: View {
             .toolbar {
                 if !vm.sessions.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("Clear All") { vm.clearAll() }
-                            .font(ReplrTheme.Font.callout)
-                            .foregroundStyle(ReplrTheme.Color.danger)
+                        Button {
+                            showClearConfirm = true
+                        } label: {
+                            Text("Clear all")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(ReplrTheme.Color.textSecondary)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Capsule().fill(Color.white.opacity(0.06)))
+                                .overlay(Capsule().strokeBorder(Color.white.opacity(0.14), lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
+            }
+            .alert("Clear all captures?", isPresented: $showClearConfirm) {
+                Button("Cancel", role: .cancel) {}
+                Button("Clear", role: .destructive) { vm.clearAll() }
+            } message: {
+                Text("This deletes all captured replies and conversation history. Memory paragraphs are kept.")
             }
             .sheet(isPresented: $showSetupSheet) {
                 BackTapSetupFullView(isPresented: $showSetupSheet)
