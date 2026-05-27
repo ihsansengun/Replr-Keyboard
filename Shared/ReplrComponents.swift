@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - ShimmerOverlay
 
@@ -411,5 +412,44 @@ struct ReplrMark: View {
         ReplrBirdShape()
             .fill(ReplrTheme.Color.accent, style: FillStyle(eoFill: true))
             .frame(width: size * 1.6, height: size)
+    }
+}
+
+// MARK: - BrandToggle
+
+struct BrandToggle: View {
+    @Binding var isOn: Bool
+
+    var body: some View {
+        ZStack(alignment: isOn ? .trailing : .leading) {
+            Capsule()
+                .fill(isOn ? ReplrTheme.Color.accent : Color.white.opacity(0.10))
+                .frame(width: 48, height: 28)
+                .overlay(
+                    Capsule()
+                        .strokeBorder(
+                            isOn
+                                ? ReplrTheme.Color.accent.opacity(0.40)
+                                : Color.white.opacity(0.12),
+                            lineWidth: 1
+                        )
+                )
+                .shadow(
+                    color: isOn ? ReplrTheme.Color.accentGlow : .clear,
+                    radius: 10, x: 0, y: 0
+                )
+
+            Circle()
+                .fill(isOn ? ReplrTheme.Color.bg : Color.white)
+                .frame(width: 20, height: 20)
+                .padding(.horizontal, 4)
+                .shadow(color: .black.opacity(0.30), radius: 2, x: 0, y: 1)
+        }
+        .animation(.spring(response: 0.28, dampingFraction: 0.85), value: isOn)
+        .contentShape(Capsule())
+        .onTapGesture {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            isOn.toggle()
+        }
     }
 }
