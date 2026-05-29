@@ -222,31 +222,35 @@ struct RepliesPanelView: View {
             HStack(spacing: 8) {
                 Button(action: { model.selectReply(currentReply) }) {
                     HStack(spacing: 6) {
-                        Image(systemName: "arrow.up").font(.system(size: 13, weight: .semibold))
-                        Text("Insert reply").font(.system(size: 14, weight: .semibold))
+                        Image(systemName: "arrow.up")
+                            .font(.system(size: 12, weight: .bold))
+                        Text("Insert reply")
+                            .font(.system(size: 14, weight: .semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.9)
                     }
-                    .foregroundColor(ReplrTheme.Color.onAccent)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 42)
-                    .background(
-                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                            .fill(ReplrTheme.Color.accent)
-                            .overlay(ShimmerOverlay(cornerRadius: ReplrTheme.Radius.sm))
+                    .frame(height: 40)
+                    .padding(.horizontal, 16)
+                    .foregroundColor(ReplrTheme.Color.onAccent)
+                    .background(Capsule().fill(ReplrTheme.Color.accent))
+                    .overlay(
+                        Capsule().strokeBorder(Color.white.opacity(0.25), lineWidth: 1).blendMode(.overlay)
                     )
-                    .shadow(color: ReplrTheme.Color.accent.opacity(0.55), radius: 18, x: 0, y: 6)
-                    .shadow(color: .black.opacity(0.22), radius: 6, x: 0, y: 3)
+                    .shadow(color: ReplrTheme.Color.accentGlow, radius: 14, x: 0, y: 3)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Insert reply")
 
-                Button("Edit") { model.editReply(currentReply) }
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(ReplrTheme.Color.textPrimary)
-                    .frame(width: 56, height: 42)
-                    .background(ReplrTheme.Color.surfaceRaised)
-                    .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous).stroke(ReplrTheme.Color.glassBorder, lineWidth: 1))
-                    .buttonStyle(.plain)
+                Button { model.editReply(currentReply) } label: {
+                    Text("Edit")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(ReplrTheme.Color.textPrimary)
+                        .frame(width: 72, height: 40)
+                        .background(Capsule().fill(Color.white.opacity(0.06)))
+                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.18), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
 
                 Button { model.regenerate() } label: {
                     Image(systemName: "arrow.counterclockwise").font(.system(size: 14, weight: .medium))

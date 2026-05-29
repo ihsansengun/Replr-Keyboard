@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - ShimmerOverlay
 
@@ -36,27 +37,33 @@ struct ShimmerOverlay: View {
 
 struct PrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
-    @Environment(\.colorScheme) private var colorScheme
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(ReplrTheme.Font.headline)
+            .font(.system(size: 15, weight: .semibold))
             .foregroundColor(ReplrTheme.Color.onAccent)
             .frame(maxWidth: .infinity)
-            .frame(height: 54)
+            .frame(height: 48)
+            .padding(.horizontal, 22)
             .background(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                Capsule()
                     .fill(ReplrTheme.Color.accent.opacity(isEnabled ? 1 : 0.40))
-                    .overlay(isEnabled ? ShimmerOverlay(cornerRadius: ReplrTheme.Radius.md) : nil)
+            )
+            .overlay(
+                // 1px top inner highlight — kit signature
+                Capsule()
+                    .strokeBorder(Color.white.opacity(isEnabled ? 0.30 : 0), lineWidth: 1)
+                    .blendMode(.overlay)
             )
             .shadow(
-                color: colorScheme == .dark
-                    ? ReplrTheme.Color.accent.opacity(isEnabled ? 0.45 : 0)
-                    : .black.opacity(isEnabled ? 0.12 : 0),
-                radius: colorScheme == .dark ? 18 : 8,
-                x: 0, y: colorScheme == .dark ? 6 : 4
+                color: isEnabled ? ReplrTheme.Color.accentGlow : .clear,
+                radius: 18, x: 0, y: 4
             )
-            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .shadow(
+                color: .black.opacity(isEnabled ? 0.35 : 0),
+                radius: 6, x: 0, y: 2
+            )
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(ReplrTheme.Motion.quick, value: configuration.isPressed)
     }
 }
@@ -78,17 +85,18 @@ struct SecondaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(ReplrTheme.Font.headline)
+            .font(.system(size: 15, weight: .semibold))
             .foregroundColor(ReplrTheme.Color.textPrimary.opacity(isEnabled ? 1 : 0.45))
             .frame(maxWidth: .infinity)
-            .frame(height: 54)
+            .frame(height: 48)
+            .padding(.horizontal, 22)
             .background(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                Capsule()
                     .fill(Color.white.opacity(isEnabled ? 0.04 : 0.02))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                            .strokeBorder(Color.white.opacity(isEnabled ? 0.18 : 0.08), lineWidth: 1)
-                    )
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(Color.white.opacity(isEnabled ? 0.18 : 0.08), lineWidth: 1)
             )
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(ReplrTheme.Motion.quick, value: configuration.isPressed)
@@ -404,5 +412,44 @@ struct ReplrMark: View {
         ReplrBirdShape()
             .fill(ReplrTheme.Color.accent, style: FillStyle(eoFill: true))
             .frame(width: size * 1.6, height: size)
+    }
+}
+
+// MARK: - BrandToggle
+
+struct BrandToggle: View {
+    @Binding var isOn: Bool
+
+    var body: some View {
+        ZStack(alignment: isOn ? .trailing : .leading) {
+            Capsule()
+                .fill(isOn ? ReplrTheme.Color.accent : Color.white.opacity(0.10))
+                .frame(width: 48, height: 28)
+                .overlay(
+                    Capsule()
+                        .strokeBorder(
+                            isOn
+                                ? ReplrTheme.Color.accent.opacity(0.40)
+                                : Color.white.opacity(0.12),
+                            lineWidth: 1
+                        )
+                )
+                .shadow(
+                    color: isOn ? ReplrTheme.Color.accentGlow : .clear,
+                    radius: 10, x: 0, y: 0
+                )
+
+            Circle()
+                .fill(isOn ? ReplrTheme.Color.bg : Color.white)
+                .frame(width: 20, height: 20)
+                .padding(.horizontal, 4)
+                .shadow(color: .black.opacity(0.30), radius: 2, x: 0, y: 1)
+        }
+        .animation(.spring(response: 0.28, dampingFraction: 0.85), value: isOn)
+        .contentShape(Capsule())
+        .onTapGesture {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            isOn.toggle()
+        }
     }
 }

@@ -50,8 +50,8 @@ enum ReplrTheme {
         // Accent — Superwall Teal, hardcoded so keyboard extension bundle gets it too
         private static let _accent = UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.051, green: 0.710, blue: 0.643, alpha: 1) // #0DB5A4
-                : UIColor(red: 0.000, green: 0.537, blue: 0.482, alpha: 1) // #00897B
+                ? UIColor(red: 0.090, green: 0.918, blue: 0.851, alpha: 1) // #17EAD9 — brand kit teal
+                : UIColor(red: 0.000, green: 0.580, blue: 0.530, alpha: 1) // deeper teal for light contrast
         }
         static let accent          = SwiftUI.Color(_accent)
         static let accentPressed   = SwiftUI.Color(_accent)
@@ -63,6 +63,12 @@ enum ReplrTheme {
                 : _accent.withAlphaComponent(0.18)
         })
         static let accentSoft      = SwiftUI.Color(_accent).opacity(0.12)
+        // Glow — used as box-shadow color on primary actions and active states
+        static let accentGlow = SwiftUI.Color(UIColor { tc in
+            tc.userInterfaceStyle == .dark
+                ? UIColor(red: 0.090, green: 0.918, blue: 0.851, alpha: 0.45)
+                : UIColor(red: 0.000, green: 0.580, blue: 0.530, alpha: 0.25)
+        })
 
         // Semantic status colors — iOS adaptive
         static let danger          = SwiftUI.Color(UIColor.systemRed)
@@ -98,6 +104,11 @@ enum ReplrTheme {
         static let s4xl: CGFloat = 40
         static let s5xl: CGFloat = 56
         static let s6xl: CGFloat = 72
+
+        // 8pt grid extras
+        static let s48:  CGFloat = 48
+        static let s64:  CGFloat = 64
+        static let s96:  CGFloat = 96
 
         static let screenMarginApp:      CGFloat = 24
         static let screenMarginKeyboard: CGFloat = 16
