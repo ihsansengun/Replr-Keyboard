@@ -491,7 +491,6 @@ final class AppGroupService {
         if devMode { return 0 }
         switch selectedModel {
         case "gpt-4.1-mini":      return 1
-        case "gpt-5.4-mini":      return 2
         case "gpt-4.1":           return 3
         case "claude-sonnet-4-6": return 3
         default:                   return 1

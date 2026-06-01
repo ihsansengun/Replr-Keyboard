@@ -30,7 +30,6 @@ interface ModelResolution {
 function resolveModel(model: Model): ModelResolution {
   switch (model) {
     case 'gpt-4.1-mini':      return { provider: 'openai',    apiModel: 'gpt-4.1-mini' }
-    case 'gpt-5.4-mini':      return { provider: 'openai',    apiModel: 'gpt-5.4-mini' }
     case 'gpt-4.1':           return { provider: 'openai',    apiModel: 'gpt-4.1' }
     case 'claude-sonnet-4-6': return { provider: 'anthropic', apiModel: 'claude-sonnet-4-6' }
   }
@@ -100,7 +99,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
     const client = new Anthropic({ apiKey: anthropicKey })
     const imageContent = images.map(b64 => ({
       type: 'image' as const,
-      source: { type: 'base64' as const, media_type: 'image/jpeg' as const, data: b64 }
+      source: { type: 'base64' as const, media_type: 'image/png' as const, data: b64 }
     }))
     const response = await client.messages.create({
       model: apiModel,
@@ -115,7 +114,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
   const client = new OpenAI({ apiKey: openaiKey })
   const imageContent = images.map(b64 => ({
     type: 'image_url' as const,
-    image_url: { url: `data:image/jpeg;base64,${b64}` }
+    image_url: { url: `data:image/png;base64,${b64}` }
   }))
   const response = await client.chat.completions.create({
     model: apiModel,
