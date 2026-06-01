@@ -17,7 +17,7 @@ Replr uses a trial-first monetisation model: users get 10 free requests with no 
 
 | | Trial | Pro Monthly | Pro Annual |
 |---|---|---|---|
-| Price | Free | $14.99/month | $99.99/year |
+| Price | Free | $9.99/month | $59.99/year |
 | Requests | 10 total (one-time) | 50/day | 50/day |
 | Replies per generation | 3 | 5 | 5 |
 | Scroll capture | No | Yes | Yes |
@@ -25,23 +25,27 @@ Replr uses a trial-first monetisation model: users get 10 free requests with no 
 | LLM model | Claude Sonnet 4.6 | Claude Sonnet 4.6 | Claude Sonnet 4.6 |
 | Paywall trigger | After 10 used | — | — |
 
+### Positioning
+
+Primary market: **dating app users** (Tinder, Bumble, Hinge). These users already spend $20–30/month on premium dating subscriptions and are buying outcomes (more dates), not features. The price comparison is against Tinder Gold, not ChatGPT.
+
 ### Unit Economics (per paying user/month, after all deductions)
 
 | Plan | After Apple (−30%) | After LLM (~$1.20) | After tax (~30%) | Net/month |
 |---|---|---|---|---|
-| Monthly $14.99 | $10.49 | $9.29 | **$6.50** | $6.50 |
-| Annual $99.99 | $69.99/yr | $55.59/yr | **$38.91/yr = $3.24/mo** | $3.24 |
-| Blended (60% monthly / 40% annual) | — | — | — | **~$5.20** |
+| Monthly $9.99 | $6.99 | $5.79 | **$4.05** | $4.05 |
+| Annual $59.99 | $41.99/yr | $28.79/yr | **$20.15/yr = $1.68/mo** | $1.68 |
+| Blended (60% monthly / 40% annual) | — | — | — | **~$3.10** |
 
 ### Profit at Scale (20% conversion, blended)
 
 | Total users | Paying | Monthly profit |
 |---|---|---|
-| 500 | 100 | ~$500 |
-| 1,000 | 200 | ~$1,020 |
-| 2,000 | 400 | ~$2,060 |
-| 5,000 | 1,000 | ~$5,180 |
-| 10,000 | 2,000 | ~$10,380 |
+| 500 | 100 | ~$292 |
+| 1,000 | 200 | ~$602 |
+| 2,000 | 400 | ~$1,222 |
+| 5,000 | 1,000 | ~$3,082 |
+| 10,000 | 2,000 | ~$6,182 |
 
 ### LLM Cost Reference
 
@@ -106,8 +110,8 @@ Show remaining count only when ≤ 3 requests left. Never show above 3 — avoid
 
 | Product | ID | Price |
 |---|---|---|
-| Monthly | `Theory-of-Web.Replr.premium.monthly` | $14.99 |
-| Annual | `Theory-of-Web.Replr.premium.yearly` | $99.99 |
+| Monthly | `Theory-of-Web.Replr.premium.monthly` | $9.99 |
+| Annual | `Theory-of-Web.Replr.premium.yearly` | $59.99 |
 
 Prices updated in App Store Connect. StoreKit fetches them dynamically — no hardcoding in the app.
 
@@ -131,8 +135,8 @@ Shown when:
 │                             │
 │  ┌─────────┐ ┌───────────┐  │
 │  │ Monthly │ │  Annual   │  │  Annual: teal border + glow (recommended)
-│  │ $14.99  │ │  $99.99   │  │
-│  │  /month │ │ Save 44%  │  │
+│  │  $9.99  │ │  $59.99   │  │
+│  │  /month │ │ Save 50%  │  │
 │  └─────────┘ └───────────┘  │
 │                             │
 │  ✓  5 reply suggestions     │
@@ -172,7 +176,7 @@ Triggered when keyboard polls App Group and finds `trial.exhausted == true` AND 
 │                             │
 │   [  Unlock Pro in Replr  ] │  opens companion app via App Group flag
 │                             │
-│   $14.99/mo · $99.99/yr     │  secondary text, no interaction
+│   $9.99/mo · $59.99/yr      │  secondary text, no interaction
 │                             │
 └─────────────────────────────┘
 ```
@@ -238,5 +242,5 @@ To be designed separately:
 ## Open Questions
 
 1. **`extensionContext?.open(url:)` in keyboard extension** — needs verification during implementation. Fallback is App Group flag + manual instruction.
-2. **App Store Connect pricing** — monthly and annual product prices need updating to $14.99 and $99.99 before submission.
+2. **App Store Connect pricing** — monthly and annual product prices need updating to $9.99 and $59.99 before submission.
 3. **Trial reset policy** — currently no reset. If user deletes and reinstalls, trial resets (acceptable). No server-side enforcement planned.
