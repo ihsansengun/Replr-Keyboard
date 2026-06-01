@@ -8,6 +8,8 @@ struct ReplrApp: App {
     @AppStorage("onboardingComplete") var onboardingComplete = false
     @State private var showCapture = false
     @State private var showSetup = false
+    @State private var showPaywall = false
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         applyBrandAppearance()
@@ -57,8 +59,27 @@ struct ReplrApp: App {
                             showCapture = true
                         case "setup":
                             showSetup = true
+                        case "paywall":
+                            showPaywall = true
                         default:
                             break
+                        }
+                    }
+                    .onChange(of: scenePhase) { phase in
+                        guard phase == .active else { return }
+                        AppGroupService.shared.synchronize()
+                        if AppGroupService.shared.paywallRequested {
+                            let txID = UserDefaults(suiteName: Constants.appGroupID)?
+                                .string(forKey: Constants.transactionIDKey)
+                            if txID == nil { showPaywall = true }
+                        }
+                    }
+                    .fullScreenCover(isPresented: $showPaywall) {
+                        NavigationStack {
+                            PaywallView(showCloseButton: true)
+                                .onDisappear {
+                                    AppGroupService.shared.paywallRequested = false
+                                }
                         }
                     }
             } else {
