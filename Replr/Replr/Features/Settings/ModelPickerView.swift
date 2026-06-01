@@ -5,7 +5,7 @@ import SwiftUI
 struct ModelPickerView: View {
     @State private var selectedModelID = AppGroupService.shared.selectedModel
     @State private var devMode = AppGroupService.shared.devMode
-    @StateObject private var credits = CreditsManager.shared
+    @ObservedObject private var credits = CreditsManager.shared
 
     var body: some View {
         List {

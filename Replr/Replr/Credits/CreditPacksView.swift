@@ -4,7 +4,7 @@ import StoreKit
 struct CreditPacksView: View {
     var showCloseButton: Bool = false
 
-    @StateObject private var manager = CreditsManager.shared
+    @ObservedObject private var manager = CreditsManager.shared
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var scheme
     @State private var errorMessage: String?
