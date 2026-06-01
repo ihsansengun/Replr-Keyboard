@@ -167,7 +167,7 @@ struct SettingsView: View {
 
     private var accountSection: some View {
         settingsSection("Account") {
-            NavigationLink(destination: SubscriptionView()) {
+            NavigationLink(destination: PaywallView()) {
                 settingsRow {
                     Text("Subscription")
                         .font(.system(size: 17))
