@@ -20,7 +20,7 @@ const DECISIONS = `Before generating replies, assess:
 5. Whether to advance the conversation or simply respond
 6. For dating contexts: where are they in the relationship?`
 
-const REPLY_COUNT = 5
+const REPLY_COUNT = 3
 
 interface ModelResolution {
   provider: 'openai' | 'anthropic'
