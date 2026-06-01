@@ -155,12 +155,8 @@ final class KeyboardViewController: UIInputViewController {
             model.repliesGeneratedInMode = .chat
             model.state = .replies(cached)
         }
-        if AppGroupService.shared.paywallRequested || AppGroupService.shared.trialExhausted {
-            let txID = UserDefaults(suiteName: Constants.appGroupID)?
-                .string(forKey: Constants.transactionIDKey)
-            if txID == nil {
-                model.state = .paywall
-            }
+        if AppGroupService.shared.effectiveCreditBalance == 0 {
+            model.state = .paywall
         }
         startCapturePoll()
     }
@@ -212,7 +208,7 @@ final class KeyboardViewController: UIInputViewController {
         capturePollingTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
-                if AppGroupService.shared.paywallRequested {
+                if AppGroupService.shared.effectiveCreditBalance == 0 {
                     await MainActor.run {
                         withAnimation(.easeInOut(duration: 0.2)) { self.model.state = .paywall }
                     }
