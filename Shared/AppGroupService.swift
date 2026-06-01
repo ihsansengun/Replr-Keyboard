@@ -484,6 +484,20 @@ final class AppGroupService {
     var effectiveCreditBalance: Int {
         devMode ? 9_999 : creditBalance
     }
+
+    /// Credits required for the currently selected model. Returns 0 in dev mode.
+    /// Defined here (in Shared) so keyboard extension can use it without importing ReplrModel.
+    var creditsRequired: Int {
+        if devMode { return 0 }
+        switch selectedModel {
+        case "gpt-4.1-mini":      return 1
+        case "gpt-5.4-mini":      return 2
+        case "gpt-4.1":           return 3
+        case "claude-sonnet-4-6": return 3
+        default:                   return 1
+        }
+    }
+
 }
 
 enum AppGroupError: Error {

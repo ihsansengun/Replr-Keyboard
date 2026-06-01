@@ -63,8 +63,7 @@ final class KeyboardModel: ObservableObject {
     func generateEmailReply() {
         guard case .idle = state else { return }
         let balance = AppGroupService.shared.effectiveCreditBalance
-        let required = AppGroupService.shared.devMode ? 0
-            : (ReplrModel(apiID: AppGroupService.shared.selectedModel)?.creditsPerRequest ?? 1)
+        let required = AppGroupService.shared.creditsRequired
         guard balance >= required else {
             withAnimation(.easeInOut(duration: 0.2)) { state = .paywall }
             return
