@@ -105,6 +105,7 @@ final class KeyboardViewController: UIInputViewController {
                 case .idle:         height = inputMode == .email ? 224 : 310
                 case .loading:      height = 250
                 case .error:        height = 240
+                case .paywall:      height = 280
                 case .disambiguate: height = 300
                 case .replies:
                     // Upfront estimate; TotalHeightKey in RepliesPanelView refines to exact fit.
@@ -153,6 +154,13 @@ final class KeyboardViewController: UIInputViewController {
             model.currentReplies = cached
             model.repliesGeneratedInMode = .chat
             model.state = .replies(cached)
+        }
+        if AppGroupService.shared.paywallRequested || AppGroupService.shared.trialExhausted {
+            let txID = UserDefaults(suiteName: Constants.appGroupID)?
+                .string(forKey: Constants.transactionIDKey)
+            if txID == nil {
+                model.state = .paywall
+            }
         }
         startCapturePoll()
     }
@@ -204,7 +212,11 @@ final class KeyboardViewController: UIInputViewController {
         capturePollingTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
-                if AppGroupService.shared.switchKeyboardRequested {
+                if AppGroupService.shared.paywallRequested {
+                    await MainActor.run {
+                        withAnimation(.easeInOut(duration: 0.2)) { self.model.state = .paywall }
+                    }
+                } else if AppGroupService.shared.switchKeyboardRequested {
                     AppGroupService.shared.setSwitchKeyboardRequested(false)
                     await MainActor.run { self.model.isCaptureMode = true }
                 } else if AppGroupService.shared.isGenerating {
