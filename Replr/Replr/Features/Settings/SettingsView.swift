@@ -7,6 +7,7 @@ struct SettingsView: View {
     @State private var memoryDepth = AppGroupService.shared.memoryDepth
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
     @State private var activeToneName = AppGroupService.shared.readSelectedTone().name
+    @State private var showModelPicker = false
 
     var body: some View {
         NavigationStack {
@@ -167,7 +168,7 @@ struct SettingsView: View {
 
     private var accountSection: some View {
         settingsSection("Account") {
-            NavigationLink(destination: PaywallView()) {
+            NavigationLink(destination: CreditPacksView()) {
                 settingsRow {
                     Text("Subscription")
                         .font(.system(size: 17))
@@ -185,6 +186,10 @@ struct SettingsView: View {
 
     private var aboutSection: some View {
         settingsSection("About") {
+            NavigationLink(destination: ModelPickerView(), isActive: $showModelPicker) {
+                EmptyView()
+            }
+
             NavigationLink(destination: PrivacyView()) {
                 settingsRow {
                     Image(systemName: "lock.shield")
@@ -210,6 +215,9 @@ struct SettingsView: View {
                 Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                     .font(.system(size: 15))
                     .foregroundStyle(ReplrTheme.Color.textSecondary)
+            }
+            .onLongPressGesture(minimumDuration: 1.5) {
+                showModelPicker = true
             }
         }
     }
