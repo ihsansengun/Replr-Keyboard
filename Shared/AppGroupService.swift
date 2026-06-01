@@ -462,6 +462,28 @@ final class AppGroupService {
         get { defaults.bool(forKey: Constants.paywallRequestedKey) }
         set { defaults.set(newValue, forKey: Constants.paywallRequestedKey); defaults.synchronize() }
     }
+
+    // MARK: - Credits + model selection + dev mode
+
+    var creditBalance: Int {
+        get { defaults.integer(forKey: Constants.creditBalanceKey) }
+        set { defaults.set(newValue, forKey: Constants.creditBalanceKey); defaults.synchronize() }
+    }
+
+    var selectedModel: String {
+        get { defaults.string(forKey: Constants.selectedModelKey) ?? "gpt-4.1-mini" }
+        set { defaults.set(newValue, forKey: Constants.selectedModelKey); defaults.synchronize() }
+    }
+
+    var devMode: Bool {
+        get { defaults.bool(forKey: Constants.devModeKey) }
+        set { defaults.set(newValue, forKey: Constants.devModeKey); defaults.synchronize() }
+    }
+
+    /// Returns 9_999 in dev mode so the keyboard never shows a paywall during testing.
+    var effectiveCreditBalance: Int {
+        devMode ? 9_999 : creditBalance
+    }
 }
 
 enum AppGroupError: Error {
