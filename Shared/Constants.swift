@@ -33,6 +33,11 @@ enum Constants {
     static let lastIntentFiredAtKey        = "last_intent_fired_at"
     static let shortcutInstallURL         = "https://www.icloud.com/shortcuts/73472454024d4a48b1d2a9108fec4bc8"
 
+    // Trial + paywall
+    static let trialUsedCountKey     = "replr.trial.usedCount"
+    static let trialExhaustedKey     = "replr.trial.exhausted"
+    static let paywallRequestedKey   = "replr.paywall.requested"
+
     // File-based keys (broadcast/scroll capture only)
     static let screenshotFilename     = "screenshot.png"
     static let captureReadyKey        = "capture_ready"
