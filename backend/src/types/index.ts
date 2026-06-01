@@ -1,5 +1,4 @@
-export type Model = 'claude' | 'gpt4o'
-export type Tier = 'free' | 'premium'
+export type Model = 'gpt-4.1-mini' | 'gpt-5.4-mini' | 'gpt-4.1' | 'claude-sonnet-4-6'
 
 export interface Env {
   ANTHROPIC_API_KEY: string
@@ -13,10 +12,9 @@ export interface ReplyRequest {
   emailText?: string
   tone: string
   summary?: string
-  previousContext?: string   // accumulated conversation summaries from prior sessions
+  previousContext?: string
   model: Model
   userId: string
-  transactionId?: string
 }
 
 export interface ReplyResponse {
