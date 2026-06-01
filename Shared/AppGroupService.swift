@@ -439,6 +439,29 @@ final class AppGroupService {
         defaults.set(value, forKey: Constants.switchKeyboardKey)
         defaults.synchronize()
     }
+
+    // MARK: - Trial + paywall
+
+    var trialUsedCount: Int {
+        get { defaults.integer(forKey: Constants.trialUsedCountKey) }
+        set {
+            defaults.set(newValue, forKey: Constants.trialUsedCountKey)
+            if newValue >= 10 {
+                defaults.set(true, forKey: Constants.trialExhaustedKey)
+            }
+            defaults.synchronize()
+        }
+    }
+
+    var trialExhausted: Bool {
+        get { defaults.bool(forKey: Constants.trialExhaustedKey) }
+        set { defaults.set(newValue, forKey: Constants.trialExhaustedKey); defaults.synchronize() }
+    }
+
+    var paywallRequested: Bool {
+        get { defaults.bool(forKey: Constants.paywallRequestedKey) }
+        set { defaults.set(newValue, forKey: Constants.paywallRequestedKey); defaults.synchronize() }
+    }
 }
 
 enum AppGroupError: Error {
