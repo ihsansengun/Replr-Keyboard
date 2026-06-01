@@ -474,8 +474,12 @@ struct KeyboardHeader: View {
                     .opacity(isSegmentedDisabled ? 0.4 : 1.0)
                     .allowsHitTesting(!isSegmentedDisabled)
                 Spacer()
-                ReplrMark(size: 16)
-                    .opacity(isSegmentedDisabled ? 0.4 : 1.0)
+                if let remaining = model.trialRemaining, remaining <= 3 {
+                    TrialCounterBadge(remaining: remaining)
+                } else {
+                    ReplrMark(size: 16)
+                        .opacity(isSegmentedDisabled ? 0.4 : 1.0)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.top, 12)
@@ -516,6 +520,85 @@ struct SkeletonLine: View {
                     .delay(pulse ? 0.3 : 0)
                 ) { shimmer = true }
             }
+    }
+}
+
+// MARK: - Paywall Card (keyboard compact)
+
+struct PaywallCardView: View {
+    @ObservedObject var model: KeyboardModel
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        VStack(spacing: 0) {
+            KeyboardHeader(model: model, isSegmentedDisabled: true, isToneHidden: true)
+            Spacer()
+            VStack(spacing: 12) {
+                VStack(spacing: 4) {
+                    Text("Your 10 free replies are up.")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.textPrimary)
+                    Text("Unlock Pro to keep going.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                }
+
+                Button {
+                    openPaywallInApp()
+                } label: {
+                    Text("Unlock Pro in Replr")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.onAccent)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                                .fill(ReplrTheme.Color.accent)
+                        )
+                        .shadow(color: ReplrTheme.Color.accent.opacity(
+                            colorScheme == .dark ? 0.55 : 0), radius: 14, x: 0, y: 5)
+                }
+                .buttonStyle(.plain)
+
+                Text("$9.99/mo · $59.99/yr")
+                    .font(.system(size: 12))
+                    .foregroundStyle(ReplrTheme.Color.textSecondary)
+            }
+            .padding(.horizontal, 20)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(ReplrTheme.Color.bg)
+    }
+
+    private func openPaywallInApp() {
+        AppGroupService.shared.paywallRequested = true
+        guard let url = URL(string: "replr://paywall") else { return }
+        // extensionContext?.open is restricted in keyboard extensions on most iOS versions.
+        // The App Group flag ensures companion app shows PaywallView on next foreground.
+        _ = url
+    }
+}
+
+// MARK: - Trial Counter Badge
+
+struct TrialCounterBadge: View {
+    let remaining: Int
+
+    var body: some View {
+        Text("\(remaining) left")
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(remaining == 1
+                ? ReplrTheme.Color.danger
+                : Color(red: 0.85, green: 0.60, blue: 0.10))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(
+                Capsule()
+                    .fill((remaining == 1
+                        ? ReplrTheme.Color.danger
+                        : Color(red: 0.85, green: 0.60, blue: 0.10)).opacity(0.12))
+            )
     }
 }
 
