@@ -38,6 +38,12 @@ enum Constants {
     static let trialExhaustedKey     = "replr.trial.exhausted"
     static let paywallRequestedKey   = "replr.paywall.requested"
 
+    // Credits + model + dev mode
+    static let creditBalanceKey      = "replr.credits.balance"
+    static let selectedModelKey      = "replr.credits.model"
+    static let devModeKey            = "replr.dev.mode"
+    static let creditsMigratedKey    = "replr.credits.migrated"
+
     // File-based keys (broadcast/scroll capture only)
     static let screenshotFilename     = "screenshot.png"
     static let captureReadyKey        = "capture_ready"
