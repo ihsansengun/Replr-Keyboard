@@ -21,13 +21,13 @@ struct GenerateReplyIntent: AppIntent {
         NSLog("[Replr][Intent] GenerateReplyIntent fired")
         AppGroupService.shared.lastIntentFiredAt = Date()
 
-        // Trial gate
-        let isPremium = await SubscriptionManager.shared.isPremium
-        let trialUsed = AppGroupService.shared.trialUsedCount
-        guard isPremium || trialUsed < 10 else {
-            NSLog("[Replr][Intent] trial exhausted — requesting paywall")
-            AppGroupService.shared.paywallRequested = true
-            AppGroupService.shared.saveError("trial_exhausted")
+        // Credit gate
+        let balance = AppGroupService.shared.effectiveCreditBalance
+        let required = AppGroupService.shared.devMode ? 0
+            : CreditsManager.shared.creditsRequired(for: AppGroupService.shared.selectedModel)
+        guard balance >= required else {
+            NSLog("[Replr][Intent] insufficient credits (%d required, %d available)", required, balance)
+            AppGroupService.shared.saveError("insufficient_credits")
             return .result()
         }
 
@@ -90,7 +90,7 @@ struct GenerateReplyIntent: AppIntent {
                 contactID: resolvedContactID,
                 contactName: resolvedContactName
             )
-            if !isPremium { AppGroupService.shared.trialUsedCount += 1 }
+            CreditsManager.shared.deduct(required)
             AppGroupService.shared.isGenerating = false
             AppGroupService.shared.appendCaptureSession(session)
             AppGroupService.shared.saveReplies(result.replies)
