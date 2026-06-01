@@ -18,8 +18,6 @@ vi.mock('openai', () => ({
 }))
 
 const fakeEnv = {
-  RATE_LIMIT_KV: { get: vi.fn().mockResolvedValue(null), put: vi.fn() },
-  FREE_DAILY_LIMIT: '20',
   ANTHROPIC_API_KEY: 'test-key',
   OPENAI_API_KEY: 'test-key',
 }
@@ -27,9 +25,8 @@ const fakeEnv = {
 const validScrollBody = {
   screenshots: ['aGVsbG8=', 'd29ybGQ='],
   tone: 'casual',
-  model: 'claude',
+  model: 'claude-sonnet-4-6',
   userId: 'test-user',
-  transactionId: 'tx-123', // must be premium
 }
 
 describe('POST /reply/scroll', () => {
@@ -40,7 +37,7 @@ describe('POST /reply/scroll', () => {
     })
   })
 
-  it('returns 5 replies for premium user', async () => {
+  it('returns 5 replies', async () => {
     const res = await app.request('/reply/scroll', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -49,16 +46,6 @@ describe('POST /reply/scroll', () => {
     expect(res.status).toBe(200)
     const json = await res.json() as { replies: string[] }
     expect(json.replies).toHaveLength(5)
-  })
-
-  it('returns 403 for non-premium (no transactionId)', async () => {
-    const { transactionId: _, ...body } = validScrollBody
-    const res = await app.request('/reply/scroll', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    }, fakeEnv)
-    expect(res.status).toBe(403)
   })
 
   it('returns 400 when screenshots array is empty', async () => {

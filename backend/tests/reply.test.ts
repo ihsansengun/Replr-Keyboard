@@ -8,21 +8,13 @@ vi.mock('../src/services/llm', () => ({
   generateReplies: vi.fn(),
 }))
 
-vi.mock('../src/services/rateLimit', () => ({
-  checkRateLimit: vi.fn(),
-}))
-
 // Import app and the mocked modules AFTER vi.mock calls.
 import { app } from '../src/index'
 import { generateReplies } from '../src/services/llm'
-import { checkRateLimit } from '../src/services/rateLimit'
 
 const mockGenerateReplies = vi.mocked(generateReplies)
-const mockCheckRateLimit = vi.mocked(checkRateLimit)
 
 const fakeEnv = {
-  RATE_LIMIT_KV: { get: vi.fn().mockResolvedValue(null), put: vi.fn() },
-  FREE_DAILY_LIMIT: '20',
   ANTHROPIC_API_KEY: 'test-key',
   OPENAI_API_KEY: 'test-key',
 }
@@ -30,7 +22,7 @@ const fakeEnv = {
 const validBody = {
   screenshotBase64: 'aGVsbG8=',
   tone: 'casual',
-  model: 'claude',
+  model: 'gpt-4.1-mini',
   userId: 'test-user-123',
 }
 
@@ -38,7 +30,6 @@ describe('POST /reply', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGenerateReplies.mockResolvedValue({ replies: ['Reply 1', 'Reply 2', 'Reply 3'], summary: 'Test summary', contactName: 'Test Contact' })
-    mockCheckRateLimit.mockResolvedValue(true)
   })
 
   it('returns replies for valid request', async () => {
@@ -115,18 +106,6 @@ describe('POST /reply', () => {
     expect(json.error).toContain('Invalid model')
   })
 
-  it('returns 429 when rate limit exceeded', async () => {
-    mockCheckRateLimit.mockResolvedValueOnce(false)
-    const res = await app.request('/reply', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(validBody),
-    }, fakeEnv)
-    expect(res.status).toBe(429)
-    const json = await res.json() as { error: string }
-    expect(json.error).toContain('Daily limit')
-  })
-
   it('returns 500 when LLM throws', async () => {
     mockGenerateReplies.mockRejectedValueOnce(new Error('API down'))
     const res = await app.request('/reply', {
@@ -137,18 +116,15 @@ describe('POST /reply', () => {
     expect(res.status).toBe(500)
   })
 
-  it('sets tier to premium when transactionId is provided', async () => {
-    const res = await app.request('/reply', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...validBody, transactionId: 'txn-abc' }),
-    }, fakeEnv)
-    expect(res.status).toBe(200)
-    expect(mockCheckRateLimit).toHaveBeenCalledWith(
-      fakeEnv.RATE_LIMIT_KV,
-      'test-user-123',
-      'premium',
-      20
-    )
+  it('accepts all valid model IDs', async () => {
+    const models = ['gpt-4.1-mini', 'gpt-5.4-mini', 'gpt-4.1', 'claude-sonnet-4-6']
+    for (const model of models) {
+      const res = await app.request('/reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...validBody, model }),
+      }, fakeEnv)
+      expect(res.status).toBe(200)
+    }
   })
 })

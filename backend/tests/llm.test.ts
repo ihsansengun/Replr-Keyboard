@@ -99,8 +99,7 @@ describe('generateReplies', () => {
     const result = await generateReplies({
       screenshotBase64: 'abc',
       tone: 'casual',
-      model: 'claude',
-      tier: 'free',
+      model: 'claude-sonnet-4-6',
       anthropicKey: 'key',
       openaiKey: 'key',
     })
@@ -114,7 +113,7 @@ describe('generateReplies', () => {
     }))
   })
 
-  it('calls GPT-4o with correct model and returns parsed LlmResult', async () => {
+  it('calls GPT-4.1-mini with correct model and returns parsed LlmResult', async () => {
     openaiChatCreate.mockResolvedValue({
       choices: [{ message: { content: 'CONTACT: Pat\nSUMMARY: Weekend plans\n1. Yes\n2. No\n3. Maybe' } }],
     })
@@ -122,8 +121,7 @@ describe('generateReplies', () => {
     const result = await generateReplies({
       screenshotBase64: 'abc',
       tone: 'casual',
-      model: 'gpt4o',
-      tier: 'free',
+      model: 'gpt-4.1-mini',
       anthropicKey: 'key',
       openaiKey: 'key',
     })
@@ -131,12 +129,12 @@ describe('generateReplies', () => {
     expect(result.replies).toEqual(['Yes', 'No', 'Maybe'])
     expect(result.contactName).toBe('Pat')
     expect(openaiChatCreate).toHaveBeenCalledWith(expect.objectContaining({
-      model: 'gpt-4o',
+      model: 'gpt-4.1-mini',
       max_tokens: 1024,
     }))
   })
 
-  it('returns 5 replies for premium tier', async () => {
+  it('returns 5 replies', async () => {
     anthropicMessagesCreate.mockResolvedValue({
       content: [{ type: 'text', text: 'CONTACT: Sam\nSUMMARY: Chat\n1. A\n2. B\n3. C\n4. D\n5. E' }],
     })
@@ -144,8 +142,7 @@ describe('generateReplies', () => {
     const result = await generateReplies({
       screenshotBase64: 'abc',
       tone: 'casual',
-      model: 'claude',
-      tier: 'premium',
+      model: 'claude-sonnet-4-6',
       anthropicKey: 'key',
       openaiKey: 'key',
     })
