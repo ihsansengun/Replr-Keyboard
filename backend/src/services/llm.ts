@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
-import type { Model, Tier } from '../types'
+import type { Model } from '../types'
 
 const IDENTITY = `You are Replr. You generate human-like replies to text conversations.
 
@@ -20,7 +20,21 @@ const DECISIONS = `Before generating replies, assess:
 5. Whether to advance the conversation or simply respond
 6. For dating contexts: where are they in the relationship?`
 
-const PREMIUM_REPLY_COUNT = 5
+const REPLY_COUNT = 5
+
+interface ModelResolution {
+  provider: 'openai' | 'anthropic'
+  apiModel: string
+}
+
+function resolveModel(model: Model): ModelResolution {
+  switch (model) {
+    case 'gpt-4.1-mini':      return { provider: 'openai',    apiModel: 'gpt-4.1-mini' }
+    case 'gpt-5.4-mini':      return { provider: 'openai',    apiModel: 'gpt-5.4-mini' }
+    case 'gpt-4.1':           return { provider: 'openai',    apiModel: 'gpt-4.1' }
+    case 'claude-sonnet-4-6': return { provider: 'anthropic', apiModel: 'claude-sonnet-4-6' }
+  }
+}
 
 export interface LlmResult {
   replies: string[]
@@ -80,15 +94,16 @@ interface LlmTextParams {
 
 async function callLlm(params: LlmCallParams): Promise<LlmResult> {
   const { system, user, images, model, anthropicKey, openaiKey } = params
+  const { provider, apiModel } = resolveModel(model)
 
-  if (model === 'claude') {
+  if (provider === 'anthropic') {
     const client = new Anthropic({ apiKey: anthropicKey })
     const imageContent = images.map(b64 => ({
       type: 'image' as const,
-      source: { type: 'base64' as const, media_type: 'image/png' as const, data: b64 }
+      source: { type: 'base64' as const, media_type: 'image/jpeg' as const, data: b64 }
     }))
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: apiModel,
       max_tokens: 1024,
       system,
       messages: [{ role: 'user', content: [...imageContent, { type: 'text', text: user }] }],
@@ -100,10 +115,10 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
   const client = new OpenAI({ apiKey: openaiKey })
   const imageContent = images.map(b64 => ({
     type: 'image_url' as const,
-    image_url: { url: `data:image/png;base64,${b64}` }
+    image_url: { url: `data:image/jpeg;base64,${b64}` }
   }))
   const response = await client.chat.completions.create({
-    model: 'gpt-4o',
+    model: apiModel,
     max_tokens: 1024,
     messages: [
       { role: 'system', content: system },
@@ -115,11 +130,12 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
 
 async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
   const { system, user, model, anthropicKey, openaiKey } = params
+  const { provider, apiModel } = resolveModel(model)
 
-  if (model === 'claude') {
+  if (provider === 'anthropic') {
     const client = new Anthropic({ apiKey: anthropicKey })
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: apiModel,
       max_tokens: 1024,
       system,
       messages: [{ role: 'user', content: user }],
@@ -130,7 +146,7 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
 
   const client = new OpenAI({ apiKey: openaiKey })
   const response = await client.chat.completions.create({
-    model: 'gpt-4o',
+    model: apiModel,
     max_tokens: 1024,
     messages: [
       { role: 'system', content: system },
@@ -146,7 +162,6 @@ export interface GenerateEmailParams {
   summary?: string
   previousContext?: string
   model: Model
-  tier: Tier
   anthropicKey: string
   openaiKey: string
 }
@@ -157,7 +172,6 @@ export interface GenerateParams {
   summary?: string
   previousContext?: string
   model: Model
-  tier: Tier
   anthropicKey: string
   openaiKey: string
 }
@@ -191,11 +205,9 @@ ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
 }
 
 export async function generateReplies(params: GenerateParams): Promise<LlmResult> {
-  const { screenshotBase64, tone, summary, previousContext, model, tier, anthropicKey, openaiKey } = params
-  const count = tier === 'premium' ? PREMIUM_REPLY_COUNT : 3
-  const toneInstruction = tone
+  const { screenshotBase64, tone, summary, previousContext, model, anthropicKey, openaiKey } = params
 
-  const system = [IDENTITY, `ROLE: ${toneInstruction}`].join('\n\n')
+  const system = [IDENTITY, `ROLE: ${tone}`].join('\n\n')
 
   const user = `${buildContextBlock(summary, previousContext)}Reading guide:
 - Bubbles on the RIGHT = sent by the user
@@ -203,17 +215,16 @@ export async function generateReplies(params: GenerateParams): Promise<LlmResult
 
 ${DECISIONS}
 
-${buildReplyFormat(count)}`
+${buildReplyFormat(REPLY_COUNT)}`
 
   return callLlm({ system, user, images: [screenshotBase64], model, anthropicKey, openaiKey })
 }
 
 export async function generateRepliesFromMultiple(params: GenerateMultipleParams): Promise<LlmResult> {
   const { screenshots, tone, summary, previousContext, model, anthropicKey, openaiKey } = params
-  const count = PREMIUM_REPLY_COUNT
-  const toneInstruction = tone
+  const count = REPLY_COUNT
 
-  const system = [IDENTITY, `ROLE: ${toneInstruction}`].join('\n\n')
+  const system = [IDENTITY, `ROLE: ${tone}`].join('\n\n')
 
   const user = `${buildContextBlock(summary, previousContext)}The following screenshots show a conversation scrolled through from bottom to top. Read all of them together to understand the full context.
 
@@ -229,13 +240,11 @@ ${buildReplyFormat(count)}`
 }
 
 export async function generateRepliesFromEmail(params: GenerateEmailParams): Promise<LlmResult> {
-  const { emailText, tone, summary, previousContext, model, tier, anthropicKey, openaiKey } = params
-  const count = tier === 'premium' ? PREMIUM_REPLY_COUNT : 3
-  const toneInstruction = tone
+  const { emailText, tone, summary, previousContext, model, anthropicKey, openaiKey } = params
 
-  const system = [IDENTITY, `ROLE: ${toneInstruction}`].join('\n\n')
+  const system = [IDENTITY, `ROLE: ${tone}`].join('\n\n')
 
-  const user = `${buildContextBlock(summary, previousContext)}EMAIL TO REPLY TO:\n${emailText}\n\n${DECISIONS}\n\n${buildReplyFormat(count)}`
+  const user = `${buildContextBlock(summary, previousContext)}EMAIL TO REPLY TO:\n${emailText}\n\n${DECISIONS}\n\n${buildReplyFormat(REPLY_COUNT)}`
 
   return callLlmText({ system, user, model, anthropicKey, openaiKey })
 }
