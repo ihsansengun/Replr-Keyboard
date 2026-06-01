@@ -29,6 +29,10 @@ final class SubscriptionManager: ObservableObject {
         case .success(let verification):
             guard case .verified = verification else { return }
             await checkEntitlement()
+            if isPremium {
+                AppGroupService.shared.paywallRequested = false
+                AppGroupService.shared.trialExhausted = false
+            }
         default: break
         }
     }
@@ -38,10 +42,15 @@ final class SubscriptionManager: ObservableObject {
             if case .verified(let transaction) = result,
                productIDs.contains(transaction.productID) {
                 isPremium = true
+                let txID = String(transaction.id)
+                UserDefaults(suiteName: Constants.appGroupID)?
+                    .set(txID, forKey: Constants.transactionIDKey)
                 return
             }
         }
         isPremium = false
+        UserDefaults(suiteName: Constants.appGroupID)?
+            .removeObject(forKey: Constants.transactionIDKey)
     }
 
     func currentTransactionID() async -> String? {
