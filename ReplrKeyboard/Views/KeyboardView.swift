@@ -44,12 +44,15 @@ final class KeyboardModel: ObservableObject {
     var retryTrigger: (() -> Void)?
     var onContentHeightChanged: ((CGFloat) -> Void)?
 
-    /// Returns nil when premium (transactionID present). Returns 0–10 for trial users.
-    var trialRemaining: Int? {
-        let txID = UserDefaults(suiteName: Constants.appGroupID)?
-            .string(forKey: Constants.transactionIDKey)
-        guard txID == nil else { return nil }
-        return max(0, 10 - AppGroupService.shared.trialUsedCount)
+    enum CreditDisplay: Equatable {
+        case unlimited
+        case count(Int)
+    }
+
+    /// Returns .unlimited in dev mode (shows ∞). Returns .count(balance) otherwise.
+    var creditDisplay: CreditDisplay {
+        if AppGroupService.shared.devMode { return .unlimited }
+        return .count(AppGroupService.shared.effectiveCreditBalance)
     }
 
     init(initialTone: Tone) {
@@ -59,9 +62,10 @@ final class KeyboardModel: ObservableObject {
 
     func generateEmailReply() {
         guard case .idle = state else { return }
-        let remaining = trialRemaining ?? Int.max
-        guard remaining > 0 else {
-            AppGroupService.shared.paywallRequested = true
+        let balance = AppGroupService.shared.effectiveCreditBalance
+        let required = AppGroupService.shared.devMode ? 0
+            : (ReplrModel(apiID: AppGroupService.shared.selectedModel)?.creditsPerRequest ?? 1)
+        guard balance >= required else {
             withAnimation(.easeInOut(duration: 0.2)) { state = .paywall }
             return
         }
@@ -101,7 +105,9 @@ final class KeyboardModel: ObservableObject {
                     contactID: resolved.id,
                     contactName: resolved.name
                 )
-                if trialRemaining != nil { AppGroupService.shared.trialUsedCount += 1 }
+                if !AppGroupService.shared.devMode {
+                    AppGroupService.shared.creditBalance -= required
+                }
                 AppGroupService.shared.appendCaptureSession(session)
                 AppGroupService.shared.saveReplies(result.replies)
                 currentReplies = result.replies
@@ -470,9 +476,14 @@ struct KeyboardHeader: View {
                     .opacity(isSegmentedDisabled ? 0.4 : 1.0)
                     .allowsHitTesting(!isSegmentedDisabled)
                 Spacer()
-                if let remaining = model.trialRemaining, remaining <= 3 {
-                    TrialCounterBadge(remaining: remaining)
-                } else {
+                switch model.creditDisplay {
+                case .unlimited:
+                    Text("∞")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                case .count(let n) where n <= 20:
+                    CreditCounterBadge(count: n)
+                case .count:
                     ReplrMark(size: 16)
                         .opacity(isSegmentedDisabled ? 0.4 : 1.0)
                 }
@@ -576,25 +587,24 @@ struct PaywallCardView: View {
     }
 }
 
-// MARK: - Trial Counter Badge
+// MARK: - Credit Counter Badge
 
-struct TrialCounterBadge: View {
-    let remaining: Int
+struct CreditCounterBadge: View {
+    let count: Int
+
+    private var color: Color {
+        if count <= 3 { return ReplrTheme.Color.danger }
+        if count <= 10 { return Color(red: 0.85, green: 0.60, blue: 0.10) }
+        return ReplrTheme.Color.textSecondary
+    }
 
     var body: some View {
-        Text("\(remaining) left")
+        Text("\(count)")
             .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(remaining == 1
-                ? ReplrTheme.Color.danger
-                : Color(red: 0.85, green: 0.60, blue: 0.10))
+            .foregroundStyle(color)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
-            .background(
-                Capsule()
-                    .fill((remaining == 1
-                        ? ReplrTheme.Color.danger
-                        : Color(red: 0.85, green: 0.60, blue: 0.10)).opacity(0.12))
-            )
+            .background(Capsule().fill(color.opacity(0.12)))
     }
 }
 
