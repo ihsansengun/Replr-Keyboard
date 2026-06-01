@@ -57,7 +57,6 @@ struct QuickReplyIntent: AppIntent {
         NSLog("[Replr][QuickReply] Image loaded: %.0fx%.0f", image.size.width, image.size.height)
 
         let tone = AppGroupService.shared.readSelectedTone()
-        let txID = UserDefaults(suiteName: Constants.appGroupID)?.string(forKey: Constants.transactionIDKey)
         NSLog("[Replr][QuickReply] Calling API: tone=%@", tone.name)
 
         // Fetch memories for the current confirmed contact
@@ -74,9 +73,7 @@ struct QuickReplyIntent: AppIntent {
                 screenshot: image,
                 tone: tone,
                 summary: nil,
-                previousContext: previousContext,
-                model: "claude",
-                transactionId: txID
+                previousContext: previousContext
             )
             NSLog("[Replr][QuickReply] Got %d replies — saving to App Group", result.replies.count)
 

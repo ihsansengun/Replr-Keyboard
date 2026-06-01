@@ -73,8 +73,6 @@ final class KeyboardModel: ObservableObject {
         withAnimation(.easeInOut(duration: 0.2)) { state = .loading }
         Task { @MainActor [weak self] in
             guard let self else { return }
-            let txID = UserDefaults(suiteName: Constants.appGroupID)?
-                .string(forKey: Constants.transactionIDKey)
             let previousContext: String?
             if let contactID = AppGroupService.shared.currentContactID {
                 let summaries = AppGroupService.shared.recentSummaries(
@@ -88,9 +86,7 @@ final class KeyboardModel: ObservableObject {
                     emailText: emailText,
                     tone: selectedTone,
                     summary: pendingContext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : pendingContext,
-                    previousContext: previousContext,
-                    model: "claude",
-                    transactionId: txID
+                    previousContext: previousContext
                 )
                 let resolved = resolveContact(from: result)
                 contactName = resolved.name

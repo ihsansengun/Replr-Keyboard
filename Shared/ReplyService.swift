@@ -8,7 +8,6 @@ struct ReplyRequest: Codable {
     let previousContext: String?
     let model: String
     let userId: String
-    let transactionId: String?
 }
 
 struct ReplyEmailRequest: Codable {
@@ -18,7 +17,6 @@ struct ReplyEmailRequest: Codable {
     let previousContext: String?
     let model: String
     let userId: String
-    let transactionId: String?
 }
 
 struct ReplyResponse: Codable {
@@ -48,21 +46,19 @@ final class ReplyService {
         screenshot: UIImage,
         tone: Tone,
         summary: String?,
-        previousContext: String?,
-        model: String,
-        transactionId: String?
+        previousContext: String?
     ) async throws -> ReplyResult {
-        guard let pngData = screenshot.pngData() else { throw ReplyError.encodingFailed }
-        let base64 = pngData.base64EncodedString()
+        let imageData = compressForUpload(screenshot)
+        guard !imageData.isEmpty else { throw ReplyError.encodingFailed }
+        let base64 = imageData.base64EncodedString()
 
         let body = ReplyRequest(
             screenshotBase64: base64,
             tone: tone.instruction,
             summary: summary,
             previousContext: previousContext,
-            model: model,
-            userId: AppGroupService.shared.userID(),
-            transactionId: transactionId
+            model: AppGroupService.shared.selectedModel,
+            userId: AppGroupService.shared.userID()
         )
 
         var request = URLRequest(url: backendURL)
@@ -72,9 +68,7 @@ final class ReplyService {
         request.timeoutInterval = 30
 
         let (data, response) = try await session.data(for: request)
-
         guard let http = response as? HTTPURLResponse else { throw ReplyError.invalidResponse }
-
         if http.statusCode == 429 { throw ReplyError.rateLimitReached }
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
@@ -86,18 +80,15 @@ final class ReplyService {
         emailText: String,
         tone: Tone,
         summary: String?,
-        previousContext: String?,
-        model: String,
-        transactionId: String?
+        previousContext: String?
     ) async throws -> ReplyResult {
         let body = ReplyEmailRequest(
             emailText: emailText,
             tone: tone.instruction,
             summary: summary,
             previousContext: previousContext,
-            model: model,
-            userId: AppGroupService.shared.userID(),
-            transactionId: transactionId
+            model: AppGroupService.shared.selectedModel,
+            userId: AppGroupService.shared.userID()
         )
 
         var request = URLRequest(url: backendURL)
@@ -119,29 +110,35 @@ final class ReplyService {
         screenshots: [UIImage],
         tone: Tone,
         summary: String?,
-        previousContext: String?,
-        model: String,
-        transactionId: String?
+        previousContext: String?
     ) async throws -> ReplyResult {
-        let frames = screenshots.prefix(6).compactMap { $0.pngData()?.base64EncodedString() }
+        let frames = screenshots.prefix(6).map { compressForUpload($0).base64EncodedString() }
         guard !frames.isEmpty else { throw ReplyError.encodingFailed }
+
+        struct ScrollRequest: Encodable {
+            let screenshots: [String]
+            let tone: String
+            let summary: String?
+            let previousContext: String?
+            let model: String
+            let userId: String
+        }
+
+        let scrollBody = ScrollRequest(
+            screenshots: frames,
+            tone: tone.instruction,
+            summary: summary,
+            previousContext: previousContext,
+            model: AppGroupService.shared.selectedModel,
+            userId: AppGroupService.shared.userID()
+        )
 
         let scrollURL = URL(string: Constants.backendURL + "/reply/scroll")!
         var request = URLRequest(url: scrollURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = 45
-
-        let payload: [String: Any?] = [
-            "screenshots": frames,
-            "tone": tone.instruction,
-            "summary": summary,
-            "previousContext": previousContext,
-            "model": model,
-            "userId": AppGroupService.shared.userID(),
-            "transactionId": transactionId,
-        ]
-        request.httpBody = try JSONSerialization.data(withJSONObject: payload.compactMapValues { $0 })
+        request.httpBody = try JSONEncoder().encode(scrollBody)
 
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw ReplyError.invalidResponse }
@@ -166,5 +163,15 @@ enum ReplyError: LocalizedError {
         case .rateLimitReached:    return "Daily limit reached. Upgrade to premium for unlimited replies."
         case .serverError:         return "Something went wrong. Tap Capture to retry."
         }
+    }
+}
+
+// MARK: - Image preprocessing
+
+private extension ReplyService {
+    func compressForUpload(_ image: UIImage) -> Data {
+        // JPEG at 82% quality: ~5x smaller payload, faster API calls.
+        // Falls back to PNG if JPEG encoding fails.
+        image.jpegData(compressionQuality: 0.82) ?? (image.pngData() ?? Data())
     }
 }

@@ -15,13 +15,13 @@ final class ReplyServiceTests: XCTestCase {
             screenshotBase64: "abc123",
             tone: "casual",
             summary: nil,
-            model: "claude",
-            userId: "user-1",
-            transactionId: nil
+            previousContext: nil,
+            model: "gpt-4.1-mini",
+            userId: "user-1"
         )
         let data = try JSONEncoder().encode(req)
         let dict = try JSONSerialization.jsonObject(with: data) as! [String: Any]
         XCTAssertEqual(dict["tone"] as? String, "casual")
-        XCTAssertEqual(dict["model"] as? String, "claude")
+        XCTAssertEqual(dict["model"] as? String, "gpt-4.1-mini")
     }
 }

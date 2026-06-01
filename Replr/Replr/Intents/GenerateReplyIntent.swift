@@ -42,7 +42,6 @@ struct GenerateReplyIntent: AppIntent {
         AppGroupService.shared.isGenerating = true
 
         let context = AppGroupService.shared.readPendingContext()
-        let txID = UserDefaults(suiteName: Constants.appGroupID)?.string(forKey: Constants.transactionIDKey)
         NSLog("[Replr][Intent] Calling API: tone=%@, hasContext=%d", tone.rawValue, context != nil ? 1 : 0)
 
         // Fetch memories for the current confirmed contact
@@ -71,9 +70,7 @@ struct GenerateReplyIntent: AppIntent {
                 screenshot: image,
                 tone: tone.tone,
                 summary: context,
-                previousContext: previousContext,
-                model: "claude",
-                transactionId: txID
+                previousContext: previousContext
             )
             NSLog("[Replr][Intent] Got %d replies — saving to App Group", result.replies.count)
 
