@@ -10,6 +10,7 @@ enum KeyboardState: Equatable {
     case replies([String])
     case error(String)
     case disambiguate(name: String, candidates: [Contact])
+    case paywall
 }
 
 enum KeyboardInputMode: Equatable, Hashable { case chat, email }
@@ -43,6 +44,14 @@ final class KeyboardModel: ObservableObject {
     var retryTrigger: (() -> Void)?
     var onContentHeightChanged: ((CGFloat) -> Void)?
 
+    /// Returns nil when premium (transactionID present). Returns 0–10 for trial users.
+    var trialRemaining: Int? {
+        let txID = UserDefaults(suiteName: Constants.appGroupID)?
+            .string(forKey: Constants.transactionIDKey)
+        guard txID == nil else { return nil }
+        return max(0, 10 - AppGroupService.shared.trialUsedCount)
+    }
+
     init(initialTone: Tone) {
         self.selectedTone = initialTone
         self.tones = AppGroupService.shared.readTones()
@@ -50,6 +59,12 @@ final class KeyboardModel: ObservableObject {
 
     func generateEmailReply() {
         guard case .idle = state else { return }
+        let remaining = trialRemaining ?? Int.max
+        guard remaining > 0 else {
+            AppGroupService.shared.paywallRequested = true
+            withAnimation(.easeInOut(duration: 0.2)) { state = .paywall }
+            return
+        }
         guard let emailText = UIPasteboard.general.string,
               !emailText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             withAnimation { state = .error("No text on clipboard. Copy the email first.") }
@@ -90,6 +105,7 @@ final class KeyboardModel: ObservableObject {
                     contactID: resolved.id,
                     contactName: resolved.name
                 )
+                if trialRemaining != nil { AppGroupService.shared.trialUsedCount += 1 }
                 AppGroupService.shared.appendCaptureSession(session)
                 AppGroupService.shared.saveReplies(result.replies)
                 currentReplies = result.replies
@@ -171,6 +187,8 @@ struct KeyboardRootView: View {
                 case .disambiguate(let name, let candidates):
                     DisambiguatePanelView(model: model, name: name, candidates: candidates)
                         .transition(.opacity)
+                case .paywall:
+                    PaywallCardView(model: model).transition(.opacity)
                 }
             }
         }
@@ -191,6 +209,7 @@ struct KeyboardRootView: View {
         case .replies:      return 2
         case .error:        return 3
         case .disambiguate: return 4
+        case .paywall:      return 5
         }
     }
 }
