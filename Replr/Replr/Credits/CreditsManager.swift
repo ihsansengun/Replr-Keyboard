@@ -1,5 +1,6 @@
 import StoreKit
 import Foundation
+import Combine
 
 final class CreditsManager: ObservableObject {
     static let shared = CreditsManager()
