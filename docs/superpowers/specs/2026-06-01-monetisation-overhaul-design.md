@@ -56,20 +56,33 @@ All models see the raw screenshot image — single-call architecture, full visua
 
 ## Model Lineup
 
-### Supported Models
+### Supported Models (Backend)
+
+The backend supports all 4 models for routing. End users never choose between them.
 
 | Model ID | Display name | Provider | Vision | Credits/req |
 |---|---|---|---|---|
 | `gpt-4.1-mini` | GPT-4.1 Mini | OpenAI | ✅ | 1 |
 | `gpt-5.4-mini` | GPT-5.4 Mini | OpenAI | ✅ | 2 |
-| `gpt-4.1` | GPT-4.1 | OpenAI | ✅ | 5 |
-| `claude-sonnet-4-6` | Claude Sonnet | Anthropic | ✅ | 8 |
+| `gpt-4.1` | GPT-4.1 | OpenAI | ✅ | 3 |
+| `claude-sonnet-4-6` | Claude Sonnet | Anthropic | ✅ | 3 |
 
-### Model Picker (Settings → Model)
+### User-Facing Tiers (Post-Testing)
 
-A developer/testing picker in Settings. Shows all 4 models with their credit cost per request. User switches model, uses keyboard normally in real conversations, observes reply quality difference. Default: `gpt-4.1-mini`.
+After developer testing is complete, offer at most **two** user-visible tiers:
 
-The selected model is stored in App Group UserDefaults (`replr.model.selected`) so both the companion app and keyboard extension read the same value.
+| Tier | Model | Credits | Framing |
+|---|---|---|---|
+| **Standard** | Winner from testing (default: `gpt-4.1-mini`) | 1 | Fast, natural |
+| **Enhanced** *(optional)* | Runner-up or Sonnet — only if quality difference is genuinely perceptible | 3 | Deeper context, better reads |
+
+If testing shows GPT-4.1-mini is good enough on its own, Enhanced is not offered — one model, no choice, no confusion.
+
+### Developer Testing Mode (Hidden)
+
+The model picker is **not visible to end users**. It is accessed via a hidden trigger in Settings (e.g. long-press on the version number). Shows all 4 models. Switching model does not cost credits in dev mode (a `devMode: true` flag bypasses credit deduction). The developer uses this to compare reply quality in real conversations before deciding on the default.
+
+The selected model is stored in App Group UserDefaults (`replr.credits.model`) so both the companion app and keyboard extension use the same value.
 
 ---
 
@@ -234,12 +247,15 @@ Keep `trialUsedCountKey` and `transactionIDKey` as read-only — needed by the o
 
 **`Replr/Replr/Features/Settings/SettingsView.swift`**
 - Replace `NavigationLink(destination: PaywallView())` with `NavigationLink(destination: CreditPacksView())`
-- Add new "Model" row: shows current model name → navigates to `ModelPickerView`
+- No user-visible model row
+- Hidden model picker accessible via long-press on version number label
 
-**New: `Replr/Replr/Features/Settings/ModelPickerView.swift`**
-- List of 4 models with display name, credit cost badge, and checkmark on selected
+**New: `Replr/Replr/Features/Settings/ModelPickerView.swift`** *(developer only)*
+- Hidden view — not reachable from normal navigation
+- List of 4 models with display name, API ID, credit cost badge, checkmark on selected
+- "Dev Mode" toggle at top — when on, bypasses credit deduction for testing
 - Tapping a model writes to `AppGroupService.shared.selectedModel`
-- Subtitle on each: "1 credit/reply · $0.002 equivalent" etc.
+- Accessible via long-press on app version label in Settings
 
 **`ReplrKeyboard/Views/KeyboardView.swift`**
 - `KeyboardModel.trialRemaining` → `creditBalance` (read from App Group)
