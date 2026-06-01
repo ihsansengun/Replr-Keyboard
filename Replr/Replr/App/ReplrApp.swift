@@ -68,18 +68,14 @@ struct ReplrApp: App {
                     .onChange(of: scenePhase) { phase in
                         guard phase == .active else { return }
                         AppGroupService.shared.synchronize()
-                        if AppGroupService.shared.paywallRequested {
-                            let txID = UserDefaults(suiteName: Constants.appGroupID)?
-                                .string(forKey: Constants.transactionIDKey)
-                            if txID == nil { showPaywall = true }
+                        CreditsManager.shared.refreshBalance()
+                        if AppGroupService.shared.effectiveCreditBalance == 0 {
+                            showPaywall = true
                         }
                     }
                     .fullScreenCover(isPresented: $showPaywall) {
                         NavigationStack {
-                            PaywallView(showCloseButton: true)
-                                .onDisappear {
-                                    AppGroupService.shared.paywallRequested = false
-                                }
+                            CreditPacksView(showCloseButton: true)
                         }
                     }
             } else {
@@ -108,8 +104,7 @@ struct ContentView: View {
             CustomTabBar(selection: $selectedTab)
         }
         .task {
-            let txID = await SubscriptionManager.shared.currentTransactionID()
-            UserDefaults(suiteName: Constants.appGroupID)?.set(txID, forKey: "transaction_id")
+            await CreditsManager.shared.load()
         }
     }
 }
