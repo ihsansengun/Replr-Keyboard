@@ -1,7 +1,6 @@
 import StoreKit
 import Foundation
 
-@MainActor
 final class CreditsManager: ObservableObject {
     static let shared = CreditsManager()
 
@@ -23,6 +22,7 @@ final class CreditsManager: ObservableObject {
 
     // MARK: - StoreKit
 
+    @MainActor
     func load() async {
         do {
             products = try await Product.products(for: productIDs)
@@ -32,6 +32,7 @@ final class CreditsManager: ObservableObject {
         }
     }
 
+    @MainActor
     func purchase(_ product: Product) async throws {
         isPurchasing = true
         defer { isPurchasing = false }
@@ -50,6 +51,7 @@ final class CreditsManager: ObservableObject {
         }
     }
 
+    @MainActor
     func restore() async {
         isPurchasing = true
         defer { isPurchasing = false }
@@ -61,11 +63,15 @@ final class CreditsManager: ObservableObject {
     func deduct(_ credits: Int) {
         guard !AppGroupService.shared.devMode else { return }
         AppGroupService.shared.creditBalance = max(0, AppGroupService.shared.creditBalance - credits)
-        balance = AppGroupService.shared.creditBalance
+        DispatchQueue.main.async { [weak self] in
+            self?.balance = AppGroupService.shared.creditBalance
+        }
     }
 
     func refreshBalance() {
-        balance = AppGroupService.shared.effectiveCreditBalance
+        DispatchQueue.main.async { [weak self] in
+            self?.balance = AppGroupService.shared.effectiveCreditBalance
+        }
     }
 
     // MARK: - Migration
