@@ -97,13 +97,29 @@ replr.credits.balance    Int    current credit balance (starts at 10)
 replr.credits.model      String current selected model ID
 ```
 
+### Dev Mode
+
+Stored in App Group UserDefaults as `replr.dev.mode` (Bool). Accessible via long-press on version number in Settings → `ModelPickerView`.
+
+When dev mode is **ON**:
+- `AppGroupService.shared.creditBalance` reads as `9_999` regardless of actual stored value
+- Credit deduction is skipped entirely — balance never decrements
+- Keyboard header shows **"∞"** instead of a number
+- `GenerateReplyIntent` and `KeyboardModel` skip the balance check
+- All 4 models available to switch between freely
+
+When dev mode is **OFF** (default for all users):
+- Normal credit balance and deduction applies
+- Model picker is hidden
+
 ### Credit Deduction Flow
 
 ```
 User triggers generate
     ↓
+if devMode == true → skip all checks, proceed with selectedModel
+    ↓
 GenerateReplyIntent / KeyboardModel checks:
-  - creditBalance > 0?  No → show paywall
   - creditBalance >= creditsRequired(selectedModel)?  No → show paywall
     ↓
 API call made with selectedModel
@@ -212,6 +228,7 @@ Add:
 static let creditBalanceKey  = "replr.credits.balance"
 static let selectedModelKey  = "replr.credits.model"
 static let creditsMigratedKey = "credits.migrated"
+static let devModeKey        = "replr.dev.mode"
 ```
 Keep `trialUsedCountKey` and `transactionIDKey` as read-only — needed by the one-time migration in `CreditsManager.migrateIfNeeded()`. Remove `trialExhaustedKey` and `paywallRequestedKey` — no longer used.
 
