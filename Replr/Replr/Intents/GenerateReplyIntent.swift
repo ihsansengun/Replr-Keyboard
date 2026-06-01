@@ -21,6 +21,16 @@ struct GenerateReplyIntent: AppIntent {
         NSLog("[Replr][Intent] GenerateReplyIntent fired")
         AppGroupService.shared.lastIntentFiredAt = Date()
 
+        // Trial gate
+        let isPremium = await SubscriptionManager.shared.isPremium
+        let trialUsed = AppGroupService.shared.trialUsedCount
+        guard isPremium || trialUsed < 10 else {
+            NSLog("[Replr][Intent] trial exhausted — requesting paywall")
+            AppGroupService.shared.paywallRequested = true
+            AppGroupService.shared.saveError("trial_exhausted")
+            return .result()
+        }
+
         guard let image = UIImage(data: screenshot.data) else {
             NSLog("[Replr][Intent] Could not decode screenshot data")
             AppGroupService.shared.saveError("Could not read the screenshot image.")
@@ -83,6 +93,7 @@ struct GenerateReplyIntent: AppIntent {
                 contactID: resolvedContactID,
                 contactName: resolvedContactName
             )
+            if !isPremium { AppGroupService.shared.trialUsedCount += 1 }
             AppGroupService.shared.isGenerating = false
             AppGroupService.shared.appendCaptureSession(session)
             AppGroupService.shared.saveReplies(result.replies)
