@@ -170,8 +170,8 @@ enum ReplyError: LocalizedError {
 
 private extension ReplyService {
     func compressForUpload(_ image: UIImage) -> Data {
-        // JPEG at 82% quality: ~5x smaller payload, faster API calls.
+        // JPEG at 97% quality: minimal compression, preserves text/emoji clarity for LLM reading.
         // Falls back to PNG if JPEG encoding fails.
-        image.jpegData(compressionQuality: 0.82) ?? (image.pngData() ?? Data())
+        image.jpegData(compressionQuality: 0.97) ?? (image.pngData() ?? Data())
     }
 }
