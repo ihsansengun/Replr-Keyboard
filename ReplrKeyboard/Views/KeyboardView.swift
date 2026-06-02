@@ -167,12 +167,8 @@ struct KeyboardRootView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            // Solid bg only when expanded — collapsed lets native iOS chrome show through
-            if !model.isCollapsed {
-                ReplrTheme.Color.bg
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-            }
+            // Background is handled by view.backgroundColor in KeyboardViewController (UIKit layer).
+            // Do NOT put a greedy SwiftUI Color here — it defeats sizeThatFits measurement.
             if model.isCollapsed {
                 CollapsedStripView(model: model).transition(.opacity)
             } else {
