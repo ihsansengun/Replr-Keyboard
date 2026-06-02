@@ -507,8 +507,13 @@ final class AppGroupService {
     var creditsRequired: Int {
         if devMode { return 0 }
         switch selectedModel {
-        case "gpt-5.4":           return 7
         case "claude-sonnet-4-6": return 8
+        case "gpt-5.4":           return 7
+        case "claude-opus-4-6":   return 15
+        case "gpt-5.5":           return 15
+        case "grok-4":            return 7
+        case "grok-4.3":          return 2
+        case "gpt-5.4-mini":      return 2
         default:                   return 7
         }
     }

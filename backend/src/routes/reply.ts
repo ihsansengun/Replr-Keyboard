@@ -4,7 +4,7 @@ import type { Env, Model } from '../types'
 
 export const replyRoute = new Hono<{ Bindings: Env }>()
 
-const VALID_MODELS: Model[] = ['gpt-5.4', 'gpt-5.4-mini', 'gpt-5.5', 'claude-sonnet-4-6']
+const VALID_MODELS: Model[] = ['gpt-5.4', 'gpt-5.4-mini', 'gpt-5.5', 'claude-sonnet-4-6', 'claude-opus-4-6', 'grok-4', 'grok-4.3']
 
 replyRoute.post('/', async (c) => {
   let body: Record<string, unknown>
@@ -30,14 +30,14 @@ replyRoute.post('/', async (c) => {
       ? await generateRepliesFromEmail({
           emailText, tone, summary, previousContext,
           model: model as Model,
-          anthropicKey: c.env.ANTHROPIC_API_KEY,
+          anthropicKey: c.env.ANTHROPIC_API_KEY, xaiKey: c.env.XAI_API_KEY,
           openaiKey: c.env.OPENAI_API_KEY,
         })
       : await generateReplies({
           screenshotBase64: screenshotBase64!,
           tone, summary, previousContext,
           model: model as Model,
-          anthropicKey: c.env.ANTHROPIC_API_KEY,
+          anthropicKey: c.env.ANTHROPIC_API_KEY, xaiKey: c.env.XAI_API_KEY,
           openaiKey: c.env.OPENAI_API_KEY,
         })
     if (result.replies.length === 0) {
@@ -77,7 +77,7 @@ replyRoute.post('/scroll', async (c) => {
     const result = await generateRepliesFromMultiple({
       screenshots, tone, summary, previousContext,
       model: model as Model,
-      anthropicKey: c.env.ANTHROPIC_API_KEY,
+      anthropicKey: c.env.ANTHROPIC_API_KEY, xaiKey: c.env.XAI_API_KEY,
       openaiKey: c.env.OPENAI_API_KEY,
     })
     if (result.replies.length === 0) {

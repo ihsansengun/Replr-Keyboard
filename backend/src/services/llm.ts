@@ -23,7 +23,7 @@ const DECISIONS = `Before generating replies, assess:
 const REPLY_COUNT = 3
 
 interface ModelResolution {
-  provider: 'openai' | 'anthropic'
+  provider: 'openai' | 'anthropic' | 'xai'
   apiModel: string
 }
 
@@ -33,6 +33,9 @@ function resolveModel(model: Model): ModelResolution {
     case 'gpt-5.4-mini':      return { provider: 'openai',    apiModel: 'gpt-5.4-mini' }
     case 'gpt-5.5':           return { provider: 'openai',    apiModel: 'gpt-5.5' }
     case 'claude-sonnet-4-6': return { provider: 'anthropic', apiModel: 'claude-sonnet-4-6' }
+    case 'claude-opus-4-6':   return { provider: 'anthropic', apiModel: 'claude-opus-4-6' }
+    case 'grok-4':            return { provider: 'xai',       apiModel: 'grok-4' }
+    case 'grok-4.3':          return { provider: 'xai',       apiModel: 'grok-4.3' }
   }
 }
 
@@ -82,6 +85,7 @@ interface LlmCallParams {
   model: Model
   anthropicKey: string
   openaiKey: string
+  xaiKey?: string
 }
 
 interface LlmTextParams {
@@ -90,10 +94,11 @@ interface LlmTextParams {
   model: Model
   anthropicKey: string
   openaiKey: string
+  xaiKey?: string
 }
 
 async function callLlm(params: LlmCallParams): Promise<LlmResult> {
-  const { system, user, images, model, anthropicKey, openaiKey } = params
+  const { system, user, images, model, anthropicKey, openaiKey, xaiKey } = params
   const { provider, apiModel } = resolveModel(model)
 
   if (provider === 'anthropic') {
@@ -112,7 +117,10 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
     return parseLlmOutput(textBlock && 'text' in textBlock ? textBlock.text : '')
   }
 
-  const client = new OpenAI({ apiKey: openaiKey })
+  // xAI (Grok) — OpenAI-compatible with different base URL
+  const apiKey = provider === 'xai' ? (xaiKey ?? '') : openaiKey
+  const baseURL = provider === 'xai' ? 'https://api.x.ai/v1' : undefined
+  const client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) })
   const imageContent = images.map(b64 => ({
     type: 'image_url' as const,
     image_url: { url: `data:image/png;base64,${b64}` }
@@ -129,7 +137,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
 }
 
 async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
-  const { system, user, model, anthropicKey, openaiKey } = params
+  const { system, user, model, anthropicKey, openaiKey, xaiKey } = params
   const { provider, apiModel } = resolveModel(model)
 
   if (provider === 'anthropic') {
@@ -144,7 +152,9 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
     return parseLlmOutput(textBlock && 'text' in textBlock ? textBlock.text : '')
   }
 
-  const client = new OpenAI({ apiKey: openaiKey })
+  const apiKey = provider === 'xai' ? (xaiKey ?? '') : openaiKey
+  const baseURL = provider === 'xai' ? 'https://api.x.ai/v1' : undefined
+  const client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) })
   const response = await client.chat.completions.create({
     model: apiModel,
     max_completion_tokens: 1024,
@@ -164,6 +174,7 @@ export interface GenerateEmailParams {
   model: Model
   anthropicKey: string
   openaiKey: string
+  xaiKey?: string
 }
 
 export interface GenerateParams {
@@ -174,6 +185,7 @@ export interface GenerateParams {
   model: Model
   anthropicKey: string
   openaiKey: string
+  xaiKey?: string
 }
 
 export interface GenerateMultipleParams {
@@ -184,6 +196,7 @@ export interface GenerateMultipleParams {
   model: Model
   anthropicKey: string
   openaiKey: string
+  xaiKey?: string
 }
 
 function buildContextBlock(summary?: string, previousContext?: string): string {
@@ -205,7 +218,7 @@ ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
 }
 
 export async function generateReplies(params: GenerateParams): Promise<LlmResult> {
-  const { screenshotBase64, tone, summary, previousContext, model, anthropicKey, openaiKey } = params
+  const { screenshotBase64, tone, summary, previousContext, model, anthropicKey, openaiKey, xaiKey } = params
 
   const system = [IDENTITY, `ROLE: ${tone}`].join('\n\n')
 
@@ -217,11 +230,11 @@ ${DECISIONS}
 
 ${buildReplyFormat(REPLY_COUNT)}`
 
-  return callLlm({ system, user, images: [screenshotBase64], model, anthropicKey, openaiKey })
+  return callLlm({ system, user, images: [screenshotBase64], model, anthropicKey, openaiKey, xaiKey })
 }
 
 export async function generateRepliesFromMultiple(params: GenerateMultipleParams): Promise<LlmResult> {
-  const { screenshots, tone, summary, previousContext, model, anthropicKey, openaiKey } = params
+  const { screenshots, tone, summary, previousContext, model, anthropicKey, openaiKey, xaiKey } = params
   const count = REPLY_COUNT
 
   const system = [IDENTITY, `ROLE: ${tone}`].join('\n\n')
@@ -236,17 +249,17 @@ ${DECISIONS}
 
 ${buildReplyFormat(count)}`
 
-  return callLlm({ system, user, images: screenshots, model, anthropicKey, openaiKey })
+  return callLlm({ system, user, images: screenshots, model, anthropicKey, openaiKey, xaiKey })
 }
 
 export async function generateRepliesFromEmail(params: GenerateEmailParams): Promise<LlmResult> {
-  const { emailText, tone, summary, previousContext, model, anthropicKey, openaiKey } = params
+  const { emailText, tone, summary, previousContext, model, anthropicKey, openaiKey, xaiKey } = params
 
   const system = [IDENTITY, `ROLE: ${tone}`].join('\n\n')
 
   const user = `${buildContextBlock(summary, previousContext)}EMAIL TO REPLY TO:\n${emailText}\n\n${DECISIONS}\n\n${buildReplyFormat(REPLY_COUNT)}`
 
-  return callLlmText({ system, user, model, anthropicKey, openaiKey })
+  return callLlmText({ system, user, model, anthropicKey, openaiKey, xaiKey })
 }
 
 /** Kept for any callers that still use the old signature — returns only replies. */
