@@ -54,7 +54,7 @@ final class KeyboardViewController: UIInputViewController {
         model.retryTrigger = { [weak self] in self?.triggerRetry() }
         model.onContentHeightChanged = { [weak self] height in
             guard let self else { return }
-            self.setHeight(min(400, max(260, height)), duration: 0.15)
+            self.setHeight(min(560, max(260, height)), duration: 0.15)
         }
 
         let adaptiveBg = UIColor { tc in
@@ -109,11 +109,11 @@ final class KeyboardViewController: UIInputViewController {
                 case .disambiguate: height = 300
                 case .replies:
                     // Upfront estimate; TotalHeightKey in RepliesPanelView refines to exact fit.
-                    // fixedSize on the ScrollView means the VStack is always content-sized,
-                    // so any gap is at the keyboard bottom (not between cards and action row).
+                    // Use 96px per reply (generous for multi-line) — RepliesPanelView will report
+                    // the exact measured height via onContentHeightChanged and override this.
                     let n = CGFloat(max(1, self.model.currentReplies.count))
                     let contactExtra: CGFloat = self.model.contactName != nil ? 28 : 0
-                    height = min(400, max(280, 152 + n * 62 + contactExtra))
+                    height = min(560, max(300, 152 + n * 96 + contactExtra))
                 }
                 self.setHeight(height)
             }

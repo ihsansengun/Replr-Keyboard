@@ -112,7 +112,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
     }))
     const response = await client.messages.create({
       model: apiModel,
-      max_tokens: 1024,
+      max_tokens: 2048,
       system,
       messages: [{ role: 'user', content: [...imageContent, { type: 'text', text: user }] }],
     })
@@ -134,7 +134,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
   }))
   const response = await client.chat.completions.create({
     model: apiModel,
-    max_completion_tokens: 1024,
+    max_completion_tokens: 2048,
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: [...imageContent, { type: 'text', text: user }] as any },
@@ -151,7 +151,7 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
     const client = new Anthropic({ apiKey: anthropicKey })
     const response = await client.messages.create({
       model: apiModel,
-      max_tokens: 1024,
+      max_tokens: 2048,
       system,
       messages: [{ role: 'user', content: user }],
     })
@@ -168,7 +168,7 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
   const client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) })
   const response = await client.chat.completions.create({
     model: apiModel,
-    max_completion_tokens: 1024,
+    max_completion_tokens: 2048,
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: user },
@@ -225,7 +225,9 @@ function buildContextBlock(summary?: string, previousContext?: string): string {
 }
 
 function buildReplyFormat(count: number): string {
-  return `Output format — exactly this, no other text:
+  return `You MUST output exactly ${count} replies — no more, no fewer. Even if the conversation is simple, always produce all ${count} options.
+
+Output format — exactly this structure, no other text before or after:
 CONTACT: [display name of the person you are replying TO, exactly as shown in the chat header. "Group: [name]" for group chats. "Unknown" if not visible.]
 SUMMARY: [one sentence: topic of conversation and what was last said]
 ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
