@@ -45,6 +45,7 @@ struct RepliesView: View {
     @StateObject private var vm = RepliesViewModel()
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
     @State private var memoryContact: Contact? = nil
+    @Environment(\.scenePhase) private var scenePhase
     @State private var backTapSkipped = AppGroupService.shared.backTapSkipped
     @State private var showSetupSheet = false
     @State private var showClearConfirm = false
@@ -185,9 +186,16 @@ struct RepliesView: View {
             }
         }
         .onAppear {
+            AppGroupService.shared.synchronize()
             vm.load()
             memoryEnabled = AppGroupService.shared.memoryEnabled
             backTapSkipped = AppGroupService.shared.backTapSkipped
+        }
+        .onChange(of: scenePhase) { phase in
+            guard phase == .active else { return }
+            AppGroupService.shared.synchronize()
+            vm.load()
+            memoryEnabled = AppGroupService.shared.memoryEnabled
         }
         .sheet(item: $memoryContact) { contact in
             NavigationStack {

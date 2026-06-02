@@ -34,6 +34,7 @@ final class MemoryViewModel: ObservableObject {
 struct MemoryView: View {
     @StateObject private var vm = MemoryViewModel()
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationStack {
@@ -107,6 +108,13 @@ struct MemoryView: View {
             }
         }
         .onAppear {
+            AppGroupService.shared.synchronize()
+            vm.load()
+            memoryEnabled = AppGroupService.shared.memoryEnabled
+        }
+        .onChange(of: scenePhase) { phase in
+            guard phase == .active else { return }
+            AppGroupService.shared.synchronize()
             vm.load()
             memoryEnabled = AppGroupService.shared.memoryEnabled
         }
