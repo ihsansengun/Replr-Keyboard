@@ -108,7 +108,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
     const client = new Anthropic({ apiKey: anthropicKey })
     const imageContent = images.map(b64 => ({
       type: 'image' as const,
-      source: { type: 'base64' as const, media_type: 'image/png' as const, data: b64 }
+      source: { type: 'base64' as const, media_type: 'image/jpeg' as const, data: b64 }
     }))
     const response = await client.messages.create({
       model: apiModel,
@@ -130,7 +130,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
   const client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) })
   const imageContent = images.map(b64 => ({
     type: 'image_url' as const,
-    image_url: { url: `data:image/png;base64,${b64}` }
+    image_url: { url: `data:image/jpeg;base64,${b64}` }
   }))
   const response = await client.chat.completions.create({
     model: apiModel,

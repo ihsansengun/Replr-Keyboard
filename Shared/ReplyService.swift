@@ -170,8 +170,38 @@ enum ReplyError: LocalizedError {
 
 private extension ReplyService {
     func compressForUpload(_ image: UIImage) -> Data {
-        // PNG: lossless — preserves exact text, emoji and colours the LLM needs to read.
-        // Payload is larger but quality is critical for reply accuracy.
-        image.pngData() ?? Data()
+        // Strategy: downscale 3× screenshots to 2× then JPEG 92%.
+        //
+        // Why this is safe:
+        //   Claude Sonnet caps at 1,568 tokens for any image > ~750×1,050px.
+        //   GPT uses the same 8 tiles for any portrait screenshot.
+        //   So 3× (1179×2556) and 2× (786×1704) produce identical token counts —
+        //   the extra resolution is discarded by the model anyway.
+        //
+        // Why this matters:
+        //   3× PNG: ~2.5 MB → base64 ~3.3 MB → ~1–2s upload on LTE
+        //   2× JPEG 92%: ~180 KB → base64 ~240 KB → ~90ms upload on LTE
+        //   ~13× smaller payload, visually identical to PNG for text/emoji.
+
+        let originalScale = max(image.scale, 1.0)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0  // renderer works in raw pixels
+
+        // Cap at 2× logical resolution — no upscaling for images already ≤ 2×
+        let targetScale = min(originalScale, 2.0)
+        let targetSize = CGSize(
+            width: floor(image.size.width * targetScale),
+            height: floor(image.size.height * targetScale)
+        )
+
+        let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
+        let resized = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+
+        // JPEG 92% — visually lossless for text, much smaller than PNG
+        return resized.jpegData(compressionQuality: 0.92)
+            ?? resized.pngData()
+            ?? (image.pngData() ?? Data())
     }
 }
