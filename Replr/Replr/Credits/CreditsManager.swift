@@ -10,10 +10,10 @@ final class CreditsManager: ObservableObject {
     @Published var isPurchasing = false
 
     private let productIDs = [
-        "Theory-of-Web.Replr.credits.100",
-        "Theory-of-Web.Replr.credits.300",
-        "Theory-of-Web.Replr.credits.750",
-        "Theory-of-Web.Replr.credits.2500",
+        "com.ihsan.replr.credits.100",
+        "com.ihsan.replr.credits.300",
+        "com.ihsan.replr.credits.750",
+        "com.ihsan.replr.credits.2500",
     ]
 
     private init() {
@@ -102,10 +102,10 @@ final class CreditsManager: ObservableObject {
 
     private func creditsForProductID(_ productID: String) -> Int {
         switch productID {
-        case "Theory-of-Web.Replr.credits.100":  return 100
-        case "Theory-of-Web.Replr.credits.300":  return 300
-        case "Theory-of-Web.Replr.credits.750":  return 750
-        case "Theory-of-Web.Replr.credits.2500": return 2_500
+        case "com.ihsan.replr.credits.100":  return 100
+        case "com.ihsan.replr.credits.300":  return 300
+        case "com.ihsan.replr.credits.750":  return 750
+        case "com.ihsan.replr.credits.2500": return 2_500
         default: return 0
         }
     }
