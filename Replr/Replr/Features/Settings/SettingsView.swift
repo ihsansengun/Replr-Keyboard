@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("preferredModel") var preferredModel = "claude"
     @State private var persistReplies = AppGroupService.shared.persistReplies
     @State private var memoryWindowDays = AppGroupService.shared.memoryWindowDays
     @State private var memoryDepth = AppGroupService.shared.memoryDepth
@@ -15,7 +14,6 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     identityCard
                     keyboardSection
-                    aiModelSection
                     memorySection
                     accountSection
                     aboutSection
@@ -84,39 +82,6 @@ struct SettingsView: View {
                     .onChange(of: persistReplies) { AppGroupService.shared.persistReplies = $0 }
             }
         }
-    }
-
-    // MARK: - AI Model
-
-    private var aiModelSection: some View {
-        settingsSection("AI Model") {
-            HStack(spacing: 0) {
-                modelOption("claude", label: "Claude (Anthropic)")
-                ReplrTheme.Color.glassBorder.frame(width: 1, height: 24)
-                modelOption("gpt4o", label: "GPT-4o (OpenAI)")
-            }
-            .padding(6)
-        }
-    }
-
-    @ViewBuilder
-    private func modelOption(_ tag: String, label: String) -> some View {
-        let isSelected = preferredModel == tag
-        Button { preferredModel = tag } label: {
-            Text(label)
-                .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                .foregroundStyle(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
-                .frame(maxWidth: .infinity)
-                .frame(height: 38)
-                .background(isSelected ? ReplrTheme.Color.accentSubtle : Color.clear)
-                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                        .strokeBorder(isSelected ? ReplrTheme.Color.accent.opacity(0.55) : Color.clear, lineWidth: 1)
-                )
-        }
-        .buttonStyle(.plain)
-        .animation(ReplrTheme.Motion.quick, value: isSelected)
     }
 
     // MARK: - Memory
