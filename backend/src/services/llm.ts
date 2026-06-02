@@ -29,9 +29,6 @@ interface ModelResolution {
 
 function resolveModel(model: Model): ModelResolution {
   switch (model) {
-    case 'gpt-4.1-mini':      return { provider: 'openai',    apiModel: 'gpt-4.1-mini' }
-    case 'gpt-4.1':           return { provider: 'openai',    apiModel: 'gpt-4.1' }
-    case 'gpt-5.4-mini':      return { provider: 'openai',    apiModel: 'gpt-5.4-mini' }
     case 'gpt-5.4':           return { provider: 'openai',    apiModel: 'gpt-5.4' }
     case 'claude-sonnet-4-6': return { provider: 'anthropic', apiModel: 'claude-sonnet-4-6' }
   }
@@ -120,7 +117,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
   }))
   const response = await client.chat.completions.create({
     model: apiModel,
-    max_tokens: 1024,
+    max_completion_tokens: 1024,
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: [...imageContent, { type: 'text', text: user }] as any },
@@ -148,7 +145,7 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
   const client = new OpenAI({ apiKey: openaiKey })
   const response = await client.chat.completions.create({
     model: apiModel,
-    max_tokens: 1024,
+    max_completion_tokens: 1024,
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: user },

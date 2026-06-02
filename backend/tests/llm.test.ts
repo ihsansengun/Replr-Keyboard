@@ -121,7 +121,7 @@ describe('generateReplies', () => {
     const result = await generateReplies({
       screenshotBase64: 'abc',
       tone: 'casual',
-      model: 'gpt-4.1-mini',
+      model: 'gpt-5.4',
       anthropicKey: 'key',
       openaiKey: 'key',
     })
@@ -129,7 +129,7 @@ describe('generateReplies', () => {
     expect(result.replies).toEqual(['Yes', 'No', 'Maybe'])
     expect(result.contactName).toBe('Pat')
     expect(openaiChatCreate).toHaveBeenCalledWith(expect.objectContaining({
-      model: 'gpt-4.1-mini',
+      model: 'gpt-5.4',
       max_tokens: 1024,
     }))
   })

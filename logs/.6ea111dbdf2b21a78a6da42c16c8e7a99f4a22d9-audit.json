@@ -6,11 +6,6 @@
     "auditLog": "/Users/WORK2/Desktop/DesktopCloud/Replr/logs/.6ea111dbdf2b21a78a6da42c16c8e7a99f4a22d9-audit.json",
     "files": [
         {
-            "date": 1779133622878,
-            "name": "/Users/WORK2/Desktop/DesktopCloud/Replr/logs/mcp-puppeteer-2026-05-18.log",
-            "hash": "41e5b22182ac2b942b862bfa904facc785c8cbce150a822f0d5c86348c9b8b79"
-        },
-        {
             "date": 1779266906869,
             "name": "/Users/WORK2/Desktop/DesktopCloud/Replr/logs/mcp-puppeteer-2026-05-20.log",
             "hash": "b7d48d1462953108b6716df9de0b2b65e0dca21b2a646ee841f8e6ad03e84332"
@@ -24,6 +19,11 @@
             "date": 1780316328479,
             "name": "/Users/WORK2/Desktop/DesktopCloud/Replr/logs/mcp-puppeteer-2026-06-01.log",
             "hash": "1ba82d3741a4d79612136f80b72e9f1c5dbc7d51715d2add787c84575b6ba1fd"
+        },
+        {
+            "date": 1780360671810,
+            "name": "/Users/WORK2/Desktop/DesktopCloud/Replr/logs/mcp-puppeteer-2026-06-02.log",
+            "hash": "4154a072ecb5790e2765109120940b1b804350af90f86ae3ab8fe76ba8bab487"
         }
     ],
     "hashType": "sha256"

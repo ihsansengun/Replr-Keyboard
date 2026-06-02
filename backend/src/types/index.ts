@@ -1,4 +1,4 @@
-export type Model = 'gpt-4.1-mini' | 'gpt-4.1' | 'gpt-5.4-mini' | 'gpt-5.4' | 'claude-sonnet-4-6'
+export type Model = 'gpt-5.4' | 'claude-sonnet-4-6'
 
 export interface Env {
   ANTHROPIC_API_KEY: string
