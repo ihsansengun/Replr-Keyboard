@@ -2,7 +2,8 @@ import Foundation
 
 enum ReplrModel: String, CaseIterable, Identifiable {
     case gpt4_1mini     = "gpt-4.1-mini"
-    case gpt4_1         = "gpt-4.1"
+    case gpt5_4mini     = "gpt-5.4-mini"
+    case gpt5_4         = "gpt-5.4"
     case claudeSonnet   = "claude-sonnet-4-6"
 
     var id: String { rawValue }
@@ -11,7 +12,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .gpt4_1mini:   return "GPT-4.1 Mini"
-        case .gpt4_1:       return "GPT-4.1"
+        case .gpt5_4mini:   return "GPT-5.4 Mini"
+        case .gpt5_4:       return "GPT-5.4"
         case .claudeSonnet: return "Claude Sonnet 4.6"
         }
     }
@@ -20,8 +22,9 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     var creditsPerRequest: Int {
         switch self {
         case .gpt4_1mini:   return 1
-        case .gpt4_1:       return 3
-        case .claudeSonnet: return 3
+        case .gpt5_4mini:   return 2
+        case .gpt5_4:       return 7
+        case .claudeSonnet: return 8
         }
     }
 
