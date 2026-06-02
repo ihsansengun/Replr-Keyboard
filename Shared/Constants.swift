@@ -40,7 +40,8 @@ enum Constants {
 
     // Credits + model + dev mode
     static let creditBalanceKey      = "replr.credits.balance"
-    static let selectedModelKey      = "replr.credits.model"
+    static let selectedModelKey      = "replr.credits.model"      // user's production choice
+    static let devModelKey           = "replr.dev.model"          // dev override (only used when devMode=true)
     static let devModeKey            = "replr.dev.mode"
     static let creditsMigratedKey    = "replr.credits.migrated"
 

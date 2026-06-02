@@ -6,7 +6,7 @@ struct SettingsView: View {
     @State private var memoryDepth = AppGroupService.shared.memoryDepth
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
     @State private var activeToneName = AppGroupService.shared.readSelectedTone().name
-    @State private var selectedModel = AppGroupService.shared.selectedModel
+    @State private var selectedModel = AppGroupService.shared.userModel
     @State private var showModelPicker = false
 
     var body: some View {
@@ -104,7 +104,7 @@ struct SettingsView: View {
         let isSelected = selectedModel == modelID
         Button {
             selectedModel = modelID
-            AppGroupService.shared.selectedModel = modelID
+            AppGroupService.shared.userModel = modelID   // always writes production choice
         } label: {
             Text(label)
                 .font(.system(size: 13, weight: isSelected ? .semibold : .regular))

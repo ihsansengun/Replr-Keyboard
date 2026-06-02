@@ -30,6 +30,8 @@ interface ModelResolution {
 function resolveModel(model: Model): ModelResolution {
   switch (model) {
     case 'gpt-5.4':           return { provider: 'openai',    apiModel: 'gpt-5.4' }
+    case 'gpt-5.4-mini':      return { provider: 'openai',    apiModel: 'gpt-5.4-mini' }
+    case 'gpt-5.5':           return { provider: 'openai',    apiModel: 'gpt-5.5' }
     case 'claude-sonnet-4-6': return { provider: 'anthropic', apiModel: 'claude-sonnet-4-6' }
   }
 }

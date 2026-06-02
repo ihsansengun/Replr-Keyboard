@@ -3,7 +3,9 @@ import SwiftUI
 /// Developer-only view. Not accessible from normal navigation.
 /// Reached via long-press on version label in SettingsView.
 struct ModelPickerView: View {
-    @State private var selectedModelID = AppGroupService.shared.selectedModel
+    @State private var selectedModelID = AppGroupService.shared.devMode
+        ? AppGroupService.shared.devModel
+        : AppGroupService.shared.userModel
     @State private var devMode = AppGroupService.shared.devMode
     @ObservedObject private var credits = CreditsManager.shared
 
@@ -44,7 +46,12 @@ struct ModelPickerView: View {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         selectedModelID = model.apiModelID
-                        AppGroupService.shared.selectedModel = model.apiModelID
+                        // In dev mode, override the dev model; user's production choice stays untouched
+                        if AppGroupService.shared.devMode {
+                            AppGroupService.shared.devModel = model.apiModelID
+                        } else {
+                            AppGroupService.shared.userModel = model.apiModelID
+                        }
                     }
                 }
             }
@@ -62,8 +69,10 @@ struct ModelPickerView: View {
         .navigationTitle("Dev: Model Picker")
         .background(ReplrTheme.Color.bg.ignoresSafeArea())
         .onAppear {
-            selectedModelID = AppGroupService.shared.selectedModel
             devMode = AppGroupService.shared.devMode
+            selectedModelID = devMode
+                ? AppGroupService.shared.devModel
+                : AppGroupService.shared.userModel
         }
     }
 }

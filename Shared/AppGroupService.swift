@@ -470,9 +470,26 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.creditBalanceKey); defaults.synchronize() }
     }
 
-    var selectedModel: String {
+    /// User's production model choice (shown in Settings → AI Model). Sonnet or GPT-5.4.
+    var userModel: String {
         get { defaults.string(forKey: Constants.selectedModelKey) ?? "claude-sonnet-4-6" }
         set { defaults.set(newValue, forKey: Constants.selectedModelKey); defaults.synchronize() }
+    }
+
+    /// Dev override model (only active when devMode=true). Can be any model in the expanded list.
+    var devModel: String {
+        get { defaults.string(forKey: Constants.devModelKey) ?? "claude-sonnet-4-6" }
+        set { defaults.set(newValue, forKey: Constants.devModelKey); defaults.synchronize() }
+    }
+
+    /// The model actually used for generation.
+    /// When dev mode ON → devModel (can be any experimental model).
+    /// When dev mode OFF → userModel (Sonnet or GPT-5.4 from Settings).
+    var selectedModel: String {
+        get { devMode ? devModel : userModel }
+        set {
+            if devMode { devModel = newValue } else { userModel = newValue }
+        }
     }
 
     var devMode: Bool {
