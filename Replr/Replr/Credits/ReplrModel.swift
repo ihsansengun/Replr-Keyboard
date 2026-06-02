@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 enum ReplrModel: String, CaseIterable, Identifiable {
     // Production models (Settings → AI Model)
@@ -79,11 +80,11 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     }
 
     /// SwiftUI color for Elo — green for top tier, dimmer otherwise.
-    var eloColor: SwiftUI.Color {
+    var eloColor: Color {
         switch self {
-        case .gpt5_5, .gemini, .claudeOpus, .grok4: return SwiftUI.Color.green.opacity(0.85)
-        case .gpt5_4, .claudeSonnet:                 return SwiftUI.Color.orange.opacity(0.85)
-        default:                                      return SwiftUI.Color.gray.opacity(0.6)
+        case .gpt5_5, .gemini, .claudeOpus, .grok4: return Color.green.opacity(0.85)
+        case .gpt5_4, .claudeSonnet:                 return Color.orange.opacity(0.85)
+        default:                                      return Color.gray.opacity(0.6)
         }
     }
 
@@ -102,11 +103,11 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     }
 
     /// SwiftUI color for cost — green = cheap, red = expensive.
-    var costColor: SwiftUI.Color {
+    var costColor: Color {
         switch self {
-        case .grok4_3, .gpt5_4mini:             return SwiftUI.Color.green.opacity(0.85)
-        case .claudeSonnet, .gpt5_4, .grok4:    return SwiftUI.Color.orange.opacity(0.85)
-        case .claudeOpus, .gpt5_5, .gemini:     return SwiftUI.Color.red.opacity(0.75)
+        case .grok4_3, .gpt5_4mini:             return Color.green.opacity(0.85)
+        case .claudeSonnet, .gpt5_4, .grok4:    return Color.orange.opacity(0.85)
+        case .claudeOpus, .gpt5_5, .gemini:     return Color.red.opacity(0.75)
         }
     }
 
