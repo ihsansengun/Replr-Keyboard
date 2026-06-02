@@ -6,11 +6,13 @@ export type Model =
   | 'claude-opus-4-6'
   | 'grok-4'
   | 'grok-4.3'
+  | 'gemini-3.1-pro-preview'
 
 export interface Env {
   ANTHROPIC_API_KEY: string
   OPENAI_API_KEY: string
-  XAI_API_KEY: string        // xAI (Grok) — get from console.x.ai
+  XAI_API_KEY: string           // xAI (Grok) — get from console.x.ai
+  GOOGLE_API_KEY: string        // Google (Gemini) — get from aistudio.google.com
   FREE_DAILY_LIMIT: string
   RATE_LIMIT_KV: KVNamespace
 }

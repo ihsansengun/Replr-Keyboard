@@ -8,6 +8,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     // Dev-only — available in ModelPickerView for testing
     case claudeOpus     = "claude-opus-4-6"
     case gpt5_5         = "gpt-5.5"
+    case gemini         = "gemini-3.1-pro-preview"
     case grok4          = "grok-4"
     case grok4_3        = "grok-4.3"
     case gpt5_4mini     = "gpt-5.4-mini"
@@ -27,6 +28,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         case .gpt5_4:       return "GPT-5.4"
         case .claudeOpus:   return "Opus"
         case .gpt5_5:       return "GPT-5.5"
+        case .gemini:       return "Gemini"
         case .grok4:        return "Grok 4"
         case .grok4_3:      return "Grok 4.3"
         case .gpt5_4mini:   return "5.4m"
@@ -39,6 +41,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         case .gpt5_4:       return "GPT-5.4"
         case .claudeOpus:   return "Claude Opus 4.6 ★"
         case .gpt5_5:       return "GPT-5.5 ★"
+        case .gemini:       return "Gemini 3.1 Pro ★"
         case .grok4:        return "Grok 4"
         case .grok4_3:      return "Grok 4.3"
         case .gpt5_4mini:   return "GPT-5.4 Mini"
@@ -51,6 +54,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         case .gpt5_4:       return 7
         case .claudeOpus:   return 15
         case .gpt5_5:       return 15
+        case .gemini:       return 6
         case .grok4:        return 7
         case .grok4_3:      return 2
         case .gpt5_4mini:   return 2

@@ -23,19 +23,20 @@ const DECISIONS = `Before generating replies, assess:
 const REPLY_COUNT = 3
 
 interface ModelResolution {
-  provider: 'openai' | 'anthropic' | 'xai'
+  provider: 'openai' | 'anthropic' | 'xai' | 'google'
   apiModel: string
 }
 
 function resolveModel(model: Model): ModelResolution {
   switch (model) {
-    case 'gpt-5.4':           return { provider: 'openai',    apiModel: 'gpt-5.4' }
-    case 'gpt-5.4-mini':      return { provider: 'openai',    apiModel: 'gpt-5.4-mini' }
-    case 'gpt-5.5':           return { provider: 'openai',    apiModel: 'gpt-5.5' }
-    case 'claude-sonnet-4-6': return { provider: 'anthropic', apiModel: 'claude-sonnet-4-6' }
-    case 'claude-opus-4-6':   return { provider: 'anthropic', apiModel: 'claude-opus-4-6' }
-    case 'grok-4':            return { provider: 'xai',       apiModel: 'grok-4' }
-    case 'grok-4.3':          return { provider: 'xai',       apiModel: 'grok-4.3' }
+    case 'gpt-5.4':                  return { provider: 'openai',    apiModel: 'gpt-5.4' }
+    case 'gpt-5.4-mini':             return { provider: 'openai',    apiModel: 'gpt-5.4-mini' }
+    case 'gpt-5.5':                  return { provider: 'openai',    apiModel: 'gpt-5.5' }
+    case 'claude-sonnet-4-6':        return { provider: 'anthropic', apiModel: 'claude-sonnet-4-6' }
+    case 'claude-opus-4-6':          return { provider: 'anthropic', apiModel: 'claude-opus-4-6' }
+    case 'grok-4':                   return { provider: 'xai',       apiModel: 'grok-4' }
+    case 'grok-4.3':                 return { provider: 'xai',       apiModel: 'grok-4.3' }
+    case 'gemini-3.1-pro-preview':   return { provider: 'google',    apiModel: 'gemini-3.1-pro-preview' }
   }
 }
 
@@ -86,6 +87,7 @@ interface LlmCallParams {
   anthropicKey: string
   openaiKey: string
   xaiKey?: string
+  googleKey?: string
 }
 
 interface LlmTextParams {
@@ -95,10 +97,11 @@ interface LlmTextParams {
   anthropicKey: string
   openaiKey: string
   xaiKey?: string
+  googleKey?: string
 }
 
 async function callLlm(params: LlmCallParams): Promise<LlmResult> {
-  const { system, user, images, model, anthropicKey, openaiKey, xaiKey } = params
+  const { system, user, images, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
   const { provider, apiModel } = resolveModel(model)
 
   if (provider === 'anthropic') {
@@ -117,9 +120,13 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
     return parseLlmOutput(textBlock && 'text' in textBlock ? textBlock.text : '')
   }
 
-  // xAI (Grok) — OpenAI-compatible with different base URL
-  const apiKey = provider === 'xai' ? (xaiKey ?? '') : openaiKey
-  const baseURL = provider === 'xai' ? 'https://api.x.ai/v1' : undefined
+  // xAI (Grok) and Google (Gemini) — both use OpenAI-compatible endpoints
+  const apiKey = provider === 'xai'    ? (xaiKey    ?? '')
+               : provider === 'google' ? (googleKey ?? '')
+               : openaiKey
+  const baseURL = provider === 'xai'    ? 'https://api.x.ai/v1'
+                : provider === 'google' ? 'https://generativelanguage.googleapis.com/v1beta/openai/'
+                : undefined
   const client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) })
   const imageContent = images.map(b64 => ({
     type: 'image_url' as const,
@@ -137,7 +144,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
 }
 
 async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
-  const { system, user, model, anthropicKey, openaiKey, xaiKey } = params
+  const { system, user, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
   const { provider, apiModel } = resolveModel(model)
 
   if (provider === 'anthropic') {
@@ -152,8 +159,12 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
     return parseLlmOutput(textBlock && 'text' in textBlock ? textBlock.text : '')
   }
 
-  const apiKey = provider === 'xai' ? (xaiKey ?? '') : openaiKey
-  const baseURL = provider === 'xai' ? 'https://api.x.ai/v1' : undefined
+  const apiKey = provider === 'xai'    ? (xaiKey    ?? '')
+               : provider === 'google' ? (googleKey ?? '')
+               : openaiKey
+  const baseURL = provider === 'xai'    ? 'https://api.x.ai/v1'
+                : provider === 'google' ? 'https://generativelanguage.googleapis.com/v1beta/openai/'
+                : undefined
   const client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) })
   const response = await client.chat.completions.create({
     model: apiModel,
@@ -175,6 +186,7 @@ export interface GenerateEmailParams {
   anthropicKey: string
   openaiKey: string
   xaiKey?: string
+  googleKey?: string
 }
 
 export interface GenerateParams {
@@ -186,6 +198,7 @@ export interface GenerateParams {
   anthropicKey: string
   openaiKey: string
   xaiKey?: string
+  googleKey?: string
 }
 
 export interface GenerateMultipleParams {
@@ -197,6 +210,7 @@ export interface GenerateMultipleParams {
   anthropicKey: string
   openaiKey: string
   xaiKey?: string
+  googleKey?: string
 }
 
 function buildContextBlock(summary?: string, previousContext?: string): string {
@@ -218,7 +232,7 @@ ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
 }
 
 export async function generateReplies(params: GenerateParams): Promise<LlmResult> {
-  const { screenshotBase64, tone, summary, previousContext, model, anthropicKey, openaiKey, xaiKey } = params
+  const { screenshotBase64, tone, summary, previousContext, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
 
   const system = [IDENTITY, `ROLE: ${tone}`].join('\n\n')
 
@@ -230,11 +244,11 @@ ${DECISIONS}
 
 ${buildReplyFormat(REPLY_COUNT)}`
 
-  return callLlm({ system, user, images: [screenshotBase64], model, anthropicKey, openaiKey, xaiKey })
+  return callLlm({ system, user, images: [screenshotBase64], model, anthropicKey, openaiKey, xaiKey, googleKey })
 }
 
 export async function generateRepliesFromMultiple(params: GenerateMultipleParams): Promise<LlmResult> {
-  const { screenshots, tone, summary, previousContext, model, anthropicKey, openaiKey, xaiKey } = params
+  const { screenshots, tone, summary, previousContext, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
   const count = REPLY_COUNT
 
   const system = [IDENTITY, `ROLE: ${tone}`].join('\n\n')
@@ -249,17 +263,17 @@ ${DECISIONS}
 
 ${buildReplyFormat(count)}`
 
-  return callLlm({ system, user, images: screenshots, model, anthropicKey, openaiKey, xaiKey })
+  return callLlm({ system, user, images: screenshots, model, anthropicKey, openaiKey, xaiKey, googleKey })
 }
 
 export async function generateRepliesFromEmail(params: GenerateEmailParams): Promise<LlmResult> {
-  const { emailText, tone, summary, previousContext, model, anthropicKey, openaiKey, xaiKey } = params
+  const { emailText, tone, summary, previousContext, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
 
   const system = [IDENTITY, `ROLE: ${tone}`].join('\n\n')
 
   const user = `${buildContextBlock(summary, previousContext)}EMAIL TO REPLY TO:\n${emailText}\n\n${DECISIONS}\n\n${buildReplyFormat(REPLY_COUNT)}`
 
-  return callLlmText({ system, user, model, anthropicKey, openaiKey, xaiKey })
+  return callLlmText({ system, user, model, anthropicKey, openaiKey, xaiKey, googleKey })
 }
 
 /** Kept for any callers that still use the old signature — returns only replies. */
