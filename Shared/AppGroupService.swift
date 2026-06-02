@@ -491,10 +491,23 @@ final class AppGroupService {
         if devMode { return 0 }
         switch selectedModel {
         case "gpt-4.1-mini":      return 1
+        case "gpt-4.1":           return 3
         case "gpt-5.4-mini":      return 2
         case "gpt-5.4":           return 7
         case "claude-sonnet-4-6": return 8
         default:                   return 1
+        }
+    }
+
+    /// Short label for the active model — shown in keyboard header during dev mode.
+    var selectedModelShortLabel: String {
+        switch selectedModel {
+        case "gpt-4.1-mini":      return "4.1m"
+        case "gpt-4.1":           return "4.1"
+        case "gpt-5.4-mini":      return "5.4m"
+        case "gpt-5.4":           return "5.4"
+        case "claude-sonnet-4-6": return "Sonnet"
+        default:                   return "?"
         }
     }
 

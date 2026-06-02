@@ -477,9 +477,14 @@ struct KeyboardHeader: View {
                 Spacer()
                 switch model.creditDisplay {
                 case .unlimited:
-                    Text("∞")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(ReplrTheme.Color.accent)
+                    HStack(spacing: 4) {
+                        Text("∞")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(ReplrTheme.Color.accent)
+                        Text(AppGroupService.shared.selectedModelShortLabel)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(ReplrTheme.Color.accent.opacity(0.7))
+                    }
                 case .count(let n) where n <= 20:
                     CreditCounterBadge(count: n)
                 case .count:
