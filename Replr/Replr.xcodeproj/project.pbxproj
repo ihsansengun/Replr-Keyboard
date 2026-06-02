@@ -13,6 +13,7 @@
 		429678B08FF5456FACB1B781 /* RepliesPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D479986D87FD41BAA0E7D9AB /* RepliesPanelView.swift */; };
 		485BF568190040E6894A4AEC /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */; };
 		543F9DDB49F94FF79619573B /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
+		577C1C882FCEF7B300168228 /* Replr.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 577C1C872FCEF7B300168228 /* Replr.storekit */; };
 		57BB31B72FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
 		57BB31B82FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
 		57BB31B92FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
@@ -116,6 +117,7 @@
 
 /* Begin PBXFileReference section */
 		42D2C67B4BFD4668A093B8BF /* ErrorPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorPanelView.swift; sourceTree = "<group>"; };
+		577C1C872FCEF7B300168228 /* Replr.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Replr.storekit; sourceTree = "<group>"; };
 		57BB31B62FB5414D00CE9E4D /* ReplyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyService.swift; sourceTree = "<group>"; };
 		57BB31BD2FB54B8D00CE9E4D /* GenerateReplyIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateReplyIntent.swift; sourceTree = "<group>"; };
 		57BB31C62FB6112700CE9E4D /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
@@ -283,6 +285,7 @@
 		57CF476E2FB384F10034657F = {
 			isa = PBXGroup;
 			children = (
+				577C1C872FCEF7B300168228 /* Replr.storekit */,
 				57CF47FA2FB38FA40034657F /* KeyboardViewController.swift */,
 				57CF47F32FB38FA40034657F /* Services */,
 				57CF47F92FB38FA40034657F /* Views */,
@@ -662,6 +665,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				577C1C882FCEF7B300168228 /* Replr.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
