@@ -64,6 +64,52 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     var apiModelID: String { rawValue }
     static let defaultModel: ReplrModel = .claudeSonnet
 
+    /// Approximate Arena Elo (human preference leaderboard) for display in dev picker.
+    var arenaElo: String {
+        switch self {
+        case .gpt5_5:       return "1506"
+        case .gemini:       return "1505"
+        case .claudeOpus:   return "1490"
+        case .gpt5_4:       return "1495"
+        case .grok4:        return "1496"
+        case .claudeSonnet: return "1460"
+        case .grok4_3:      return "—"
+        case .gpt5_4mini:   return "—"
+        }
+    }
+
+    /// SwiftUI color for Elo — green for top tier, dimmer otherwise.
+    var eloColor: SwiftUI.Color {
+        switch self {
+        case .gpt5_5, .gemini, .claudeOpus, .grok4: return SwiftUI.Color.green.opacity(0.85)
+        case .gpt5_4, .claudeSonnet:                 return SwiftUI.Color.orange.opacity(0.85)
+        default:                                      return SwiftUI.Color.gray.opacity(0.6)
+        }
+    }
+
+    /// Approximate cost per Replr request (~2100 input + 450 output tokens, PNG screenshot).
+    var costPerRequest: String {
+        switch self {
+        case .claudeSonnet: return "$0.013"
+        case .gpt5_4:       return "$0.011"
+        case .claudeOpus:   return "$0.022"
+        case .gpt5_5:       return "$0.025"
+        case .gemini:       return "$0.015"
+        case .grok4:        return "$0.011"
+        case .grok4_3:      return "$0.004"
+        case .gpt5_4mini:   return "$0.003"
+        }
+    }
+
+    /// SwiftUI color for cost — green = cheap, red = expensive.
+    var costColor: SwiftUI.Color {
+        switch self {
+        case .grok4_3, .gpt5_4mini:             return SwiftUI.Color.green.opacity(0.85)
+        case .claudeSonnet, .gpt5_4, .grok4:    return SwiftUI.Color.orange.opacity(0.85)
+        case .claudeOpus, .gpt5_5, .gemini:     return SwiftUI.Color.red.opacity(0.75)
+        }
+    }
+
     init?(apiID: String) {
         self.init(rawValue: apiID)
     }
