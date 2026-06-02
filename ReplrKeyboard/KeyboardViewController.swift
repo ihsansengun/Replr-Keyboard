@@ -108,12 +108,11 @@ final class KeyboardViewController: UIInputViewController {
                 case .paywall:      height = 280
                 case .disambiguate: height = 300
                 case .replies:
-                    // Upfront estimate; TotalHeightKey in RepliesPanelView refines to exact fit.
-                    // Use 96px per reply (generous for multi-line) — RepliesPanelView will report
-                    // the exact measured height via onContentHeightChanged and override this.
-                    let n = CGFloat(max(1, self.model.currentReplies.count))
-                    let contactExtra: CGFloat = self.model.contactName != nil ? 28 : 0
-                    height = min(560, max(300, 152 + n * 96 + contactExtra))
+                    // Ask UIKit directly for the natural content size — no estimate needed.
+                    // sizeThatFits returns the exact height the SwiftUI content wants to be.
+                    let w = self.view.bounds.width > 0 ? self.view.bounds.width : UIScreen.main.bounds.width
+                    let fit = self.hostingVC.sizeThatFits(in: CGSize(width: w, height: 10_000))
+                    height = min(560, max(260, fit.height))
                 }
                 self.setHeight(height)
             }

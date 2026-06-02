@@ -13,7 +13,7 @@ struct RepliesPanelView: View {
     @State private var selectedIndex: Int = 0
     @State private var totalH: CGFloat = 0
 
-    private let maxKbH: CGFloat = 560
+    private let maxKbH: CGFloat = 560  // upper bound for GeometryReader fallback
 
     private var currentReply: String {
         replies.indices.contains(selectedIndex) ? replies[selectedIndex] : replies.first ?? ""
