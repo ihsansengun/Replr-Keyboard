@@ -471,7 +471,7 @@ final class AppGroupService {
     }
 
     var selectedModel: String {
-        get { defaults.string(forKey: Constants.selectedModelKey) ?? "gpt-4.1-mini" }
+        get { defaults.string(forKey: Constants.selectedModelKey) ?? "claude-sonnet-4-6" }
         set { defaults.set(newValue, forKey: Constants.selectedModelKey); defaults.synchronize() }
     }
 

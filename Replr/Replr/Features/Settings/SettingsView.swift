@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var memoryDepth = AppGroupService.shared.memoryDepth
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
     @State private var activeToneName = AppGroupService.shared.readSelectedTone().name
+    @State private var selectedModel = AppGroupService.shared.selectedModel
     @State private var showModelPicker = false
 
     var body: some View {
@@ -14,6 +15,7 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     identityCard
                     keyboardSection
+                    aiModelSection
                     memorySection
                     accountSection
                     aboutSection
@@ -82,6 +84,42 @@ struct SettingsView: View {
                     .onChange(of: persistReplies) { AppGroupService.shared.persistReplies = $0 }
             }
         }
+    }
+
+    // MARK: - AI Model
+
+    private var aiModelSection: some View {
+        settingsSection("AI Model") {
+            HStack(spacing: 0) {
+                modelOption("claude-sonnet-4-6", label: "Claude Sonnet")
+                ReplrTheme.Color.glassBorder.frame(width: 1, height: 24)
+                modelOption("gpt-5.4", label: "GPT-5.4")
+            }
+            .padding(6)
+        }
+    }
+
+    @ViewBuilder
+    private func modelOption(_ modelID: String, label: String) -> some View {
+        let isSelected = selectedModel == modelID
+        Button {
+            selectedModel = modelID
+            AppGroupService.shared.selectedModel = modelID
+        } label: {
+            Text(label)
+                .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                .foregroundStyle(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
+                .frame(maxWidth: .infinity)
+                .frame(height: 38)
+                .background(isSelected ? ReplrTheme.Color.accentSubtle : Color.clear)
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                        .strokeBorder(isSelected ? ReplrTheme.Color.accent.opacity(0.55) : Color.clear, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+        .animation(ReplrTheme.Motion.quick, value: isSelected)
     }
 
     // MARK: - Memory

@@ -19,7 +19,7 @@ struct ModelPickerView: View {
             } header: {
                 Text("Testing")
             } footer: {
-                Text("When on: balance shows ∞, credits are never deducted. Off by default for all users.")
+                Text("Gives you unlimited credits for testing. Model switching works for all users via Settings → AI Model. Use this to try experimental models not yet in the main UI.")
                     .font(.caption)
             }
 
