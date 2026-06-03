@@ -578,6 +578,9 @@ struct BackTapStep: View {
         current > 1 ? current - 1 : 5
     }
 
+    /// Timestamp of the last carousel navigation — used to pace auto-advance.
+    @State private var lastNavTime: Date = Date()
+
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -597,6 +600,7 @@ struct BackTapStep: View {
             handleScenePhaseChange(newPhase)
         }
         .onAppear {
+            lastNavTime = Date()
             if AppGroupService.shared.backTapSetupStarted {
                 state = .confirm
                 confirmEnteredAt = Date()
@@ -604,6 +608,7 @@ struct BackTapStep: View {
         }
         .onReceive(Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()) { _ in
             pollForIntentFire()
+            autoAdvanceCarousel()
         }
     }
 
@@ -771,6 +776,16 @@ struct BackTapStep: View {
         withAnimation {
             state = .confirm
             confirmEnteredAt = Date()
+        }
+    }
+
+    private func autoAdvanceCarousel() {
+        guard case .preview(let substep) = state,
+              Date().timeIntervalSince(lastNavTime) >= 2.2 else { return }
+        lastNavTime = Date()
+        goingForward = true
+        withAnimation(.easeInOut(duration: 0.25)) {
+            state = .preview(substep: BackTapStep.nextSubstep(from: substep))
         }
     }
 
