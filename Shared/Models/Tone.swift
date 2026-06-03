@@ -27,15 +27,15 @@ struct Tone: Codable, Identifiable, Equatable {
 
     // All 10 presets enabled by default. User can hide any from Tones settings.
     static let presets: [Tone] = [
-        Tone(id: UUID(), name: "Friendly",     instruction: "Warm, positive, and genuine. Light energy without being over-the-top.",          isPreset: true),
-        Tone(id: UUID(), name: "Casual",       instruction: "Relaxed, warm, natural. Contractions always. Match their energy exactly.",        isPreset: true),
-        Tone(id: UUID(), name: "Direct",       instruction: "Short, direct, punchy. No filler. Gets to the point.",                           isPreset: true),
-        Tone(id: UUID(), name: "Witty",        instruction: "Smart and playful. A touch of dry humor. Never forced.",                          isPreset: true),
-        Tone(id: UUID(), name: "Professional", instruction: "Clear, competent, respectful. Formal but not stiff.",                             isPreset: true),
-        Tone(id: UUID(), name: "Empathetic",   instruction: "Warm, understanding, validating. Acknowledge feelings before responding.",        isPreset: true),
-        Tone(id: UUID(), name: "Enthusiastic", instruction: "High energy, upbeat, genuine. Makes people feel good to hear from you.",          isPreset: true),
-        Tone(id: UUID(), name: "Concise",      instruction: "One or two sentences max. Gets the point across without extra words.",            isPreset: true),
-        Tone(id: UUID(), name: "Formal",       instruction: "Polished and structured. Appropriate for official or high-stakes messages.",      isPreset: true),
-        Tone(id: UUID(), name: "Dating",       instruction: "Confident and genuine. Light wit when it fits. Never desperate, never try-hard.", isPreset: true),
+        Tone(id: UUID(), name: "Friendly",     instruction: "Open with something personal from the chat. Warm but grounded — no exclamation marks after every sentence. Make them feel seen, not managed.",                              isPreset: true),
+        Tone(id: UUID(), name: "Casual",       instruction: "Text like a close friend. Contractions, fragments, and shorthand are all fine. Match their spelling and punctuation style exactly. Never be more polished than they are.", isPreset: true),
+        Tone(id: UUID(), name: "Direct",       instruction: "Lead with the answer. One sentence when possible, two at most. Cut the closing line — it's usually filler.",                                                              isPreset: true),
+        Tone(id: UUID(), name: "Witty",        instruction: "Find the unexpected angle. Understatement over enthusiasm. One dry observation beats three forced jokes. Never explain the wit.",                                          isPreset: true),
+        Tone(id: UUID(), name: "Professional", instruction: "No contractions. State your point first, support it second. Close with a clear next step. No idioms or slang.",                                                          isPreset: true),
+        Tone(id: UUID(), name: "Empathetic",   instruction: "Acknowledge what they're feeling before addressing content. Reflect their emotion back in your own words first. Don't jump to solutions.",                               isPreset: true),
+        Tone(id: UUID(), name: "Enthusiastic", instruction: "Match and slightly amplify their energy. Lead with what genuinely excites you about what they said. One well-placed exclamation mark, not three.",                       isPreset: true),
+        Tone(id: UUID(), name: "Concise",      instruction: "Two sentences maximum. If you've written three, delete one. Every word must earn its place.",                                                                             isPreset: true),
+        Tone(id: UUID(), name: "Formal",       instruction: "Full words only — no contractions or abbreviations. State your purpose in the first sentence. Complete sentences, clean close.",                                          isPreset: true),
+        Tone(id: UUID(), name: "Dating",       instruction: "Be slightly unpredictable — don't give them exactly what they expect. Tease without explaining it. One question that shows you were paying attention. Confident, not eager.", isPreset: true),
     ]
 }
