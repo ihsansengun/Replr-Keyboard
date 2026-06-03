@@ -698,15 +698,17 @@ struct BackTapStep: View {
                     .onEnded { value in
                         let isLeftSwipe = value.translation.width < -60
                         let isRightSwipe = value.translation.width > 60
-                        if isLeftSwipe, substep < 5 {
+                        if isLeftSwipe {
+                            lastNavTime = Date()
                             goingForward = true
                             withAnimation(.easeInOut(duration: 0.25)) {
-                                state = .preview(substep: substep + 1)
+                                state = .preview(substep: BackTapStep.nextSubstep(from: substep))
                             }
-                        } else if isRightSwipe, substep > 1 {
+                        } else if isRightSwipe {
+                            lastNavTime = Date()
                             goingForward = false
                             withAnimation(.easeInOut(duration: 0.25)) {
-                                state = .preview(substep: substep - 1)
+                                state = .preview(substep: BackTapStep.prevSubstep(from: substep))
                             }
                         }
                     }
