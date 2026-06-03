@@ -122,6 +122,46 @@ final class KeyboardModel: ObservableObject {
     func selectTone(_ tone: Tone) { selectedTone = tone; onToneChanged?(tone) }
     func selectReply(_ text: String) { onReplySelected?(text) }
     func editReply(_ text: String) { onEditReply?(text) }
+
+    func regenerateReplies() {
+        let balance = AppGroupService.shared.effectiveCreditBalance
+        let required = AppGroupService.shared.creditsRequired
+        guard balance >= required else {
+            withAnimation(.easeInOut(duration: 0.2)) { state = .paywall }
+            return
+        }
+        guard let image = try? AppGroupService.shared.readScreenshot() else {
+            withAnimation { state = .error("No screenshot saved. Capture again.") }
+            return
+        }
+        withAnimation(.easeInOut(duration: 0.2)) { state = .loading }
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            let previousContext: String?
+            if let contactID = AppGroupService.shared.currentContactID {
+                let summaries = AppGroupService.shared.recentSummaries(
+                    forContactID: contactID, limit: AppGroupService.shared.memoryDepth)
+                previousContext = summaries.isEmpty ? nil : summaries.joined(separator: "\n")
+            } else {
+                previousContext = nil
+            }
+            do {
+                let result = try await ReplyService.shared.generateReplies(
+                    screenshot: image,
+                    tone: selectedTone,
+                    summary: pendingContext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : pendingContext,
+                    previousContext: previousContext
+                )
+                if !AppGroupService.shared.devMode { AppGroupService.shared.creditBalance -= required }
+                currentReplies = result.replies
+                AppGroupService.shared.saveReplies(result.replies)
+                withAnimation(.easeInOut(duration: 0.2)) { state = .replies(result.replies) }
+            } catch {
+                withAnimation { state = .error(error.localizedDescription) }
+            }
+        }
+    }
+
     func regenerate() {
         isCaptureMode = false
         isCollapsed = false

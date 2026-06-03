@@ -242,7 +242,7 @@ struct RepliesPanelView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Insert reply")
 
-                Button { model.regenerate() } label: {
+                Button { model.regenerateReplies() } label: {
                     HStack(spacing: 5) {
                         Image(systemName: "sparkles")
                             .font(.system(size: 12, weight: .semibold))

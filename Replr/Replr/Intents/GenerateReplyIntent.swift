@@ -39,6 +39,9 @@ struct GenerateReplyIntent: AppIntent {
 
         NSLog("[Replr][Intent] Image loaded: %.0fx%.0f", image.size.width, image.size.height)
 
+        // Persist screenshot so the keyboard can regenerate without re-capturing
+        try? AppGroupService.shared.writeScreenshot(image)
+
         AppGroupService.shared.isGenerating = true
 
         let context = AppGroupService.shared.readPendingContext()
