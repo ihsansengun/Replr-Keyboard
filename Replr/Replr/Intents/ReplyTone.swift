@@ -14,7 +14,7 @@ enum ReplyTone: String, AppEnum {
     case joker            = "Joker"
     case passiveAggressive = "Passive Aggressive"
     case genZ             = "Gen Z"
-    case dirtyTalk        = "Dirty Talk"
+    case seductive        = "Seductive"
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Tone"
     static var caseDisplayRepresentations: [ReplyTone: DisplayRepresentation] = [
@@ -31,7 +31,7 @@ enum ReplyTone: String, AppEnum {
         .joker:             "Joker",
         .passiveAggressive: "Passive Aggressive",
         .genZ:              "Gen Z",
-        .dirtyTalk:         "Dirty Talk",
+        .seductive:         "Seductive",
     ]
 
     var tone: Tone {
