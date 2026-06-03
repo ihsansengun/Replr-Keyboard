@@ -565,6 +565,19 @@ struct BackTapStep: View {
     @State private var state: SetupState = .preview(substep: 1)
     @State private var confirmEnteredAt: Date?
     @State private var goingForward = true
+
+    // MARK: - Carousel helpers (internal for testability)
+
+    /// Advances to the next sub-step, wrapping 5 → 1.
+    static func nextSubstep(from current: Int) -> Int {
+        current < 5 ? current + 1 : 1
+    }
+
+    /// Steps back to the previous sub-step, wrapping 1 → 5.
+    static func prevSubstep(from current: Int) -> Int {
+        current > 1 ? current - 1 : 5
+    }
+
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
