@@ -1,17 +1,37 @@
 import AppIntents
 
 enum ReplyTone: String, AppEnum {
-    case friendly     = "Friendly"
-    case professional = "Professional"
-    case direct       = "Direct"
-    case witty        = "Witty"
+    case friendly         = "Friendly"
+    case casual           = "Casual"
+    case direct           = "Direct"
+    case witty            = "Witty"
+    case professional     = "Professional"
+    case empathetic       = "Empathetic"
+    case enthusiastic     = "Enthusiastic"
+    case concise          = "Concise"
+    case formal           = "Formal"
+    case dating           = "Dating"
+    case joker            = "Joker"
+    case passiveAggressive = "Passive Aggressive"
+    case genZ             = "Gen Z"
+    case dirtyTalk        = "Dirty Talk"
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Tone"
     static var caseDisplayRepresentations: [ReplyTone: DisplayRepresentation] = [
-        .friendly:     "Friendly",
-        .professional: "Professional",
-        .direct:       "Direct",
-        .witty:        "Witty",
+        .friendly:          "Friendly",
+        .casual:            "Casual",
+        .direct:            "Direct",
+        .witty:             "Witty",
+        .professional:      "Professional",
+        .empathetic:        "Empathetic",
+        .enthusiastic:      "Enthusiastic",
+        .concise:           "Concise",
+        .formal:            "Formal",
+        .dating:            "Dating",
+        .joker:             "Joker",
+        .passiveAggressive: "Passive Aggressive",
+        .genZ:              "Gen Z",
+        .dirtyTalk:         "Dirty Talk",
     ]
 
     var tone: Tone {
