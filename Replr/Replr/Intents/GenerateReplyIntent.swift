@@ -79,7 +79,7 @@ struct GenerateReplyIntent: AppIntent {
             let resolvedContactName = resolved.name
 
             let thumbnail = makeThumbnail(image)
-            let session = CaptureSession(
+            var session = CaptureSession(
                 id: UUID(),
                 timestamp: Date(),
                 thumbnailData: thumbnail,
@@ -90,6 +90,9 @@ struct GenerateReplyIntent: AppIntent {
                 contactID: resolvedContactID,
                 contactName: resolvedContactName
             )
+            session.toneName = tone.rawValue
+            session.previousContext = previousContext
+            session.modelUsed = AppGroupService.shared.selectedModel
             CreditsManager.shared.deduct(required)
             AppGroupService.shared.isGenerating = false
             AppGroupService.shared.appendCaptureSession(session)

@@ -305,15 +305,30 @@ struct CaptureRowView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                if let selected = session.selectedReply {
-                    HStack(spacing: 4) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 10))
-                            .foregroundStyle(ReplrTheme.Color.accent)
-                        Text(selected)
-                            .font(.caption)
-                            .foregroundStyle(ReplrTheme.Color.textSecondary)
-                            .lineLimit(1)
+                HStack(spacing: 8) {
+                    if let tone = session.toneName {
+                        HStack(spacing: 3) {
+                            Image(systemName: "waveform")
+                                .font(.system(size: 9, weight: .semibold))
+                            Text(tone)
+                                .font(.system(size: 10, weight: .medium))
+                        }
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(ReplrTheme.Color.accentSubtle)
+                        .clipShape(Capsule())
+                    }
+                    if let selected = session.selectedReply {
+                        HStack(spacing: 4) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(ReplrTheme.Color.accent)
+                            Text(selected)
+                                .font(.caption)
+                                .foregroundStyle(ReplrTheme.Color.textSecondary)
+                                .lineLimit(1)
+                        }
                     }
                 }
             }
@@ -366,11 +381,30 @@ struct CaptureDetailView: View {
                     }
                 }
 
+                // Capture intelligence
+                HStack(spacing: 10) {
+                    if let tone = session.toneName {
+                        infoChip(icon: "waveform", label: tone)
+                    }
+                    if let model = session.modelUsed {
+                        infoChip(icon: "cpu", label: model)
+                    }
+                }
+
                 if let hint = session.contextHint {
-                    detailSection("Context Provided") {
+                    detailSection("Context Note") {
                         Text(hint)
                             .font(.system(size: 15))
                             .foregroundStyle(ReplrTheme.Color.textSecondary)
+                    }
+                }
+
+                if let memory = session.previousContext {
+                    detailSection("Memory Fed to AI") {
+                        Text(memory)
+                            .font(.system(size: 14))
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
+                            .lineSpacing(4)
                     }
                 }
 
@@ -418,6 +452,22 @@ struct CaptureDetailView: View {
         .navigationTitle(session.timestamp.formatted(date: .abbreviated, time: .shortened))
         .navigationBarTitleDisplayMode(.inline)
         .tint(ReplrTheme.Color.accent)
+    }
+
+    @ViewBuilder
+    private func infoChip(icon: String, label: String) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .semibold))
+            Text(label)
+                .font(.system(size: 12, weight: .medium))
+        }
+        .foregroundStyle(ReplrTheme.Color.textSecondary)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(ReplrTheme.Color.surfaceRaised)
+        .clipShape(Capsule())
+        .overlay(Capsule().strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1))
     }
 
     @ViewBuilder

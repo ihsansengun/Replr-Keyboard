@@ -82,7 +82,7 @@ struct QuickReplyIntent: AppIntent {
             let resolvedContactName = resolved.name
 
             let thumbnail = makeThumbnail(image)
-            let session = CaptureSession(
+            var session = CaptureSession(
                 id: UUID(),
                 timestamp: Date(),
                 thumbnailData: thumbnail,
@@ -93,6 +93,9 @@ struct QuickReplyIntent: AppIntent {
                 contactID: resolvedContactID,
                 contactName: resolvedContactName
             )
+            session.toneName = tone.name
+            session.previousContext = previousContext
+            session.modelUsed = AppGroupService.shared.selectedModel
             AppGroupService.shared.appendCaptureSession(session)
             AppGroupService.shared.saveReplies(result.replies)
         } catch {
