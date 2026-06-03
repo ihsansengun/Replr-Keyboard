@@ -242,7 +242,7 @@ struct RepliesPanelView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Insert reply")
 
-                Button { model.retryTrigger?() } label: {
+                Button { model.regenerate() } label: {
                     HStack(spacing: 5) {
                         Image(systemName: "sparkles")
                             .font(.system(size: 12, weight: .semibold))
@@ -262,13 +262,12 @@ struct RepliesPanelView: View {
 
                 Button { model.regenerate() } label: {
                     Image(systemName: "xmark")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(ReplrTheme.Color.textSecondary)
+                        .frame(width: 42, height: 40)
+                        .background(Capsule().fill(Color.white.opacity(0.06)))
+                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.18), lineWidth: 1))
                 }
-                .frame(width: 42, height: 42)
-                .background(ReplrTheme.Color.surfaceRaised)
-                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous).stroke(ReplrTheme.Color.glassBorder, lineWidth: 1))
                 .buttonStyle(.plain)
                 .accessibilityLabel("Reset")
             }
