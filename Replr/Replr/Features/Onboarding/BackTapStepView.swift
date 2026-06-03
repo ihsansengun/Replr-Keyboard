@@ -760,7 +760,6 @@ struct BackTapStep: View {
 
     private func openSettings() {
         AppGroupService.shared.backTapSetupStarted = true
-        scheduleBackTapReminder()
         if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)
         }

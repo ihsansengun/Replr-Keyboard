@@ -91,7 +91,6 @@ private struct WelcomeStep: View {
 
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    ReplrMark(size: 14)
                     Spacer()
                     Text("Welcome")
                         .font(ReplrTheme.Font.caption)
@@ -126,15 +125,6 @@ private struct WelcomeStep: View {
                         .foregroundColor(ReplrTheme.Color.textTertiary)
                         .lineSpacing(3)
                         .fixedSize(horizontal: false, vertical: true)
-
-                    HStack(spacing: 16) {
-                        Label("On-device", systemImage: "lock.shield")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(ReplrTheme.Color.textTertiary)
-                        Label("4.9 ★", systemImage: "star.fill")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(ReplrTheme.Color.textTertiary)
-                    }
                 }
                 .padding(.horizontal, 24)
 
