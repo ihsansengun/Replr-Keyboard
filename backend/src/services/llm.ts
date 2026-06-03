@@ -9,7 +9,9 @@ Rules:
 - No filler openers: "Certainly", "Of course", "Great question", "I'd be happy to"
 - Never ask more than one question per reply
 - Each option must be distinct in angle or energy
-- Match the reply length rhythm of the conversation`
+- Match the reply length rhythm of the conversation
+- Always reply in the exact language of the conversation — never translate to or default to English
+- Respect the cultural context, dialect, and communication norms of that language`
 
 
 const DECISIONS = `Before generating replies, assess:
