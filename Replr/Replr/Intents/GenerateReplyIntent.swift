@@ -42,7 +42,11 @@ struct GenerateReplyIntent: AppIntent {
         AppGroupService.shared.isGenerating = true
 
         let context = AppGroupService.shared.readPendingContext()
-        NSLog("[Replr][Intent] Calling API: tone=%@, hasContext=%d", tone.rawValue, context != nil ? 1 : 0)
+
+        // Always use the tone selected in the keyboard — the Shortcut parameter is
+        // ignored because it defaults to Friendly and users never edit it manually.
+        let effectiveTone = AppGroupService.shared.readSelectedTone()
+        NSLog("[Replr][Intent] Calling API: tone=%@ (keyboard selection), hasContext=%d", effectiveTone.name, context != nil ? 1 : 0)
 
         // Fetch memories for the current confirmed contact
         let previousContext: String?
@@ -68,7 +72,7 @@ struct GenerateReplyIntent: AppIntent {
         do {
             let result = try await ReplyService.shared.generateReplies(
                 screenshot: image,
-                tone: tone.tone,
+                tone: effectiveTone,
                 summary: context,
                 previousContext: previousContext
             )
@@ -90,7 +94,7 @@ struct GenerateReplyIntent: AppIntent {
                 contactID: resolvedContactID,
                 contactName: resolvedContactName
             )
-            session.toneName = tone.rawValue
+            session.toneName = effectiveTone.name
             session.previousContext = previousContext
             session.modelUsed = AppGroupService.shared.selectedModel
             CreditsManager.shared.deduct(required)
