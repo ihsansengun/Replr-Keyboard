@@ -4,22 +4,53 @@ State: branch reverted to `a1a5151`. Codebase matches pre-redesign-attempt state
 
 ## Onboarding redesign
 
-Approach: **embed a real iOS Simulator screen recording** showing the navigation through Settings → Accessibility → Touch → Back Tap → Triple Tap → Replr Capture. Loop it inside the Back Tap setup card so users see the exact path they need to follow.
+Approach: **static image crossfade** showing the path through Settings → Accessibility → Touch → Back Tap → Triple Tap → Replr Capture. 5–6 PNG screenshots of the key states, crossfaded with native SwiftUI animation.
 
-Reasons to use a real recording (not custom illustrations):
-- Authentic — matches what users actually see on their device
-- No ambiguity about which row to tap
-- Trivial to update when iOS changes the Settings layout
-- Easier to produce than custom animated diagrams
+Why static images over video/GIF:
+- ~50–100 KB total (vs 500 KB MP4, vs 10+ MB GIF)
+- Pixel-perfect — true 1x screenshots, no compression artifacts
+- No media framework or third-party library needed
+- Easy to overlay a circle + arrow on the row the user should tap, per frame
+- Easy to update one frame at a time when iOS changes a single Settings screen
 
-Implementation notes:
-- Record on the iOS Simulator (Cmd+Ctrl+R in Simulator, or `xcrun simctl io booted recordVideo path.mov`)
-- Export as a small looping `.mp4` or `.mov` (~5–10s, no audio)
-- Embed in the onboarding view via `AVPlayerLayer` or `VideoPlayer` (iOS 14+)
-- Set `videoGravity = .resizeAspectFill`, `isMuted = true`, loop indefinitely
-- Show it inside a phone-frame device chrome for context, or full-bleed with overlay text
+Capture the screenshots from the iOS Simulator: navigate to each state, ⌘S to save the simulator screen. Crop to the relevant portion if needed.
 
-The rest of the onboarding visual direction is open — to be decided alongside whatever design tool you use next (Gemini didn't work).
+Recommended frames:
+1. Settings root (Accessibility row highlighted)
+2. Accessibility (Touch row highlighted)
+3. Touch (Back Tap row highlighted)
+4. Back Tap (Triple Tap row highlighted)
+5. Triple Tap (Replr Capture row highlighted)
+6. Success state (Replr Capture row with checkmark)
+
+Implementation sketch (Swift):
+```swift
+struct SetupWalkthroughView: View {
+    private let steps = ["setup-1", "setup-2", "setup-3", "setup-4", "setup-5", "setup-6"]
+    @State private var currentIndex = 0
+
+    var body: some View {
+        ZStack {
+            ForEach(Array(steps.enumerated()), id: \.offset) { idx, name in
+                Image(name)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .opacity(idx == currentIndex ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.5), value: currentIndex)
+            }
+        }
+        .onAppear {
+            Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
+                currentIndex = (currentIndex + 1) % steps.count
+            }
+        }
+    }
+}
+```
+
+Below the crossfade, render text steps in SwiftUI for accessibility (VoiceOver users + sighted users who want to re-read).
+
+The rest of the onboarding visual direction (overall layout, components, identity) is open — decide alongside whatever design tool you use next.
 
 ## Quick wins (ship independently of the redesign)
 
