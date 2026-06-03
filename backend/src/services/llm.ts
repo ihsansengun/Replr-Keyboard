@@ -11,14 +11,20 @@ Rules:
 - Each option must be distinct in angle or energy
 - Match the reply length rhythm of the conversation
 - Always reply in the exact language of the conversation — never translate to or default to English
-- Respect the cultural context, dialect, and communication norms of that language`
+- Respect the cultural context, dialect, and communication norms of that language
+
+Identity — read carefully:
+- You are writing FOR the person whose bubbles appear on the RIGHT
+- You are writing TO the person whose bubbles appear on the LEFT
+- These are two different people — never confuse them
+- Your reply comes from the right-side person, addressed to the left-side person`
 
 
 const DECISIONS = `Before generating replies, assess:
 1. Language and cultural dialect → reply in the exact same register, not translated English
 2. Conversation energy → match it
 3. Typical message length → stay consistent
-4. What the last message implies → address it
+4. What the most recent LEFT-side message implies → that is what you are replying to
 5. Whether to advance the conversation or simply respond
 6. For dating contexts: where are they in the relationship?`
 
@@ -218,10 +224,10 @@ export interface GenerateMultipleParams {
 function buildContextBlock(summary?: string, previousContext?: string): string {
   const parts: string[] = []
   if (previousContext) {
-    parts.push(`PREVIOUS CONVERSATIONS WITH THIS CONTACT (summaries of past sessions, oldest first):\n${previousContext}`)
+    parts.push(`MEMORY — PREVIOUS CONVERSATIONS WITH THIS CONTACT (oldest first, for context only):\n${previousContext}`)
   }
   if (summary) {
-    parts.push(`CONTEXT NOTE FROM THE REPLY AUTHOR (not part of the chat — extra background typed by the person generating these replies to help you understand the situation):\n${summary}`)
+    parts.push(`REPLY DIRECTION — what the user wants to say or the angle they want to take (this is not part of the chat — it is an instruction from the person generating replies). Build your replies around this intent. If it conflicts with the obvious response, follow this direction:\n${summary}`)
   }
   return parts.length > 0 ? parts.join('\n\n') + '\n\n' : ''
 }
@@ -240,9 +246,11 @@ export async function generateReplies(params: GenerateParams): Promise<LlmResult
 
   const system = [IDENTITY, `ROLE: ${tone}`].join('\n\n')
 
-  const user = `${buildContextBlock(summary, previousContext)}Reading guide:
-- Bubbles on the RIGHT = sent by the user
-- Bubbles on the LEFT = sent by the other person
+  const user = `${buildContextBlock(summary, previousContext)}Reading guide — CRITICAL:
+- RIGHT-side bubbles = YOUR USER (the person you are writing FOR — do not reply to these)
+- LEFT-side bubbles = the other person (the person you are writing TO)
+- Identify the most recent LEFT-side message — that is what you are replying to
+- Never write a reply to a right-side message
 
 ${DECISIONS}
 
@@ -259,9 +267,11 @@ export async function generateRepliesFromMultiple(params: GenerateMultipleParams
 
   const user = `${buildContextBlock(summary, previousContext)}The following screenshots show a conversation scrolled through from bottom to top. Read all of them together to understand the full context.
 
-Reading guide:
-- Bubbles on the RIGHT = sent by the user
-- Bubbles on the LEFT = sent by the other person
+Reading guide — CRITICAL:
+- RIGHT-side bubbles = YOUR USER (the person you are writing FOR — do not reply to these)
+- LEFT-side bubbles = the other person (the person you are writing TO)
+- Identify the most recent LEFT-side message — that is what you are replying to
+- Never write a reply to a right-side message
 
 ${DECISIONS}
 
