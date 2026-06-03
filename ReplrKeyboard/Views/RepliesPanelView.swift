@@ -242,26 +242,35 @@ struct RepliesPanelView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Insert reply")
 
-                Button { model.editReply(currentReply) } label: {
-                    Text("Edit")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(ReplrTheme.Color.textPrimary)
-                        .frame(width: 72, height: 40)
-                        .background(Capsule().fill(Color.white.opacity(0.06)))
-                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.18), lineWidth: 1))
+                Button { model.retryTrigger?() } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text("Regenerate")
+                            .font(.system(size: 14, weight: .semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
+                    }
+                    .foregroundColor(ReplrTheme.Color.textPrimary)
+                    .padding(.horizontal, 14)
+                    .frame(height: 40)
+                    .background(Capsule().fill(Color.white.opacity(0.06)))
+                    .overlay(Capsule().strokeBorder(Color.white.opacity(0.18), lineWidth: 1))
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Regenerate replies")
 
                 Button { model.regenerate() } label: {
-                    Image(systemName: "arrow.counterclockwise").font(.system(size: 14, weight: .medium))
-                        .foregroundColor(ReplrTheme.Color.textPrimary)
+                    Image(systemName: "xmark")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
                 }
                 .frame(width: 42, height: 42)
                 .background(ReplrTheme.Color.surfaceRaised)
                 .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous).stroke(ReplrTheme.Color.glassBorder, lineWidth: 1))
                 .buttonStyle(.plain)
-                .accessibilityLabel("New replies")
+                .accessibilityLabel("Reset")
             }
         }
     }
