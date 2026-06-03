@@ -661,13 +661,17 @@ struct BackTapStep: View {
         case .preview(let substep):
             if substep == 1 { return onBack }
             return {
+                lastNavTime = Date()
                 goingForward = false
                 withAnimation(.easeInOut(duration: 0.25)) {
-                    state = .preview(substep: substep - 1)
+                    state = .preview(substep: BackTapStep.prevSubstep(from: substep))
                 }
             }
         case .confirm:
-            return { state = .preview(substep: 5) }
+            return {
+                lastNavTime = Date()
+                state = .preview(substep: 5)
+            }
         case .success:
             return nil
         }
