@@ -725,23 +725,14 @@ struct BackTapStep: View {
     @ViewBuilder
     private var ctaView: some View {
         switch state {
-        case .preview(let substep):
-            if substep < 5 {
-                PrimaryButton(label: "Next →") {
-                    goingForward = true
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        state = .preview(substep: substep + 1)
-                    }
+        case .preview:
+            VStack(spacing: 12) {
+                PrimaryButton(label: "Open Settings →") {
+                    openSettings()
                 }
-            } else {
-                VStack(spacing: 12) {
-                    PrimaryButton(label: "Open Settings →") {
-                        openSettings()
-                    }
-                    TertiaryButton(label: "Already set up →") {
-                        state = .confirm
-                        confirmEnteredAt = Date()
-                    }
+                TertiaryButton(label: "Already set up →") {
+                    state = .confirm
+                    confirmEnteredAt = Date()
                 }
             }
 
