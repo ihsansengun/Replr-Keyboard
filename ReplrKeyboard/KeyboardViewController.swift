@@ -28,6 +28,12 @@ final class KeyboardViewController: UIInputViewController {
         model.onReplySelected = { [weak self] reply in self?.insert(reply) }
         model.onToneChanged = { tone in AppGroupService.shared.saveSelectedTone(tone) }
         model.onSwitchKeyboard = { [weak self] in self?.advanceToNextInputMode() }
+        model.onOpenContainingApp = { [weak self] urlString in
+            guard let url = URL(string: urlString) else { return }
+            // Public API; may no-op on some iOS versions — the app also shows the paywall
+            // on next foreground when credits are 0, so this is a best-effort shortcut.
+            self?.extensionContext?.open(url, completionHandler: nil)
+        }
         model.onSelectContact = { [weak self] contact in
             guard let self else { return }
             AppGroupService.shared.currentContactID = contact.id

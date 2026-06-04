@@ -49,6 +49,7 @@ final class KeyboardModel: ObservableObject {
     var onEditReply: ((String) -> Void)?
     var retryTrigger: (() -> Void)?
     var onContentHeightChanged: ((CGFloat) -> Void)?
+    var onOpenContainingApp: ((String) -> Void)?   // attempt to open the Replr app via a URL scheme
 
     enum CreditDisplay: Equatable {
         case unlimited
@@ -694,6 +695,7 @@ struct SkeletonLine: View {
 struct PaywallCardView: View {
     @ObservedObject var model: KeyboardModel
     @Environment(\.colorScheme) private var colorScheme
+    @State private var opening = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -712,7 +714,7 @@ struct PaywallCardView: View {
                 Button {
                     openPaywallInApp()
                 } label: {
-                    Text("Unlock Pro in Replr")
+                    Text(opening ? "Open Replr →" : "Unlock Pro in Replr")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(ReplrTheme.Color.onAccent)
                         .frame(maxWidth: .infinity)
@@ -726,9 +728,17 @@ struct PaywallCardView: View {
                 }
                 .buttonStyle(.plain)
 
-                Text("$9.99/mo · $59.99/yr")
-                    .font(.system(size: 12))
-                    .foregroundStyle(ReplrTheme.Color.textSecondary)
+                if opening {
+                    Text("Switch to the Replr app to finish — your upgrade is waiting there.")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text("$9.99/mo · $59.99/yr")
+                        .font(.system(size: 12))
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                }
             }
             .padding(.horizontal, 20)
             Spacer()
@@ -739,10 +749,11 @@ struct PaywallCardView: View {
 
     private func openPaywallInApp() {
         AppGroupService.shared.paywallRequested = true
-        guard let url = URL(string: "replr://paywall") else { return }
-        // extensionContext?.open is restricted in keyboard extensions on most iOS versions.
-        // The App Group flag ensures companion app shows PaywallView on next foreground.
-        _ = url
+        // Best-effort: try to open the Replr app (works on some iOS versions). The app also
+        // shows the paywall on next foreground when credits are 0, so the instruction below
+        // is the reliable path if the open is silently ignored.
+        model.onOpenContainingApp?("replr://paywall")
+        withAnimation(.easeInOut(duration: 0.2)) { opening = true }
     }
 }
 
