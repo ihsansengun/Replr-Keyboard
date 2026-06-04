@@ -366,7 +366,7 @@ struct CoachmarkBalloon: View {
             Image(systemName: "sparkles")
                 .font(.system(size: 12, weight: .medium))
                 .padding(.top, 1)
-            Text("① Keyboard's minimised. ② Triple-tap the back.")
+            Text("① Keyboard's minimised. ② Take a screenshot of the chat.")
                 .font(.system(size: 12.5, weight: .medium))
                 .lineLimit(2)
         }
@@ -415,29 +415,49 @@ struct CollapsedStripView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 4)
 
-            // Capture card — entire card is the tap target
+            // Capture card — entire card is the tap target. Adapts to the watcher state.
             Button {
-                dismissCoachmark()
-                withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = false }
+                if model.detectedScreenshotID != nil {
+                    model.generateFromScreenshot()
+                } else {
+                    dismissCoachmark()
+                    withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = false }
+                }
             } label: {
                 HStack(spacing: 10) {
-                    TapGlyph()
-
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Triple-tap the back of your phone")
-                            .font(.system(size: 13.5, weight: .medium))
-                            .foregroundColor(ReplrTheme.Color.textPrimary)
-                        Text("to capture this chat")
-                            .font(.system(size: 11.5))
-                            .foregroundColor(ReplrTheme.Color.textTertiary)
+                    if model.detectedScreenshotID != nil {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 16))
+                            .foregroundColor(ReplrTheme.Color.accent)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("Screenshot ready")
+                                .font(.system(size: 13.5, weight: .semibold))
+                                .foregroundColor(ReplrTheme.Color.accent)
+                            Text("Tap to generate replies")
+                                .font(.system(size: 11.5))
+                                .foregroundColor(ReplrTheme.Color.textTertiary)
+                        }
+                        Spacer()
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(ReplrTheme.Color.accent)
+                            .frame(width: 36, height: 36)
+                    } else {
+                        TapGlyph()
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("Take a screenshot of the chat")
+                                .font(.system(size: 13.5, weight: .medium))
+                                .foregroundColor(ReplrTheme.Color.textPrimary)
+                            Text("Replies appear here automatically")
+                                .font(.system(size: 11.5))
+                                .foregroundColor(ReplrTheme.Color.textTertiary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.up")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(ReplrTheme.Color.textSecondary)
+                            .frame(width: 36, height: 36)
                     }
-
-                    Spacer()
-
-                    Image(systemName: "chevron.up")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
-                        .frame(width: 36, height: 36)
                 }
                 .padding(.vertical, 10)
                 .padding(.leading, 12)
