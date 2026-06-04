@@ -1,4 +1,5 @@
 import SwiftUI
+import Photos  // SPIKE — remove after Phase 0
 
 /// Developer-only view. Not accessible from normal navigation.
 /// Reached via long-press on version label in SettingsView.
@@ -16,6 +17,7 @@ struct ModelPickerView: View {
         let captures: Int
     }
 
+    @State private var photosStatus: String = "\(PHPhotoLibrary.authorizationStatus(for: .readWrite).rawValue)"  // SPIKE — remove after Phase 0
     @State private var totalCostUsd: Double = 0
     @State private var modelStats: [ModelCostStat] = []
 
@@ -102,6 +104,25 @@ struct ModelPickerView: View {
                         .foregroundStyle(ReplrTheme.Color.accent)
                         .fontWeight(.semibold)
                 }
+            }
+
+            // SPIKE — remove after Phase 0
+            Section {
+                Button("Request Photos Access") {
+                    PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
+                        DispatchQueue.main.async { photosStatus = "\(status.rawValue)" }
+                    }
+                }
+                HStack {
+                    Text("Auth status (raw)")
+                    Spacer()
+                    Text(photosStatus).foregroundStyle(ReplrTheme.Color.textSecondary)
+                }
+            } header: {
+                Text("Photos Permission (spike)")
+            } footer: {
+                Text("raw values: 0=notDetermined 1=restricted 2=denied 3=authorized 4=limited")
+                    .font(.caption)
             }
 
             // MARK: Total API Cost
