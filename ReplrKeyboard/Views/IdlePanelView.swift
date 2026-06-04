@@ -29,8 +29,8 @@ struct IdlePanelView: View {
                     CaptureStepsAnimation()
                         .frame(width: 100, height: 84)
 
-                    Text("Screenshot a chat. Replr reads it and drafts the replies.")
-                        .font(.system(size: 14))
+                    Text("Tap Start to minimise the keyboard, then screenshot the chat. Replr reads it and drafts the replies.")
+                        .font(.system(size: 13))
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
