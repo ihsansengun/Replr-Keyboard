@@ -146,6 +146,8 @@ final class KeyboardModel: ObservableObject {
                 withAnimation { self.state = .error("Couldn't read the screenshot. Try again.") }
                 return
             }
+            // Persist so Regenerate (which reads the App Group screenshot) re-runs THIS screenshot, not a stale one.
+            try? AppGroupService.shared.writeScreenshot(image)
             let previousContext: String?
             if let contactID = AppGroupService.shared.currentContactID {
                 let summaries = AppGroupService.shared.recentSummaries(
