@@ -24,18 +24,19 @@ struct IdlePanelView: View {
     private var chatContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(spacing: 12) {
-                // Language-agnostic looping demo of the 2 steps
-                CaptureStepsAnimation()
-                    .frame(height: 150)
-                    .padding(.top, 14)
-                    .padding(.horizontal, 12)
+                // Compact: looping demo on the left, caption on the right
+                HStack(spacing: 14) {
+                    CaptureStepsAnimation()
+                        .frame(width: 100, height: 84)
 
-                Text("Screenshot a chat and I'll draft the replies.")
-                    .font(.system(size: 13))
-                    .foregroundColor(ReplrTheme.Color.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 16)
+                    Text("Screenshot a chat and I'll draft the replies.")
+                        .font(.system(size: 14))
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.top, 16)
+                .padding(.horizontal, 16)
 
                 // Single, distinct CTA — tapping visibly lowers the keyboard
                 Button {
@@ -64,8 +65,8 @@ struct IdlePanelView: View {
                     )
                 }
                 .buttonStyle(.plain)
-                .padding(.horizontal, 14)
-                .padding(.bottom, 14)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
             }
             .background(ReplrTheme.Color.surface)
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
@@ -75,7 +76,8 @@ struct IdlePanelView: View {
             )
             .elevatedSurface(.level1)
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 18)
+        .padding(.bottom, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
