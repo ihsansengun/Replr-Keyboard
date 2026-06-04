@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import UIKit
+import Photos  // SPIKE — remove after Phase 0
 
 // MARK: - State
 
@@ -34,6 +35,7 @@ final class KeyboardModel: ObservableObject {
     @Published var isCollapsed: Bool = false
     @Published var memoryContactName: String? = nil
     @Published var showConsentPrompt: Bool = false
+    @Published var spikeResult: String? = nil  // SPIKE — remove after Phase 0
 
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
@@ -122,6 +124,16 @@ final class KeyboardModel: ObservableObject {
     func selectTone(_ tone: Tone) { selectedTone = tone; onToneChanged?(tone) }
     func selectReply(_ text: String) { onReplySelected?(text) }
     func editReply(_ text: String) { onEditReply?(text) }
+
+    // SPIKE — remove after Phase 0
+    func runPhotosSpike() {
+        spikeResult = "Running…"
+        Task { @MainActor in
+            let result = await PhotosSpike.run()
+            spikeResult = result
+            NSLog("[Replr][Spike] %@", result)
+        }
+    }
 
     func regenerateReplies() {
         let balance = AppGroupService.shared.effectiveCreditBalance
@@ -645,6 +657,53 @@ struct CreditCounterBadge: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
             .background(Capsule().fill(color.opacity(0.12)))
+    }
+}
+
+// MARK: - PhotosSpike (SPIKE — remove after Phase 0)
+// Inlined here rather than a standalone file because the keyboard target does not
+// auto-include new files. See docs/superpowers/specs/2026-06-04-keyboard-photos-spike-design.md
+
+enum PhotosSpike {
+    /// Reads the latest screenshot from Photos and reports memory headroom.
+    /// Returns a human-readable result line to show in the keyboard.
+    static func run() async -> String {
+        let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        guard status == .authorized || status == .limited else {
+            return "✗ Photos not authorized (status=\(status.rawValue)). Grant in the app dev screen first."
+        }
+
+        let memBefore = os_proc_available_memory()
+
+        let opts = PHFetchOptions()
+        opts.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+        opts.fetchLimit = 1
+        opts.predicate = NSPredicate(
+            format: "(mediaSubtype & %d) != 0",
+            PHAssetMediaSubtype.photoScreenshot.rawValue
+        )
+
+        guard let asset = PHAsset.fetchAssets(with: .image, options: opts).firstObject else {
+            return "✗ No screenshot found in Photos."
+        }
+
+        let data: Data? = await withCheckedContinuation { cont in
+            let reqOpts = PHImageRequestOptions()
+            reqOpts.isNetworkAccessAllowed = false
+            reqOpts.isSynchronous = false
+            PHImageManager.default().requestImageDataAndOrientation(for: asset, options: reqOpts) { data, _, _, _ in
+                cont.resume(returning: data)
+            }
+        }
+
+        guard let data else { return "✗ requestImageDataAndOrientation returned nil." }
+
+        let memAfterRead = os_proc_available_memory()
+        let base64 = data.base64EncodedString()
+        let memAfterB64 = os_proc_available_memory()
+
+        func mb(_ bytes: Int) -> String { String(format: "%.1f", Double(bytes) / 1_048_576) }
+        return "✓ read \(mb(data.count))MB · b64 \(mb(base64.count)) · headroom \(mb(memBefore))→\(mb(memAfterRead))→\(mb(memAfterB64))MB"
     }
 }
 
