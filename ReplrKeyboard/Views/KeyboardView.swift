@@ -36,6 +36,8 @@ final class KeyboardModel: ObservableObject {
     @Published var memoryContactName: String? = nil
     @Published var showConsentPrompt: Bool = false
     @Published var spikeResult: String? = nil  // SPIKE — remove after Phase 0
+    @Published var detectedScreenshotID: String? = nil   // a new screenshot awaiting the confirm tap
+    var captureBaselineScreenshotID: String? = nil        // newest screenshot at moment-of-collapse (dedup)
 
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
@@ -124,6 +126,69 @@ final class KeyboardModel: ObservableObject {
     func selectTone(_ tone: Tone) { selectedTone = tone; onToneChanged?(tone) }
     func selectReply(_ text: String) { onReplySelected?(text) }
     func editReply(_ text: String) { onEditReply?(text) }
+
+    /// Phase 1 — generate replies from the detected screenshot (mirrors generateEmailReply).
+    func generateFromScreenshot() {
+        guard let assetID = detectedScreenshotID else { return }
+        let required = AppGroupService.shared.creditsRequired
+        guard AppGroupService.shared.effectiveCreditBalance >= required else {
+            withAnimation(.easeInOut(duration: 0.2)) { isCollapsed = false; state = .paywall }
+            return
+        }
+        let context = pendingContext.trimmingCharacters(in: .whitespacesAndNewlines)
+        withAnimation(.easeInOut(duration: 0.2)) { isCollapsed = false; state = .loading }
+
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            guard let image = await PhotosCapture.loadImage(id: assetID) else {
+                self.detectedScreenshotID = nil
+                withAnimation { self.state = .error("Couldn't read the screenshot. Try again.") }
+                return
+            }
+            let previousContext: String?
+            if let contactID = AppGroupService.shared.currentContactID {
+                let summaries = AppGroupService.shared.recentSummaries(
+                    forContactID: contactID, limit: AppGroupService.shared.memoryDepth)
+                previousContext = summaries.isEmpty ? nil : summaries.joined(separator: "\n")
+            } else {
+                previousContext = nil
+            }
+            do {
+                let result = try await ReplyService.shared.generateReplies(
+                    screenshot: image,
+                    tone: self.selectedTone,
+                    summary: context.isEmpty ? nil : context,
+                    previousContext: previousContext
+                )
+                let resolved = resolveContact(from: result)
+                self.contactName = resolved.name
+                var session = CaptureSession(
+                    id: UUID(), timestamp: Date(), thumbnailData: nil,
+                    contextHint: context.isEmpty ? nil : context,
+                    generatedReplies: result.replies, selectedReply: nil,
+                    llmSummary: result.summary, contactID: resolved.id, contactName: resolved.name
+                )
+                session.toneName = self.selectedTone.name
+                session.previousContext = previousContext
+                session.modelUsed = AppGroupService.shared.selectedModel
+                session.inputTokens = result.inputTokens
+                session.outputTokens = result.outputTokens
+                session.costUsd = result.costUsd
+                if !AppGroupService.shared.devMode { AppGroupService.shared.creditBalance -= required }
+                AppGroupService.shared.appendCaptureSession(session)
+                AppGroupService.shared.saveReplies(result.replies)
+                self.currentReplies = result.replies
+                self.repliesGeneratedInMode = .chat
+                self.hasAnySessions = true
+                self.captureBaselineScreenshotID = assetID   // dedup: never reprocess this one
+                self.detectedScreenshotID = nil
+                withAnimation(.easeInOut(duration: 0.2)) { self.state = .replies(result.replies) }
+            } catch {
+                self.detectedScreenshotID = nil
+                withAnimation { self.state = .error(error.localizedDescription) }
+            }
+        }
+    }
 
     // SPIKE — remove after Phase 0
     func runPhotosSpike() {
