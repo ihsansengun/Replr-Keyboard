@@ -57,9 +57,14 @@ struct SettingsView: View {
             .background(ReplrTheme.Color.bg.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
         }
-        .fullScreenCover(isPresented: $showSetup) {
-            // Re-run the (status-aware) onboarding — lands the user on whatever's still missing.
-            OnboardingView(onComplete: { showSetup = false }, onSignIn: { showSetup = false })
+        .sheet(isPresented: $showSetup) {
+            // Re-run the (status-aware) onboarding — skips Welcome, lands on whatever's still
+            // missing, and is swipe-dismissable since this is a revisit, not first-run.
+            OnboardingView(
+                onComplete: { showSetup = false },
+                onSignIn: { showSetup = false },
+                startAtSetup: true
+            )
         }
     }
 

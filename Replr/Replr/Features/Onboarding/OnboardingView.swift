@@ -518,6 +518,7 @@ private struct ReadyStep: View {
 struct OnboardingView: View {
     var onComplete: () -> Void
     var onSignIn: () -> Void = {}
+    var startAtSetup: Bool = false   // revisit from Settings: skip the Welcome screen
     @AppStorage("onboardingStep") private var step = 0
 
     /// Whether a permission step (1 = keyboard + Full Access, 2 = Photos) is already granted.
@@ -565,6 +566,10 @@ struct OnboardingView: View {
         }
         .onAppear {
             if step > 4 { step = 0 }
+            // Revisit from Settings: skip the Welcome marketing screen, go straight to setup.
+            if startAtSetup && step == 0 {
+                step = nextStep(from: 1)
+            }
             // If we resumed onto an already-granted permission step, skip forward to the first that needs action.
             if step >= 1 && step <= 2 && isSatisfied(step) {
                 step = nextStep(from: step)
