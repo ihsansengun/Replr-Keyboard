@@ -26,8 +26,16 @@ struct IdlePanelView: View {
             VStack(spacing: 12) {
                 // Compact: looping demo on the left, caption on the right
                 HStack(spacing: 14) {
-                    CaptureStepsAnimation()
-                        .frame(width: 100, height: 84)
+                    ZStack {
+                        // soft accent glow so the demo pops off the card
+                        Circle()
+                            .fill(ReplrTheme.Color.accent)
+                            .frame(width: 72, height: 72)
+                            .blur(radius: 26)
+                            .opacity(colorScheme == .dark ? 0.28 : 0.16)
+                        CaptureStepsAnimation()
+                            .frame(width: 100, height: 84)
+                    }
 
                     Text("Tap Start to minimise the keyboard, then screenshot the chat. Replr reads it and drafts the replies.")
                         .font(.system(size: 13))
@@ -68,11 +76,25 @@ struct IdlePanelView: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 16)
             }
-            .background(ReplrTheme.Color.surface)
+            .background(
+                ZStack {
+                    ReplrTheme.Color.surface
+                    LinearGradient(
+                        colors: [ReplrTheme.Color.accent.opacity(colorScheme == .dark ? 0.10 : 0.06), .clear],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    )
+                }
+            )
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [ReplrTheme.Color.accent.opacity(0.45), ReplrTheme.Color.glassBorder],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
             )
             .elevatedSurface(.level1)
         }
