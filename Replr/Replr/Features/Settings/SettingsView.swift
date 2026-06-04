@@ -37,6 +37,7 @@ struct SettingsView: View {
     @State private var showModelPicker = false
     @State private var autoClear = AppGroupService.shared.autoClearScreenshots
     @State private var pendingShots = ScreenshotCleaner.pendingCount()
+    @State private var showSetup = false
 
     var body: some View {
         NavigationStack {
@@ -55,6 +56,10 @@ struct SettingsView: View {
             }
             .background(ReplrTheme.Color.bg.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
+        }
+        .fullScreenCover(isPresented: $showSetup) {
+            // Re-run the (status-aware) onboarding — lands the user on whatever's still missing.
+            OnboardingView(onComplete: { showSetup = false }, onSignIn: { showSetup = false })
         }
     }
 
@@ -87,6 +92,23 @@ struct SettingsView: View {
 
     private var keyboardSection: some View {
         settingsSection("Keyboard") {
+            Button { showSetup = true } label: {
+                settingsRow {
+                    Text("Set up Replr")
+                        .font(.system(size: 17))
+                    Spacer()
+                    Image(systemName: "checklist")
+                        .font(.system(size: 14))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.textTertiary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            cardDivider
+
             NavigationLink(destination: TonesView().onDisappear {
                 activeToneName = AppGroupService.shared.readSelectedTone().name
             }) {
