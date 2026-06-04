@@ -229,7 +229,7 @@ private struct FullAccessStep: View {
             step: 2, totalSteps: 4,
             sectionLabel: "Permissions",
             headline: "Enable Full Access.",
-            bodyText: "Lets the keyboard connect to AI. Open Settings and follow the path below, then return here.",
+            bodyText: "Lets the keyboard connect to AI. Already turned it on? Tap “I've enabled it” — we confirm it the next time you open the Replr keyboard. Otherwise, follow the path below in Settings.",
             onBack: onBack
         ) {
             VStack(alignment: .leading, spacing: 0) {
@@ -282,7 +282,7 @@ private struct FullAccessStep: View {
                 PrimaryButton(label: "Full Access enabled ✓ — Continue →", action: onNext)
             } else if settingsOpened {
                 VStack(spacing: 12) {
-                    PrimaryButton(label: "Done →", action: onNext)
+                    PrimaryButton(label: "I've enabled it →", action: onNext)
                     TertiaryButton(label: "Open Settings again →") {
                         if let url = URL(string: UIApplication.openSettingsURLString) {
                             UIApplication.shared.open(url)
@@ -297,7 +297,7 @@ private struct FullAccessStep: View {
                             UIApplication.shared.open(url)
                         }
                     }
-                    TertiaryButton(label: "Done →", action: onNext)
+                    TertiaryButton(label: "I've enabled it →", action: onNext)
                 }
             }
         }
