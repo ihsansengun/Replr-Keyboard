@@ -20,24 +20,36 @@ struct IdlePanelView: View {
 
     // MARK: - Chat idle
 
+    private func stepRow(_ n: String, _ text: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text(n)
+                .font(.system(size: 11, weight: .bold).monospacedDigit())
+                .foregroundColor(ReplrTheme.Color.onAccent)
+                .frame(width: 20, height: 20)
+                .background(Circle().fill(ReplrTheme.Color.accent))
+            Text(text)
+                .font(.system(size: 13))
+                .foregroundColor(ReplrTheme.Color.textPrimary)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
     private var chatContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                // Top: how-to explanation
-                VStack(alignment: .leading, spacing: 8) {
-                    Badge("Capture", systemImage: "scope")
+                // Top: clear 2-step how-to
+                VStack(alignment: .leading, spacing: 10) {
+                    Badge("How to capture", systemImage: "scope")
 
-                    Text("Open the chat, collapse this keyboard, then take a screenshot — Replr reads it and drafts your replies.")
-                        .font(.system(size: 13))
-                        .foregroundColor(ReplrTheme.Color.textPrimary)
-                        .lineSpacing(2)
-                        .fixedSize(horizontal: false, vertical: true)
+                    stepRow("1", "Tap “Start capture” — the keyboard shrinks so your chat is visible.")
+                    stepRow("2", "Take a screenshot of the chat — your replies appear right here.")
 
                     HStack(spacing: 5) {
-                        Text("✦")
+                        Image(systemName: "sparkles")
                             .font(.system(size: 10))
                             .foregroundColor(ReplrTheme.Color.accent)
-                        Text("Anything you've typed is sent as context automatically")
+                        Text("Anything you've typed is added as context")
                             .font(.system(size: 11.5))
                             .foregroundColor(ReplrTheme.Color.textSecondary)
                     }
@@ -46,39 +58,37 @@ struct IdlePanelView: View {
 
                 Divider().opacity(0.2)
 
-                // Bottom: prompt + small action button
-                HStack {
-                    Text("Ready? Collapse to start")
-                        .font(.system(size: 12))
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
-
-                    Spacer()
-
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = true }
-                    } label: {
-                        Text("Start capture ↓")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(ReplrTheme.Color.onAccent)
-                            .padding(.horizontal, 12)
-                            .frame(height: 32)
-                            .background(
-                                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                                    .fill(ReplrTheme.Color.accent)
-                                    .overlay(ShimmerOverlay(cornerRadius: ReplrTheme.Radius.sm))
-                            )
-                            .shadow(
-                                color: colorScheme == .dark
-                                    ? ReplrTheme.Color.accent.opacity(0.45)
-                                    : .black.opacity(0.10),
-                                radius: colorScheme == .dark ? 14 : 6,
-                                x: 0, y: colorScheme == .dark ? 5 : 3
-                            )
+                // Bottom: full-width, distinct CTA
+                Button {
+                    withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = true }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.down.right.and.arrow.up.left")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("Start capture — shrink keyboard")
+                            .font(.system(size: 14, weight: .semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
                     }
-                    .buttonStyle(.plain)
+                    .foregroundColor(ReplrTheme.Color.onAccent)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 42)
+                    .background(
+                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                            .fill(ReplrTheme.Color.accent)
+                            .overlay(ShimmerOverlay(cornerRadius: ReplrTheme.Radius.sm))
+                    )
+                    .shadow(
+                        color: colorScheme == .dark
+                            ? ReplrTheme.Color.accent.opacity(0.45)
+                            : .black.opacity(0.10),
+                        radius: colorScheme == .dark ? 14 : 6,
+                        x: 0, y: colorScheme == .dark ? 5 : 3
+                    )
                 }
+                .buttonStyle(.plain)
                 .padding(.horizontal, 14)
-                .padding(.vertical, 10)
+                .padding(.vertical, 12)
             }
             .background(ReplrTheme.Color.surface)
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))

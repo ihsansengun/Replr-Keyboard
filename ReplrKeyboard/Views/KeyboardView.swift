@@ -462,16 +462,19 @@ struct CollapsedStripView: View {
                             .foregroundColor(ReplrTheme.Color.accent)
                             .frame(width: 36, height: 36)
                     } else {
-                        TapGlyph()
+                        Image(systemName: "camera.viewfinder")
+                            .font(.system(size: 21, weight: .medium))
+                            .foregroundColor(ReplrTheme.Color.accent)
+                            .frame(width: 30, height: 30)
                         VStack(alignment: .leading, spacing: 1) {
                             Text(model.showFullScreenPreviewHint
                                  ? "Didn't catch that screenshot"
-                                 : "Take a screenshot of the chat")
-                                .font(.system(size: 13.5, weight: .medium))
+                                 : "Now take a screenshot of the chat")
+                                .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(ReplrTheme.Color.textPrimary)
                             Text(model.showFullScreenPreviewHint
                                  ? "Settings → Screen Capture → turn off Full-Screen Previews"
-                                 : "Looking for your screenshot…")
+                                 : "Replr is watching for it…")
                                 .font(.system(size: 11.5))
                                 .foregroundColor(ReplrTheme.Color.textTertiary)
                         }
