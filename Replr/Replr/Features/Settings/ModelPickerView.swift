@@ -8,15 +8,36 @@ struct ModelPickerView: View {
         : AppGroupService.shared.userModel
     @State private var devMode = AppGroupService.shared.devMode
     @ObservedObject private var credits = CreditsManager.shared
+    struct ModelCostStat: Identifiable {
+        let id: String        // model identifier
+        let cost: Double
+        let inputTokens: Int
+        let outputTokens: Int
+        let captures: Int
+    }
+
     @State private var totalCostUsd: Double = 0
-    @State private var totalInputTokens: Int = 0
-    @State private var totalOutputTokens: Int = 0
+    @State private var modelStats: [ModelCostStat] = []
 
     private func refreshCostStats() {
         let sessions = AppGroupService.shared.loadCaptureSessions()
         totalCostUsd = sessions.compactMap(\.costUsd).reduce(0, +)
-        totalInputTokens = sessions.compactMap(\.inputTokens).reduce(0, +)
-        totalOutputTokens = sessions.compactMap(\.outputTokens).reduce(0, +)
+
+        // Group by model
+        var grouped: [String: (cost: Double, input: Int, output: Int, count: Int)] = [:]
+        for s in sessions {
+            guard let model = s.modelUsed, let cost = s.costUsd else { continue }
+            let cur = grouped[model] ?? (0, 0, 0, 0)
+            grouped[model] = (
+                cur.cost + cost,
+                cur.input + (s.inputTokens ?? 0),
+                cur.output + (s.outputTokens ?? 0),
+                cur.count + 1
+            )
+        }
+        modelStats = grouped
+            .map { ModelCostStat(id: $0.key, cost: $0.value.cost, inputTokens: $0.value.input, outputTokens: $0.value.output, captures: $0.value.count) }
+            .sorted { $0.cost > $1.cost }
     }
 
     var body: some View {
@@ -85,39 +106,49 @@ struct ModelPickerView: View {
 
             // MARK: Total API Cost
             Section {
+                // Total row
                 HStack {
-                    Text("Total cost")
+                    Text("Total")
+                        .fontWeight(.semibold)
                     Spacer()
                     Text(String(format: "$%.4f", totalCostUsd))
                         .foregroundStyle(ReplrTheme.Color.accent)
                         .fontWeight(.semibold)
                         .font(.system(size: 15).monospacedDigit())
                 }
-                HStack {
-                    Text("Tokens in")
-                    Spacer()
-                    Text("\(totalInputTokens)")
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
-                        .font(.system(size: 14).monospacedDigit())
+
+                // Per-model breakdown
+                ForEach(modelStats) { stat in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(stat.id)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(ReplrTheme.Color.textPrimary)
+                            Spacer()
+                            Text(String(format: "$%.4f", stat.cost))
+                                .font(.system(size: 13, weight: .semibold).monospacedDigit())
+                                .foregroundStyle(ReplrTheme.Color.textPrimary)
+                        }
+                        HStack(spacing: 12) {
+                            Text("\(stat.captures) capture\(stat.captures == 1 ? "" : "s")")
+                            Text("↓ \(stat.inputTokens) in")
+                            Text("↑ \(stat.outputTokens) out")
+                        }
+                        .font(.system(size: 11).monospacedDigit())
+                        .foregroundStyle(ReplrTheme.Color.textTertiary)
+                    }
+                    .padding(.vertical, 2)
                 }
-                HStack {
-                    Text("Tokens out")
-                    Spacer()
-                    Text("\(totalOutputTokens)")
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
-                        .font(.system(size: 14).monospacedDigit())
-                }
-                HStack {
-                    Text("Captures tracked")
-                    Spacer()
-                    Text("\(AppGroupService.shared.loadCaptureSessions().filter { $0.costUsd != nil }.count)")
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
-                        .font(.system(size: 14).monospacedDigit())
+
+                if modelStats.isEmpty {
+                    Text("No cost data yet — make a capture first.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(ReplrTheme.Color.textTertiary)
                 }
             } header: {
                 Text("Total API Cost")
             } footer: {
-                Text("Cumulative cost across all tracked captures. Only captures made after cost tracking was added are included.")
+                Text("Cumulative cost per model. Only captures made after cost tracking was deployed are included.")
                     .font(.caption)
             }
         }
