@@ -107,9 +107,15 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.keyboardInstalledKey); defaults.synchronize() }
     }
 
+    // File-backed (not UserDefaults) — the keyboard writes this and the app reads it across
+    // processes; App Group UserDefaults caches stalely between processes, files do not.
     var fullAccessGranted: Bool {
-        get { defaults.bool(forKey: Constants.fullAccessGrantedKey) }
-        set { defaults.set(newValue, forKey: Constants.fullAccessGrantedKey); defaults.synchronize() }
+        get { FileManager.default.fileExists(atPath: container.appendingPathComponent(Constants.fullAccessGrantedKey).path) }
+        set {
+            let url = container.appendingPathComponent(Constants.fullAccessGrantedKey)
+            if newValue { FileManager.default.createFile(atPath: url.path, contents: nil) }
+            else { try? FileManager.default.removeItem(at: url) }
+        }
     }
 
     // MARK: - Memory cue (written by GenerateReplyIntent, read + consumed by keyboard)
