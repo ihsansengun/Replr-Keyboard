@@ -48,6 +48,35 @@ final class AppGroupService {
         defaults.synchronize()
     }
 
+    // MARK: - Captured screenshot tracking (for opt-in cleanup)
+
+    func recordCapturedScreenshotID(_ id: String) {
+        var ids = capturedScreenshotIDs()
+        guard !ids.contains(id) else { return }
+        ids.append(id)
+        if let data = try? JSONEncoder().encode(ids) {
+            defaults.set(data, forKey: Constants.capturedScreenshotIDsKey)
+            defaults.synchronize()
+        }
+    }
+
+    func capturedScreenshotIDs() -> [String] {
+        defaults.synchronize()
+        guard let data = defaults.data(forKey: Constants.capturedScreenshotIDsKey),
+              let ids = try? JSONDecoder().decode([String].self, from: data) else { return [] }
+        return ids
+    }
+
+    func clearCapturedScreenshotIDs() {
+        defaults.removeObject(forKey: Constants.capturedScreenshotIDsKey)
+        defaults.synchronize()
+    }
+
+    var autoClearScreenshots: Bool {
+        get { defaults.bool(forKey: Constants.autoClearScreenshotsKey) }
+        set { defaults.set(newValue, forKey: Constants.autoClearScreenshotsKey); defaults.synchronize() }
+    }
+
     // MARK: - Error relay
 
     func saveError(_ message: String) {

@@ -180,6 +180,7 @@ final class KeyboardModel: ObservableObject {
                 self.repliesGeneratedInMode = .chat
                 self.hasAnySessions = true
                 self.captureBaselineScreenshotID = assetID   // dedup: never reprocess this one
+                AppGroupService.shared.recordCapturedScreenshotID(assetID)
                 self.detectedScreenshotID = nil
                 withAnimation(.easeInOut(duration: 0.2)) { self.state = .replies(result.replies) }
             } catch {

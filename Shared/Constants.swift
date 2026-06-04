@@ -8,6 +8,8 @@ enum Constants {
     static let hasNewRepliesKey       = "has_new_replies"
     static let pendingErrorKey        = "pending_error"
     static let selectedToneKey        = "selected_tone"
+    static let capturedScreenshotIDsKey = "captured_screenshot_ids"
+    static let autoClearScreenshotsKey  = "auto_clear_screenshots"
     static let tonesKey               = "tones"
     static let userIDKey              = "user_id"
     static let transactionIDKey       = "transaction_id"
