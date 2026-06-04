@@ -135,6 +135,7 @@ struct SettingsView: View {
     @State private var showModelPicker = false
     @State private var autoClear = AppGroupService.shared.autoClearScreenshots
     @State private var pendingShots = ScreenshotCleaner.pendingCount()
+    @State private var showTutorial = false
 
     var body: some View {
         NavigationStack {
@@ -153,6 +154,9 @@ struct SettingsView: View {
             }
             .background(ReplrTheme.Color.bg.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
+        }
+        .fullScreenCover(isPresented: $showTutorial) {
+            UsageTutorialView(onDone: { showTutorial = false })
         }
     }
 
@@ -191,6 +195,23 @@ struct SettingsView: View {
                         .font(.system(size: 17))
                     Spacer()
                     Image(systemName: "checklist")
+                        .font(.system(size: 14))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.textTertiary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            cardDivider
+
+            Button { showTutorial = true } label: {
+                settingsRow {
+                    Text("How to use Replr")
+                        .font(.system(size: 17))
+                    Spacer()
+                    Image(systemName: "play.circle")
                         .font(.system(size: 14))
                         .foregroundStyle(ReplrTheme.Color.accent)
                     Image(systemName: "chevron.right")
