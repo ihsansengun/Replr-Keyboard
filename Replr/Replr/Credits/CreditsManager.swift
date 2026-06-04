@@ -81,9 +81,10 @@ final class CreditsManager: ObservableObject {
         let defaults = UserDefaults(suiteName: Constants.appGroupID)!
         guard !defaults.bool(forKey: Constants.creditsMigratedKey) else { return }
 
-        // Convert remaining trial credits
+        // Free tier: enough for at least 5 generations on the default model (was a flat 10 → only 1 Sonnet capture).
+        let freeStartingCredits = 5 * ReplrModel.defaultModel.creditsPerRequest
         let trialUsed = defaults.integer(forKey: Constants.trialUsedCountKey)
-        let remaining = max(0, 10 - trialUsed)
+        let remaining = max(0, freeStartingCredits - trialUsed)
         if remaining > 0 {
             AppGroupService.shared.creditBalance += remaining
         }
