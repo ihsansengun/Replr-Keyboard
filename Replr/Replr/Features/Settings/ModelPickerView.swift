@@ -8,6 +8,16 @@ struct ModelPickerView: View {
         : AppGroupService.shared.userModel
     @State private var devMode = AppGroupService.shared.devMode
     @ObservedObject private var credits = CreditsManager.shared
+    @State private var totalCostUsd: Double = 0
+    @State private var totalInputTokens: Int = 0
+    @State private var totalOutputTokens: Int = 0
+
+    private func refreshCostStats() {
+        let sessions = AppGroupService.shared.loadCaptureSessions()
+        totalCostUsd = sessions.compactMap(\.costUsd).reduce(0, +)
+        totalInputTokens = sessions.compactMap(\.inputTokens).reduce(0, +)
+        totalOutputTokens = sessions.compactMap(\.outputTokens).reduce(0, +)
+    }
 
     var body: some View {
         List {
@@ -72,6 +82,44 @@ struct ModelPickerView: View {
                         .fontWeight(.semibold)
                 }
             }
+
+            // MARK: Total API Cost
+            Section {
+                HStack {
+                    Text("Total cost")
+                    Spacer()
+                    Text(String(format: "$%.4f", totalCostUsd))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                        .fontWeight(.semibold)
+                        .font(.system(size: 15).monospacedDigit())
+                }
+                HStack {
+                    Text("Tokens in")
+                    Spacer()
+                    Text("\(totalInputTokens)")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                        .font(.system(size: 14).monospacedDigit())
+                }
+                HStack {
+                    Text("Tokens out")
+                    Spacer()
+                    Text("\(totalOutputTokens)")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                        .font(.system(size: 14).monospacedDigit())
+                }
+                HStack {
+                    Text("Captures tracked")
+                    Spacer()
+                    Text("\(AppGroupService.shared.loadCaptureSessions().filter { $0.costUsd != nil }.count)")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                        .font(.system(size: 14).monospacedDigit())
+                }
+            } header: {
+                Text("Total API Cost")
+            } footer: {
+                Text("Cumulative cost across all tracked captures. Only captures made after cost tracking was added are included.")
+                    .font(.caption)
+            }
         }
         .navigationTitle("Dev: Model Picker")
         .background(ReplrTheme.Color.bg.ignoresSafeArea())
@@ -80,6 +128,7 @@ struct ModelPickerView: View {
             selectedModelID = devMode
                 ? AppGroupService.shared.devModel
                 : AppGroupService.shared.userModel
+            refreshCostStats()
         }
     }
 }
