@@ -470,22 +470,16 @@ private struct ReadyStep: View {
                         .tracking(-0.5)
                         .foregroundColor(ReplrTheme.Color.textPrimary)
 
-                    Text("Here's how to get replies in any chat:")
+                    Text("Here's how it works — about 30 seconds.")
                         .font(ReplrTheme.Font.callout)
                         .foregroundColor(ReplrTheme.Color.textSecondary)
-
-                    VStack(alignment: .leading, spacing: 12) {
-                        howToRow("1", "Open a chat, tap the message box, and switch to the Replr keyboard (the 🌐 key).")
-                        howToRow("2", "Tap “Start capture” to shrink the keyboard, then take a screenshot of the chat.")
-                        howToRow("3", "Your replies appear right in the keyboard — tap one to drop it in.")
-                    }
                 }
                 .padding(.horizontal, 24)
 
                 Spacer()
 
                 VStack(spacing: 12) {
-                    PrimaryButton(label: "Start using Replr →", action: onDone)
+                    PrimaryButton(label: "Show me how →", action: onDone)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 40)
@@ -555,13 +549,15 @@ struct OnboardingView: View {
                     Color.clear.onAppear { step = 4 }
                 }
             case 4:
-                ReadyStep(onDone: { step = 0; onComplete() })
+                ReadyStep(onDone: { step = 5 })
+            case 5:
+                UsageTutorialView(onDone: { step = 0; onComplete() })
             default:
                 WelcomeStep(onNext: { step = nextStep(from: 1) }, onSignIn: onSignIn)
             }
         }
         .onAppear {
-            if step > 4 { step = 0 }
+            if step > 5 { step = 0 }
             // Revisit from Settings: skip the Welcome marketing screen, go straight to setup.
             if startAtSetup && step == 0 {
                 step = nextStep(from: 1)
@@ -570,6 +566,125 @@ struct OnboardingView: View {
             if step >= 1 && step <= 2 && isSatisfied(step) {
                 step = nextStep(from: step)
             }
+        }
+    }
+}
+
+// MARK: - Usage tutorial (post-setup how-to; also revisitable from Settings)
+
+/// A swipeable how-to carousel shown right after setup, and re-openable from
+/// Settings. Steps: switch to Replr (long-press globe) -> pick Replr ->
+/// minimise -> screenshot -> tap to send. Animation slots are placeholders
+/// until the Lottie scenes are dropped in.
+struct UsageTutorialView: View {
+    var onDone: () -> Void
+
+    private struct TutStep {
+        let icon: String
+        let title: String
+        let body: String
+    }
+
+    private let steps: [TutStep] = [
+        TutStep(icon: "globe",
+                title: "Switch to Replr",
+                body: "In any chat, press and hold the 🌐 key on the keyboard to see your keyboards."),
+        TutStep(icon: "keyboard",
+                title: "Pick Replr",
+                body: "Tap Replr in the list to switch to it."),
+        TutStep(icon: "arrow.down.right.and.arrow.up.left",
+                title: "Minimise Replr",
+                body: "Tap Start so the keyboard shrinks and you can see the whole chat."),
+        TutStep(icon: "camera.viewfinder",
+                title: "Screenshot the chat",
+                body: "Take a screenshot — Replr reads it and drafts your replies."),
+        TutStep(icon: "sparkles",
+                title: "Tap to send",
+                body: "Your replies appear right in the keyboard. Tap one to drop it into the chat."),
+    ]
+
+    @State private var page = 0
+
+    var body: some View {
+        ZStack {
+            ReplrTheme.Color.bg.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                HStack {
+                    Spacer()
+                    Button("Skip", action: onDone)
+                        .font(ReplrTheme.Font.caption)
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+
+                TabView(selection: $page) {
+                    ForEach(steps.indices, id: \.self) { i in
+                        stepPage(steps[i], number: i + 1).tag(i)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .animation(.easeInOut(duration: 0.25), value: page)
+
+                HStack(spacing: 8) {
+                    ForEach(steps.indices, id: \.self) { i in
+                        Circle()
+                            .fill(i == page ? ReplrTheme.Color.accent : ReplrTheme.Color.textTertiary.opacity(0.35))
+                            .frame(width: i == page ? 8 : 6, height: i == page ? 8 : 6)
+                    }
+                }
+                .padding(.vertical, 18)
+
+                PrimaryButton(label: page == steps.count - 1 ? "Start using Replr →" : "Next") {
+                    if page == steps.count - 1 {
+                        onDone()
+                    } else {
+                        withAnimation { page += 1 }
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 40)
+            }
+        }
+    }
+
+    private func stepPage(_ step: TutStep, number: Int) -> some View {
+        VStack(spacing: 22) {
+            Spacer(minLength: 0)
+
+            // Animation slot — placeholder icon until the Lottie is dropped in.
+            ZStack {
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                    .fill(ReplrTheme.Color.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                            .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                    )
+                Image(systemName: step.icon)
+                    .font(.system(size: 54, weight: .light))
+                    .foregroundColor(ReplrTheme.Color.accent)
+            }
+            .frame(height: 210)
+            .padding(.horizontal, 32)
+
+            VStack(spacing: 10) {
+                Text("Step \(number) of \(steps.count)")
+                    .font(ReplrTheme.Font.caption)
+                    .foregroundColor(ReplrTheme.Color.accent)
+                Text(step.title)
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundColor(ReplrTheme.Color.textPrimary)
+                    .multilineTextAlignment(.center)
+                Text(step.body)
+                    .font(ReplrTheme.Font.callout)
+                    .foregroundColor(ReplrTheme.Color.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 28)
+            }
+
+            Spacer(minLength: 0)
         }
     }
 }
