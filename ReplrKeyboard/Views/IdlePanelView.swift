@@ -87,6 +87,22 @@ struct IdlePanelView: View {
                     .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
             )
             .elevatedSurface(.level1)
+
+            // SPIKE — remove after Phase 0
+            Button { model.runPhotosSpike() } label: {
+                Text("🔬 Spike: read latest screenshot")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(ReplrTheme.Color.accent)
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 10)
+            if let spikeResult = model.spikeResult {
+                Text(spikeResult)
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundColor(ReplrTheme.Color.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 4)
+            }
         }
         .padding(.horizontal, 14)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
