@@ -35,7 +35,6 @@ final class KeyboardModel: ObservableObject {
     @Published var isCollapsed: Bool = false
     @Published var memoryContactName: String? = nil
     @Published var showConsentPrompt: Bool = false
-    @Published var spikeResult: String? = nil  // SPIKE — remove after Phase 0
     @Published var detectedScreenshotID: String? = nil   // a new screenshot awaiting the confirm tap
     var captureBaselineScreenshotID: String? = nil        // newest screenshot at moment-of-collapse (dedup)
 
@@ -190,15 +189,6 @@ final class KeyboardModel: ObservableObject {
         }
     }
 
-    // SPIKE — remove after Phase 0
-    func runPhotosSpike() {
-        spikeResult = "Running…"
-        Task { @MainActor in
-            let result = await PhotosCapture.run()
-            spikeResult = result
-            NSLog("[Replr][Spike] %@", result)
-        }
-    }
 
     func regenerateReplies() {
         let balance = AppGroupService.shared.effectiveCreditBalance
@@ -786,19 +776,6 @@ enum PhotosCapture {
                 // else: degraded frame — wait for the full-quality delivery
             }
         }
-    }
-
-    /// SPIKE — dev-screen diagnostic; safe to remove later.
-    static func run() async -> String {
-        let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
-        guard status == .authorized || status == .limited else {
-            return "✗ Photos not authorized (status=\(status.rawValue))."
-        }
-        guard let id = latestScreenshotID(), let image = await loadImage(id: id) else {
-            return "✗ No screenshot found / load failed."
-        }
-        let mem = os_proc_available_memory()
-        return "✓ loaded \(Int(image.size.width))×\(Int(image.size.height)) · headroom \(String(format: "%.1f", Double(mem)/1_048_576))MB"
     }
 }
 
