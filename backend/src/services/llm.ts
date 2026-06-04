@@ -58,10 +58,13 @@ function resolveModel(model: Model): ModelResolution {
   }
 }
 
-export interface LlmResult {
+interface ParsedOutput {
   replies: string[]
   summary: string
   contactName: string
+}
+
+export interface LlmResult extends ParsedOutput {
   inputTokens: number
   outputTokens: number
   costUsd: number
@@ -87,7 +90,7 @@ function calcCost(apiModel: string, inputTokens: number, outputTokens: number): 
 
 /** Parse LLM output: optional CONTACT: line, optional SUMMARY: line, numbered replies.
  *  Replies may span multiple lines (e.g. email bodies). */
-export function parseLlmOutput(text: string): LlmResult {
+export function parseLlmOutput(text: string): ParsedOutput {
   const lines = text.split('\n')
   let summary = ''
   let contactName = ''
