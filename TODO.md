@@ -1,8 +1,22 @@
 # Replr — Active TODOs
 
-State: branch reverted to `a1a5151`. Codebase matches pre-redesign-attempt state.
+State: `main` @ 2026-06-04. Screenshot-capture **Phase 1 shipped** (keyboard watches Photos → replies, no Back Tap). Revert point: tag `stable-2026-06-04-pre-capture-redesign`.
 
-## Onboarding redesign
+## Screenshot capture — Phase 2 (next)
+
+Phase 1 (done): collapse keyboard → take screenshot → strip arms "tap to generate" → replies. Works on iOS 16.6+. Spike proved keyboard Photos reads are cheap (~137 MB headroom).
+
+Remaining work:
+
+- **Onboarding restructure** — make screenshot capture the primary taught flow. Demote Back Tap to optional/advanced (it still works; just not required). Drop the Shortcut-install + Accessibility steps from the required path.
+- **iOS-version-aware setup tip** — on **iOS 26+ only**, show the one-toggle tip: Settings → Screen Capture → turn OFF "Full-Screen Previews" (otherwise screenshots don't auto-save and the watcher can't see them). iOS 16–18 auto-save by default → show nothing. Version is detectable; the setting value is not.
+- **Adaptive "not detected" hint** — if user collapses + screenshots but nothing arms within ~5 s, surface "didn't catch that — check Full-Screen Previews." Safety net for the iOS 26 case.
+- **Screenshot clutter mitigation** — the one real downside: captures pile up in Photos. Recommended: track captured `localIdentifier`s, offer a "Clear Replr screenshots (N)" bulk-delete button (one iOS confirmation). NOT per-capture auto-delete (iOS prompts per deletion → re-adds a tap).
+- **"Looking for screenshot…" wait indicator** — the ~3 s auto-save delay should read as intentional in the collapsed strip.
+- **Spike cleanup** — remove the keyboard 🔬 spike button, `runPhotosSpike`/`spikeResult`, and `PhotosCapture.run()`; replace the dev-screen "Request Photos Access" button with real onboarding permission UX. (Keep the `NSPhotoLibraryUsageDescription` fix.)
+- **Phase 3 (later):** slim-bar-as-default Chat state (replace the idle panel) so the capture bar is the resting state, per the original brainstorm.
+
+## Onboarding redesign (SUPERSEDED by screenshot capture — keep for reference)
 
 Approach: **static image crossfade** showing the path through Settings → Accessibility → Touch → Back Tap → Triple Tap → Replr Capture. 5–6 PNG screenshots of the key states, crossfaded with native SwiftUI animation.
 
