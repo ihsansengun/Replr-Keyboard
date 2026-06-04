@@ -510,6 +510,82 @@ private struct FullScreenPreviewTipStep: View {
     }
 }
 
+// MARK: - Ready (final handoff — how to start using the keyboard)
+
+private struct ReadyStep: View {
+    let onDone: () -> Void
+
+    var body: some View {
+        ZStack {
+            ReplrTheme.Color.bg.ignoresSafeArea()
+
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    ReplrMark(size: 14)
+                    Spacer()
+                    Text("All set")
+                        .font(ReplrTheme.Font.caption)
+                        .foregroundColor(ReplrTheme.Color.textTertiary)
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
+
+                Spacer()
+
+                VStack(alignment: .leading, spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(ReplrTheme.Color.accent)
+                            .frame(width: 56, height: 56)
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 26, weight: .bold))
+                            .foregroundColor(ReplrTheme.Color.onAccent)
+                    }
+
+                    Text("You're set up.")
+                        .font(.system(size: 32, weight: .bold))
+                        .tracking(-0.5)
+                        .foregroundColor(ReplrTheme.Color.textPrimary)
+
+                    Text("Here's how to get replies in any chat:")
+                        .font(ReplrTheme.Font.callout)
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        howToRow("1", "Open a chat, tap the message box, and switch to the Replr keyboard (the 🌐 key).")
+                        howToRow("2", "Tap “Start capture” to shrink the keyboard, then take a screenshot of the chat.")
+                        howToRow("3", "Your replies appear right in the keyboard — tap one to drop it in.")
+                    }
+                }
+                .padding(.horizontal, 24)
+
+                Spacer()
+
+                VStack(spacing: 12) {
+                    PrimaryButton(label: "Start using Replr →", action: onDone)
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 40)
+            }
+        }
+    }
+
+    private func howToRow(_ n: String, _ text: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Text(n)
+                .font(.system(size: 12, weight: .bold).monospacedDigit())
+                .foregroundColor(ReplrTheme.Color.onAccent)
+                .frame(width: 22, height: 22)
+                .background(Circle().fill(ReplrTheme.Color.accent))
+            Text(text)
+                .font(ReplrTheme.Font.callout)
+                .foregroundColor(ReplrTheme.Color.textPrimary)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
 // MARK: - Root coordinator
 
 struct OnboardingView: View {
@@ -552,17 +628,19 @@ struct OnboardingView: View {
                 PhotosPermissionStep(onNext: { step = 4 }, onBack: { step = 2 })
             case 4:
                 if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26 {
-                    FullScreenPreviewTipStep(onNext: { step = 0; onComplete() }, onBack: { step = 3 })
+                    FullScreenPreviewTipStep(onNext: { step = 5 }, onBack: { step = 3 })
                 } else {
-                    // Older iOS auto-saves screenshots — no tip needed; finish onboarding.
-                    Color.clear.onAppear { step = 0; onComplete() }
+                    // Older iOS auto-saves screenshots — no tip needed; go straight to the handoff.
+                    Color.clear.onAppear { step = 5 }
                 }
+            case 5:
+                ReadyStep(onDone: { step = 0; onComplete() })
             default:
                 WelcomeStep(onNext: { step = nextStep(from: 1) }, onSignIn: onSignIn)
             }
         }
         .onAppear {
-            if step > 4 { step = 0 }
+            if step > 5 { step = 0 }
             // If we resumed onto an already-granted permission step, skip forward to the first that needs action.
             if step >= 1 && step <= 3 && isSatisfied(step) {
                 step = nextStep(from: step)
