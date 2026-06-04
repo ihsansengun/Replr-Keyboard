@@ -450,21 +450,14 @@ private struct FullScreenPreviewTipStep: View {
     var body: some View {
         OnboardingStep(
             step: 4, totalSteps: 4,
-            sectionLabel: "One setting",
+            sectionLabel: "Optional",
             headline: "Turn off Full-Screen Previews.",
-            bodyText: "On iOS 26, screenshots open a full editor instead of saving on their own. Turn this off so Replr can pick them up automatically — Settings → Screen Capture → Full-Screen Previews → off.",
+            bodyText: "On iOS 26, screenshots open a full editor instead of saving on their own — so Replr can't catch them hands-free.\n\nFor one-tap capture, open the Settings app → Screen Capture, and turn off Full-Screen Previews. (iOS doesn't let apps jump straight to that page.)\n\nThis is optional — capture still works without it; you'll just tap Save on each screenshot first.",
             onBack: onBack
         ) {
             EmptyView()
         } cta: {
-            VStack(spacing: 12) {
-                PrimaryButton(label: "Open Settings →") {
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(url)
-                    }
-                }
-                TertiaryButton(label: "Done →", action: onNext)
-            }
+            PrimaryButton(label: "Done →", action: onNext)
         }
     }
 }
