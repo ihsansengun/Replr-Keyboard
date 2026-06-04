@@ -31,6 +31,7 @@ final class KeyboardModel: ObservableObject {
     @Published var hasAnySessions: Bool = false
     @Published var inputMode: KeyboardInputMode = .chat
     @Published var repliesGeneratedInMode: KeyboardInputMode = .chat
+    var lastEmailText: String? = nil   // email text behind the current replies, for Regenerate
     @Published var isCaptureMode: Bool = false
     @Published var isCollapsed: Bool = false
     @Published var memoryContactName: String? = nil
@@ -78,6 +79,7 @@ final class KeyboardModel: ObservableObject {
             withAnimation { state = .error("No text on clipboard. Copy the email first.") }
             return
         }
+        lastEmailText = emailText   // remember for Regenerate
         withAnimation(.easeInOut(duration: 0.2)) { state = .loading }
         Task { @MainActor [weak self] in
             guard let self else { return }
@@ -195,17 +197,33 @@ final class KeyboardModel: ObservableObject {
     }
 
 
+    /// Re-runs the SAME input that produced the current replies — email text in email mode,
+    /// the saved screenshot in chat mode — so Regenerate works correctly in both.
     func regenerateReplies() {
-        let balance = AppGroupService.shared.effectiveCreditBalance
         let required = AppGroupService.shared.creditsRequired
-        guard balance >= required else {
+        guard AppGroupService.shared.effectiveCreditBalance >= required else {
             withAnimation(.easeInOut(duration: 0.2)) { state = .paywall }
             return
         }
-        guard let image = try? AppGroupService.shared.readScreenshot() else {
+        let summary = pendingContext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? nil : pendingContext
+        let isEmail = (repliesGeneratedInMode == .email)
+
+        // Resolve the source up front so we can bail before showing loading.
+        let emailText = lastEmailText ?? UIPasteboard.general.string
+        let image: UIImage? = isEmail ? nil : (try? AppGroupService.shared.readScreenshot())
+
+        if isEmail {
+            guard let text = emailText,
+                  !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                withAnimation { state = .error("No email to regenerate. Copy the email again.") }
+                return
+            }
+        } else if image == nil {
             withAnimation { state = .error("No screenshot saved. Capture again.") }
             return
         }
+
         withAnimation(.easeInOut(duration: 0.2)) { state = .loading }
         Task { @MainActor [weak self] in
             guard let self else { return }
@@ -218,18 +236,23 @@ final class KeyboardModel: ObservableObject {
                 previousContext = nil
             }
             do {
-                let result = try await ReplyService.shared.generateReplies(
-                    screenshot: image,
-                    tone: selectedTone,
-                    summary: pendingContext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : pendingContext,
-                    previousContext: previousContext
-                )
+                let result: ReplyResult
+                if isEmail {
+                    result = try await ReplyService.shared.generateRepliesFromEmail(
+                        emailText: emailText ?? "", tone: self.selectedTone,
+                        summary: summary, previousContext: previousContext)
+                } else {
+                    result = try await ReplyService.shared.generateReplies(
+                        screenshot: image!, tone: self.selectedTone,
+                        summary: summary, previousContext: previousContext)
+                }
                 if !AppGroupService.shared.devMode { AppGroupService.shared.creditBalance -= required }
-                currentReplies = result.replies
+                self.currentReplies = result.replies
+                self.repliesGeneratedInMode = isEmail ? .email : .chat
                 AppGroupService.shared.saveReplies(result.replies)
-                withAnimation(.easeInOut(duration: 0.2)) { state = .replies(result.replies) }
+                withAnimation(.easeInOut(duration: 0.2)) { self.state = .replies(result.replies) }
             } catch {
-                withAnimation { state = .error(error.localizedDescription) }
+                withAnimation { self.state = .error(error.localizedDescription) }
             }
         }
     }
