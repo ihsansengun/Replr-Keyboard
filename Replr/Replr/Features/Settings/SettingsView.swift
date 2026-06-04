@@ -1,4 +1,31 @@
 import SwiftUI
+import Photos
+
+/// Deletes ONLY the screenshots Replr recorded (by localIdentifier). Never touches other photos.
+enum ScreenshotCleaner {
+    static func pendingCount() -> Int {
+        AppGroupService.shared.capturedScreenshotIDs().count
+    }
+
+    /// Batch-deletes recorded screenshots. iOS shows one confirmation. Clears the list on success.
+    static func clean(completion: ((Bool) -> Void)? = nil) {
+        let ids = AppGroupService.shared.capturedScreenshotIDs()
+        guard !ids.isEmpty else { completion?(true); return }
+        let assets = PHAsset.fetchAssets(withLocalIdentifiers: ids, options: nil)
+        guard assets.count > 0 else {
+            AppGroupService.shared.clearCapturedScreenshotIDs()   // all already gone
+            completion?(true); return
+        }
+        PHPhotoLibrary.shared().performChanges {
+            PHAssetChangeRequest.deleteAssets(assets)
+        } completionHandler: { success, _ in
+            DispatchQueue.main.async {
+                if success { AppGroupService.shared.clearCapturedScreenshotIDs() }
+                completion?(success)
+            }
+        }
+    }
+}
 
 struct SettingsView: View {
     @State private var persistReplies = AppGroupService.shared.persistReplies
@@ -8,6 +35,8 @@ struct SettingsView: View {
     @State private var activeToneName = AppGroupService.shared.readSelectedTone().name
     @State private var selectedModel = AppGroupService.shared.userModel
     @State private var showModelPicker = false
+    @State private var autoClear = AppGroupService.shared.autoClearScreenshots
+    @State private var pendingShots = ScreenshotCleaner.pendingCount()
 
     var body: some View {
         NavigationStack {
@@ -17,6 +46,7 @@ struct SettingsView: View {
                     keyboardSection
                     aiModelSection
                     memorySection
+                    screenshotSection
                     accountSection
                     aboutSection
                     Spacer(minLength: 110) // clearance for floating tab pill
@@ -164,6 +194,40 @@ struct SettingsView: View {
                     }
                 }
             }
+        }
+    }
+
+    // MARK: - Screenshots
+
+    private var screenshotSection: some View {
+        settingsSection("Screenshots") {
+            settingsRow {
+                Text("Auto-clear captured screenshots")
+                    .font(.system(size: 17))
+                Spacer()
+                BrandToggle(isOn: $autoClear)
+                    .onChange(of: autoClear) { AppGroupService.shared.autoClearScreenshots = $0 }
+            }
+            if pendingShots > 0 {
+                cardDivider
+                Button {
+                    ScreenshotCleaner.clean { _ in pendingShots = ScreenshotCleaner.pendingCount() }
+                } label: {
+                    settingsRow {
+                        Text("Clear \(pendingShots) captured screenshot\(pendingShots == 1 ? "" : "s")")
+                            .font(.system(size: 17))
+                            .foregroundStyle(ReplrTheme.Color.accent)
+                        Spacer()
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+            cardDivider
+            Text("Only deletes screenshots Replr captured for replies — never your other photos. iOS asks you to confirm.")
+                .font(.system(size: 12))
+                .foregroundStyle(ReplrTheme.Color.textSecondary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
         }
     }
 

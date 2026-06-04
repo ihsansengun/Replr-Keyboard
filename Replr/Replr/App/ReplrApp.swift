@@ -72,6 +72,10 @@ struct ReplrApp: App {
                         if AppGroupService.shared.effectiveCreditBalance == 0 {
                             showPaywall = true
                         }
+                        if AppGroupService.shared.autoClearScreenshots,
+                           ScreenshotCleaner.pendingCount() >= 5 {
+                            ScreenshotCleaner.clean()
+                        }
                     }
                     .fullScreenCover(isPresented: $showPaywall) {
                         NavigationStack {
