@@ -70,16 +70,16 @@ export interface LlmResult extends ParsedOutput {
   costUsd: number
 }
 
-// Cost per million tokens (USD) for each model
+// Cost per million tokens (USD) — sourced June 2026
 const PRICING: Record<string, { inputPerM: number; outputPerM: number }> = {
-  'claude-sonnet-4-6':      { inputPerM: 3.00,  outputPerM: 15.00 },
-  'claude-opus-4-6':        { inputPerM: 15.00, outputPerM: 75.00 },
-  'gpt-5.4':                { inputPerM: 10.00, outputPerM: 30.00 },
-  'gpt-5.4-mini':           { inputPerM: 0.40,  outputPerM: 1.60  },
-  'gpt-5.5':                { inputPerM: 20.00, outputPerM: 60.00 },
-  'grok-4':                 { inputPerM: 3.00,  outputPerM: 15.00 },
-  'grok-4.3':               { inputPerM: 3.00,  outputPerM: 15.00 },
-  'gemini-3.1-pro-preview': { inputPerM: 1.25,  outputPerM: 5.00  },
+  'claude-sonnet-4-6':      { inputPerM: 3.00,  outputPerM: 15.00 }, // anthropic.com
+  'claude-opus-4-6':        { inputPerM: 15.00, outputPerM: 75.00 }, // anthropic.com
+  'gpt-5.4':                { inputPerM: 2.50,  outputPerM: 15.00 }, // openai.com
+  'gpt-5.4-mini':           { inputPerM: 0.75,  outputPerM: 4.50  }, // openai.com
+  'gpt-5.5':                { inputPerM: 5.00,  outputPerM: 30.00 }, // openai.com
+  'grok-4':                 { inputPerM: 3.00,  outputPerM: 15.00 }, // x.ai
+  'grok-4.3':               { inputPerM: 1.25,  outputPerM: 2.50  }, // x.ai
+  'gemini-3.1-pro-preview': { inputPerM: 2.00,  outputPerM: 12.00 }, // ai.google.dev
 }
 
 function calcCost(apiModel: string, inputTokens: number, outputTokens: number): number {

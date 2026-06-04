@@ -29,7 +29,7 @@ const validBody = {
 describe('POST /reply', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGenerateReplies.mockResolvedValue({ replies: ['Reply 1', 'Reply 2', 'Reply 3'], summary: 'Test summary', contactName: 'Test Contact' })
+    mockGenerateReplies.mockResolvedValue({ replies: ['Reply 1', 'Reply 2', 'Reply 3'], summary: 'Test summary', contactName: 'Test Contact', inputTokens: 1000, outputTokens: 100, costUsd: 0.0045 })
   })
 
   it('returns replies for valid request', async () => {
