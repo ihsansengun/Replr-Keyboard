@@ -123,6 +123,7 @@ final class KeyboardViewController: UIInputViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isCollapsed in
                 guard let self, isCollapsed else { return }
+                self.model.captureBaselineScreenshotID = PhotosCapture.latestScreenshotID()
                 let ctx = self.model.pendingContext
                 AppGroupService.shared.savePendingContext(ctx)
                 let fieldText = self.textDocumentProxy.documentContextBeforeInput ?? ""
@@ -255,6 +256,19 @@ final class KeyboardViewController: UIInputViewController {
                         withAnimation { self.model.state = .error(error) }
                     }
                 }
+
+                // Phase 1 — Photos watcher: arm on a screenshot newer than the collapse baseline
+                let (collapsed, alreadyDetected, baseline) = await MainActor.run {
+                    (self.model.isCollapsed,
+                     self.model.detectedScreenshotID != nil,
+                     self.model.captureBaselineScreenshotID)
+                }
+                if collapsed && !alreadyDetected,
+                   let latest = PhotosCapture.latestScreenshotID(), latest != baseline {
+                    NSLog("[Replr][Keyboard] new screenshot detected: %@", latest)
+                    await MainActor.run { self.model.detectedScreenshotID = latest }
+                }
+
                 try? await Task.sleep(nanoseconds: 250_000_000)
             }
         }
