@@ -27,6 +27,104 @@ enum ScreenshotCleaner {
     }
 }
 
+// MARK: - Setup status (Settings → "Set up Replr")
+
+struct SetupStatusView: View {
+    @State private var fullAccess = AppGroupService.shared.fullAccessGranted
+    @State private var photosStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+    @State private var showSetup = false
+    @Environment(\.scenePhase) private var scenePhase
+
+    private var photosOK: Bool { photosStatus == .authorized || photosStatus == .limited }
+    private var allSet: Bool { fullAccess && photosOK }
+    private var isiOS26: Bool { ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26 }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(allSet ? "You're all set." : "Finish setting up.")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundStyle(ReplrTheme.Color.textPrimary)
+                    Text(allSet
+                         ? "Everything Replr needs is enabled — you're good to go."
+                         : "A couple of things still need turning on.")
+                        .font(.system(size: 15))
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                }
+                .padding(.top, 8)
+
+                VStack(spacing: 0) {
+                    statusRow(title: "Keyboard & Full Access", on: fullAccess)
+                    Divider().overlay(ReplrTheme.Color.glassBorder).padding(.leading, 48)
+                    statusRow(title: "Photos access", on: photosOK)
+                }
+                .background(ReplrTheme.Color.surfaceRaised)
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                        .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                )
+
+                if isiOS26 {
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 13))
+                            .foregroundStyle(ReplrTheme.Color.textTertiary)
+                        Text("Optional: turn off Full-Screen Previews (Settings → Screen Capture) so screenshots are caught hands-free.")
+                            .font(.system(size: 13))
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+
+                if !allSet {
+                    PrimaryButton(label: "Finish setup →") { showSetup = true }
+                        .padding(.top, 4)
+                }
+
+                Spacer(minLength: 24)
+            }
+            .padding(20)
+        }
+        .background(ReplrTheme.Color.bg.ignoresSafeArea())
+        .navigationTitle("Setup")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear(perform: refresh)
+        .onChange(of: scenePhase) { phase in if phase == .active { refresh() } }
+        .sheet(isPresented: $showSetup) {
+            OnboardingView(
+                onComplete: { showSetup = false; refresh() },
+                onSignIn: { showSetup = false },
+                startAtSetup: true
+            )
+        }
+    }
+
+    private func refresh() {
+        AppGroupService.shared.synchronize()
+        fullAccess = AppGroupService.shared.fullAccessGranted
+        photosStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+    }
+
+    private func statusRow(title: String, on: Bool) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: on ? "checkmark.circle.fill" : "circle")
+                .font(.system(size: 22))
+                .foregroundStyle(on ? ReplrTheme.Color.success : ReplrTheme.Color.textTertiary)
+            Text(title)
+                .font(.system(size: 16))
+                .foregroundStyle(ReplrTheme.Color.textPrimary)
+            Spacer()
+            Text(on ? "On" : "Off")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(on ? ReplrTheme.Color.success : ReplrTheme.Color.textSecondary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 16)
+    }
+}
+
 struct SettingsView: View {
     @State private var persistReplies = AppGroupService.shared.persistReplies
     @State private var memoryWindowDays = AppGroupService.shared.memoryWindowDays
@@ -37,7 +135,6 @@ struct SettingsView: View {
     @State private var showModelPicker = false
     @State private var autoClear = AppGroupService.shared.autoClearScreenshots
     @State private var pendingShots = ScreenshotCleaner.pendingCount()
-    @State private var showSetup = false
 
     var body: some View {
         NavigationStack {
@@ -56,15 +153,6 @@ struct SettingsView: View {
             }
             .background(ReplrTheme.Color.bg.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
-        }
-        .sheet(isPresented: $showSetup) {
-            // Re-run the (status-aware) onboarding — skips Welcome, lands on whatever's still
-            // missing, and is swipe-dismissable since this is a revisit, not first-run.
-            OnboardingView(
-                onComplete: { showSetup = false },
-                onSignIn: { showSetup = false },
-                startAtSetup: true
-            )
         }
     }
 
@@ -97,7 +185,7 @@ struct SettingsView: View {
 
     private var keyboardSection: some View {
         settingsSection("Keyboard") {
-            Button { showSetup = true } label: {
+            NavigationLink(destination: SetupStatusView()) {
                 settingsRow {
                     Text("Set up Replr")
                         .font(.system(size: 17))
