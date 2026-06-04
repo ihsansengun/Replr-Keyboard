@@ -27,7 +27,7 @@ struct IdlePanelView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Badge("Capture", systemImage: "scope")
 
-                    Text("Open the chat, then collapse this keyboard — Replr records what's on screen when you triple-tap.")
+                    Text("Open the chat, collapse this keyboard, then take a screenshot — Replr reads it and drafts your replies.")
                         .font(.system(size: 13))
                         .foregroundColor(ReplrTheme.Color.textPrimary)
                         .lineSpacing(2)

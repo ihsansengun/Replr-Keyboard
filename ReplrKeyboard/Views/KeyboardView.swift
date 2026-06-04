@@ -380,7 +380,7 @@ struct CoachmarkBalloon: View {
                 .rotationEffect(.degrees(45))
                 .offset(x: 20, y: 5)
         }
-        .accessibilityLabel("Coachmark: Keyboard's minimised. Triple-tap the back.")
+        .accessibilityLabel("Coachmark: Keyboard's minimised. Take a screenshot of the chat.")
     }
 }
 
