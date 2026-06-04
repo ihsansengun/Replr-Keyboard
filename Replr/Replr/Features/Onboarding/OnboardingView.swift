@@ -116,7 +116,7 @@ private struct WelcomeStep: View {
                             .foregroundColor(ReplrTheme.Color.textSecondary)
                     }
 
-                    Text("Triple-tap the back of your phone. Replr reads the chat, drafts the reply, you tap to send.")
+                    Text("Screenshot any chat. Replr reads it, drafts the reply, you tap to send.")
                         .font(ReplrTheme.Font.callout)
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .lineSpacing(4)
