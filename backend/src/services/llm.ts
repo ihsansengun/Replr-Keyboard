@@ -161,9 +161,11 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
     const textBlock = response.content.find(b => b.type === 'text')
     const inputTokens = response.usage.input_tokens
     const outputTokens = response.usage.output_tokens
+    const costUsd = calcCost(apiModel, inputTokens, outputTokens)
+    console.log(`[usage] ${apiModel} in=${inputTokens} out=${outputTokens} cost=$${costUsd.toFixed(6)}`)
     return {
       ...parseLlmOutput(textBlock && 'text' in textBlock ? textBlock.text : ''),
-      inputTokens, outputTokens, costUsd: calcCost(apiModel, inputTokens, outputTokens)
+      inputTokens, outputTokens, costUsd
     }
   }
 
@@ -189,9 +191,11 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
   })
   const inputTokens = response.usage?.prompt_tokens ?? 0
   const outputTokens = response.usage?.completion_tokens ?? 0
+  const costUsd = calcCost(apiModel, inputTokens, outputTokens)
+  console.log(`[usage] ${provider}/${apiModel} usage=${JSON.stringify(response.usage)} in=${inputTokens} out=${outputTokens} cost=$${costUsd.toFixed(6)}`)
   return {
     ...parseLlmOutput(response.choices[0].message.content ?? ''),
-    inputTokens, outputTokens, costUsd: calcCost(apiModel, inputTokens, outputTokens)
+    inputTokens, outputTokens, costUsd
   }
 }
 
@@ -210,9 +214,11 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
     const textBlock = response.content.find(b => b.type === 'text')
     const inputTokens = response.usage.input_tokens
     const outputTokens = response.usage.output_tokens
+    const costUsd = calcCost(apiModel, inputTokens, outputTokens)
+    console.log(`[usage] ${apiModel} in=${inputTokens} out=${outputTokens} cost=$${costUsd.toFixed(6)}`)
     return {
       ...parseLlmOutput(textBlock && 'text' in textBlock ? textBlock.text : ''),
-      inputTokens, outputTokens, costUsd: calcCost(apiModel, inputTokens, outputTokens)
+      inputTokens, outputTokens, costUsd
     }
   }
 
@@ -233,9 +239,11 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
   })
   const inputTokens = response.usage?.prompt_tokens ?? 0
   const outputTokens = response.usage?.completion_tokens ?? 0
+  const costUsd = calcCost(apiModel, inputTokens, outputTokens)
+  console.log(`[usage] ${provider}/${apiModel} usage=${JSON.stringify(response.usage)} in=${inputTokens} out=${outputTokens} cost=$${costUsd.toFixed(6)}`)
   return {
     ...parseLlmOutput(response.choices[0].message.content ?? ''),
-    inputTokens, outputTokens, costUsd: calcCost(apiModel, inputTokens, outputTokens)
+    inputTokens, outputTokens, costUsd
   }
 }
 
