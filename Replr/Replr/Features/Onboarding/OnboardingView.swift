@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import Photos
 
 // MARK: - Shared step wrapper
 
@@ -401,6 +402,73 @@ private struct InstallShortcutStep: View {
     }
 }
 
+// MARK: - Photos permission (Phase 2 — screenshot capture)
+
+private struct PhotosPermissionStep: View {
+    let onNext: () -> Void
+    let onBack: () -> Void
+    @State private var status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+    private var granted: Bool { status == .authorized || status == .limited }
+
+    var body: some View {
+        OnboardingStep(
+            step: 3, totalSteps: 4,
+            sectionLabel: "Permissions",
+            headline: "Allow Photos.",
+            bodyText: "Replr reads the screenshot you take of a chat to draft replies. It only ever reads the one screenshot you capture — nothing else.",
+            onBack: onBack
+        ) {
+            EmptyView()
+        } cta: {
+            if granted {
+                PrimaryButton(label: "Photos allowed ✓ — Continue →", action: onNext)
+            } else {
+                VStack(spacing: 12) {
+                    PrimaryButton(label: "Allow Photos →") {
+                        PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
+                            DispatchQueue.main.async {
+                                status = newStatus
+                                if newStatus == .authorized || newStatus == .limited {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { onNext() }
+                                }
+                            }
+                        }
+                    }
+                    TertiaryButton(label: "Skip", action: onNext)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - iOS 26 Full-Screen Previews tip (only shown on iOS 26+)
+
+private struct FullScreenPreviewTipStep: View {
+    let onNext: () -> Void
+    let onBack: () -> Void
+
+    var body: some View {
+        OnboardingStep(
+            step: 4, totalSteps: 4,
+            sectionLabel: "One setting",
+            headline: "Turn off Full-Screen Previews.",
+            bodyText: "On iOS 26, screenshots open a full editor instead of saving on their own. Turn this off so Replr can pick them up automatically — Settings → Screen Capture → Full-Screen Previews → off.",
+            onBack: onBack
+        ) {
+            EmptyView()
+        } cta: {
+            VStack(spacing: 12) {
+                PrimaryButton(label: "Open Settings →") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                TertiaryButton(label: "Done →", action: onNext)
+            }
+        }
+    }
+}
+
 // MARK: - Root coordinator
 
 struct OnboardingView: View {
@@ -418,12 +486,14 @@ struct OnboardingView: View {
             case 2:
                 FullAccessStep(onNext: { step = 3 }, onBack: { step = 1 })
             case 3:
-                InstallShortcutStep(onNext: { step = 4 }, onBack: { step = 2 })
+                PhotosPermissionStep(onNext: { step = 4 }, onBack: { step = 2 })
             case 4:
-                BackTapStep(
-                    onNext: { step = 0; onComplete() },
-                    onBack: { step = 3 }
-                )
+                if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26 {
+                    FullScreenPreviewTipStep(onNext: { step = 0; onComplete() }, onBack: { step = 3 })
+                } else {
+                    // Older iOS auto-saves screenshots — no tip needed; finish onboarding.
+                    Color.clear.onAppear { step = 0; onComplete() }
+                }
             default:
                 WelcomeStep(onNext: { step = 1 }, onSignIn: onSignIn)
             }
