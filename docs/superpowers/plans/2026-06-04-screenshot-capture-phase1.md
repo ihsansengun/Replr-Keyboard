@@ -414,7 +414,12 @@ git commit -m "feat: collapsed strip arms 'tap to generate' on screenshot detect
   - History (Replies tab) shows the session with tone + cost?
   - Any crash or wrong-screenshot pickup?
 
-- [ ] **Step 3: Record the outcome** in this plan and decide Phase 2 (onboarding/permission UX + slim-bar redesign) based on what the real behavior turned out to be.
+- [x] **Step 3: Record the outcome** in this plan and decide Phase 2 (onboarding/permission UX + slim-bar redesign) based on what the real behavior turned out to be.
+
+  **OUTCOME (2026-06-04, on device): WORKS. 🎉**
+  - End-to-end confirmed: collapse → screenshot → strip arms "✨ Screenshot ready" → tap → correct replies, no Back Tap.
+  - **Key finding — the auto-save question is answered:** iOS 26's default "Full-Screen Previews" makes a screenshot wait for a manual action, so it does NOT auto-commit. **Turning off Settings → Screen Capture → Full-Screen Previews** reverts to the corner thumbnail that auto-saves in ~3 s — and then the watcher catches it with **zero taps**. So the zero-tap flow is real, gated on that one device setting.
+  - **Phase 2 direction (per user):** onboarding should (a) explain the Full-Screen Previews toggle as the recommended setup for auto-capture, and (b) keep Back Tap as an optional/advanced path. Also: clutter mitigation (screenshots accumulate) and the ~3 s "looking for screenshot…" wait indicator. Spike-only UI (keyboard 🔬 button, `runPhotosSpike`) to be cleaned up in Phase 2.
 
 ---
 
