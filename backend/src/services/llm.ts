@@ -62,6 +62,27 @@ export interface LlmResult {
   replies: string[]
   summary: string
   contactName: string
+  inputTokens: number
+  outputTokens: number
+  costUsd: number
+}
+
+// Cost per million tokens (USD) for each model
+const PRICING: Record<string, { inputPerM: number; outputPerM: number }> = {
+  'claude-sonnet-4-6':      { inputPerM: 3.00,  outputPerM: 15.00 },
+  'claude-opus-4-6':        { inputPerM: 15.00, outputPerM: 75.00 },
+  'gpt-5.4':                { inputPerM: 10.00, outputPerM: 30.00 },
+  'gpt-5.4-mini':           { inputPerM: 0.40,  outputPerM: 1.60  },
+  'gpt-5.5':                { inputPerM: 20.00, outputPerM: 60.00 },
+  'grok-4':                 { inputPerM: 3.00,  outputPerM: 15.00 },
+  'grok-4.3':               { inputPerM: 3.00,  outputPerM: 15.00 },
+  'gemini-3.1-pro-preview': { inputPerM: 1.25,  outputPerM: 5.00  },
+}
+
+function calcCost(apiModel: string, inputTokens: number, outputTokens: number): number {
+  const p = PRICING[apiModel]
+  if (!p) return 0
+  return (inputTokens / 1_000_000) * p.inputPerM + (outputTokens / 1_000_000) * p.outputPerM
 }
 
 /** Parse LLM output: optional CONTACT: line, optional SUMMARY: line, numbered replies.
@@ -135,7 +156,12 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
       messages: [{ role: 'user', content: [...imageContent, { type: 'text', text: user }] }],
     })
     const textBlock = response.content.find(b => b.type === 'text')
-    return parseLlmOutput(textBlock && 'text' in textBlock ? textBlock.text : '')
+    const inputTokens = response.usage.input_tokens
+    const outputTokens = response.usage.output_tokens
+    return {
+      ...parseLlmOutput(textBlock && 'text' in textBlock ? textBlock.text : ''),
+      inputTokens, outputTokens, costUsd: calcCost(apiModel, inputTokens, outputTokens)
+    }
   }
 
   // xAI (Grok) and Google (Gemini) — both use OpenAI-compatible endpoints
@@ -158,7 +184,12 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
       { role: 'user', content: [...imageContent, { type: 'text', text: user }] as any },
     ],
   })
-  return parseLlmOutput(response.choices[0].message.content ?? '')
+  const inputTokens = response.usage?.prompt_tokens ?? 0
+  const outputTokens = response.usage?.completion_tokens ?? 0
+  return {
+    ...parseLlmOutput(response.choices[0].message.content ?? ''),
+    inputTokens, outputTokens, costUsd: calcCost(apiModel, inputTokens, outputTokens)
+  }
 }
 
 async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
@@ -174,7 +205,12 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
       messages: [{ role: 'user', content: user }],
     })
     const textBlock = response.content.find(b => b.type === 'text')
-    return parseLlmOutput(textBlock && 'text' in textBlock ? textBlock.text : '')
+    const inputTokens = response.usage.input_tokens
+    const outputTokens = response.usage.output_tokens
+    return {
+      ...parseLlmOutput(textBlock && 'text' in textBlock ? textBlock.text : ''),
+      inputTokens, outputTokens, costUsd: calcCost(apiModel, inputTokens, outputTokens)
+    }
   }
 
   const apiKey = provider === 'xai'    ? (xaiKey    ?? '')
@@ -192,7 +228,12 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
       { role: 'user', content: user },
     ],
   })
-  return parseLlmOutput(response.choices[0].message.content ?? '')
+  const inputTokens = response.usage?.prompt_tokens ?? 0
+  const outputTokens = response.usage?.completion_tokens ?? 0
+  return {
+    ...parseLlmOutput(response.choices[0].message.content ?? ''),
+    inputTokens, outputTokens, costUsd: calcCost(apiModel, inputTokens, outputTokens)
+  }
 }
 
 export interface GenerateEmailParams {

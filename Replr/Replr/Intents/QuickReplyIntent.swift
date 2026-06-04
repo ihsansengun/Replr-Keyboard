@@ -96,6 +96,9 @@ struct QuickReplyIntent: AppIntent {
             session.toneName = tone.name
             session.previousContext = previousContext
             session.modelUsed = AppGroupService.shared.selectedModel
+            session.inputTokens = result.inputTokens
+            session.outputTokens = result.outputTokens
+            session.costUsd = result.costUsd
             AppGroupService.shared.appendCaptureSession(session)
             AppGroupService.shared.saveReplies(result.replies)
         } catch {

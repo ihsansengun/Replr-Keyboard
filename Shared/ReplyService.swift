@@ -23,12 +23,18 @@ struct ReplyResponse: Codable {
     let replies: [String]
     let summary: String?
     let contactName: String?
+    let inputTokens: Int?
+    let outputTokens: Int?
+    let costUsd: Double?
 }
 
 struct ReplyResult {
     let replies: [String]
     let summary: String?
     let contactName: String?
+    let inputTokens: Int?
+    let outputTokens: Int?
+    let costUsd: Double?
 }
 
 final class ReplyService {
@@ -73,7 +79,7 @@ final class ReplyService {
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
         let decoded = try JSONDecoder().decode(ReplyResponse.self, from: data)
-        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName)
+        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd)
     }
 
     func generateRepliesFromEmail(
@@ -103,7 +109,7 @@ final class ReplyService {
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
         let decoded = try JSONDecoder().decode(ReplyResponse.self, from: data)
-        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName)
+        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd)
     }
 
     func generateRepliesFromScroll(
@@ -146,7 +152,7 @@ final class ReplyService {
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
         let decoded = try JSONDecoder().decode(ReplyResponse.self, from: data)
-        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName)
+        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd)
     }
 }
 

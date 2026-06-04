@@ -389,6 +389,15 @@ struct CaptureDetailView: View {
                     if let model = session.modelUsed {
                         infoChip(icon: "cpu", label: model)
                     }
+                    if let cost = session.costUsd {
+                        infoChip(icon: "dollarsign.circle", label: String(format: "$%.4f", cost))
+                    }
+                }
+                if let input = session.inputTokens, let output = session.outputTokens {
+                    HStack(spacing: 10) {
+                        infoChip(icon: "arrow.down.circle", label: "\(input) in")
+                        infoChip(icon: "arrow.up.circle", label: "\(output) out")
+                    }
                 }
 
                 if let hint = session.contextHint {

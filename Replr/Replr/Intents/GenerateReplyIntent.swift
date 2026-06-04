@@ -100,6 +100,9 @@ struct GenerateReplyIntent: AppIntent {
             session.toneName = effectiveTone.name
             session.previousContext = previousContext
             session.modelUsed = AppGroupService.shared.selectedModel
+            session.inputTokens = result.inputTokens
+            session.outputTokens = result.outputTokens
+            session.costUsd = result.costUsd
             CreditsManager.shared.deduct(required)
             AppGroupService.shared.isGenerating = false
             AppGroupService.shared.appendCaptureSession(session)

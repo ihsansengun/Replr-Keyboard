@@ -15,4 +15,9 @@ struct CaptureSession: Codable, Identifiable {
     var toneName: String?          // tone name selected at capture time
     var previousContext: String?   // memory summaries fed to the AI
     var modelUsed: String?         // model identifier used for this capture
+
+    // Token usage & cost
+    var inputTokens: Int?
+    var outputTokens: Int?
+    var costUsd: Double?
 }
