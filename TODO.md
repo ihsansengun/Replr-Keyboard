@@ -1,23 +1,17 @@
 # Replr — Active TODOs
 
-State: `main` @ 2026-06-04. Screenshot-capture **Phase 1 shipped** (keyboard watches Photos → replies, no Back Tap). Revert point: tag `stable-2026-06-04-pre-capture-redesign`.
+State: `main` @ 2026-06-04. Screenshot-capture **Phase 1 + Phase 2 shipped**. Revert point: tag `stable-2026-06-04-pre-capture-redesign`.
 
-## Screenshot capture — Phase 2 (next)
+## Screenshot capture — shipped & remaining
 
-Phase 1 (done): collapse keyboard → take screenshot → strip arms "tap to generate" → replies. Works on iOS 16.6+. Spike proved keyboard Photos reads are cheap (~137 MB headroom).
+**Shipped (Phase 1 + 2):** collapse → screenshot → "tap to generate" → replies (iOS 16.6+); spike proved keyboard Photos reads are cheap (~137 MB headroom); captured-ID tracking + opt-in batch cleanup (Settings → Screenshots, deletes only Replr's recorded screenshots, one iOS confirm); collapsed-strip "Looking for your screenshot…" + iOS-26-only "Full-Screen Previews" hint after 5 s; onboarding Photos-permission step + iOS-26 tip (marked Optional, no broken deep-link); spike UI removed; Regenerate now re-runs the latest captured screenshot.
 
-Remaining work:
+**Remaining:**
 
-- **Onboarding restructure** — make screenshot capture the primary taught flow. Demote Back Tap to optional/advanced (it still works; just not required). Drop the Shortcut-install + Accessibility steps from the required path.
-- **iOS-version-aware setup tip** — on **iOS 26+ only**, show the one-toggle tip: Settings → Screen Capture → turn OFF "Full-Screen Previews" (otherwise screenshots don't auto-save and the watcher can't see them). iOS 16–18 auto-save by default → show nothing. Version is detectable; the setting value is not.
-- **Adaptive "not detected" hint** — if user collapses + screenshots but nothing arms within ~5 s, surface "didn't catch that — check Full-Screen Previews." Safety net for the iOS 26 case.
-- **Screenshot clutter mitigation** — the one real downside: captures pile up in Photos. Approach (verified against PhotoKit constraints):
-  - **Track exact IDs, never pattern-match.** When the keyboard reads a screenshot in `generateFromScreenshot()`, it already holds that asset's `localIdentifier` (the `assetID`). Append it to a `capturedScreenshotIDs` list in the App Group. We only ever touch assets whose IDs we explicitly recorded — a user's own screenshots (never processed by Replr) are never in the list, so they can't be deleted.
-  - **Batch-delete in the APP process, not the keyboard.** Cleanup runs `PHAsset.fetchAssets(withLocalIdentifiers: recordedIDs)` → `PHAssetChangeRequest.deleteAssets(...)` in one call. The keyboard cannot present the deletion alert; the companion app can.
-  - **One confirmation, not per-capture.** `deleteAssets` always triggers an unavoidable iOS "Delete?" prompt (privacy rule — we didn't create the screenshots, can't delete silently; verified via Apple docs). One batch call = ONE prompt for N photos. Per-capture auto-delete is therefore out (a prompt every capture → kills zero-tap).
-  - **Auto-trigger + opt-in.** A setting "Auto-clear captured screenshots" (off by default). When on, fire the batch on app-foreground or at a threshold (e.g. ≥10): "Clear 12 Replr screenshots?" → one tap. iOS's own confirmation is the final backstop. Prune deleted/missing IDs from the list after.
-- **"Looking for screenshot…" wait indicator** — the ~3 s auto-save delay should read as intentional in the collapsed strip.
-- **Spike cleanup** — remove the keyboard 🔬 spike button, `runPhotosSpike`/`spikeResult`, and `PhotosCapture.run()`; replace the dev-screen "Request Photos Access" button with real onboarding permission UX. (Keep the `NSPhotoLibraryUsageDescription` fix.)
+- **Tips & Guidance tab (NEW — planned)** — a dedicated section/tab in the app collecting *all* guidance in one place, instead of cluttering onboarding: how screenshot capture works, the iOS-26 Full-Screen Previews toggle, tones/memory tips, and **Back Tap setup**. Optional/advanced guidance lives here.
+  - **Back Tap discoverability (move into this tab).** Mechanism is intact — `GenerateReplyIntent` works, triple-tap still generates for anyone already set up — but it's currently **undiscoverable**: the onboarding `BackTapStep`/`InstallShortcutStep` screens are orphaned (referenced nowhere after Phase 2), the History "Finish setup" banner is gated on `backTapSkipped` (only ever set by the removed onboarding step → never shows now), and `replr://setup` isn't triggered in-app. Fix: a "Set up Back Tap" entry in this tab/Settings that opens the existing `BackTapSetupFullView` sheet. Then optionally delete the orphaned onboarding carousel (`BackTapStep`, `InstallShortcutStep`).
+- **Deeper onboarding restructure** — Phase-2 onboarding was additive (Photos step + iOS-26 tip; existing steps untouched). A full restructure (reorder, remove the orphaned Shortcut/Back-Tap screens, relabel) still wants a design pass + device review.
+- **Screenshot-clutter UX polish** — cleanup logic shipped; consider surfacing the pending count / confirmation copy nicely once tested on device.
 - **Phase 3 (later):** slim-bar-as-default Chat state (replace the idle panel) so the capture bar is the resting state, per the original brainstorm.
 
 ## Onboarding redesign (SUPERSEDED by screenshot capture — keep for reference)
