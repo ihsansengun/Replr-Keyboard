@@ -13,11 +13,8 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        if hasFullAccess {
-            AppGroupService.shared.keyboardInstalled = true
-            AppGroupService.shared.fullAccessGranted = true
-        }
+        // NOTE: hasFullAccess is unreliable in viewDidLoad (host connection not yet established).
+        // The setup flags are recorded in viewDidAppear instead.
 
         heightConstraint = view.heightAnchor.constraint(equalToConstant: 270)
         heightConstraint.priority = UILayoutPriority(999)
@@ -171,6 +168,12 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        // Connection to host app is established by now — hasFullAccess is reliable here
+        // (it is NOT in viewDidLoad), so this is where we record the setup flags.
+        if hasFullAccess {
+            AppGroupService.shared.keyboardInstalled = true
+            AppGroupService.shared.fullAccessGranted = true
+        }
         // Connection to host app is established by now — safe to read needsInputModeSwitchKey.
         model.needsGlobeKey = needsInputModeSwitchKey
         // documentContextBeforeInput is unreliable until the proxy fully connects;
