@@ -469,15 +469,37 @@ struct OnboardingView: View {
     var onSignIn: () -> Void = {}
     @AppStorage("onboardingStep") private var step = 0
 
+    /// Whether a permission step (1=keyboard, 2=full access, 3=photos) is already granted.
+    private func isSatisfied(_ s: Int) -> Bool {
+        switch s {
+        case 1: return AppGroupService.shared.keyboardInstalled
+        case 2: return AppGroupService.shared.fullAccessGranted
+        case 3:
+            let st = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+            return st == .authorized || st == .limited
+        default: return false
+        }
+    }
+
+    /// First permission step (1...3) at or after `from` that still needs action; 4 (tip/finish) if all met.
+    private func nextStep(from: Int) -> Int {
+        var s = max(from, 1)
+        while s <= 3 {
+            if !isSatisfied(s) { return s }
+            s += 1
+        }
+        return 4
+    }
+
     var body: some View {
         Group {
             switch step {
             case 0:
-                WelcomeStep(onNext: { step = 1 }, onSignIn: onSignIn)
+                WelcomeStep(onNext: { step = nextStep(from: 1) }, onSignIn: onSignIn)
             case 1:
-                AddKeyboardStep(onNext: { step = 2 }, onBack: { step = 0 })
+                AddKeyboardStep(onNext: { step = nextStep(from: 2) }, onBack: { step = 0 })
             case 2:
-                FullAccessStep(onNext: { step = 3 }, onBack: { step = 1 })
+                FullAccessStep(onNext: { step = nextStep(from: 3) }, onBack: { step = 1 })
             case 3:
                 PhotosPermissionStep(onNext: { step = 4 }, onBack: { step = 2 })
             case 4:
@@ -488,11 +510,15 @@ struct OnboardingView: View {
                     Color.clear.onAppear { step = 0; onComplete() }
                 }
             default:
-                WelcomeStep(onNext: { step = 1 }, onSignIn: onSignIn)
+                WelcomeStep(onNext: { step = nextStep(from: 1) }, onSignIn: onSignIn)
             }
         }
         .onAppear {
             if step > 4 { step = 0 }
+            // If we resumed onto an already-granted permission step, skip forward to the first that needs action.
+            if step >= 1 && step <= 3 && isSatisfied(step) {
+                step = nextStep(from: step)
+            }
         }
     }
 }
