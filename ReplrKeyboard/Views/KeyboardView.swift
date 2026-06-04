@@ -37,6 +37,8 @@ final class KeyboardModel: ObservableObject {
     @Published var showConsentPrompt: Bool = false
     @Published var detectedScreenshotID: String? = nil   // a new screenshot awaiting the confirm tap
     var captureBaselineScreenshotID: String? = nil        // newest screenshot at moment-of-collapse (dedup)
+    @Published var showFullScreenPreviewHint: Bool = false   // iOS 26: likely needs Full-Screen Previews off
+    var collapseStartedAt: Date? = nil
 
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
@@ -436,10 +438,14 @@ struct CollapsedStripView: View {
                     } else {
                         TapGlyph()
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("Take a screenshot of the chat")
+                            Text(model.showFullScreenPreviewHint
+                                 ? "Didn't catch that screenshot"
+                                 : "Take a screenshot of the chat")
                                 .font(.system(size: 13.5, weight: .medium))
                                 .foregroundColor(ReplrTheme.Color.textPrimary)
-                            Text("Replies appear here automatically")
+                            Text(model.showFullScreenPreviewHint
+                                 ? "Settings → Screen Capture → turn off Full-Screen Previews"
+                                 : "Looking for your screenshot…")
                                 .font(.system(size: 11.5))
                                 .foregroundColor(ReplrTheme.Color.textTertiary)
                         }

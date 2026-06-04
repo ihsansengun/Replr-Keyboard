@@ -124,6 +124,8 @@ final class KeyboardViewController: UIInputViewController {
             .sink { [weak self] isCollapsed in
                 guard let self, isCollapsed else { return }
                 self.model.captureBaselineScreenshotID = PhotosCapture.latestScreenshotID()
+                self.model.collapseStartedAt = Date()
+                self.model.showFullScreenPreviewHint = false
                 let ctx = self.model.pendingContext
                 AppGroupService.shared.savePendingContext(ctx)
                 let fieldText = self.textDocumentProxy.documentContextBeforeInput ?? ""
@@ -258,15 +260,20 @@ final class KeyboardViewController: UIInputViewController {
                 }
 
                 // Phase 1 — Photos watcher: arm on a screenshot newer than the collapse baseline
-                let (collapsed, alreadyDetected, baseline) = await MainActor.run {
+                let (collapsed, alreadyDetected, baseline, collapsedAt) = await MainActor.run {
                     (self.model.isCollapsed,
                      self.model.detectedScreenshotID != nil,
-                     self.model.captureBaselineScreenshotID)
+                     self.model.captureBaselineScreenshotID,
+                     self.model.collapseStartedAt)
                 }
-                if collapsed && !alreadyDetected,
-                   let latest = PhotosCapture.latestScreenshotID(), latest != baseline {
-                    NSLog("[Replr][Keyboard] new screenshot detected: %@", latest)
-                    await MainActor.run { self.model.detectedScreenshotID = latest }
+                if collapsed && !alreadyDetected {
+                    if let latest = PhotosCapture.latestScreenshotID(), latest != baseline {
+                        NSLog("[Replr][Keyboard] new screenshot detected: %@", latest)
+                        await MainActor.run { self.model.detectedScreenshotID = latest }
+                    } else if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26,
+                              let started = collapsedAt, Date().timeIntervalSince(started) > 5 {
+                        await MainActor.run { self.model.showFullScreenPreviewHint = true }
+                    }
                 }
 
                 try? await Task.sleep(nanoseconds: 250_000_000)
