@@ -408,7 +408,9 @@ private struct PhotosPermissionStep: View {
     let onNext: () -> Void
     let onBack: () -> Void
     @State private var status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+    @Environment(\.scenePhase) private var scenePhase
     private var granted: Bool { status == .authorized || status == .limited }
+    private var denied: Bool { status == .denied || status == .restricted }
 
     var body: some View {
         OnboardingStep(
@@ -424,19 +426,41 @@ private struct PhotosPermissionStep: View {
                 PrimaryButton(label: "Photos allowed ✓ — Continue →", action: onNext)
             } else {
                 VStack(spacing: 12) {
-                    PrimaryButton(label: "Allow Photos →") {
-                        PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
-                            DispatchQueue.main.async {
-                                status = newStatus
-                                if newStatus == .authorized || newStatus == .limited {
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { onNext() }
-                                }
-                            }
-                        }
-                    }
+                    PrimaryButton(label: denied ? "Open Settings →" : "Allow Photos →") { handleTap() }
                     TertiaryButton(label: "Skip", action: onNext)
                 }
             }
+        }
+        .onChange(of: scenePhase) { phase in
+            // Re-check on return — catches a grant made in Settings, and refreshes stale state.
+            guard phase == .active else { return }
+            let fresh = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+            status = fresh
+            if fresh == .authorized || fresh == .limited { onNext() }
+        }
+    }
+
+    private func handleTap() {
+        // Read FRESH — the cached @State can be stale by the time the user taps (caused the double-tap).
+        let current = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        status = current
+        switch current {
+        case .notDetermined:
+            PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
+                DispatchQueue.main.async {
+                    status = newStatus
+                    if newStatus == .authorized || newStatus == .limited {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { onNext() }
+                    }
+                }
+            }
+        case .denied, .restricted:
+            // iOS never re-prompts once denied — Photos lives on the app's own Settings page, so this works.
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        default:
+            onNext()
         }
     }
 }
