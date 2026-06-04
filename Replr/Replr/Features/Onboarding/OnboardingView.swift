@@ -417,10 +417,22 @@ private struct PhotosPermissionStep: View {
             step: 3, totalSteps: 4,
             sectionLabel: "Permissions",
             headline: "Allow Photos.",
-            bodyText: "Replr reads the screenshot you take of a chat to draft replies. It only ever reads the one screenshot you capture — nothing else.",
+            bodyText: "Replr drafts replies from the screenshot you take of a chat. Your photo library stays private:",
             onBack: onBack
         ) {
-            EmptyView()
+            VStack(alignment: .leading, spacing: 10) {
+                privacyRow("Reads only your most-recent screenshot")
+                privacyRow("Never scans or browses your other photos")
+                privacyRow("Nothing else ever leaves your phone")
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(ReplrTheme.Color.surfaceRaised)
+            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                    .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
+            )
         } cta: {
             if granted {
                 PrimaryButton(label: "Photos allowed ✓ — Continue →", action: onNext)
@@ -461,6 +473,18 @@ private struct PhotosPermissionStep: View {
             }
         default:
             onNext()
+        }
+    }
+
+    private func privacyRow(_ text: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark.shield.fill")
+                .font(.system(size: 13))
+                .foregroundColor(ReplrTheme.Color.success)
+            Text(text)
+                .font(.system(size: 13))
+                .foregroundColor(ReplrTheme.Color.textPrimary)
+            Spacer(minLength: 0)
         }
     }
 }
