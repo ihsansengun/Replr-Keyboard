@@ -10,7 +10,12 @@ State: `main` @ 2026-06-04. Screenshot-capture **Phase 1 + Phase 2 shipped**. Re
 
 - **Tips & Guidance tab (NEW — planned)** — a dedicated section/tab in the app collecting *all* guidance in one place, instead of cluttering onboarding: how screenshot capture works, the iOS-26 Full-Screen Previews toggle, tones/memory tips, and **Back Tap setup**. Optional/advanced guidance lives here.
   - **Back Tap discoverability (move into this tab).** Mechanism is intact — `GenerateReplyIntent` works, triple-tap still generates for anyone already set up — but it's currently **undiscoverable**: the onboarding `BackTapStep`/`InstallShortcutStep` screens are orphaned (referenced nowhere after Phase 2), the History "Finish setup" banner is gated on `backTapSkipped` (only ever set by the removed onboarding step → never shows now), and `replr://setup` isn't triggered in-app. Fix: a "Set up Back Tap" entry in this tab/Settings that opens the existing `BackTapSetupFullView` sheet. Then optionally delete the orphaned onboarding carousel (`BackTapStep`, `InstallShortcutStep`).
-- **Deeper onboarding restructure** — Phase-2 onboarding was additive (Photos step + iOS-26 tip; existing steps untouched). A full restructure (reorder, remove the orphaned Shortcut/Back-Tap screens, relabel) still wants a design pass + device review.
+- **Status-aware onboarding flow** — only stop on steps that still need action. Signals already exist: `AppGroupService.keyboardInstalled`, `AppGroupService.fullAccessGranted`, `PHPhotoLibrary.authorizationStatus(for: .readWrite)`.
+  - On launch, compute the first UNSATISFIED step and start there (today you must tap "Continue" through already-✓ steps).
+  - Auto-advance any step already satisfied on entry. (Currently AddKeyboard/FullAccess only auto-advance when the permission flips *during* the step; PhotosPermissionStep always waits for a tap.)
+  - If ALL satisfied → skip onboarding entirely (or a brief "you're all set" confirmation).
+  - Show each step's ✓ granted state clearly.
+- **Deeper onboarding restructure** — Phase-2 onboarding was additive (Photos step + iOS-26 tip; existing steps untouched). A full restructure (reorder, remove the orphaned Shortcut/Back-Tap screens, relabel) still wants a design pass + device review. Pairs with the status-aware flow above.
 - **Screenshot-clutter UX polish** — cleanup logic shipped; consider surfacing the pending count / confirmation copy nicely once tested on device.
 - **Phase 3 (later):** slim-bar-as-default Chat state (replace the idle panel) so the capture bar is the resting state, per the original brainstorm.
 
