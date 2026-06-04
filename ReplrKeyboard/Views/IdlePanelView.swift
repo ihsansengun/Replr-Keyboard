@@ -1,5 +1,5 @@
 import SwiftUI
-import Combine
+import Lottie
 
 struct IdlePanelView: View {
     @ObservedObject var model: KeyboardModel
@@ -138,150 +138,34 @@ struct IdlePanelView: View {
     }
 }
 
-// MARK: - Capture steps animation (language-agnostic, pure SwiftUI)
 
-/// A small looping demo showing the two capture steps with no words:
-/// ① the keyboard slides down to a slim bar, ② a screenshot flash, then replies appear.
-/// Numbers (①/②) are the only "text" — they read in every language.
-/// Falls back to a static two-step graphic when Reduce Motion is on.
+// MARK: - Capture steps animation (Lottie, language-agnostic)
+
+/// Looping Lottie demo of the two capture steps: the keyboard collapses to a
+/// slim bar, a screenshot flash fires, then reply chips appear. No words — it
+/// reads in any language. Falls back to a static two-step graphic under Reduce
+/// Motion (or if the embedded JSON ever fails to parse).
+/// Source asset: ReplrKeyboard/Resources/capture_steps.json (embedded below).
 private struct CaptureStepsAnimation: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// 0 = rest (keyboard up), 1 = minimize, 2 = screenshot, 3 = replies.
-    @State private var phase: Int = 0
-    private let timer = Timer.publish(every: 0.95, on: .main, in: .common).autoconnect()
-
-    private var minimized: Bool { phase >= 1 }
-    private var flashing: Bool { phase == 2 }
-    private var showReplies: Bool { phase == 3 }
-    private var activeStep: Int { phase >= 2 ? 2 : 1 }
+    /// Parsed once and cached — the keyboard extension is memory-tight, so we
+    /// avoid re-decoding the JSON on every view init.
+    private static let animation: LottieAnimation? =
+        try? LottieAnimation.from(data: Data(captureStepsLottieJSON.utf8))
 
     var body: some View {
-        if reduceMotion {
+        if reduceMotion || Self.animation == nil {
             staticFallback
         } else {
-            HStack(spacing: 16) {
-                phoneMock
-                legend
-            }
-            .frame(maxWidth: .infinity)
-            .onReceive(timer) { _ in
-                withAnimation(.easeInOut(duration: 0.5)) { phase = (phase + 1) % 4 }
-            }
+            LottieView(animation: Self.animation)
+                .configure { $0.backgroundBehavior = .pauseAndRestore }
+                .looping()
+                .resizable()
         }
     }
 
-    // MARK: Phone mock
-
-    private var phoneMock: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(ReplrTheme.Color.bg)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1.5)
-                )
-
-            VStack(spacing: 5) {
-                bubble(width: 52, sent: false)
-                bubble(width: 38, sent: true)
-                bubble(width: 56, sent: false)
-                if minimized {
-                    bubble(width: 44, sent: true)
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
-                }
-
-                Spacer(minLength: 0)
-
-                // keyboard → slim bar
-                ZStack {
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(ReplrTheme.Color.accent.opacity(minimized ? 0.9 : 0.20))
-                        .frame(height: minimized ? 11 : 42)
-
-                    if !minimized {
-                        VStack(spacing: 4) {
-                            ForEach(0..<3, id: \.self) { _ in keyRow }
-                        }
-                        .padding(.horizontal, 7)
-                        .transition(.opacity)
-                    }
-
-                    if showReplies {
-                        HStack(spacing: 4) {
-                            ForEach(0..<3, id: \.self) { _ in replyChip }
-                        }
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
-                    }
-                }
-            }
-            .padding(10)
-
-            // screenshot flash + shutter glyph
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.white)
-                .opacity(flashing ? 0.85 : 0)
-            if flashing {
-                Image(systemName: "camera.viewfinder")
-                    .font(.system(size: 26, weight: .semibold))
-                    .foregroundColor(ReplrTheme.Color.accent)
-                    .transition(.scale.combined(with: .opacity))
-            }
-        }
-        .frame(width: 104, height: 138)
-        .clipped()
-    }
-
-    private func bubble(width: CGFloat, sent: Bool) -> some View {
-        RoundedRectangle(cornerRadius: 5, style: .continuous)
-            .fill(sent ? ReplrTheme.Color.accent.opacity(0.55)
-                       : ReplrTheme.Color.textSecondary.opacity(0.22))
-            .frame(width: width, height: 9)
-            .frame(maxWidth: .infinity, alignment: sent ? .trailing : .leading)
-    }
-
-    private var keyRow: some View {
-        RoundedRectangle(cornerRadius: 2, style: .continuous)
-            .fill(ReplrTheme.Color.textSecondary.opacity(0.35))
-            .frame(height: 4)
-    }
-
-    private var replyChip: some View {
-        RoundedRectangle(cornerRadius: 3, style: .continuous)
-            .fill(ReplrTheme.Color.onAccent)
-            .frame(width: 17, height: 5)
-    }
-
-    // MARK: Legend (① minimize → ② screenshot)
-
-    private var legend: some View {
-        VStack(spacing: 8) {
-            legendItem(1, "keyboard.chevron.compact.down", active: activeStep == 1)
-            Image(systemName: "arrow.down")
-                .font(.system(size: 10, weight: .bold))
-                .foregroundColor(ReplrTheme.Color.textTertiary)
-            legendItem(2, "camera.viewfinder", active: activeStep == 2)
-        }
-    }
-
-    private func legendItem(_ n: Int, _ system: String, active: Bool) -> some View {
-        HStack(spacing: 6) {
-            Text("\(n)")
-                .font(.system(size: 11, weight: .bold).monospacedDigit())
-                .foregroundColor(active ? ReplrTheme.Color.onAccent : ReplrTheme.Color.textSecondary)
-                .frame(width: 18, height: 18)
-                .background(Circle().fill(active ? ReplrTheme.Color.accent : ReplrTheme.Color.surface))
-                .overlay(Circle().stroke(ReplrTheme.Color.glassBorder, lineWidth: active ? 0 : 1))
-            Image(systemName: system)
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(active ? ReplrTheme.Color.accent : ReplrTheme.Color.textTertiary)
-        }
-        .opacity(active ? 1 : 0.5)
-        .scaleEffect(active ? 1 : 0.95)
-    }
-
-    // MARK: Reduce Motion fallback (static two-step)
-
+    // Reduce Motion (or parse-failure) fallback: a static two-step graphic.
     private var staticFallback: some View {
         HStack(spacing: 14) {
             staticStep(1, "keyboard.chevron.compact.down")
@@ -306,3 +190,5 @@ private struct CaptureStepsAnimation: View {
         }
     }
 }
+
+private let captureStepsLottieJSON = ##"{"v":"5.7.4","fr":30,"ip":0,"op":90,"w":240,"h":200,"nm":"capture_steps","ddd":0,"assets":[],"layers":[{"ddd":0,"ind":1,"ty":4,"nm":"flash","sr":1,"ks":{"o":{"a":1,"k":[{"t":33,"s":[0],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":39,"s":[78],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":47,"s":[0]}]},"r":{"a":0,"k":0},"p":{"a":0,"k":[120,100,0]},"a":{"a":0,"k":[0,0,0]},"s":{"a":0,"k":[100,100,100]}},"ao":0,"shapes":[{"ty":"gr","nm":"flashG","it":[{"ty":"rc","nm":"r","d":1,"s":{"a":0,"k":[116,166]},"p":{"a":0,"k":[0,0]},"r":{"a":0,"k":14}},{"ty":"fl","nm":"f","c":{"a":0,"k":[1,1,1]},"o":{"a":0,"k":100},"r":1},{"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}]}],"ip":0,"op":90,"st":0,"bm":0},{"ddd":0,"ind":2,"ty":4,"nm":"chips","sr":1,"ks":{"o":{"a":1,"k":[{"t":45,"s":[0],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":58,"s":[100],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":80,"s":[100],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":88,"s":[0]}]},"r":{"a":0,"k":0},"p":{"a":0,"k":[120,171,0]},"a":{"a":0,"k":[0,0,0]},"s":{"a":1,"k":[{"t":45,"s":[55,55,100],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":60,"s":[100,100,100]}]}},"ao":0,"shapes":[{"ty":"gr","nm":"chipL","it":[{"ty":"rc","nm":"r","d":1,"s":{"a":0,"k":[16,6]},"p":{"a":0,"k":[-22,0]},"r":{"a":0,"k":3}},{"ty":"fl","nm":"f","c":{"a":0,"k":[1,1,1]},"o":{"a":0,"k":95},"r":1},{"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}]},{"ty":"gr","nm":"chipM","it":[{"ty":"rc","nm":"r","d":1,"s":{"a":0,"k":[16,6]},"p":{"a":0,"k":[0,0]},"r":{"a":0,"k":3}},{"ty":"fl","nm":"f","c":{"a":0,"k":[1,1,1]},"o":{"a":0,"k":95},"r":1},{"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}]},{"ty":"gr","nm":"chipR","it":[{"ty":"rc","nm":"r","d":1,"s":{"a":0,"k":[16,6]},"p":{"a":0,"k":[22,0]},"r":{"a":0,"k":3}},{"ty":"fl","nm":"f","c":{"a":0,"k":[1,1,1]},"o":{"a":0,"k":95},"r":1},{"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}]}],"ip":0,"op":90,"st":0,"bm":0},{"ddd":0,"ind":3,"ty":4,"nm":"keyboard","sr":1,"ks":{"o":{"a":0,"k":100},"r":{"a":0,"k":0},"p":{"a":1,"k":[{"t":0,"s":[120,154,0],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":15,"s":[120,154,0],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":32,"s":[120,171,0],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":78,"s":[120,171,0],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":90,"s":[120,154,0]}]},"a":{"a":0,"k":[0,0,0]},"s":{"a":0,"k":[100,100,100]}},"ao":0,"shapes":[{"ty":"gr","nm":"kbG","it":[{"ty":"rc","nm":"r","d":1,"s":{"a":1,"k":[{"t":0,"s":[104,44],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":15,"s":[104,44],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":32,"s":[104,10],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":78,"s":[104,10],"i":{"x":[0.66],"y":[1]},"o":{"x":[0.34],"y":[0]}},{"t":90,"s":[104,44]}]},"p":{"a":0,"k":[0,0]},"r":{"a":0,"k":7}},{"ty":"fl","nm":"f","c":{"a":0,"k":[0.09,0.918,0.851]},"o":{"a":0,"k":92},"r":1},{"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}]}],"ip":0,"op":90,"st":0,"bm":0},{"ddd":0,"ind":4,"ty":4,"nm":"bubbles","sr":1,"ks":{"o":{"a":0,"k":100},"r":{"a":0,"k":0},"p":{"a":0,"k":[120,100,0]},"a":{"a":0,"k":[120,100,0]},"s":{"a":0,"k":[100,100,100]}},"ao":0,"shapes":[{"ty":"gr","nm":"b1","it":[{"ty":"rc","nm":"r","d":1,"s":{"a":0,"k":[50,9]},"p":{"a":0,"k":[92,44]},"r":{"a":0,"k":4}},{"ty":"fl","nm":"f","c":{"a":0,"k":[0.5,0.55,0.62]},"o":{"a":0,"k":26},"r":1},{"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}]},{"ty":"gr","nm":"b2","it":[{"ty":"rc","nm":"r","d":1,"s":{"a":0,"k":[36,9]},"p":{"a":0,"k":[150,62]},"r":{"a":0,"k":4}},{"ty":"fl","nm":"f","c":{"a":0,"k":[0.5,0.55,0.62]},"o":{"a":0,"k":44},"r":1},{"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}]},{"ty":"gr","nm":"b3","it":[{"ty":"rc","nm":"r","d":1,"s":{"a":0,"k":[54,9]},"p":{"a":0,"k":[96,80]},"r":{"a":0,"k":4}},{"ty":"fl","nm":"f","c":{"a":0,"k":[0.5,0.55,0.62]},"o":{"a":0,"k":26},"r":1},{"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}]}],"ip":0,"op":90,"st":0,"bm":0},{"ddd":0,"ind":5,"ty":4,"nm":"phone","sr":1,"ks":{"o":{"a":0,"k":100},"r":{"a":0,"k":0},"p":{"a":0,"k":[120,100,0]},"a":{"a":0,"k":[120,100,0]},"s":{"a":0,"k":[100,100,100]}},"ao":0,"shapes":[{"ty":"gr","nm":"phoneG","it":[{"ty":"rc","nm":"r","d":1,"s":{"a":0,"k":[120,170]},"p":{"a":0,"k":[120,100]},"r":{"a":0,"k":18}},{"ty":"st","nm":"s","c":{"a":0,"k":[0.5,0.55,0.62]},"o":{"a":0,"k":60},"w":{"a":0,"k":2.5},"lc":2,"lj":2,"ml":4},{"ty":"fl","nm":"f","c":{"a":0,"k":[0.5,0.55,0.62]},"o":{"a":0,"k":6},"r":1},{"ty":"tr","p":{"a":0,"k":[0,0]},"a":{"a":0,"k":[0,0]},"s":{"a":0,"k":[100,100]},"r":{"a":0,"k":0},"o":{"a":0,"k":100}}]}],"ip":0,"op":90,"st":0,"bm":0}]}"##
