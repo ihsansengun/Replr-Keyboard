@@ -129,7 +129,7 @@ final class KeyboardModel: ObservableObject {
     func runPhotosSpike() {
         spikeResult = "Running…"
         Task { @MainActor in
-            let result = await PhotosSpike.run()
+            let result = await PhotosCapture.run()
             spikeResult = result
             NSLog("[Replr][Spike] %@", result)
         }
@@ -660,21 +660,14 @@ struct CreditCounterBadge: View {
     }
 }
 
-// MARK: - PhotosSpike (SPIKE — remove after Phase 0)
-// Inlined here rather than a standalone file because the keyboard target does not
-// auto-include new files. See docs/superpowers/specs/2026-06-04-keyboard-photos-spike-design.md
+// MARK: - PhotosCapture (Phase 1 — screenshot capture; run() kept for dev spike button)
+// Inlined here because the keyboard target does not auto-include new files.
 
-enum PhotosSpike {
-    /// Reads the latest screenshot from Photos and reports memory headroom.
-    /// Returns a human-readable result line to show in the keyboard.
-    static func run() async -> String {
+enum PhotosCapture {
+    /// localIdentifier of the newest screenshot, or nil if none / not authorized. No image load.
+    static func latestScreenshotID() -> String? {
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
-        guard status == .authorized || status == .limited else {
-            return "✗ Photos not authorized (status=\(status.rawValue)). Grant in the app dev screen first."
-        }
-
-        let memBefore = os_proc_available_memory()
-
+        guard status == .authorized || status == .limited else { return nil }
         let opts = PHFetchOptions()
         opts.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
         opts.fetchLimit = 1
@@ -682,28 +675,45 @@ enum PhotosSpike {
             format: "(mediaSubtype & %d) != 0",
             PHAssetMediaSubtype.photoScreenshot.rawValue
         )
+        return PHAsset.fetchAssets(with: .image, options: opts).firstObject?.localIdentifier
+    }
 
-        guard let asset = PHAsset.fetchAssets(with: .image, options: opts).firstObject else {
-            return "✗ No screenshot found in Photos."
-        }
-
-        let data: Data? = await withCheckedContinuation { cont in
-            let reqOpts = PHImageRequestOptions()
-            reqOpts.isNetworkAccessAllowed = false
-            reqOpts.isSynchronous = false
-            PHImageManager.default().requestImageDataAndOrientation(for: asset, options: reqOpts) { data, _, _, _ in
-                cont.resume(returning: data)
+    /// Loads the full UIImage for a screenshot localIdentifier.
+    static func loadImage(id: String) async -> UIImage? {
+        let assets = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil)
+        guard let asset = assets.firstObject else { return nil }
+        return await withCheckedContinuation { cont in
+            let opts = PHImageRequestOptions()
+            opts.isNetworkAccessAllowed = false
+            opts.isSynchronous = false
+            opts.deliveryMode = .highQualityFormat
+            PHImageManager.default().requestImage(
+                for: asset,
+                targetSize: PHImageManagerMaximumSize,
+                contentMode: .aspectFit,
+                options: opts
+            ) { image, info in
+                if let image, (info?[PHImageResultIsDegradedKey] as? Bool) != true {
+                    cont.resume(returning: image)
+                } else if (info?[PHImageErrorKey] as? Error) != nil {
+                    cont.resume(returning: nil)
+                }
+                // else: degraded frame — wait for the full-quality delivery
             }
         }
+    }
 
-        guard let data else { return "✗ requestImageDataAndOrientation returned nil." }
-
-        let memAfterRead = os_proc_available_memory()
-        let base64 = data.base64EncodedString()
-        let memAfterB64 = os_proc_available_memory()
-
-        func mb(_ bytes: Int) -> String { String(format: "%.1f", Double(bytes) / 1_048_576) }
-        return "✓ read \(mb(data.count))MB · b64 \(mb(base64.count)) · headroom \(mb(memBefore))→\(mb(memAfterRead))→\(mb(memAfterB64))MB"
+    /// SPIKE — dev-screen diagnostic; safe to remove later.
+    static func run() async -> String {
+        let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        guard status == .authorized || status == .limited else {
+            return "✗ Photos not authorized (status=\(status.rawValue))."
+        }
+        guard let id = latestScreenshotID(), let image = await loadImage(id: id) else {
+            return "✗ No screenshot found / load failed."
+        }
+        let mem = os_proc_available_memory()
+        return "✓ loaded \(Int(image.size.width))×\(Int(image.size.height)) · headroom \(String(format: "%.1f", Double(mem)/1_048_576))MB"
     }
 }
 
