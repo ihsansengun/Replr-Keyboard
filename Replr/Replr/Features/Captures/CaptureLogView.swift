@@ -211,21 +211,49 @@ struct RepliesView: View {
     // MARK: - Empty state
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             Spacer()
-            Image(systemName: "camera.viewfinder")
-                .font(.system(size: 48))
-                .foregroundStyle(ReplrTheme.Color.textSecondary)
-            Text("No captures yet")
-                .font(.headline)
-            Text("Generate replies from the Replr keyboard to see them here.")
-                .font(.subheadline)
-                .foregroundStyle(ReplrTheme.Color.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+            ZStack {
+                Circle()
+                    .fill(ReplrTheme.Color.accentSubtle)
+                    .frame(width: 72, height: 72)
+                Image(systemName: "camera.viewfinder")
+                    .font(.system(size: 32))
+                    .foregroundStyle(ReplrTheme.Color.accent)
+            }
+            VStack(spacing: 6) {
+                Text("Ready for your first reply")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(ReplrTheme.Color.textPrimary)
+                Text("Here's how to capture a chat:")
+                    .font(.subheadline)
+                    .foregroundStyle(ReplrTheme.Color.textSecondary)
+            }
+            VStack(alignment: .leading, spacing: 14) {
+                emptyHowToRow("1", "Open a chat and switch to the Replr keyboard (🌐).")
+                emptyHowToRow("2", "Tap “Start capture”, then take a screenshot of the chat.")
+                emptyHowToRow("3", "Your replies show up here — and in the keyboard to tap in.")
+            }
+            .padding(.horizontal, 28)
+            Spacer()
             Spacer()
         }
         .frame(maxWidth: .infinity)
+    }
+
+    private func emptyHowToRow(_ n: String, _ text: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Text(n)
+                .font(.system(size: 13, weight: .bold).monospacedDigit())
+                .foregroundStyle(ReplrTheme.Color.onAccent)
+                .frame(width: 24, height: 24)
+                .background(Circle().fill(ReplrTheme.Color.accent))
+            Text(text)
+                .font(.system(size: 14))
+                .foregroundStyle(ReplrTheme.Color.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
     }
 
     // MARK: - Filter chip
