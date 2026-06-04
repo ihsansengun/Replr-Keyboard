@@ -142,94 +142,21 @@ private struct WelcomeStep: View {
     }
 }
 
-private struct AddKeyboardStep: View {
-    let onNext: () -> Void
-    var onBack: (() -> Void)? = nil
-    @State private var detected = AppGroupService.shared.keyboardInstalled
-
-    var body: some View {
-        OnboardingStep(
-            step: 1, totalSteps: 4,
-            sectionLabel: "Keyboard",
-            headline: "Add Replr to iOS.",
-            bodyText: "The keyboard is where the replies show up. iOS will ask you to add it from Settings.",
-            onBack: onBack
-        ) {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 4) {
-                    ForEach(["Settings", "General", "Keyboard", "Keyboards"], id: \.self) { item in
-                        if item != "Settings" {
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(ReplrTheme.Color.textTertiary)
-                        }
-                        Text(item)
-                            .font(.system(size: 12))
-                            .foregroundColor(ReplrTheme.Color.textSecondary)
-                    }
-                }
-                .padding(.horizontal, 14)
-                .padding(.top, 14)
-                .padding(.bottom, 8)
-
-                Divider().overlay(ReplrTheme.Color.glassBorder)
-
-                HStack(spacing: 12) {
-                    ReplrMark(size: 13)
-                    Text("Replr")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(ReplrTheme.Color.textPrimary)
-                    Spacer()
-                    if detected {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(ReplrTheme.Color.success)
-                    }
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-            }
-            .background(ReplrTheme.Color.surfaceRaised)
-            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
-            )
-        } cta: {
-            VStack(spacing: 12) {
-                PrimaryButton(label: detected ? "Keyboard added ✓ — Continue →" : "Open Keyboard Settings →") {
-                    if !detected, let url = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(url)
-                    }
-                    onNext()
-                }
-                if !detected {
-                    TertiaryButton(label: "Already added", action: onNext)
-                }
-            }
-        }
-        .onReceive(
-            Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
-        ) { _ in
-            if !detected {
-                detected = AppGroupService.shared.keyboardInstalled
-                if detected { onNext() }
-            }
-        }
-    }
-}
-
-private struct FullAccessStep: View {
+// Merged step — adding the keyboard and granting Full Access are the SAME gate
+// (both flags are written together by the keyboard only once it runs with Full Access),
+// so they're one screen. Avoids the confusing "do the keyboard thing twice" flow.
+private struct KeyboardSetupStep: View {
     let onNext: () -> Void
     let onBack: () -> Void
     @State private var detected = AppGroupService.shared.fullAccessGranted
-    @AppStorage("onboarding.fullAccessSettingsOpened") private var settingsOpened = false
+    @AppStorage("onboarding.keyboardSettingsOpened") private var settingsOpened = false
 
     var body: some View {
         OnboardingStep(
-            step: 2, totalSteps: 4,
-            sectionLabel: "Permissions",
-            headline: "Enable Full Access.",
-            bodyText: "Lets the keyboard connect to AI. Already turned it on? Tap “I've enabled it” — we confirm it the next time you open the Replr keyboard. Otherwise, follow the path below in Settings.",
+            step: 1, totalSteps: 3,
+            sectionLabel: "Keyboard",
+            headline: "Add Replr & allow Full Access.",
+            bodyText: "Add the Replr keyboard, then turn on Full Access so it can draft replies. Already did it? Tap “I've enabled it” — we confirm the next time you open the Replr keyboard.",
             onBack: onBack
         ) {
             VStack(alignment: .leading, spacing: 0) {
@@ -279,7 +206,7 @@ private struct FullAccessStep: View {
             )
         } cta: {
             if detected {
-                PrimaryButton(label: "Full Access enabled ✓ — Continue →", action: onNext)
+                PrimaryButton(label: "All set ✓ — Continue →", action: onNext)
             } else if settingsOpened {
                 VStack(spacing: 12) {
                     PrimaryButton(label: "I've enabled it →", action: onNext)
@@ -414,7 +341,7 @@ private struct PhotosPermissionStep: View {
 
     var body: some View {
         OnboardingStep(
-            step: 3, totalSteps: 4,
+            step: 2, totalSteps: 3,
             sectionLabel: "Permissions",
             headline: "Allow Photos.",
             bodyText: "Replr drafts replies from the screenshot you take of a chat. Your photo library stays private:",
@@ -497,7 +424,7 @@ private struct FullScreenPreviewTipStep: View {
 
     var body: some View {
         OnboardingStep(
-            step: 4, totalSteps: 4,
+            step: 3, totalSteps: 3,
             sectionLabel: "Optional",
             headline: "Turn off Full-Screen Previews.",
             bodyText: "On iOS 26, screenshots open a full editor instead of saving on their own — so Replr can't catch them hands-free.\n\nFor one-tap capture, open the Settings app → Screen Capture, and turn off Full-Screen Previews. (iOS doesn't let apps jump straight to that page.)\n\nThis is optional — capture still works without it; you'll just tap Save on each screenshot first.",
@@ -593,26 +520,25 @@ struct OnboardingView: View {
     var onSignIn: () -> Void = {}
     @AppStorage("onboardingStep") private var step = 0
 
-    /// Whether a permission step (1=keyboard, 2=full access, 3=photos) is already granted.
+    /// Whether a permission step (1 = keyboard + Full Access, 2 = Photos) is already granted.
     private func isSatisfied(_ s: Int) -> Bool {
         switch s {
-        case 1: return AppGroupService.shared.keyboardInstalled
-        case 2: return AppGroupService.shared.fullAccessGranted
-        case 3:
+        case 1: return AppGroupService.shared.fullAccessGranted   // keyboard + Full Access are one signal
+        case 2:
             let st = PHPhotoLibrary.authorizationStatus(for: .readWrite)
             return st == .authorized || st == .limited
         default: return false
         }
     }
 
-    /// First permission step (1...3) at or after `from` that still needs action; 4 (tip/finish) if all met.
+    /// First permission step (1...2) at or after `from` that still needs action; 3 (tip/finish) if all met.
     private func nextStep(from: Int) -> Int {
         var s = max(from, 1)
-        while s <= 3 {
+        while s <= 2 {
             if !isSatisfied(s) { return s }
             s += 1
         }
-        return 4
+        return 3
     }
 
     var body: some View {
@@ -621,28 +547,26 @@ struct OnboardingView: View {
             case 0:
                 WelcomeStep(onNext: { step = nextStep(from: 1) }, onSignIn: onSignIn)
             case 1:
-                AddKeyboardStep(onNext: { step = nextStep(from: 2) }, onBack: { step = 0 })
+                KeyboardSetupStep(onNext: { step = nextStep(from: 2) }, onBack: { step = 0 })
             case 2:
-                FullAccessStep(onNext: { step = nextStep(from: 3) }, onBack: { step = 1 })
+                PhotosPermissionStep(onNext: { step = 3 }, onBack: { step = 1 })
             case 3:
-                PhotosPermissionStep(onNext: { step = 4 }, onBack: { step = 2 })
-            case 4:
                 if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26 {
-                    FullScreenPreviewTipStep(onNext: { step = 5 }, onBack: { step = 3 })
+                    FullScreenPreviewTipStep(onNext: { step = 4 }, onBack: { step = 2 })
                 } else {
                     // Older iOS auto-saves screenshots — no tip needed; go straight to the handoff.
-                    Color.clear.onAppear { step = 5 }
+                    Color.clear.onAppear { step = 4 }
                 }
-            case 5:
+            case 4:
                 ReadyStep(onDone: { step = 0; onComplete() })
             default:
                 WelcomeStep(onNext: { step = nextStep(from: 1) }, onSignIn: onSignIn)
             }
         }
         .onAppear {
-            if step > 5 { step = 0 }
+            if step > 4 { step = 0 }
             // If we resumed onto an already-granted permission step, skip forward to the first that needs action.
-            if step >= 1 && step <= 3 && isSatisfied(step) {
+            if step >= 1 && step <= 2 && isSatisfied(step) {
                 step = nextStep(from: step)
             }
         }
