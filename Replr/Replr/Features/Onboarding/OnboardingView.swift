@@ -472,6 +472,64 @@ struct UsageTutorialView: View {
         let icon: String
         let title: String
         let body: String
+        var heroFlow: Bool = false
+    }
+
+    /// Approved placeholder hero for the "Steer the reply" step: a 3-tile flow
+    /// (you type → switch to Replr → on-target replies). Pure SwiftUI, theme-
+    /// tokened; a polished Lottie replaces it in the tutorial-animation redo.
+    private struct SteerFlowStrip: View {
+        var body: some View {
+            HStack(spacing: 7) {
+                tile(icon: "square.and.pencil", caption: "you type", sub: "\u{201C}ask her out\u{201D}", highlight: false)
+                arrow
+                tile(icon: "globe", caption: "switch to\nReplr", sub: nil, highlight: true)
+                arrow
+                tile(icon: "bubble.left.and.bubble.right.fill", caption: "on-target\nreplies", sub: nil, highlight: false)
+            }
+            .padding(.horizontal, 14)
+        }
+
+        private var arrow: some View {
+            Image(systemName: "arrow.right")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(ReplrTheme.Color.accent)
+        }
+
+        private func tile(icon: String, caption: String, sub: String?, highlight: Bool) -> some View {
+            VStack(spacing: 5) {
+                Image(systemName: icon)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(highlight ? ReplrTheme.Color.onAccent : ReplrTheme.Color.accent)
+                Text(caption)
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundColor(highlight ? ReplrTheme.Color.onAccent : ReplrTheme.Color.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(1)
+                if let sub {
+                    Text(sub)
+                        .font(.system(size: 8.5, weight: .bold))
+                        .foregroundColor(ReplrTheme.Color.accent)
+                        .lineLimit(1)
+                }
+            }
+            .frame(width: 66, height: 78)
+            .background(
+                Group {
+                    if highlight {
+                        RoundedRectangle(cornerRadius: 13, style: .continuous)
+                            .fill(ReplrTheme.Color.brandGradient)
+                    } else {
+                        RoundedRectangle(cornerRadius: 13, style: .continuous)
+                            .fill(ReplrTheme.Color.surfaceRaised)
+                    }
+                }
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 13, style: .continuous)
+                    .stroke(highlight ? Color.clear : ReplrTheme.Color.glassBorder, lineWidth: 1)
+            )
+        }
     }
 
     private let steps: [TutStep] = [
@@ -490,6 +548,10 @@ struct UsageTutorialView: View {
         TutStep(animation: parseLottie(tutSendJSON), icon: "sparkles",
                 title: "Tap to send",
                 body: "Your replies appear right in the keyboard. Tap one to drop it into the chat."),
+        TutStep(animation: nil, icon: "text.cursor",
+                title: "Steer the reply",
+                body: "Optional: type what you want to say first — like \"ask her to dinner\" — then switch to Replr and tap Start. Your replies come back built around it.",
+                heroFlow: true),
     ]
 
     @State private var page = 0
@@ -550,7 +612,9 @@ struct UsageTutorialView: View {
                         RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
                             .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
                     )
-                if let animation = step.animation, !reduceMotion {
+                if step.heroFlow {
+                    SteerFlowStrip()
+                } else if let animation = step.animation, !reduceMotion {
                     LottieView(animation: animation)
                         .configure { $0.backgroundBehavior = .pauseAndRestore }
                         .valueProvider(
