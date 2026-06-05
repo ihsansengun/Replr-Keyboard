@@ -12,6 +12,10 @@ supported.
 
 Feel: flirty, warm, confident, premium — "a sharp wingman," not juvenile.
 
+**Flexibility (not a one-way door):** every palette value lives in `ReplrTheme`
+(mirrored in `DESIGN.md`). Changing the hex later re-skins the entire app — UI
+**and** animations — from one place. We can try any palette anytime.
+
 ## Palette (adaptive)
 
 **Constant brand gradient** (both modes): `#FF5E8A` → `#FF7A59` → `#FFB45E`,
@@ -64,10 +68,12 @@ friendlier display face — out of scope here.)
    add a `brandGradient` token (`LinearGradient`) + a gradient helper for fills.
 2. **`ReplrComponents`** — PrimaryButton (+ Secondary/Tertiary), tone chips, and
    any accent-driven views use the gradient/warm accent.
-3. **Lottie re-color** — the 8 embedded scenes (keyboard `capture_steps`,
-   onboarding `onboarding_steps`, 5 `tut_*`) use teal `#17EAD9`; re-color the
-   accent fills to the warm rose/gradient. Edit the embedded JSON (hand) — no
-   Creator/paywall needed.
+3. **Lottie accent = runtime-tinted (swappable)** — the 8 embedded scenes use a
+   teal accent fill. Rather than bake new colors, tint the accent at **runtime**
+   via a Lottie `ColorValueProvider` reading `ReplrTheme.Color.accent`. The
+   animations then re-color from the **single token** and adapt to light/dark
+   automatically — any future palette change is one line, no JSON edits. (Name the
+   accent fills so the value-provider keypath can target them.)
 4. **`DESIGN.md`** — rewrite to the Flirt Gradient language (this spec is the source).
 5. **Sweep** for hardcoded teal (e.g. `ReplrTheme._accent` hex, `accentGlow` hex,
    any view literals) → warm values.
@@ -85,6 +91,7 @@ marketing assets.
 - Gradient ≠ `Color`: components that currently fill with a `Color` accent need a
   gradient-aware path. Keep a solid `accent` for places a gradient won't work.
 - Light-mode rose contrast — use the deeper `#E8447A`, verify AA.
-- Re-coloring 8 Lotties is the bulk of the effort; everything else is largely a
-  token swap because views already use `ReplrTheme.*`.
+- With Lottie runtime tinting, the whole job is essentially a **token swap** —
+  views already use `ReplrTheme.*` and animations tint from the same token. The
+  one-time work is wiring the value providers + the gradient-aware components.
 - Keyboard extension renders SwiftUI gradients fine (no constraint there).
