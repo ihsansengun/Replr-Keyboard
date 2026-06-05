@@ -47,7 +47,8 @@ struct PrimaryButtonStyle: ButtonStyle {
             .padding(.horizontal, 22)
             .background(
                 Capsule()
-                    .fill(ReplrTheme.Color.accent.opacity(isEnabled ? 1 : 0.40))
+                    .fill(ReplrTheme.Color.brandGradient)
+                    .opacity(isEnabled ? 1 : 0.40)
             )
             .overlay(
                 // 1px top inner highlight — kit signature
@@ -201,18 +202,20 @@ struct Chip: View {
                 Text(label)
                     .font(ReplrTheme.Font.footnote)
             }
-            .foregroundColor(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
+            .foregroundColor(isSelected ? ReplrTheme.Color.onAccent : ReplrTheme.Color.textSecondary)
             .padding(.horizontal, 12)
             .padding(.vertical, 7)
             .background(
                 Capsule()
-                    .fill(isSelected ? ReplrTheme.Color.accentSubtle : ReplrTheme.Color.surface)
+                    .fill(isSelected
+                          ? AnyShapeStyle(ReplrTheme.Color.brandGradient)
+                          : AnyShapeStyle(ReplrTheme.Color.surface))
             )
             .overlay(
                 Capsule()
                     .strokeBorder(
                         isSelected
-                            ? ReplrTheme.Color.accent.opacity(0.55)
+                            ? Color.white.opacity(0.25)
                             : ReplrTheme.Color.glassBorder,
                         lineWidth: 1
                     )

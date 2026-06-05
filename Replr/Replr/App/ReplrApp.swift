@@ -21,13 +21,13 @@ struct ReplrApp: App {
     private func applyBrandAppearance() {
         let navBg = UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.051, green: 0.067, blue: 0.090, alpha: 1) // #0D1117
-                : UIColor(red: 0.961, green: 0.945, blue: 0.922, alpha: 1) // #F5F1EB warm cream
+                ? UIColor(red: 0.082, green: 0.063, blue: 0.102, alpha: 1) // #15101A
+                : UIColor(red: 1.000, green: 0.973, blue: 0.961, alpha: 1) // #FFF8F5 warm white
         }
         let accentColor = UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.051, green: 0.710, blue: 0.643, alpha: 1) // #0DB5A4
-                : UIColor(red: 0.000, green: 0.537, blue: 0.482, alpha: 1) // #00897B
+                ? UIColor(red: 1.000, green: 0.435, blue: 0.569, alpha: 1) // #FF6F91 — flirt rose
+                : UIColor(red: 0.910, green: 0.267, blue: 0.478, alpha: 1) // #E8447A — deeper rose for light
         }
 
         let nav = UINavigationBarAppearance()

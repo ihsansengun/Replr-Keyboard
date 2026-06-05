@@ -9,23 +9,23 @@ enum ReplrTheme {
     // MARK: Color
 
     enum Color {
-        // Backgrounds — dark: deep navy; light: warm cream
+        // Backgrounds — dark: warm plum-black; light: warm white
         private static let _bg = UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.051, green: 0.067, blue: 0.090, alpha: 1) // #0D1117
-                : UIColor(red: 0.961, green: 0.945, blue: 0.922, alpha: 1) // #F5F1EB warm cream
+                ? UIColor(red: 0.082, green: 0.063, blue: 0.102, alpha: 1) // #15101A
+                : UIColor(red: 1.000, green: 0.973, blue: 0.961, alpha: 1) // #FFF8F5 warm white
         }
-        // Surface — dark: #131929, light: near-white warm
+        // Surface — dark: #211826 plum, light: pure white
         private static let _surface = UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.075, green: 0.098, blue: 0.161, alpha: 1) // #131929
-                : UIColor(red: 0.992, green: 0.988, blue: 0.980, alpha: 1) // #FDFCFA
+                ? UIColor(red: 0.129, green: 0.094, blue: 0.149, alpha: 1) // #211826
+                : UIColor(red: 1.000, green: 1.000, blue: 1.000, alpha: 1) // #FFFFFF
         }
         static let bg              = SwiftUI.Color(_bg)
         static let surface         = SwiftUI.Color(_surface)
         static let surfaceRaised   = SwiftUI.Color(UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.110, green: 0.145, blue: 0.224, alpha: 1) // #1C2539
+                ? UIColor(red: 0.176, green: 0.125, blue: 0.196, alpha: 1) // #2D2032
                 : UIColor.white
         })
         static let surfaceRaisedHi = SwiftUI.Color(UIColor.systemFill)
@@ -38,8 +38,8 @@ enum ReplrTheme {
         // Glass border: adaptive — subtle gray in light, subtle white in dark
         static let glassBorder     = SwiftUI.Color(UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor.white.withAlphaComponent(0.12)
-                : UIColor.black.withAlphaComponent(0.12)
+                ? UIColor.white.withAlphaComponent(0.10)
+                : UIColor.black.withAlphaComponent(0.08)
         })
 
         // Text — iOS semantic labels
@@ -47,15 +47,15 @@ enum ReplrTheme {
         static let textSecondary   = SwiftUI.Color.secondary
         static let textTertiary    = SwiftUI.Color(UIColor.tertiaryLabel)
 
-        // Accent — Superwall Teal, hardcoded so keyboard extension bundle gets it too
+        // Accent — Flirt rose, hardcoded so the keyboard extension bundle gets it too
         private static let _accent = UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.090, green: 0.918, blue: 0.851, alpha: 1) // #17EAD9 — brand kit teal
-                : UIColor(red: 0.000, green: 0.580, blue: 0.530, alpha: 1) // deeper teal for light contrast
+                ? UIColor(red: 1.000, green: 0.435, blue: 0.569, alpha: 1) // #FF6F91 — flirt rose
+                : UIColor(red: 0.910, green: 0.267, blue: 0.478, alpha: 1) // #E8447A — deeper rose for light contrast
         }
         static let accent          = SwiftUI.Color(_accent)
         static let accentPressed   = SwiftUI.Color(_accent)
-        // onAccent: white — sufficient contrast on #0DB5A4 (dark) and #00897B (light)
+        // onAccent: white — AA on #FF6F91 (dark) and #E8447A (light)
         static let onAccent        = SwiftUI.Color.white
         static let accentSubtle    = SwiftUI.Color(UIColor { tc in
             tc.userInterfaceStyle == .dark
@@ -66,9 +66,33 @@ enum ReplrTheme {
         // Glow — used as box-shadow color on primary actions and active states
         static let accentGlow = SwiftUI.Color(UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.090, green: 0.918, blue: 0.851, alpha: 0.45)
-                : UIColor(red: 0.000, green: 0.580, blue: 0.530, alpha: 0.25)
+                ? UIColor(red: 1.000, green: 0.435, blue: 0.569, alpha: 0.42)
+                : UIColor(red: 0.910, green: 0.267, blue: 0.478, alpha: 0.22)
         })
+
+        // Brand gradient — rose → coral → amber. Constant in both modes; the
+        // signature surface for primary CTAs, active chips, and brand marks.
+        // LinearGradient conforms to ShapeStyle + View, so use it directly in
+        // .fill(...) / .background(...).
+        static let brandGradient = LinearGradient(
+            colors: [
+                SwiftUI.Color(red: 1.000, green: 0.369, blue: 0.541), // #FF5E8A
+                SwiftUI.Color(red: 1.000, green: 0.478, blue: 0.349), // #FF7A59
+                SwiftUI.Color(red: 1.000, green: 0.706, blue: 0.369), // #FFB45E
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
+        /// Live accent as resolved RGBA (0–1) for a scheme. Lets Lottie's
+        /// ColorValueProvider read the current accent without importing Lottie here.
+        static func accentRGBA(for scheme: ColorScheme) -> (r: Double, g: Double, b: Double, a: Double) {
+            let ui = _accent.resolvedColor(
+                with: UITraitCollection(userInterfaceStyle: scheme == .dark ? .dark : .light))
+            var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+            ui.getRed(&r, green: &g, blue: &b, alpha: &a)
+            return (Double(r), Double(g), Double(b), Double(a))
+        }
 
         // Semantic status colors — iOS adaptive
         static let danger          = SwiftUI.Color(UIColor.systemRed)
