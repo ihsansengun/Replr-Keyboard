@@ -54,7 +54,9 @@ struct OnboardingStep<Content: View, CTA: View>: View {
                 }
             }
             .padding(.horizontal, 24)
-            .padding(.bottom, 32)
+            .padding(.bottom, 16)
+
+            Spacer(minLength: 24)
 
             VStack(alignment: .leading, spacing: 8) {
                 Badge(sectionLabel)
@@ -75,7 +77,7 @@ struct OnboardingStep<Content: View, CTA: View>: View {
             content()
                 .padding(.horizontal, 24)
 
-            Spacer(minLength: 16)
+            Spacer(minLength: 24)
 
             VStack(spacing: 12) {
                 cta()
