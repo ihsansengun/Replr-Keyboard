@@ -84,6 +84,16 @@ enum ReplrTheme {
             endPoint: .bottomTrailing
         )
 
+        /// Live accent as resolved RGBA (0–1) for a scheme. Lets Lottie's
+        /// ColorValueProvider read the current accent without importing Lottie here.
+        static func accentRGBA(for scheme: ColorScheme) -> (r: Double, g: Double, b: Double, a: Double) {
+            let ui = _accent.resolvedColor(
+                with: UITraitCollection(userInterfaceStyle: scheme == .dark ? .dark : .light))
+            var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+            ui.getRed(&r, green: &g, blue: &b, alpha: &a)
+            return (Double(r), Double(g), Double(b), Double(a))
+        }
+
         // Semantic status colors — iOS adaptive
         static let danger          = SwiftUI.Color(UIColor.systemRed)
         static let success         = SwiftUI.Color(UIColor.systemGreen)
