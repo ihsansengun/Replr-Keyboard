@@ -22,6 +22,47 @@ struct IdlePanelView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ReplrTheme.Color.bg)
+        .overlay(alignment: .top) { intentCoachmark }
+    }
+
+    /// One-time hint balloon pinned to the very top of the keyboard, its tail
+    /// pointing up at the host's compose box (where the user types the reply
+    /// direction). Chat-only; gated by `showIntentTip` (set in the idle card's onAppear).
+    @ViewBuilder
+    private var intentCoachmark: some View {
+        if showIntentTip && model.inputMode == .chat {
+            VStack(spacing: 0) {
+                UpTriangle()
+                    .fill(ReplrTheme.Color.accent)
+                    .frame(width: 18, height: 9)
+                    .offset(y: 1) // overlap the balloon top to hide the seam
+                HStack(alignment: .top, spacing: 8) {
+                    Text("💡 Want to steer it? Type what you want to say first, then tap Start.")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.white)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.15)) { showIntentTip = false }
+                        AppGroupService.shared.intentTipShowCount = 3
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.white.opacity(0.85))
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 9)
+                .background(
+                    RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        .fill(ReplrTheme.Color.brandGradient)
+                )
+                .shadow(color: ReplrTheme.Color.accent.opacity(0.5), radius: 14, x: 0, y: 6)
+            }
+            .padding(.top, 3)
+            .padding(.horizontal, 20)
+            .transition(.opacity)
+        }
     }
 
     // MARK: - Chat idle
@@ -106,51 +147,6 @@ struct IdlePanelView: View {
         .padding(.horizontal, 18)
         .padding(.bottom, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .overlay {
-            if showIntentTip {
-                ZStack {
-                    // Subtle dim over the card. Non-interactive: Start still works.
-                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                        .fill(Color.black.opacity(colorScheme == .dark ? 0.45 : 0.28))
-                        .allowsHitTesting(false)
-
-                    VStack(spacing: 0) {
-                        Spacer(minLength: 0)
-                        HStack(alignment: .top, spacing: 8) {
-                            Text("💡 Want to steer it? Type what you want to say first, then tap Start.")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(.white)
-                                .fixedSize(horizontal: false, vertical: true)
-                            Button {
-                                withAnimation(.easeInOut(duration: 0.15)) { showIntentTip = false }
-                                AppGroupService.shared.intentTipShowCount = 3
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .foregroundColor(.white.opacity(0.85))
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 9)
-                        .background(
-                            RoundedRectangle(cornerRadius: 13, style: .continuous)
-                                .fill(ReplrTheme.Color.brandGradient)
-                        )
-                        .overlay(alignment: .bottom) {
-                            DownTriangle()
-                                .fill(ReplrTheme.Color.accent)
-                                .frame(width: 16, height: 8)
-                                .offset(y: 7)
-                        }
-                        .shadow(color: ReplrTheme.Color.accent.opacity(0.5), radius: 14, x: 0, y: 6)
-                        .padding(.horizontal, 26)
-                        .padding(.bottom, 60) // float the balloon above the Start button
-                    }
-                }
-                .transition(.opacity)
-            }
-        }
         .onAppear {
             let count = AppGroupService.shared.intentTipShowCount
             showIntentTip = count < 3
@@ -286,13 +282,14 @@ private struct CaptureStepsAnimation: View {
     }
 }
 
-/// Small downward-pointing triangle for the coachmark balloon tail.
-private struct DownTriangle: Shape {
+/// Small upward-pointing triangle for the coachmark balloon tail — points up at
+/// the host's compose box above the keyboard.
+private struct UpTriangle: Shape {
     func path(in rect: CGRect) -> Path {
         var p = Path()
-        p.move(to: CGPoint(x: rect.minX, y: rect.minY))
-        p.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-        p.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
+        p.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
         p.closeSubpath()
         return p
     }
