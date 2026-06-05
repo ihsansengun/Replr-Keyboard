@@ -201,8 +201,9 @@ struct SettingsView: View {
                 .lineLimit(3...6)
                 .foregroundStyle(ReplrTheme.Color.textPrimary)
                 .onChange(of: aboutUser) { newValue in
-                    if newValue.count > 300 { aboutUser = String(newValue.prefix(300)) }
-                    AppGroupService.shared.aboutUser = aboutUser
+                    let capped = newValue.count > 300 ? String(newValue.prefix(300)) : newValue
+                    if newValue.count > 300 { aboutUser = capped }
+                    AppGroupService.shared.aboutUser = capped
                 }
 
                 Text("Stays on your device — sent only to draft your replies.")
