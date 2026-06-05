@@ -8,6 +8,7 @@ struct ReplyRequest: Codable {
     let previousContext: String?
     let model: String
     let userId: String
+    let aboutUser: String?
 }
 
 struct ReplyEmailRequest: Codable {
@@ -17,6 +18,7 @@ struct ReplyEmailRequest: Codable {
     let previousContext: String?
     let model: String
     let userId: String
+    let aboutUser: String?
 }
 
 struct ReplyResponse: Codable {
@@ -64,7 +66,8 @@ final class ReplyService {
             summary: summary,
             previousContext: previousContext,
             model: AppGroupService.shared.selectedModel,
-            userId: AppGroupService.shared.userID()
+            userId: AppGroupService.shared.userID(),
+            aboutUser: AppGroupService.shared.aboutUser.isEmpty ? nil : AppGroupService.shared.aboutUser
         )
 
         var request = URLRequest(url: backendURL)
@@ -94,7 +97,8 @@ final class ReplyService {
             summary: summary,
             previousContext: previousContext,
             model: AppGroupService.shared.selectedModel,
-            userId: AppGroupService.shared.userID()
+            userId: AppGroupService.shared.userID(),
+            aboutUser: AppGroupService.shared.aboutUser.isEmpty ? nil : AppGroupService.shared.aboutUser
         )
 
         var request = URLRequest(url: backendURL)
@@ -128,6 +132,7 @@ final class ReplyService {
             let previousContext: String?
             let model: String
             let userId: String
+            let aboutUser: String?
         }
 
         let scrollBody = ScrollRequest(
@@ -136,7 +141,8 @@ final class ReplyService {
             summary: summary,
             previousContext: previousContext,
             model: AppGroupService.shared.selectedModel,
-            userId: AppGroupService.shared.userID()
+            userId: AppGroupService.shared.userID(),
+            aboutUser: AppGroupService.shared.aboutUser.isEmpty ? nil : AppGroupService.shared.aboutUser
         )
 
         let scrollURL = URL(string: Constants.backendURL + "/reply/scroll")!
