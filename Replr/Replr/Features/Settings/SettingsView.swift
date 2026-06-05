@@ -136,12 +136,14 @@ struct SettingsView: View {
     @State private var autoClear = AppGroupService.shared.autoClearScreenshots
     @State private var pendingShots = ScreenshotCleaner.pendingCount()
     @State private var showTutorial = false
+    @State private var aboutUser = AppGroupService.shared.aboutUser
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     identityCard
+                    aboutYouSection
                     keyboardSection
                     aiModelSection
                     memorySection
@@ -183,6 +185,33 @@ struct SettingsView: View {
         }
         .padding(16)
         .brandCard()
+    }
+
+    // MARK: - About You
+
+    private var aboutYouSection: some View {
+        settingsSection("About You") {
+            VStack(alignment: .leading, spacing: 8) {
+                TextField(
+                    "A few words about you — age, gender, your vibe, what you're into. Helps Replr sound like you.\ne.g. 27, guy, dry sense of humour, into climbing and techno.",
+                    text: $aboutUser,
+                    axis: .vertical
+                )
+                .font(.system(size: 15))
+                .lineLimit(3...6)
+                .foregroundStyle(ReplrTheme.Color.textPrimary)
+                .onChange(of: aboutUser) { newValue in
+                    if newValue.count > 300 { aboutUser = String(newValue.prefix(300)) }
+                    AppGroupService.shared.aboutUser = aboutUser
+                }
+
+                Text("Stays on your device — sent only to draft your replies.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(ReplrTheme.Color.textSecondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
     }
 
     // MARK: - Keyboard
