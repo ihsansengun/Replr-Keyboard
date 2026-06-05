@@ -178,4 +178,10 @@ describe('buildSystemPrompt', () => {
     expect(sys).toContain('hi there')
     expect(sys).not.toContain('  hi there  ')
   })
+
+  it('hard-caps aboutUser to protect the system prompt', () => {
+    const sys = buildSystemPrompt('casual', 'x'.repeat(500))
+    expect(sys).toContain('x'.repeat(300))
+    expect(sys).not.toContain('x'.repeat(301))
+  })
 })

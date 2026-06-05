@@ -39,11 +39,15 @@ const DECISIONS = `Before generating replies, assess:
 6. Gender → infer the LEFT-side person's likely gender from their name, how the user addresses them, and the content; take the user's own gender from the ABOUT THE USER block (if provided). In grammatically-gendered languages get the gendered forms right for BOTH people; when a person's gender is genuinely unclear, prefer neutral phrasing over guessing. Reflect the real dynamic between the two (the flirt reads differently depending on who is writing to whom)
 7. For dating contexts: where are they in the relationship?`
 
+/** Hard cap on the user-supplied profile text — keeps the system prompt bounded
+ *  even if a client bypasses the app's 300-char field and posts a huge value. */
+const ABOUT_USER_MAX_CHARS = 300
+
 /** Build the system prompt: identity + role/tone, plus an optional user-profile
  *  block (the right-side person we write FOR — gives the model their voice/gender). */
 export function buildSystemPrompt(tone: string, aboutUser?: string): string {
   const parts = [IDENTITY, `ROLE: ${tone}`]
-  const about = aboutUser?.trim()
+  const about = aboutUser?.trim().slice(0, ABOUT_USER_MAX_CHARS)
   if (about) {
     parts.push(
       `ABOUT THE USER YOU'RE WRITING FOR (the right-side person — write in their voice):\n${about}`
