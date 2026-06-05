@@ -163,7 +163,7 @@ private struct KeyboardSetupStep: View {
 
     var body: some View {
         OnboardingStep(
-            step: 1, totalSteps: 3,
+            step: 1, totalSteps: 2,
             sectionLabel: "Keyboard",
             headline: "Add Replr & allow Full Access.",
             bodyText: "Add the Replr keyboard, then turn on Full Access so it can draft replies. Already did it? Tap “I've enabled it” — we confirm the next time you open the Replr keyboard.",
@@ -351,7 +351,7 @@ private struct PhotosPermissionStep: View {
 
     var body: some View {
         OnboardingStep(
-            step: 2, totalSteps: 3,
+            step: 2, totalSteps: 2,
             sectionLabel: "Permissions",
             headline: "Allow Photos.",
             bodyText: "Replr drafts replies from the screenshot you take of a chat. Your photo library stays private:",
@@ -426,26 +426,7 @@ private struct PhotosPermissionStep: View {
     }
 }
 
-// MARK: - iOS 26 Full-Screen Previews tip (only shown on iOS 26+)
-
-private struct FullScreenPreviewTipStep: View {
-    let onNext: () -> Void
-    let onBack: () -> Void
-
-    var body: some View {
-        OnboardingStep(
-            step: 3, totalSteps: 3,
-            sectionLabel: "Optional",
-            headline: "Turn off Full-Screen Previews.",
-            bodyText: "On iOS 26, screenshots open a full editor instead of saving on their own — so Replr can't catch them hands-free.\n\nFor one-tap capture, open the Settings app → Screen Capture, and turn off Full-Screen Previews. (iOS doesn't let apps jump straight to that page.)\n\nThis is optional — capture still works without it; you'll just tap Save on each screenshot first.",
-            onBack: onBack
-        ) {
-            EmptyView()
-        } cta: {
-            PrimaryButton(label: "Done →", action: onNext)
-        }
-    }
-}
+// (Removed: the iOS 26 Full-Screen Previews tip now lives in Settings → Screenshots.)
 
 // MARK: - Ready (final handoff — how to start using the keyboard)
 
@@ -531,14 +512,14 @@ struct OnboardingView: View {
         }
     }
 
-    /// First permission step (1...2) at or after `from` that still needs action; 3 (tip/finish) if all met.
+    /// First permission step (1...2) at or after `from` that still needs action; 4 (Ready) if all met.
     private func nextStep(from: Int) -> Int {
         var s = max(from, 1)
         while s <= 2 {
             if !isSatisfied(s) { return s }
             s += 1
         }
-        return 3
+        return 4
     }
 
     var body: some View {
@@ -549,14 +530,11 @@ struct OnboardingView: View {
             case 1:
                 KeyboardSetupStep(onNext: { step = nextStep(from: 2) }, onBack: { step = 0 })
             case 2:
-                PhotosPermissionStep(onNext: { step = 3 }, onBack: { step = 1 })
+                PhotosPermissionStep(onNext: { step = 4 }, onBack: { step = 1 })
             case 3:
-                if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26 {
-                    FullScreenPreviewTipStep(onNext: { step = 4 }, onBack: { step = 2 })
-                } else {
-                    // Older iOS auto-saves screenshots — no tip needed; go straight to the handoff.
-                    Color.clear.onAppear { step = 4 }
-                }
+                // The iOS 26 Full-Screen Previews tip now lives in Settings → Screenshots.
+                // Kept as a no-op redirect so a persisted step == 3 moves on to the handoff.
+                Color.clear.onAppear { step = 4 }
             case 4:
                 ReadyStep(onDone: { step = 5 })
             case 5:

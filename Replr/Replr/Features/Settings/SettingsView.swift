@@ -364,6 +364,21 @@ struct SettingsView: View {
                 .foregroundStyle(ReplrTheme.Color.textSecondary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
+
+            if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26 {
+                cardDivider
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Faster capture on iOS 26")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.textPrimary)
+                    Text("Screenshots open a full editor instead of saving on their own. For one-tap capture, open the Settings app → Screen Capture and turn off Full-Screen Previews. Optional — capture still works; you'll just tap Save first.")
+                        .font(.system(size: 12))
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+            }
         }
     }
 
