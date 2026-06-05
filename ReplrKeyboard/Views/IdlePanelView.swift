@@ -4,6 +4,7 @@ import Lottie
 struct IdlePanelView: View {
     @ObservedObject var model: KeyboardModel
     @State private var hasClipboardText: Bool = false
+    @State private var showIntentTip = false
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -101,6 +102,59 @@ struct IdlePanelView: View {
         .padding(.horizontal, 18)
         .padding(.bottom, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay {
+            if showIntentTip {
+                ZStack {
+                    // Subtle dim over the card. Non-interactive: Start still works.
+                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                        .fill(Color.black.opacity(colorScheme == .dark ? 0.45 : 0.28))
+                        .allowsHitTesting(false)
+
+                    VStack(spacing: 0) {
+                        Spacer(minLength: 0)
+                        HStack(alignment: .top, spacing: 8) {
+                            Text("💡 Want to steer it? Type what you want to say first, then tap Start.")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.white)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.15)) { showIntentTip = false }
+                                AppGroupService.shared.intentTipShowCount = 3
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(.white.opacity(0.85))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 9)
+                        .background(
+                            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                                .fill(ReplrTheme.Color.brandGradient)
+                        )
+                        .overlay(alignment: .bottom) {
+                            DownTriangle()
+                                .fill(ReplrTheme.Color.accent)
+                                .frame(width: 16, height: 8)
+                                .offset(y: 7)
+                        }
+                        .shadow(color: ReplrTheme.Color.accent.opacity(0.5), radius: 14, x: 0, y: 6)
+                        .padding(.horizontal, 26)
+                        .padding(.bottom, 60) // float the balloon above the Start button
+                    }
+                }
+                .transition(.opacity)
+            }
+        }
+        .onAppear {
+            if AppGroupService.shared.intentTipShowCount < 3 {
+                showIntentTip = true
+                AppGroupService.shared.intentTipShowCount += 1
+            } else {
+                showIntentTip = false
+            }
+        }
     }
 
     // MARK: - Email idle
@@ -224,6 +278,18 @@ private struct CaptureStepsAnimation: View {
                 .font(.system(size: 22, weight: .medium))
                 .foregroundColor(ReplrTheme.Color.accent)
         }
+    }
+}
+
+/// Small downward-pointing triangle for the coachmark balloon tail.
+private struct DownTriangle: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
+        p.closeSubpath()
+        return p
     }
 }
 
