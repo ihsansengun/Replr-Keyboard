@@ -26,8 +26,8 @@ struct ReplrApp: App {
         }
         let accentColor = UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.051, green: 0.710, blue: 0.643, alpha: 1) // #0DB5A4
-                : UIColor(red: 0.000, green: 0.537, blue: 0.482, alpha: 1) // #00897B
+                ? UIColor(red: 1.000, green: 0.435, blue: 0.569, alpha: 1) // #FF6F91 — flirt rose
+                : UIColor(red: 0.910, green: 0.267, blue: 0.478, alpha: 1) // #E8447A — deeper rose for light
         }
 
         let nav = UINavigationBarAppearance()
