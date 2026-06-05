@@ -5,6 +5,10 @@ struct IdlePanelView: View {
     @ObservedObject var model: KeyboardModel
     @State private var hasClipboardText: Bool = false
     @State private var showIntentTip = false
+    /// Counts at most one coachmark "appearance" per keyboard process launch —
+    /// the idle card re-mounts on every collapse/state round-trip, so a per-mount
+    /// counter would burn all 3 appearances in a single sitting.
+    private static var didCountIntentTipThisLaunch = false
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -148,11 +152,12 @@ struct IdlePanelView: View {
             }
         }
         .onAppear {
-            if AppGroupService.shared.intentTipShowCount < 3 {
-                showIntentTip = true
-                AppGroupService.shared.intentTipShowCount += 1
-            } else {
-                showIntentTip = false
+            let count = AppGroupService.shared.intentTipShowCount
+            showIntentTip = count < 3
+            // Count one appearance per keyboard launch, not per view re-mount.
+            if showIntentTip && !Self.didCountIntentTipThisLaunch {
+                Self.didCountIntentTipThisLaunch = true
+                AppGroupService.shared.intentTipShowCount = count + 1
             }
         }
     }
