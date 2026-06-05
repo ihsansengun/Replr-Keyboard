@@ -250,95 +250,6 @@ private struct KeyboardSetupStep: View {
     }
 }
 
-private struct InstallShortcutStep: View {
-    let onNext: () -> Void
-    let onBack: () -> Void
-    @AppStorage("onboarding.shortcutOpened") private var shortcutOpened = false
-    @Environment(\.scenePhase) private var scenePhase
-
-    var body: some View {
-        OnboardingStep(
-            step: 3, totalSteps: 4,
-            sectionLabel: "Shortcut",
-            headline: "Install the Shortcut.",
-            bodyText: "A two-step recipe in iOS Shortcuts takes the screenshot and hands it to Replr — no Photos access needed.",
-            onBack: onBack
-        ) {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(ReplrTheme.Color.accent)
-                            .frame(width: 32, height: 32)
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(ReplrTheme.Color.onAccent)
-                    }
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Replr Capture")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(ReplrTheme.Color.textPrimary)
-                        Text("2 actions")
-                            .font(.system(size: 11))
-                            .foregroundColor(ReplrTheme.Color.textTertiary)
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-
-                Divider().overlay(ReplrTheme.Color.glassBorder)
-
-                VStack(spacing: 0) {
-                    ForEach(Array(["Take Screenshot", "Generate Reply"].enumerated()), id: \.offset) { idx, action in
-                        HStack {
-                            Text(String(format: "%02d", idx + 1))
-                                .font(.system(size: 11, weight: .medium).monospacedDigit())
-                                .foregroundColor(ReplrTheme.Color.textTertiary)
-                                .frame(width: 24, alignment: .leading)
-                            Text(action)
-                                .font(.system(size: 13))
-                                .foregroundColor(ReplrTheme.Color.textPrimary)
-                            Spacer()
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(ReplrTheme.Color.success)
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        if idx < 1 {
-                            Divider().overlay(ReplrTheme.Color.glassBorder).padding(.leading, 52)
-                        }
-                    }
-                }
-            }
-            .background(ReplrTheme.Color.surfaceRaised)
-            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
-            )
-        } cta: {
-            VStack(spacing: 12) {
-                PrimaryButton(label: "Add to Shortcuts →") {
-                    shortcutOpened = true
-                    if let url = URL(string: Constants.shortcutInstallURL) {
-                        UIApplication.shared.open(url)
-                    }
-                }
-                TertiaryButton(label: "Already installed →", action: onNext)
-            }
-        }
-        .onChange(of: scenePhase) { newPhase in
-            if newPhase == .active, shortcutOpened {
-                shortcutOpened = false
-                onNext()
-            }
-        }
-        .onDisappear { shortcutOpened = false }
-    }
-}
-
 // MARK: - Photos permission (Phase 2 — screenshot capture)
 
 private struct PhotosPermissionStep: View {
@@ -477,20 +388,7 @@ private struct ReadyStep: View {
         }
     }
 
-    private func howToRow(_ n: String, _ text: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Text(n)
-                .font(.system(size: 12, weight: .bold).monospacedDigit())
-                .foregroundColor(ReplrTheme.Color.onAccent)
-                .frame(width: 22, height: 22)
-                .background(Circle().fill(ReplrTheme.Color.accent))
-            Text(text)
-                .font(ReplrTheme.Font.callout)
-                .foregroundColor(ReplrTheme.Color.textPrimary)
-                .lineSpacing(2)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
+    
 }
 
 // MARK: - Root coordinator
