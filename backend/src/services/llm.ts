@@ -38,6 +38,19 @@ const DECISIONS = `Before generating replies, assess:
 5. Whether to advance the conversation or simply respond
 6. For dating contexts: where are they in the relationship?`
 
+/** Build the system prompt: identity + role/tone, plus an optional user-profile
+ *  block (the right-side person we write FOR — gives the model their voice/gender). */
+export function buildSystemPrompt(tone: string, aboutUser?: string): string {
+  const parts = [IDENTITY, `ROLE: ${tone}`]
+  const about = aboutUser?.trim()
+  if (about) {
+    parts.push(
+      `ABOUT THE USER YOU'RE WRITING FOR (the right-side person — write in their voice):\n${about}`
+    )
+  }
+  return parts.join('\n\n')
+}
+
 const REPLY_COUNT = 3
 
 interface ModelResolution {

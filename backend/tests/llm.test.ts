@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { parseReplies, parseLlmOutput, generateReplies } from '../src/services/llm'
+import { parseReplies, parseLlmOutput, generateReplies, buildSystemPrompt } from '../src/services/llm'
 
 const anthropicMessagesCreate = vi.fn()
 const openaiChatCreate = vi.fn()
@@ -151,5 +151,31 @@ describe('generateReplies', () => {
     })
 
     expect(result.replies).toHaveLength(5)
+  })
+})
+
+describe('buildSystemPrompt', () => {
+  it('always includes the Replr identity and the role/tone', () => {
+    const sys = buildSystemPrompt('flirty')
+    expect(sys).toContain('You are Replr')
+    expect(sys).toContain('ROLE: flirty')
+  })
+
+  it('includes the ABOUT-THE-USER block when aboutUser is provided', () => {
+    const sys = buildSystemPrompt('casual', '27, guy, into climbing and techno')
+    expect(sys).toContain('ABOUT THE USER')
+    expect(sys).toContain('27, guy, into climbing and techno')
+  })
+
+  it('omits the ABOUT block when aboutUser is undefined, empty, or whitespace', () => {
+    expect(buildSystemPrompt('casual')).not.toContain('ABOUT THE USER')
+    expect(buildSystemPrompt('casual', '')).not.toContain('ABOUT THE USER')
+    expect(buildSystemPrompt('casual', '   ')).not.toContain('ABOUT THE USER')
+  })
+
+  it('trims the aboutUser text', () => {
+    const sys = buildSystemPrompt('casual', '  hi there  ')
+    expect(sys).toContain('hi there')
+    expect(sys).not.toContain('  hi there  ')
   })
 })
