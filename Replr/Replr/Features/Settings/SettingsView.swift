@@ -137,6 +137,7 @@ struct SettingsView: View {
     @State private var pendingShots = ScreenshotCleaner.pendingCount()
     @State private var showTutorial = false
     @State private var aboutUser = AppGroupService.shared.aboutUser
+    @FocusState private var aboutFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -155,6 +156,7 @@ struct SettingsView: View {
                 .padding(20)
             }
             .background(ReplrTheme.Color.bg.ignoresSafeArea())
+            .scrollDismissesKeyboard(.interactively)
             .navigationBarTitleDisplayMode(.inline)
         }
         .fullScreenCover(isPresented: $showTutorial) {
@@ -204,6 +206,15 @@ struct SettingsView: View {
                     let capped = newValue.count > 300 ? String(newValue.prefix(300)) : newValue
                     if newValue.count > 300 { aboutUser = capped }
                     AppGroupService.shared.aboutUser = capped
+                }
+                .focused($aboutFocused)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("Done") { aboutFocused = false }
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(ReplrTheme.Color.accent)
+                    }
                 }
 
                 Text("Stays on your device — sent only to draft your replies.")
