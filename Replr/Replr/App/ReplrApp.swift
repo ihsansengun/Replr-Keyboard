@@ -21,8 +21,8 @@ struct ReplrApp: App {
     private func applyBrandAppearance() {
         let navBg = UIColor { tc in
             tc.userInterfaceStyle == .dark
-                ? UIColor(red: 0.051, green: 0.067, blue: 0.090, alpha: 1) // #0D1117
-                : UIColor(red: 0.961, green: 0.945, blue: 0.922, alpha: 1) // #F5F1EB warm cream
+                ? UIColor(red: 0.082, green: 0.063, blue: 0.102, alpha: 1) // #15101A
+                : UIColor(red: 1.000, green: 0.973, blue: 0.961, alpha: 1) // #FFF8F5 warm white
         }
         let accentColor = UIColor { tc in
             tc.userInterfaceStyle == .dark
