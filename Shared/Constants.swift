@@ -15,6 +15,7 @@ enum Constants {
     static let transactionIDKey       = "transaction_id"
     static let pendingContextKey      = "pending_context"
     static let persistRepliesKey      = "persist_replies"
+    static let aboutUserKey           = "about_user"
     static let cachedRepliesKey       = "cached_replies"
     static let isGeneratingKey        = "is_generating"
     static let captureSessionsKey     = "capture_sessions"
