@@ -218,6 +218,13 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.aboutUserKey); defaults.synchronize() }
     }
 
+    /// How many times the in-keyboard "type a direction" coachmark has shown.
+    /// Coachmark appears while < 3; dismissing (✕) sets it to 3 so it stops.
+    var intentTipShowCount: Int {
+        get { defaults.integer(forKey: Constants.intentTipShowCountKey) }
+        set { defaults.set(newValue, forKey: Constants.intentTipShowCountKey); defaults.synchronize() }
+    }
+
     func saveCachedReplies(_ replies: [String]) {
         guard let data = try? JSONEncoder().encode(replies) else { return }
         defaults.set(data, forKey: Constants.cachedRepliesKey)
