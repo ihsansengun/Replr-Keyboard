@@ -22,7 +22,7 @@ const fakeEnv = {
 const validBody = {
   screenshotBase64: 'aGVsbG8=',
   tone: 'casual',
-  model: 'gpt-4.1-mini',
+  model: 'claude-sonnet-4-6',
   userId: 'test-user-123',
 }
 
@@ -117,7 +117,7 @@ describe('POST /reply', () => {
   })
 
   it('accepts all valid model IDs', async () => {
-    const models = ['gpt-4.1-mini', 'gpt-5.4-mini', 'gpt-4.1', 'claude-sonnet-4-6']
+    const models = ['gpt-5.4', 'gpt-5.4-mini', 'gpt-5.5', 'claude-sonnet-4-6', 'claude-opus-4-6', 'grok-4', 'grok-4.3', 'gemini-3.1-pro-preview']
     for (const model of models) {
       const res = await app.request('/reply', {
         method: 'POST',

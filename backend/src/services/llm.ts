@@ -36,7 +36,21 @@ const DECISIONS = `Before generating replies, assess:
 3. Typical message length → stay consistent
 4. What the most recent LEFT-side message implies → that is what you are replying to
 5. Whether to advance the conversation or simply respond
-6. For dating contexts: where are they in the relationship?`
+6. Gender → infer the LEFT-side person's likely gender from their name, how the user addresses them, and the content; take the user's own gender from the ABOUT THE USER block (if provided). In grammatically-gendered languages get the gendered forms right for BOTH people; when a person's gender is genuinely unclear, prefer neutral phrasing over guessing. Reflect the real dynamic between the two (the flirt reads differently depending on who is writing to whom)
+7. For dating contexts: where are they in the relationship?`
+
+/** Build the system prompt: identity + role/tone, plus an optional user-profile
+ *  block (the right-side person we write FOR — gives the model their voice/gender). */
+export function buildSystemPrompt(tone: string, aboutUser?: string): string {
+  const parts = [IDENTITY, `ROLE: ${tone}`]
+  const about = aboutUser?.trim()
+  if (about) {
+    parts.push(
+      `ABOUT THE USER YOU'RE WRITING FOR (the right-side person — write in their voice):\n${about}`
+    )
+  }
+  return parts.join('\n\n')
+}
 
 const REPLY_COUNT = 3
 
@@ -252,6 +266,7 @@ export interface GenerateEmailParams {
   tone: string
   summary?: string
   previousContext?: string
+  aboutUser?: string
   model: Model
   anthropicKey: string
   openaiKey: string
@@ -264,6 +279,7 @@ export interface GenerateParams {
   tone: string
   summary?: string
   previousContext?: string
+  aboutUser?: string
   model: Model
   anthropicKey: string
   openaiKey: string
@@ -276,6 +292,7 @@ export interface GenerateMultipleParams {
   tone: string
   summary?: string
   previousContext?: string
+  aboutUser?: string
   model: Model
   anthropicKey: string
   openaiKey: string
@@ -304,9 +321,9 @@ ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
 }
 
 export async function generateReplies(params: GenerateParams): Promise<LlmResult> {
-  const { screenshotBase64, tone, summary, previousContext, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
+  const { screenshotBase64, tone, summary, previousContext, aboutUser, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
 
-  const system = [IDENTITY, `ROLE: ${tone}`].join('\n\n')
+  const system = buildSystemPrompt(tone, aboutUser)
 
   const user = `${buildContextBlock(summary, previousContext)}Reading guide — CRITICAL:
 - RIGHT-side bubbles = YOUR USER (the person you are writing FOR — do not reply to these)
@@ -322,10 +339,10 @@ ${buildReplyFormat(REPLY_COUNT)}`
 }
 
 export async function generateRepliesFromMultiple(params: GenerateMultipleParams): Promise<LlmResult> {
-  const { screenshots, tone, summary, previousContext, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
+  const { screenshots, tone, summary, previousContext, aboutUser, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
   const count = REPLY_COUNT
 
-  const system = [IDENTITY, `ROLE: ${tone}`].join('\n\n')
+  const system = buildSystemPrompt(tone, aboutUser)
 
   const user = `${buildContextBlock(summary, previousContext)}The following screenshots show a conversation scrolled through from bottom to top. Read all of them together to understand the full context.
 
@@ -343,9 +360,9 @@ ${buildReplyFormat(count)}`
 }
 
 export async function generateRepliesFromEmail(params: GenerateEmailParams): Promise<LlmResult> {
-  const { emailText, tone, summary, previousContext, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
+  const { emailText, tone, summary, previousContext, aboutUser, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
 
-  const system = [IDENTITY, `ROLE: ${tone}`].join('\n\n')
+  const system = buildSystemPrompt(tone, aboutUser)
 
   const user = `${buildContextBlock(summary, previousContext)}EMAIL TO REPLY TO:\n${emailText}\n\n${DECISIONS}\n\n${buildReplyFormat(REPLY_COUNT)}`
 

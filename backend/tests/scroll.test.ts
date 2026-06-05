@@ -33,7 +33,8 @@ describe('POST /reply/scroll', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     anthropicMessagesCreate.mockResolvedValue({
-      content: [{ type: 'text', text: '1. Hey\n2. Sure\n3. Cool\n4. Yep\n5. Alright' }]
+      content: [{ type: 'text', text: '1. Hey\n2. Sure\n3. Cool\n4. Yep\n5. Alright' }],
+      usage: { input_tokens: 100, output_tokens: 50 },
     })
   })
 

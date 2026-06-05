@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { parseReplies, parseLlmOutput, generateReplies } from '../src/services/llm'
+import { parseReplies, parseLlmOutput, generateReplies, buildSystemPrompt } from '../src/services/llm'
 
 const anthropicMessagesCreate = vi.fn()
 const openaiChatCreate = vi.fn()
@@ -94,6 +94,7 @@ describe('generateReplies', () => {
   it('calls Claude with correct model and returns parsed LlmResult', async () => {
     anthropicMessagesCreate.mockResolvedValue({
       content: [{ type: 'text', text: 'CONTACT: Dana\nSUMMARY: Work chat\n1. Hey\n2. Sure\n3. Cool' }],
+      usage: { input_tokens: 100, output_tokens: 50 },
     })
 
     const result = await generateReplies({
@@ -109,13 +110,14 @@ describe('generateReplies', () => {
     expect(result.contactName).toBe('Dana')
     expect(anthropicMessagesCreate).toHaveBeenCalledWith(expect.objectContaining({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
+      max_tokens: 2048,
     }))
   })
 
   it('calls GPT-4.1-mini with correct model and returns parsed LlmResult', async () => {
     openaiChatCreate.mockResolvedValue({
       choices: [{ message: { content: 'CONTACT: Pat\nSUMMARY: Weekend plans\n1. Yes\n2. No\n3. Maybe' } }],
+      usage: { prompt_tokens: 100, completion_tokens: 50 },
     })
 
     const result = await generateReplies({
@@ -130,13 +132,14 @@ describe('generateReplies', () => {
     expect(result.contactName).toBe('Pat')
     expect(openaiChatCreate).toHaveBeenCalledWith(expect.objectContaining({
       model: 'gpt-5.4',
-      max_tokens: 1024,
+      max_completion_tokens: 2048,
     }))
   })
 
   it('returns 5 replies', async () => {
     anthropicMessagesCreate.mockResolvedValue({
       content: [{ type: 'text', text: 'CONTACT: Sam\nSUMMARY: Chat\n1. A\n2. B\n3. C\n4. D\n5. E' }],
+      usage: { input_tokens: 100, output_tokens: 50 },
     })
 
     const result = await generateReplies({
@@ -148,5 +151,31 @@ describe('generateReplies', () => {
     })
 
     expect(result.replies).toHaveLength(5)
+  })
+})
+
+describe('buildSystemPrompt', () => {
+  it('always includes the Replr identity and the role/tone', () => {
+    const sys = buildSystemPrompt('flirty')
+    expect(sys).toContain('You are Replr')
+    expect(sys).toContain('ROLE: flirty')
+  })
+
+  it('includes the ABOUT-THE-USER block when aboutUser is provided', () => {
+    const sys = buildSystemPrompt('casual', '27, guy, into climbing and techno')
+    expect(sys).toContain('ABOUT THE USER')
+    expect(sys).toContain('27, guy, into climbing and techno')
+  })
+
+  it('omits the ABOUT block when aboutUser is undefined, empty, or whitespace', () => {
+    expect(buildSystemPrompt('casual')).not.toContain('ABOUT THE USER')
+    expect(buildSystemPrompt('casual', '')).not.toContain('ABOUT THE USER')
+    expect(buildSystemPrompt('casual', '   ')).not.toContain('ABOUT THE USER')
+  })
+
+  it('trims the aboutUser text', () => {
+    const sys = buildSystemPrompt('casual', '  hi there  ')
+    expect(sys).toContain('hi there')
+    expect(sys).not.toContain('  hi there  ')
   })
 })

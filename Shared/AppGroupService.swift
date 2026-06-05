@@ -212,6 +212,12 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.persistRepliesKey); defaults.synchronize() }
     }
 
+    /// Free-text "About You" the user writes about themselves; sent per-request to steer replies.
+    var aboutUser: String {
+        get { defaults.string(forKey: Constants.aboutUserKey) ?? "" }
+        set { defaults.set(newValue, forKey: Constants.aboutUserKey); defaults.synchronize() }
+    }
+
     func saveCachedReplies(_ replies: [String]) {
         guard let data = try? JSONEncoder().encode(replies) else { return }
         defaults.set(data, forKey: Constants.cachedRepliesKey)
