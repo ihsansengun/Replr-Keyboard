@@ -68,7 +68,7 @@ xcrun simctl io booted screenshot /tmp/replr-check.png
 
 Everything else (`TonesView`, `SettingsView`, `CaptureLogView`, `Badge`, `BrandToggle`, `ReplrMark`, `SegmentedControl`, `brandCard`, etc.) references `ReplrTheme.*` and **re-skins automatically** once Task 1 lands — no per-view edits.
 
-> **Note on Lottie tinting (decision):** The spec floated runtime tinting via `ColorValueProvider`. On inspection, the animations' accent fills are **color-identified, not name-identified** (all fills are named `"f"`; accent = the teal arrays, neutrals = white/gray), and the current animations already use a single non-adaptive accent. A deterministic **recolor of the teal arrays** is therefore simpler, fully verifiable, and equally swappable (change the target RGB + re-run), with none of the keypath-matching fragility. This plan uses recolor. To change the palette again later: edit the token in Task 1 and re-run the find/replace in Task 5.
+> **Note on Lottie tinting (decision — runtime adaptive):** The animations' accent fills are color-identified, not name-identified (all fills are generically named `"f"`). So `scripts/recolor_lotties.py` (re-runnable) renames every teal fill to `nm:"accent"` and bakes a rose fallback, making them keypath-addressable; then each `LottieView` applies a `ColorValueProvider` for keypath `**.accent.Color` resolved from the **live** `ReplrTheme` accent for the current `colorScheme`. Result: the animation accent follows the single token **and adapts light/dark**. To change the palette later: edit the accent token (Task 1) — the animations follow automatically at runtime (no re-run needed); only re-run the script if you re-author an animation from a fresh teal source.
 
 ---
 
@@ -475,98 +475,246 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ---
 
-### Task 5: Recolor the Lottie accent (teal → rose)
+### Task 5: Runtime-tint the Lottie accent from the live token
 
-The app loads the **minified embedded raw strings**, not the `.json` source files. Recolor those first (exact + verifiable), then sync the source assets for hygiene.
+Two parts: **(a)** a re-runnable script that renames each animation's teal fills to `nm:"accent"` (baking a rose fallback) so they're keypath-addressable; **(b)** a `ColorValueProvider` on each `LottieView`, resolved from the **live** `ReplrTheme` accent for the current `colorScheme`, so the animation accent matches the token and adapts light/dark.
 
-The distinct teal tokens in the embedded strings (confirmed by audit):
-- `IdlePanelView.swift`: `[0.09,0.918,0.851]` ×2 and `[0.11,0.94,0.87]` ×1
-- `OnboardingView.swift`: `[0.0902,0.9176,0.851]` ×13
+Embedded constant → source map (verified): `captureStepsLottieJSON`←`capture_steps.json`; `onboardingCelebrationLottieJSON`←`onboarding_steps.json`; `tutSwitchJSON`/`tutPickJSON`/`tutMinimiseJSON`/`tutScreenshotJSON`/`tutSendJSON`←`tut_{switch,pick,minimise,screenshot,send}.json`.
+
+The 3 `LottieView` sites: `CaptureStepsAnimation` (`IdlePanelView.swift`), `UsageTutorialView` (`OnboardingView.swift` ~line 668, renders all 5 tutorial steps via one LottieView), `OnboardingCelebration` (`OnboardingView.swift` ~line 810).
 
 **Files:**
-- Modify: `ReplrKeyboard/Views/IdlePanelView.swift` (embedded `captureStepsLottieJSON`)
-- Modify: `Replr/Replr/Features/Onboarding/OnboardingView.swift` (6 embedded constants)
-- Modify: `ReplrKeyboard/Resources/capture_steps.json`, `Replr/Replr/Features/Onboarding/onboarding_steps.json`, `Replr/Replr/Features/Onboarding/tutorial_lottie/tut_{switch,pick,minimise,screenshot,send}.json`
+- Modify: `Shared/ReplrTheme.swift` (add `accentRGBA(for:)` helper)
+- Create: `scripts/recolor_lotties.py`
+- Modify (by script): `ReplrKeyboard/Views/IdlePanelView.swift` + `Replr/Replr/Features/Onboarding/OnboardingView.swift` (embedded JSON) and the 7 source `.json`
+- Modify (by hand): the 3 `LottieView` sites above
 
-- [ ] **Step 1: Recolor `IdlePanelView.swift` embedded JSON**
+- [ ] **Step 1: Add `accentRGBA(for:)` to `ReplrTheme.Color`**
 
-Use Edit with `replace_all: true` for the base teal, and a single replace for the bright variant:
+Insert immediately after the `brandGradient` token added in Task 1 (still inside `enum Color`):
 
-- `[0.09,0.918,0.851]` → `[1,0.435,0.569]`  (replace_all — 2 occurrences, base rose #FF6F91)
-- `[0.11,0.94,0.87]` → `[1,0.588,0.682]`  (1 occurrence, bright rose #FF96AE)
+```swift
+        /// Live accent as resolved RGBA (0–1) for a scheme. Lets Lottie's
+        /// ColorValueProvider read the current accent without importing Lottie here.
+        static func accentRGBA(for scheme: ColorScheme) -> (r: Double, g: Double, b: Double, a: Double) {
+            let ui = _accent.resolvedColor(
+                with: UITraitCollection(userInterfaceStyle: scheme == .dark ? .dark : .light))
+            var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+            ui.getRed(&r, green: &g, blue: &b, alpha: &a)
+            return (Double(r), Double(g), Double(b), Double(a))
+        }
+```
 
-- [ ] **Step 2: Recolor `OnboardingView.swift` embedded JSON**
+(`ReplrTheme.swift` already imports SwiftUI + UIKit, so `ColorScheme` / `UITraitCollection` are in scope.)
 
-Edit with `replace_all: true`:
+- [ ] **Step 2: Create `scripts/recolor_lotties.py`**
 
-- `[0.0902,0.9176,0.851]` → `[1,0.435,0.569]`  (13 occurrences, base rose #FF6F91)
+Write this file exactly:
 
-- [ ] **Step 3: Verify zero teal remains in the Swift the app loads**
+```python
+#!/usr/bin/env python3
+"""Recolor the Lottie accent (teal -> Flirt rose) and tag accent fills.
+
+For every embedded Lottie JSON (the raw-string constants in the keyboard and
+onboarding Swift files) and every canonical source .json, find each fill/stroke
+that is the brand accent -- identified by a teal-ish color OR an existing
+nm "accent" -- set its name to "accent" and bake ACCENT as a fallback color.
+
+The app tints these at runtime via a ColorValueProvider on keypath
+"**.accent.Color", so the baked color is only a fallback; the rename to "accent"
+is what makes the keypath addressable.
+
+Re-runnable: matching on nm=="accent" means a second run (e.g. after changing
+ACCENT) re-bakes the fallback. Runtime color follows ReplrTheme.Color.accent and
+needs no re-run.
+"""
+import json
+import re
+import sys
+import pathlib
+
+REPO = pathlib.Path(__file__).resolve().parent.parent
+ACCENT = [1.0, 0.435, 0.569]  # #FF6F91 baked fallback; runtime overrides adaptively
+
+
+def is_teal(k):
+    return (isinstance(k, list) and len(k) >= 3
+            and all(isinstance(x, (int, float)) for x in k[:3])
+            and k[0] < 0.30 and k[1] > 0.80 and k[2] > 0.80)
+
+
+def recolor(node):
+    """Recursively tag + recolor accent fills/strokes. Returns count changed."""
+    n = 0
+    if isinstance(node, dict):
+        if node.get("ty") in ("fl", "st"):
+            c = node.get("c", {})
+            k = c.get("k")
+            if node.get("nm") == "accent" or is_teal(k):
+                node["nm"] = "accent"
+                if isinstance(k, list) and len(k) == 4:
+                    c["k"] = ACCENT + [k[3]]
+                else:
+                    c["k"] = list(ACCENT)
+                n += 1
+        for v in node.values():
+            n += recolor(v)
+    elif isinstance(node, list):
+        for v in node:
+            n += recolor(v)
+    return n
+
+
+def process_source(rel):
+    p = REPO / rel
+    data = json.loads(p.read_text(encoding="utf-8"))
+    n = recolor(data)
+    p.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"  source   {rel}: {n} accent fill(s)")
+
+
+def process_embedded(swift_rel, const):
+    p = REPO / swift_rel
+    s = p.read_text(encoding="utf-8")
+    m = re.search(r'(' + re.escape(const) + r'\s*=\s*##")(.*?)("##)', s, re.S)
+    if not m:
+        sys.exit(f"ERROR: embedded const {const} not found in {swift_rel}")
+    data = json.loads(m.group(2))
+    n = recolor(data)
+    mini = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+    p.write_text(s[:m.start(2)] + mini + s[m.end(2):], encoding="utf-8")
+    print(f"  embedded {const}: {n} accent fill(s), {len(mini)}B")
+
+
+KB = "ReplrKeyboard/Views/IdlePanelView.swift"
+OB = "Replr/Replr/Features/Onboarding/OnboardingView.swift"
+
+print("Embedded constants:")
+process_embedded(KB, "captureStepsLottieJSON")
+for const in ("onboardingCelebrationLottieJSON", "tutSwitchJSON", "tutPickJSON",
+              "tutMinimiseJSON", "tutScreenshotJSON", "tutSendJSON"):
+    process_embedded(OB, const)
+
+print("Source assets:")
+for rel in ("ReplrKeyboard/Resources/capture_steps.json",
+            "Replr/Replr/Features/Onboarding/onboarding_steps.json",
+            "Replr/Replr/Features/Onboarding/tutorial_lottie/tut_switch.json",
+            "Replr/Replr/Features/Onboarding/tutorial_lottie/tut_pick.json",
+            "Replr/Replr/Features/Onboarding/tutorial_lottie/tut_minimise.json",
+            "Replr/Replr/Features/Onboarding/tutorial_lottie/tut_screenshot.json",
+            "Replr/Replr/Features/Onboarding/tutorial_lottie/tut_send.json"):
+    process_source(rel)
+
+print("done.")
+```
+
+- [ ] **Step 3: Run the script**
+
+```bash
+cd /Users/WORK2/Desktop/DesktopCloud/Replr && python3 scripts/recolor_lotties.py
+```
+
+Expected: one line per embedded constant and per source file. The keyboard reports **3** accent fills; tutorials/celebration report ≥1 each. (Source files may report 0 if their teal is animated — non-blocking; the embedded copy is what the app loads.)
+
+- [ ] **Step 4: Verify rename + zero teal in the embedded Swift**
 
 ```bash
 cd /Users/WORK2/Desktop/DesktopCloud/Replr
+echo "teal arrays left (expect NONE):"
 rg -o -N '\[0\.[01][0-9]*,0\.9[0-9]*,0\.8[0-9]*\]' \
   ReplrKeyboard/Views/IdlePanelView.swift \
-  Replr/Replr/Features/Onboarding/OnboardingView.swift | sort | uniq -c
-```
-
-Expected: **no output** (zero teal arrays left). Also confirm the new rose arrays are present:
-
-```bash
-rg -c '\[1,0\.435,0\.569\]|\[1,0\.588,0\.682\]' \
-  ReplrKeyboard/Views/IdlePanelView.swift \
   Replr/Replr/Features/Onboarding/OnboardingView.swift
+echo "accent-named fills (expect a number > 0):"
+rg -o '"nm":"accent"' \
+  ReplrKeyboard/Views/IdlePanelView.swift \
+  Replr/Replr/Features/Onboarding/OnboardingView.swift | wc -l
 ```
 
-Expected: `IdlePanelView.swift:1` line match (3 tokens on its one JSON line) and `OnboardingView.swift` with matches.
+Expected: first command prints nothing; second prints a count > 0.
 
-- [ ] **Step 4: Recolor the canonical source `.json` assets (hygiene)**
+- [ ] **Step 5: Add the value provider + `colorScheme` to the 3 `LottieView` sites**
 
-These are pretty-printed, so recolor by structure with `jq` (handles 3- or 4-element arrays, preserves alpha). Run for each file:
+**5a — `IdlePanelView.swift` → `CaptureStepsAnimation`.** Add a file-scope helper (place it just above `private struct CaptureStepsAnimation`):
 
-```bash
-cd /Users/WORK2/Desktop/DesktopCloud/Replr
-for f in ReplrKeyboard/Resources/capture_steps.json \
-         Replr/Replr/Features/Onboarding/onboarding_steps.json \
-         Replr/Replr/Features/Onboarding/tutorial_lottie/tut_switch.json \
-         Replr/Replr/Features/Onboarding/tutorial_lottie/tut_pick.json \
-         Replr/Replr/Features/Onboarding/tutorial_lottie/tut_minimise.json \
-         Replr/Replr/Features/Onboarding/tutorial_lottie/tut_screenshot.json \
-         Replr/Replr/Features/Onboarding/tutorial_lottie/tut_send.json; do
-  jq '(.. | objects | select(.ty? == "fl" or .ty? == "st") | .c.k) |=
-        (if (type=="array" and length>=3
-             and (.[0]|type)=="number" and .[0] < 0.3 and .[1] > 0.8 and .[2] > 0.8)
-         then (if length==4 then [1,0.435,0.569,.[3]] else [1,0.435,0.569] end)
-         else . end)' "$f" > "$f.tmp" && mv "$f.tmp" "$f" && echo "recolored $f"
-done
+```swift
+/// The live ReplrTheme accent as a Lottie color for the given scheme.
+private func replrAccentLottieColor(_ scheme: ColorScheme) -> LottieColor {
+    let c = ReplrTheme.Color.accentRGBA(for: scheme)
+    return LottieColor(r: c.r, g: c.g, b: c.b, a: c.a)
+}
 ```
 
-> This covers static fills/strokes. Any animated-color or gradient teal in a source file is non-blocking — the source `.json` is not loaded at runtime; the embedded copy (Steps 1-2) is. Sanity-check the static ones were swapped:
+Inside `private struct CaptureStepsAnimation`, add the env var next to `reduceMotion`:
 
-```bash
-jq -c '[.. | objects | select(.ty=="fl") | .c.k] | unique' ReplrKeyboard/Resources/capture_steps.json
+```swift
+    @Environment(\.colorScheme) private var colorScheme
 ```
 
-Expected: the teal `[0.09,0.918,0.851]` / `[0.11,0.94,0.87]` are gone; `[1,0.435,0.569]` present; white `[1,1,1]` and gray `[0.5,0.55,0.62]` preserved.
+Then replace the LottieView chain in `body` (the `else` branch):
 
-- [ ] **Step 5: Build**
+```swift
+            LottieView(animation: Self.animation)
+                .configure { $0.backgroundBehavior = .pauseAndRestore }
+                .looping()
+                .resizable()
+```
+
+with:
+
+```swift
+            LottieView(animation: Self.animation)
+                .configure { $0.backgroundBehavior = .pauseAndRestore }
+                .valueProvider(
+                    ColorValueProvider(replrAccentLottieColor(colorScheme)),
+                    for: AnimationKeypath(keypath: "**.accent.Color"))
+                .looping()
+                .resizable()
+```
+
+**5b — `OnboardingView.swift` → two sites.** Add the same helper once at file scope:
+
+```swift
+private func replrAccentLottieColor(_ scheme: ColorScheme) -> LottieColor {
+    let c = ReplrTheme.Color.accentRGBA(for: scheme)
+    return LottieColor(r: c.r, g: c.g, b: c.b, a: c.a)
+}
+```
+
+In `struct UsageTutorialView` (~line 579) and `private struct OnboardingCelebration` (~line 791), add the env var (if not already present in that struct):
+
+```swift
+    @Environment(\.colorScheme) private var colorScheme
+```
+
+Then add the modifier immediately after each `LottieView(animation:)` initializer — at the `UsageTutorialView` site (`LottieView(animation: animation)`, ~line 668) and the `OnboardingCelebration` site (`LottieView(animation: Self.animation)`, ~line 810), before the existing `.looping()` / `.playing(…)` / `.resizable()`:
+
+```swift
+                .valueProvider(
+                    ColorValueProvider(replrAccentLottieColor(colorScheme)),
+                    for: AnimationKeypath(keypath: "**.accent.Color"))
+```
+
+> `IdlePanelView.swift` and `OnboardingView.swift` both already `import Lottie` — `ColorValueProvider` / `AnimationKeypath` / `LottieColor` come from that module.
+
+- [ ] **Step 6: Build**
 
 Run the build command. Expected: `** BUILD SUCCEEDED **`.
 
-- [ ] **Step 6: Visual check (animations render warm)**
+- [ ] **Step 7: Visual — animations render rose AND adapt**
 
-Keyboard idle card: the looping demo's accent shapes are now **rose**, not teal. Onboarding final celebration + the 5 tutorial steps: accent is rose. Confirm in both light and dark. (Reduce-Motion fallback uses `ReplrTheme.Color.accent` and is already rose from Task 1.)
+Keyboard idle card + onboarding celebration + the 5 tutorial steps: accent shapes are **rose**. Toggle appearance (`xcrun simctl ui booted appearance dark|light`): the animation accent shifts between `#FF6F91` (dark) and `#E8447A` (light) — confirming the live-token tint. (Reduce-Motion fallback uses `ReplrTheme.Color.accent`, already rose.)
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 cd /Users/WORK2/Desktop/DesktopCloud/Replr
-git add ReplrKeyboard/Views/IdlePanelView.swift \
+git add Shared/ReplrTheme.swift scripts/recolor_lotties.py \
+        ReplrKeyboard/Views/IdlePanelView.swift \
         Replr/Replr/Features/Onboarding/OnboardingView.swift \
         ReplrKeyboard/Resources/capture_steps.json \
         Replr/Replr/Features/Onboarding/onboarding_steps.json \
         Replr/Replr/Features/Onboarding/tutorial_lottie/
-git commit -m "Lottie: recolor accent teal -> Flirt rose (embedded + source assets)
+git commit -m "Lottie: runtime-tint accent from live ReplrTheme token (adaptive light/dark)
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
@@ -710,7 +858,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 **Spec coverage:**
 - ✅ `ReplrTheme.Color` warm swap + `brandGradient` token → Task 1
 - ✅ `ReplrComponents` gradient (PrimaryButton + chips) → Task 3
-- ✅ Lottie accent swappable/recolored → Task 5 (recolor approach; see note)
+- ✅ Lottie accent swappable + adaptive → Task 5 (runtime `ColorValueProvider` from the live token; re-runnable rename script)
 - ✅ `DESIGN.md` rewrite → Task 6
 - ✅ Sweep hardcoded teal → Task 2 (the two bg dupes) + Task 7 (full sweep)
 - ✅ Verify light + dark across app/keyboard/onboarding → Task 7
