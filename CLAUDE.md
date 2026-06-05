@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Design system — read before any UI work
+
+**When creating or modifying ANY UI, read and follow [`DESIGN.md`](DESIGN.md) first.**
+It is the AI-facing design spec — tokens, components, and do's/don'ts, summarizing
+`Shared/ReplrTheme.swift`. Never hardcode colors, fonts, radii, or spacing in views;
+always use `ReplrTheme.*`. Design and verify both dark **and** light.
+
 ## Project overview
 
 Replr is an iOS app that generates AI-powered reply suggestions from chat screenshots. It has two main components:
