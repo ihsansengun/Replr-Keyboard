@@ -3,7 +3,7 @@ version: alpha
 name: Replr
 description: >
   AI reply-suggestions app for iOS — companion app + custom keyboard +
-  broadcast extensions. Dark-first, calm and precise, with one teal accent.
+  broadcast extensions. Adaptive (dark + light), warm and flirty, with a rose→coral→amber brand gradient and a rose accent.
   Tokens are SwiftUI/adaptive (dark + light); values below are the resolved
   hex per mode. SOURCE OF TRUTH for tokens is Shared/ReplrTheme.swift — this
   file is the lightweight, AI-facing summary. Never hardcode colors/fonts/
@@ -11,17 +11,18 @@ description: >
 
 colors:
   # token: { dark, light }   (UIColor dynamic — see ReplrTheme.Color)
-  bg:            { dark: "#0D1117", light: "#F5F1EB" }   # deep navy / warm cream
-  surface:       { dark: "#131929", light: "#FDFCFA" }   # cards, panels
-  surfaceRaised: { dark: "#1C2539", light: "#FFFFFF" }
-  accent:        { dark: "#17EAD9", light: "#009487" }   # brand teal (THE only hue)
+  bg:            { dark: "#15101A", light: "#FFF8F5" }   # warm plum-black / warm white
+  surface:       { dark: "#211826", light: "#FFFFFF" }   # cards, panels
+  surfaceRaised: { dark: "#2D2032", light: "#FFFFFF" }
+  accent:        { dark: "#FF6F91", light: "#E8447A" }   # flirt rose (deeper on light)
+  brandGradient: "#FF5E8A -> #FF7A59 -> #FFB45E"         # rose -> coral -> amber (both modes)
   onAccent:      "#FFFFFF"
   textPrimary:   "iOS .primary"        # semantic, adaptive
   textSecondary: "iOS .secondary"
   textTertiary:  "iOS .tertiaryLabel"
-  glassBorder:   { dark: "white 12%", light: "black 12%" }
+  glassBorder:   { dark: "white 10%", light: "black 8%" }
   accentSoft:    "accent @ 12%"
-  accentGlow:    { dark: "accent @ 45%", light: "accent @ 25%" }   # shadow on actions
+  accentGlow:    { dark: "accent @ 42%", light: "accent @ 22%" }   # shadow on actions
   danger:        "iOS .systemRed"
   success:       "iOS .systemGreen"
 
@@ -60,7 +61,7 @@ spacing:   # 4pt grid (ReplrTheme.Spacing)
 components:
   primaryButton:
     typography: "{typography.callout} weight 600"
-    backgroundColor: "{colors.accent}"
+    backgroundColor: "{colors.brandGradient}"
     textColor: "{colors.onAccent}"
     rounded: "{rounded.full}"      # Capsule
     height: 48
@@ -89,29 +90,27 @@ Voice is **third person using the brand name "Replr"** (not first person): e.g.
 internal terms ("capture", "collapse"); say what the user does ("screenshot",
 "minimise").
 
-- **Dark-first.** Deep-navy surfaces with one bright teal accent. Every color
-  is adaptive (dark + light) — design and test both.
-- **One accent.** Teal is the *only* hue. Everything else is neutral
-  (navy/cream surfaces, semantic gray text). No second brand color.
-- **Tokens only.** Views must reference `ReplrTheme.*`; never hardcode a color,
-  font, or spacing value. This keeps the design system swappable.
+- **Adaptive, warm.** Not dark-first anymore — full light + dark, designed and tested in both. Warm plum/white surfaces with a flirty rose→coral→amber identity.
+- **Gradient is the signature.** The brand gradient (`brandGradient`) is the hero surface for the ONE primary CTA, the active/selected chip, and the brand mark. Use it sparingly — passive surfaces stay `surface`.
+- **Rose is the solid accent.** Use `accent` (rose) for icons, selection, tints, and borders; `accent.opacity(…)` (`accentSoft` = 12%) to tint. Light mode uses a deeper rose (`#E8447A`) for AA contrast on white.
+- **Tokens only.** Views reference `ReplrTheme.*`; never hardcode a color/font/spacing. Keeps the system swappable.
 
 ## Colors
 
 | Token | Dark | Light | Use |
 |---|---|---|---|
-| `bg` | `#0D1117` | `#F5F1EB` | Screen background |
-| `surface` | `#131929` | `#FDFCFA` | Cards, panels, rows |
-| `surfaceRaised` | `#1C2539` | `#FFFFFF` | Raised cards |
-| `accent` | `#17EAD9` | `#009487` | Brand teal — CTAs, selection, highlights |
-| `onAccent` | `#FFFFFF` | `#FFFFFF` | Text/icons on accent |
-| `text*` | iOS semantic | iOS semantic | primary / secondary / tertiary |
-| `glassBorder` | white 12% | black 12% | Hairline card borders (dark) |
-| `accentGlow` | accent 45% | accent 25% | Shadow color on primary actions |
+| `bg` | `#15101A` | `#FFF8F5` | Screen background |
+| `surface` | `#211826` | `#FFFFFF` | Cards, panels, rows |
+| `surfaceRaised` | `#2D2032` | `#FFFFFF` | Raised cards |
+| `brandGradient` | `#FF5E8A → #FF7A59 → #FFB45E` | same | Primary CTAs, active chips, brand mark |
+| `accent` | `#FF6F91` | `#E8447A` | Solid rose — icons, selection, tints, borders |
+| `onAccent` | `#FFFFFF` | `#FFFFFF` | Text/icons on gradient/accent |
+| `glassBorder` | white 10% | black 8% | Hairline card borders |
+| `accentGlow` | accent 42% | accent 22% | Shadow color on primary actions |
 
-- Accent is the **only** non-neutral hue. To tint, use `accent.opacity(…)`
-  (`accentSoft` = 12%), never a new color.
-- Light mode uses a **deeper** teal (`#009487`) for contrast on cream.
+- The brand **gradient** is the signature surface (primary CTAs / active chips / brand mark) — use sparingly; passive surfaces stay `surface`.
+- **Rose** `accent` is the solid hue for everything else; tint with `accent.opacity(…)` (`accentSoft` = 12%).
+- Light mode uses the deeper `#E8447A` for AA contrast on white.
 - Status: `danger` / `success` are iOS system red/green (sparingly).
 
 ## Typography
@@ -158,7 +157,7 @@ System font (SF Pro), `design: .default`. Scale (size / weight / tracking):
 Lightweight summary — full implementations are the source of truth in
 `Shared/ReplrComponents.swift` (open it before building/modifying these):
 
-- **PrimaryButton** — accent **Capsule**, full-width, height **48**, `callout`/600
+- **PrimaryButton** — **brand gradient** Capsule, full-width, height **48**, `callout`/600
   text in `onAccent`, white-30% inner top highlight, `accentGlow` shadow, scales
   to 0.97 on press (`Motion.quick`). The one bold CTA per screen.
 - **SecondaryButton** — Capsule, `white 4%` fill, `white 18%` border, primary text.
@@ -166,8 +165,8 @@ Lightweight summary — full implementations are the source of truth in
 - **brandCard()** / cards — `surface`, `rounded.md`, hairline border, lift.
 - **Badge** — small `overline` pill, `accentSoft` bg / `accent` text (use sparingly —
   it confused testers when overused on the keyboard).
-- **Tone chips** — rounded pills; selected = accent border/tint, unselected =
-  surface + border.
+- **Tone chips** — rounded pills; selected = gradient fill with `onAccent` (white) text,
+  unselected = surface + border.
 - **ShimmerOverlay** — moving light sweep on accent CTAs (premium cue); clipped
   to the button's corner radius.
 - **Lottie animations** — embedded raw-string JSON + `LottieView`; see
@@ -180,7 +179,7 @@ Lightweight summary — full implementations are the source of truth in
 
 **Do**
 - Use `ReplrTheme.*` tokens for every color, font, radius, spacing, motion.
-- Keep teal as the single accent; tint with `accent.opacity(…)`.
+- Use `brandGradient` for the one primary CTA / active chip; use solid `accent` (rose) for everything else; tint with `accent.opacity(…)`.
 - Design dark **and** light; verify both.
 - Use `PrimaryButton` (capsule) for the one primary CTA; `brandCard()` for cards.
 - Use continuous corners and the 4pt grid.
@@ -188,7 +187,7 @@ Lightweight summary — full implementations are the source of truth in
 
 **Don't**
 - Hardcode hex colors, font sizes, or spacing in views.
-- Introduce a second brand hue or a new gray.
+- Apply the gradient to passive surfaces (cards stay `surface`), or invent a hue outside the rose→amber ramp.
 - Use more than two font weights in one region.
 - Add custom fonts.
 - Use internal jargon in user-facing copy ("capture", "collapse").
