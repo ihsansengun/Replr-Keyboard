@@ -15,7 +15,7 @@ Tones underwhelm — picking "Joker" doesn't produce replies that actually land 
 - **Context:** dating-first, still versatile. Priority tones: **Joker, Witty, Dating, Seductive.**
 - **Boldness:** *tone leads, reads the room* — default boldly funny/flirty, let the tone drive the voice, but pull back when the moment is genuinely serious (bad news, conflict, distress).
 - **Base/default tone:** a **new "Natural"** tone (personality-free base), made the default selection. Friendly stays a distinct mild-personality tone.
-- **Examples scope this pass:** craft few-shot examples for the **priority 4** now; other presets get the re-framing + temperature, examples in a later pass.
+- **Examples scope this pass:** craft a first-pass example set for **every preset** (all 15 personality tones; Natural is base-only). The user will trial every tone on real chats, then filter to the keepers — so all get examples now, with the priority 4 (Joker/Witty/Dating/Seductive) getting the most craft and the highest bar.
 
 ## Design
 
@@ -57,14 +57,14 @@ export const TONE_LIBRARY: Record<string, ToneSpec>   // entries for presets we 
 export function toneSpecFor(name: string | undefined, sentInstruction: string): ResolvedTone
 // overlay voice = baseOnly ? (none) : (voiceOverride ?? sentInstruction)
 ```
-- The library holds an entry for **every preset we give a deliberate temperature** (all of them — see §4), **examples** for the priority 4 now, `baseOnly` for **Natural**. No `voiceOverride` is set in this pass (the iOS instructions are already decent → no divergence, no app update); the field exists so a future sharpening can ship by deploy.
+- The library holds an entry for **every preset**: a deliberate `temperature` (§4), an `examples` set (all 15 personality tones this pass; priority 4 most-crafted), and `baseOnly` for **Natural**. No `voiceOverride` is set in this pass (the iOS instructions are already decent → no divergence, no app update); the field exists so a future sharpening can ship by deploy.
 - **Priority 4 get crafted, dating-first examples now.** Illustrative bar for **Joker** (examples are *flavor* — funny, committed, unexpected; the model must never reuse their words):
   - *"oh you're 'fine'? that's the most threatening word in the english language, name a more iconic villain origin"*
   - *"i was going to say something charming here but you've emotionally disarmed me with a single emoji, well played"*
   - *"breaking news: local girl says she's 'busy', sources suspect she's lying down staring at the ceiling like the rest of us"*
 
   Witty / Dating / Seductive get similarly-crafted sets (dry-clever / playful-confident / suggestive respectively), refined on device.
-- **Other presets:** library entry with a `temperature` only, `examples: []`. (Examples added later.)
+- **Every other personality preset** (Friendly, Casual, Direct, Professional, Empathetic, Enthusiastic, Concise, Formal, Passive Aggressive, Gen Z, Sarcastic) gets a `temperature` + a solid first-pass `examples` set tuned to its voice. Natural = `baseOnly`, no examples.
 - **Custom user tones** (no library entry) → `toneSpecFor` returns the fallback: the **sent instruction** as voice, `examples: []`, the default medium temperature.
 
 ### 4. Tone-aware temperature
@@ -92,12 +92,11 @@ Each `ToneSpec` carries a 0.0–1.0 temperature (all providers accept this range
 - Backward-compat: a request without `toneName` still generates (fallback path).
 
 ## Out of scope (this pass)
-- Few-shot examples for the non-priority presets (later pass).
 - Moving the full tone definitions out of iOS / per-context (dating vs work) variants / an eval harness (Approach 3).
 - Tone-chip UI changes; the relationship feature (parked).
 
 ## Success criteria
 - Picking **Joker** yields replies that are genuinely, specifically funny on a real chat (not generic), while a serious incoming message still gets a human response (read-the-room).
-- The **priority 4** each clearly express their voice; **Natural** is a clean grounded reply that respects the base.
+- **Every tone clearly expresses its voice** on real chats (so the user can trial them all and filter to the winners); the priority 4 are the highest bar (Joker = "would she laugh?"); **Natural** is a clean grounded reply that respects the base.
 - All tones iterate from the **backend** (deploy) — only the "send tone name" + "Natural" preset need an app build.
 - Backward-compatible with existing clients.
