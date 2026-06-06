@@ -168,8 +168,8 @@ struct RepliesView: View {
                                 .foregroundStyle(ReplrTheme.Color.textSecondary)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
-                                .background(Capsule().fill(Color.white.opacity(0.06)))
-                                .overlay(Capsule().strokeBorder(Color.white.opacity(0.14), lineWidth: 1))
+                                .background(Capsule().fill(ReplrTheme.Color.textPrimary.opacity(0.06)))
+                                .overlay(Capsule().strokeBorder(ReplrTheme.Color.textPrimary.opacity(0.14), lineWidth: 1))
                         }
                         .buttonStyle(.plain)
                     }
