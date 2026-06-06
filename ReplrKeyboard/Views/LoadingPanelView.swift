@@ -19,10 +19,10 @@ struct LoadingPanelView: View {
         VStack(spacing: 0) {
             KeyboardHeader(model: model, isToneDimmed: true)
 
-            // Skeleton card — same shape/position as the reply card in RepliesPanelView
-            skeletonCard
+            // Skeleton reply cards — preview the shape of the replies that are on the way.
+            skeletonCards
                 .padding(.horizontal, 10)
-                .padding(.vertical, 10)
+                .padding(.top, 10)
 
             Spacer(minLength: 0)
 
@@ -49,23 +49,28 @@ struct LoadingPanelView: View {
         }
     }
 
-    private var skeletonCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SkeletonLine(fraction: 0.92, pulse: false)
-            SkeletonLine(fraction: 1.00, pulse: true)
-            SkeletonLine(fraction: 0.75, pulse: false)
-            SkeletonLine(fraction: 0.88, pulse: true)
-            SkeletonLine(fraction: 0.55, pulse: false)
+    private var skeletonCards: some View {
+        VStack(spacing: 8) {
+            ForEach(0..<3, id: \.self) { i in
+                HStack(alignment: .top, spacing: 10) {
+                    Text("\(i + 1)")
+                        .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                        .foregroundColor(ReplrTheme.Color.textTertiary)
+                        .frame(width: 18)
+                    VStack(alignment: .leading, spacing: 7) {
+                        SkeletonLine(fraction: 0.95, pulse: i == 0)
+                        SkeletonLine(fraction: i == 1 ? 0.70 : 0.55, pulse: i == 1)
+                    }
+                }
+                .padding(12)
+                .background(ReplrTheme.Color.surface)
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                        .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                )
+                .elevatedSurface(.level1)
+            }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(ReplrTheme.Color.surface)
-        .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
-        )
-        .elevatedSurface(.level1)
     }
 }

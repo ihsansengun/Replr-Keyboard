@@ -91,25 +91,26 @@ struct IdlePanelView: View {
     private var captureSlide: some View {
         VStack(spacing: 12) {
             Spacer(minLength: 0)
-            HStack(spacing: 14) {
-                ZStack {
-                    Circle()
-                        .fill(ReplrTheme.Color.accent)
-                        .frame(width: 72, height: 72)
-                        .blur(radius: 26)
-                        .opacity(colorScheme == .dark ? 0.28 : 0.16)
-                    CaptureStepsAnimation()
-                        .frame(width: 100, height: 84)
-                }
-                Text(AppGroupService.shared.preferredCapture == "backtap"
-                     ? "Triple-tap the back of your phone to capture — replies appear right here. Or tap Start to screenshot manually."
-                     : "Tap Start to minimise the keyboard, then screenshot the chat. Replr reads it and drafts the replies.")
-                    .font(.system(size: 13))
-                    .foregroundColor(ReplrTheme.Color.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            ZStack {
+                Circle()
+                    .fill(ReplrTheme.Color.accent)
+                    .frame(width: 104, height: 104)
+                    .blur(radius: 32)
+                    .opacity(colorScheme == .dark ? 0.30 : 0.16)
+                CaptureStepsAnimation()
+                    .frame(width: 132, height: 108)
             }
-            .padding(.horizontal, 16)
+            Text("Drop in your chat")
+                .font(ReplrTheme.Font.serif(20, weight: .bold))
+                .foregroundColor(ReplrTheme.Color.textPrimary)
+            Text(AppGroupService.shared.preferredCapture == "backtap"
+                 ? "Triple-tap the back of your phone — replies appear right here."
+                 : "Tap Start, then screenshot the chat. Replr drafts the replies.")
+                .font(.system(size: 13))
+                .foregroundColor(ReplrTheme.Color.textSecondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 26)
 
             Button {
                 withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = true }
@@ -133,10 +134,12 @@ struct IdlePanelView: View {
                 )
             }
             .buttonStyle(.plain)
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 18)
+            .padding(.top, 2)
             Spacer(minLength: 0)
         }
-        .padding(.top, 14)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
     }
 
     /// Slide 2 — Back Tap (opens the app to set it up).

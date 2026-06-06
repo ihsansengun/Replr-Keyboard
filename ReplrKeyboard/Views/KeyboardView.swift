@@ -719,9 +719,9 @@ struct SkeletonLine: View {
             .fill(
                 LinearGradient(
                     stops: [
-                        .init(color: ReplrTheme.Color.surface, location: 0),
-                        .init(color: ReplrTheme.Color.surfaceRaised, location: shimmer ? 0.5 : 0.15),
-                        .init(color: ReplrTheme.Color.surface, location: 1),
+                        .init(color: ReplrTheme.Color.textPrimary.opacity(0.07), location: 0),
+                        .init(color: ReplrTheme.Color.textPrimary.opacity(0.16), location: shimmer ? 0.5 : 0.15),
+                        .init(color: ReplrTheme.Color.textPrimary.opacity(0.07), location: 1),
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
