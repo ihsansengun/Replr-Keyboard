@@ -4,11 +4,11 @@ import Lottie
 struct IdlePanelView: View {
     @ObservedObject var model: KeyboardModel
     @State private var hasClipboardText: Bool = false
-    @State private var showIntentTip = false
-    /// Counts at most one coachmark "appearance" per keyboard process launch —
-    /// the idle card re-mounts on every collapse/state round-trip, so a per-mount
-    /// counter would burn all 3 appearances in a single sitting.
-    private static var didCountIntentTipThisLaunch = false
+    @State private var currentTip: KeyboardTip = .none
+    /// Counts at most one tip "appearance" per keyboard process launch — the idle card
+    /// re-mounts on every collapse/state round-trip, so a per-mount counter would burn
+    /// all the allowed appearances in a single sitting.
+    private static var didCountTipThisLaunch = false
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -22,47 +22,60 @@ struct IdlePanelView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ReplrTheme.Color.bg)
-        .overlay(alignment: .top) { intentCoachmark }
+        .overlay(alignment: .top) { tipBalloon }
     }
 
-    /// One-time hint balloon pinned to the very top of the keyboard, its tail
-    /// pointing up at the host's compose box (where the user types the reply
-    /// direction). Chat-only; gated by `showIntentTip` (set in the idle card's onAppear).
+    /// The single discovery tip (if any) the coordinator says to show, as a balloon
+    /// pinned to the top of the keyboard with its tail pointing at the compose box.
     @ViewBuilder
-    private var intentCoachmark: some View {
-        if showIntentTip && model.inputMode == .chat {
-            VStack(spacing: 0) {
-                UpTriangle()
-                    .fill(ReplrTheme.Color.accent)
-                    .frame(width: 18, height: 9)
-                    .offset(y: 1) // overlap the balloon top to hide the seam
-                HStack(alignment: .top, spacing: 8) {
-                    Text("💡 Want to steer it? Type what you want to say first, then tap Start.")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.white)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.15)) { showIntentTip = false }
-                        AppGroupService.shared.intentTipShowCount = 3
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(.white.opacity(0.85))
-                    }
-                    .buttonStyle(.plain)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
-                .background(
-                    RoundedRectangle(cornerRadius: 13, style: .continuous)
-                        .fill(ReplrTheme.Color.brandGradient)
-                )
-                .shadow(color: ReplrTheme.Color.accent.opacity(0.5), radius: 14, x: 0, y: 6)
-            }
-            .padding(.top, 3)
-            .padding(.horizontal, 20)
-            .transition(.opacity)
+    private var tipBalloon: some View {
+        switch currentTip {
+        case .steer:
+            balloon(text: "💡 Want it your way? Type your gist with your keyboard, switch to Replr, then tap Start.",
+                    tappable: false, onTap: {}, tipID: "steer")
+        case .backTap:
+            balloon(text: "⚡️ Reply without opening the keyboard — even on dating profiles. Set up a triple-tap →",
+                    tappable: true, onTap: { model.onOpenContainingApp?("replr://setup") }, tipID: "backTap")
+        case .none:
+            EmptyView()
         }
+    }
+
+    private func balloon(text: String, tappable: Bool,
+                         onTap: @escaping () -> Void, tipID: String) -> some View {
+        VStack(spacing: 0) {
+            UpTriangle()
+                .fill(ReplrTheme.Color.accent)
+                .frame(width: 18, height: 9)
+                .offset(y: 1) // overlap the balloon top to hide the seam
+            HStack(alignment: .top, spacing: 8) {
+                Text(text)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.white)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .contentShape(Rectangle())
+                    .onTapGesture { if tappable { onTap() } }
+                Button {
+                    withAnimation(.easeInOut(duration: 0.15)) { currentTip = .none }
+                    AppGroupService.shared.setTipDismissed(tipID)
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.white.opacity(0.85))
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .background(
+                RoundedRectangle(cornerRadius: 13, style: .continuous)
+                    .fill(ReplrTheme.Color.brandGradient)
+            )
+            .shadow(color: ReplrTheme.Color.accent.opacity(0.5), radius: 14, x: 0, y: 6)
+        }
+        .padding(.top, 3)
+        .padding(.horizontal, 20)
+        .transition(.opacity)
     }
 
     // MARK: - Chat idle
@@ -150,12 +163,20 @@ struct IdlePanelView: View {
         .padding(.bottom, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
-            let count = AppGroupService.shared.intentTipShowCount
-            showIntentTip = count < 3
+            let svc = AppGroupService.shared
+            let tip = KeyboardTipCoordinator.currentTip(
+                captureCount: svc.loadCaptureSessions().count,
+                sessionRegenerateCount: svc.sessionRegenerateCount,
+                steerDismissed: svc.tipDismissed("steer"),
+                steerShowCount: svc.tipShowCount("steer"),
+                backTapDismissed: svc.tipDismissed("backTap"),
+                backTapShowCount: svc.tipShowCount("backTap"),
+                isChatMode: model.inputMode == .chat)
+            currentTip = tip
             // Count one appearance per keyboard launch, not per view re-mount.
-            if showIntentTip && !Self.didCountIntentTipThisLaunch {
-                Self.didCountIntentTipThisLaunch = true
-                AppGroupService.shared.intentTipShowCount = count + 1
+            if tip != .none && !Self.didCountTipThisLaunch {
+                Self.didCountTipThisLaunch = true
+                svc.incrementTipShowCount(tip == .steer ? "steer" : "backTap")
             }
         }
     }

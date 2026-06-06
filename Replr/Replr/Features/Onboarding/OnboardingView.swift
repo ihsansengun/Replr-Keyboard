@@ -535,7 +535,7 @@ struct UsageTutorialView: View {
     private let steps: [TutStep] = [
         TutStep(animation: parseLottie(tutSwitchJSON), icon: "globe",
                 title: "Switch to Replr",
-                body: "In any chat, press and hold the 🌐 key on the keyboard to see your keyboards."),
+                body: "Replr writes your replies — it isn't for typing. Keep using your normal keyboard to type; press and hold the 🌐 key to bring up Replr whenever you want a reply."),
         TutStep(animation: parseLottie(tutPickJSON), icon: "keyboard",
                 title: "Pick Replr",
                 body: "Tap Replr in the list to switch to it."),
