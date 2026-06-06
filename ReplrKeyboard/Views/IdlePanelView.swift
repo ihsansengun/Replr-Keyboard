@@ -34,10 +34,8 @@ struct IdlePanelView: View {
         case .steer:
             balloon(text: "💡 Want it your way? Type your gist with your keyboard, switch to Replr, then tap Start.",
                     tappable: false, onTap: {}, tipID: "steer")
-        case .backTap:
-            balloon(text: "⚡️ Reply without opening the keyboard — even on dating profiles. Set up a triple-tap →",
-                    tappable: true, onTap: { model.onOpenContainingApp?("replr://setup") }, tipID: "backTap")
-        case .none:
+        case .backTap, .none:
+            // Back Tap renders inline in the idle card (above Start) — see backTapInlineTip.
             EmptyView()
         }
     }
@@ -99,6 +97,47 @@ struct IdlePanelView: View {
         }
     }
 
+    /// Back Tap nudge shown inline in the idle card, just above Start — centred, no top
+    /// tail (Back Tap isn't tied to the compose box the way steer is).
+    @ViewBuilder
+    private var backTapInlineTip: some View {
+        if currentTip == .backTap {
+            HStack(spacing: 9) {
+                Image(systemName: "hand.tap.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(ReplrTheme.Color.accent)
+                Text("Reply anywhere with a triple-tap — even on profiles. Tap to set up →")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(ReplrTheme.Color.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Button {
+                    withAnimation(.easeInOut(duration: 0.15)) { currentTip = .none }
+                    AppGroupService.shared.setTipDismissed("backTap")
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .background(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                    .fill(ReplrTheme.Color.accentSubtle)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                            .strokeBorder(ReplrTheme.Color.accent.opacity(0.30), lineWidth: 1)
+                    )
+            )
+            .padding(.horizontal, 16)
+            .contentShape(Rectangle())
+            .onTapGesture { model.onOpenContainingApp?("replr://setup") }
+            .transition(.opacity)
+        }
+    }
+
     // MARK: - Chat idle
 
     private var chatContent: some View {
@@ -127,6 +166,8 @@ struct IdlePanelView: View {
                 }
                 .padding(.top, 16)
                 .padding(.horizontal, 16)
+
+                backTapInlineTip
 
                 // Single, distinct CTA — tapping visibly lowers the keyboard
                 Button {
