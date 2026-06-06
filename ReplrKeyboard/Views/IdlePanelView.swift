@@ -4,11 +4,8 @@ import Lottie
 struct IdlePanelView: View {
     @ObservedObject var model: KeyboardModel
     @State private var hasClipboardText: Bool = false
-    @State private var currentTip: KeyboardTip = .none
-    /// Counts at most one tip "appearance" per keyboard process launch — the idle card
-    /// re-mounts on every collapse/state round-trip, so a per-mount counter would burn
-    /// all the allowed appearances in a single sitting.
-    private static var didCountTipThisLaunch = false
+    /// Carousel page in the chat idle card: 0 = capture, 1 = Back Tap, 2 = steer.
+    @State private var carouselPage = 0
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -22,182 +19,138 @@ struct IdlePanelView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ReplrTheme.Color.bg)
-        .overlay(alignment: .top) { tipBalloon }
-        .overlay(alignment: .bottom) { devTipRow }
     }
 
-    /// The single discovery tip (if any) the coordinator says to show, as a balloon
-    /// pinned to the top of the keyboard with its tail pointing at the compose box.
-    @ViewBuilder
-    private var tipBalloon: some View {
-        switch currentTip {
-        case .steer:
-            balloon(text: "💡 Want it your way? Type your gist with your keyboard, switch to Replr, then tap Start.",
-                    tappable: false, onTap: {}, tipID: "steer")
-        case .backTap, .none:
-            // Back Tap renders inline in the idle card (above Start) — see backTapInlineTip.
-            EmptyView()
+    // MARK: - Carousel slides
+
+    private var pageDots: some View {
+        HStack(spacing: 6) {
+            ForEach(0..<3, id: \.self) { i in
+                Circle()
+                    .fill(i == carouselPage ? ReplrTheme.Color.accent
+                                            : ReplrTheme.Color.textSecondary.opacity(0.30))
+                    .frame(width: i == carouselPage ? 7 : 6, height: i == carouselPage ? 7 : 6)
+            }
         }
+        .animation(.easeInOut(duration: 0.2), value: carouselPage)
     }
 
-    private func balloon(text: String, tappable: Bool,
-                         onTap: @escaping () -> Void, tipID: String) -> some View {
-        VStack(spacing: 0) {
-            UpTriangle()
-                .fill(ReplrTheme.Color.accent)
-                .frame(width: 18, height: 9)
-                .offset(y: 1) // overlap the balloon top to hide the seam
-            HStack(alignment: .top, spacing: 8) {
-                Text(text)
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.white)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .contentShape(Rectangle())
-                    .onTapGesture { if tappable { onTap() } }
-                Button {
-                    withAnimation(.easeInOut(duration: 0.15)) { currentTip = .none }
-                    AppGroupService.shared.setTipDismissed(tipID)
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(.white.opacity(0.85))
+    /// Slide 1 — the capture flow + the Start CTA (the default landing slide).
+    private var captureSlide: some View {
+        VStack(spacing: 12) {
+            Spacer(minLength: 0)
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(ReplrTheme.Color.accent)
+                        .frame(width: 72, height: 72)
+                        .blur(radius: 26)
+                        .opacity(colorScheme == .dark ? 0.28 : 0.16)
+                    CaptureStepsAnimation()
+                        .frame(width: 100, height: 84)
                 }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
-            .background(
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .fill(ReplrTheme.Color.brandGradient)
-            )
-            .shadow(color: ReplrTheme.Color.accent.opacity(0.5), radius: 14, x: 0, y: 6)
-        }
-        .padding(.top, 3)
-        .padding(.horizontal, 20)
-        .transition(.opacity)
-    }
-
-    /// Dev-only: force a specific tip to preview it without grinding milestones.
-    @ViewBuilder
-    private var devTipRow: some View {
-        if AppGroupService.shared.devMode {
-            HStack(spacing: 8) {
-                Text("DEV tip")
+                Text(AppGroupService.shared.preferredCapture == "backtap"
+                     ? "Triple-tap the back of your phone to capture — replies appear right here. Or tap Start to screenshot manually."
+                     : "Tap Start to minimise the keyboard, then screenshot the chat. Replr reads it and drafts the replies.")
+                    .font(.system(size: 13))
                     .foregroundColor(ReplrTheme.Color.textSecondary)
-                Button("steer")   { withAnimation { currentTip = .steer } }
-                Button("backTap") { withAnimation { currentTip = .backTap } }
-                Button("none")    { withAnimation { currentTip = .none } }
-            }
-            .font(.system(size: 9, weight: .bold))
-            .foregroundColor(ReplrTheme.Color.accent)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Capsule().fill(ReplrTheme.Color.surfaceRaised))
-            .padding(.bottom, 2)
-        }
-    }
-
-    /// Back Tap nudge shown inline in the idle card, just above Start — centred, no top
-    /// tail (Back Tap isn't tied to the compose box the way steer is).
-    @ViewBuilder
-    private var backTapInlineTip: some View {
-        if currentTip == .backTap {
-            HStack(spacing: 9) {
-                Image(systemName: "hand.tap.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(ReplrTheme.Color.accent)
-                Text("Reply anywhere with a triple-tap — even on profiles. Tap to set up →")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(ReplrTheme.Color.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Button {
-                    withAnimation(.easeInOut(duration: 0.15)) { currentTip = .none }
-                    AppGroupService.shared.setTipDismissed("backTap")
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
-                }
-                .buttonStyle(.plain)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
-            .background(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                    .fill(ReplrTheme.Color.accentSubtle)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                            .strokeBorder(ReplrTheme.Color.accent.opacity(0.30), lineWidth: 1)
-                    )
-            )
             .padding(.horizontal, 16)
-            .contentShape(Rectangle())
-            .onTapGesture { model.onOpenContainingApp?("replr://setup") }
-            .transition(.opacity)
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = true }
+            } label: {
+                HStack(spacing: 6) {
+                    Text("Start").font(.system(size: 15, weight: .semibold))
+                    Image(systemName: "arrow.right").font(.system(size: 13, weight: .semibold))
+                }
+                .foregroundColor(ReplrTheme.Color.onAccent)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(
+                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                        .fill(ReplrTheme.Color.brandGradient)
+                        .overlay(ShimmerOverlay(cornerRadius: ReplrTheme.Radius.sm))
+                )
+                .shadow(
+                    color: colorScheme == .dark ? ReplrTheme.Color.accent.opacity(0.45) : .black.opacity(0.10),
+                    radius: colorScheme == .dark ? 14 : 6,
+                    x: 0, y: colorScheme == .dark ? 5 : 3
+                )
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 16)
+            Spacer(minLength: 0)
         }
+        .padding(.top, 14)
+    }
+
+    /// Slide 2 — Back Tap (opens the app to set it up).
+    private var backTapSlide: some View {
+        infoSlide(icon: "hand.tap.fill",
+                  title: "Reply anywhere",
+                  body: "Set up a triple-tap to capture any screen — even dating profiles, where the keyboard can't open.",
+                  cta: "Set up Back Tap →",
+                  action: { model.onOpenContainingApp?("replr://setup") })
+    }
+
+    /// Slide 3 — Steer (opens the app for the how-to).
+    private var steerSlide: some View {
+        infoSlide(icon: "text.cursor",
+                  title: "Steer the reply",
+                  body: "Type your gist first — like \u{201C}ask her to dinner\u{201D} — then tap Start. Replr builds the reply around it.",
+                  cta: "Show me how →",
+                  action: { model.onOpenContainingApp?("replr://tutorial") })
+    }
+
+    private func infoSlide(icon: String, title: String, body: String,
+                           cta: String, action: @escaping () -> Void) -> some View {
+        VStack(spacing: 8) {
+            Spacer(minLength: 0)
+            Image(systemName: icon)
+                .font(.system(size: 24, weight: .semibold))
+                .foregroundColor(ReplrTheme.Color.accent)
+            Text(title)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundColor(ReplrTheme.Color.textPrimary)
+            Text(body)
+                .font(.system(size: 12))
+                .foregroundColor(ReplrTheme.Color.textSecondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+            Button(action: action) {
+                Text(cta)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(ReplrTheme.Color.onAccent)
+                    .padding(.horizontal, 18)
+                    .frame(height: 38)
+                    .background(Capsule().fill(ReplrTheme.Color.brandGradient))
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 2)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 22)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Chat idle
 
     private var chatContent: some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(spacing: 12) {
-                // Compact: looping demo on the left, caption on the right
-                HStack(spacing: 14) {
-                    ZStack {
-                        // soft accent glow so the demo pops off the card
-                        Circle()
-                            .fill(ReplrTheme.Color.accent)
-                            .frame(width: 72, height: 72)
-                            .blur(radius: 26)
-                            .opacity(colorScheme == .dark ? 0.28 : 0.16)
-                        CaptureStepsAnimation()
-                            .frame(width: 100, height: 84)
-                    }
-
-                    Text(AppGroupService.shared.preferredCapture == "backtap"
-                         ? "Triple-tap the back of your phone to capture — replies appear right here. Or tap Start to screenshot manually."
-                         : "Tap Start to minimise the keyboard, then screenshot the chat. Replr reads it and drafts the replies.")
-                        .font(.system(size: 13))
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(spacing: 6) {
+                TabView(selection: $carouselPage) {
+                    captureSlide.tag(0)
+                    backTapSlide.tag(1)
+                    steerSlide.tag(2)
                 }
-                .padding(.top, 16)
-                .padding(.horizontal, 16)
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                backTapInlineTip
-
-                // Single, distinct CTA — tapping visibly lowers the keyboard
-                Button {
-                    withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = true }
-                } label: {
-                    HStack(spacing: 6) {
-                        Text("Start")
-                            .font(.system(size: 15, weight: .semibold))
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 13, weight: .semibold))
-                    }
-                    .foregroundColor(ReplrTheme.Color.onAccent)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 44)
-                    .background(
-                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                            .fill(ReplrTheme.Color.brandGradient)
-                            .overlay(ShimmerOverlay(cornerRadius: ReplrTheme.Radius.sm))
-                    )
-                    .shadow(
-                        color: colorScheme == .dark
-                            ? ReplrTheme.Color.accent.opacity(0.45)
-                            : .black.opacity(0.10),
-                        radius: colorScheme == .dark ? 14 : 6,
-                        x: 0, y: colorScheme == .dark ? 5 : 3
-                    )
-                }
-                .buttonStyle(.plain)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
+                pageDots
+                    .padding(.bottom, 10)
             }
             .background(
                 ZStack {
@@ -224,23 +177,7 @@ struct IdlePanelView: View {
         .padding(.horizontal, 18)
         .padding(.bottom, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear {
-            let svc = AppGroupService.shared
-            let tip = KeyboardTipCoordinator.currentTip(
-                captureCount: svc.loadCaptureSessions().count,
-                sessionRegenerateCount: svc.sessionRegenerateCount,
-                steerDismissed: svc.tipDismissed("steer"),
-                steerShowCount: svc.tipShowCount("steer"),
-                backTapDismissed: svc.tipDismissed("backTap"),
-                backTapShowCount: svc.tipShowCount("backTap"),
-                isChatMode: model.inputMode == .chat)
-            currentTip = tip
-            // Count one appearance per keyboard launch, not per view re-mount.
-            if tip != .none && !Self.didCountTipThisLaunch {
-                Self.didCountTipThisLaunch = true
-                svc.incrementTipShowCount(tip == .steer ? "steer" : "backTap")
-            }
-        }
+        .onAppear { carouselPage = 0 }   // always land on the capture slide
     }
 
     // MARK: - Email idle

@@ -9,6 +9,7 @@ struct ReplrApp: App {
     @State private var showCapture = false
     @State private var showSetup = false
     @State private var showPaywall = false
+    @State private var showTutorial = false
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -52,6 +53,9 @@ struct ReplrApp: App {
                     .sheet(isPresented: $showSetup) {
                         BackTapSetupFullView(isPresented: $showSetup)
                     }
+                    .sheet(isPresented: $showTutorial) {
+                        UsageTutorialView(onDone: { showTutorial = false })
+                    }
                     .onOpenURL { url in
                         guard url.scheme == "replr" else { return }
                         switch url.host {
@@ -59,6 +63,8 @@ struct ReplrApp: App {
                             showCapture = true
                         case "setup":
                             showSetup = true
+                        case "tutorial":
+                            showTutorial = true
                         case "paywall":
                             showPaywall = true
                         default:
