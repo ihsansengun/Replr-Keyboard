@@ -155,6 +155,110 @@ private struct WelcomeStep: View {
 // Merged step — adding the keyboard and granting Full Access are the SAME gate
 // (both flags are written together by the keyboard only once it runs with Full Access),
 // so they're one screen. Avoids the confusing "do the keyboard thing twice" flow.
+// MARK: - Branded iOS-settings previews (onboarding setup steps)
+
+/// A non-interactive iOS-style toggle in its ON (green) state — shows the goal state.
+private struct SettingsOnToggle: View {
+    var body: some View {
+        Capsule()
+            .fill(ReplrTheme.Color.success)
+            .frame(width: 42, height: 25)
+            .overlay(alignment: .trailing) {
+                Circle().fill(.white).frame(width: 21, height: 21).padding(2)
+                    .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+            }
+    }
+}
+
+/// Small grey rounded-square glyph, like an iOS Settings row icon.
+private func settingsRowIcon(_ systemName: String) -> some View {
+    Image(systemName: systemName)
+        .font(.system(size: 13, weight: .semibold))
+        .foregroundColor(.white)
+        .frame(width: 26, height: 26)
+        .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(ReplrTheme.Color.textSecondary))
+}
+
+private func settingsCardChrome<V: View>(_ content: V) -> some View {
+    content
+        .background(ReplrTheme.Color.surfaceRaised)
+        .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
+        )
+}
+
+/// Replica of Settings → General → Keyboards, in Replr branding: the ReplrKeyboard +
+/// Allow Full Access toggles, shown ON so the user sees the goal.
+private struct KeyboardSettingsPreview: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Settings › General › Keyboards")
+                .font(.system(size: 11))
+                .foregroundColor(ReplrTheme.Color.textTertiary)
+                .padding(.leading, 4)
+            settingsCardChrome(
+                VStack(spacing: 0) {
+                    HStack(spacing: 11) {
+                        Text("ReplrKeyboard")
+                            .font(.system(size: 14))
+                            .foregroundColor(ReplrTheme.Color.textPrimary)
+                        Spacer()
+                        SettingsOnToggle()
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 11)
+
+                    Divider().overlay(ReplrTheme.Color.glassBorder).padding(.leading, 14)
+
+                    HStack(spacing: 11) {
+                        settingsRowIcon("keyboard")
+                        Text("Allow Full Access")
+                            .font(.system(size: 14))
+                            .foregroundColor(ReplrTheme.Color.textPrimary)
+                        Spacer()
+                        SettingsOnToggle()
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 11)
+                }
+            )
+        }
+    }
+}
+
+/// Replica of Settings → Replr → Photos, in Replr branding.
+private struct PhotosSettingsPreview: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Settings › Replr")
+                .font(.system(size: 11))
+                .foregroundColor(ReplrTheme.Color.textTertiary)
+                .padding(.leading, 4)
+            settingsCardChrome(
+                HStack(spacing: 11) {
+                    settingsRowIcon("photo")
+                    Text("Photos")
+                        .font(.system(size: 14))
+                        .foregroundColor(ReplrTheme.Color.textPrimary)
+                    Spacer()
+                    HStack(spacing: 3) {
+                        Text("All Photos")
+                            .font(.system(size: 13))
+                            .foregroundColor(ReplrTheme.Color.textSecondary)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(ReplrTheme.Color.textTertiary)
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 11)
+            )
+        }
+    }
+}
+
 private struct KeyboardSetupStep: View {
     let onNext: () -> Void
     let onBack: () -> Void
@@ -169,51 +273,7 @@ private struct KeyboardSetupStep: View {
             bodyText: "Add the Replr keyboard, then turn on Full Access so it can draft replies. Already did it? Tap “I've enabled it” — we confirm the next time you open the Replr keyboard.",
             onBack: onBack
         ) {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 4) {
-                    ForEach(["Settings", "General", "Keyboards", "Replr"], id: \.self) { item in
-                        if item != "Settings" {
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(ReplrTheme.Color.textTertiary)
-                        }
-                        Text(item)
-                            .font(.system(size: 12))
-                            .foregroundColor(ReplrTheme.Color.textSecondary)
-                    }
-                }
-                .padding(.horizontal, 14)
-                .padding(.top, 14)
-                .padding(.bottom, 8)
-
-                Divider().overlay(ReplrTheme.Color.glassBorder)
-
-                HStack(spacing: 12) {
-                    ReplrMark(size: 13)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Replr")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(ReplrTheme.Color.textPrimary)
-                        Text("Allow Full Access")
-                            .font(.system(size: 11))
-                            .foregroundColor(ReplrTheme.Color.textSecondary)
-                    }
-                    Spacer()
-                    if detected {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(ReplrTheme.Color.success)
-                    }
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-            }
-            .background(ReplrTheme.Color.surfaceRaised)
-            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
-            )
+            KeyboardSettingsPreview()
         } cta: {
             if detected {
                 PrimaryButton(label: "All set ✓ — Continue →", action: onNext)
@@ -268,19 +328,23 @@ private struct PhotosPermissionStep: View {
             bodyText: "Replr drafts replies from the screenshot you take of a chat. Your photo library stays private:",
             onBack: onBack
         ) {
-            VStack(alignment: .leading, spacing: 10) {
-                privacyRow("Reads only your most-recent screenshot")
-                privacyRow("Never scans or browses your other photos")
-                privacyRow("Nothing else ever leaves your phone")
+            VStack(spacing: 14) {
+                PhotosSettingsPreview()
+
+                VStack(alignment: .leading, spacing: 10) {
+                    privacyRow("Reads only your most-recent screenshot")
+                    privacyRow("Never scans or browses your other photos")
+                    privacyRow("Nothing else ever leaves your phone")
+                }
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(ReplrTheme.Color.surfaceRaised)
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                        .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                )
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(ReplrTheme.Color.surfaceRaised)
-            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
-            )
         } cta: {
             if granted {
                 PrimaryButton(label: "Photos allowed ✓ — Continue →", action: onNext)
