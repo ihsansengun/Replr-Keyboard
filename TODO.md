@@ -20,6 +20,45 @@ State: `main` @ 2026-06-04. Screenshot-capture **Phase 1 + Phase 2 shipped**. Re
 - **Screenshot-clutter UX polish** — cleanup logic shipped; consider surfacing the pending count / confirmation copy nicely once tested on device.
 - **Phase 3 (later):** slim-bar-as-default Chat state (replace the idle panel) so the capture bar is the resting state, per the original brainstorm.
 
+## Credits — persistence, recovery & hardening (revisit with the monetization review)
+
+**Status:** chosen direction = server-authoritative ledger (recommendation **B**), phased.
+**Defer the build** until the broader monetization review (model / cost / paywall) — plan +
+bugs captured here. Today this is effectively **broken for paying users**.
+
+**The problem.** Credits *and* `userID` both live in App Group UserDefaults, which iOS wipes
+on app deletion. The backend has no credit ledger (rate-limit only). The consumable credit
+packs (`com.ihsan.replr.credits.100/300/750/2500`) are **not** StoreKit-restorable. So on
+reinstall or a new device a paying user loses their balance with **no recovery path**. The
+balance is also client-writable today (a modified app could mint credits).
+
+**Direction — B (server-authoritative), phased:**
+- **Phase A (quick interim):** mirror the balance to iCloud (`NSUbiquitousKeyValueStore`),
+  keyed to the Apple ID silently — survives reinstall + syncs across the user's devices, no
+  sign-in, no backend. Caveat: client-trusted (a user could grant *themselves* credits;
+  limited blast radius). Ships in hours.
+- **Phase B (robust target):**
+  - Stable anonymous `userID` in **iCloud-synced Keychain** (`kSecAttrSynchronizable`) —
+    survives deletion + follows the Apple ID to new devices, no sign-in. (Today's UUID is in
+    UserDefaults → lost on delete.)
+  - **Server credit ledger** on the Worker (KV/D1) keyed to `userID`: balance / grant / deduct.
+  - **Grant on verified purchase** — POST the StoreKit transaction (JWS) to the backend;
+    verify via the App Store Server API; credit the ledger server-side.
+  - **Deduct server-side** in `/reply`, so the balance is authoritative and un-forgeable.
+  - App reads the balance from the server; recovery is automatic via the synced `userID`.
+  - **Migrate** existing local balances to the server on first run (one-time reconcile).
+
+**Folded-in fixes (do as part of B):**
+- **Purchase-safety bug:** no `Transaction.updates` listener, so an *interrupted* purchase
+  (Ask-to-Buy, network drop) can charge the user without granting credits. Add a listener
+  that grants + finishes unfinished transactions on launch.
+- **Dead buttons:** "I have an account" is a no-op (no auth) and "Restore Purchases"
+  (`CreditPacksView`) is a no-op for consumables. Remove both — or, if the review picks
+  **Approach C (Sign in with Apple)**, repurpose "I have an account" as the sign-in entry.
+
+**Alternatives considered:** A (iCloud-only, client-trusted) · C (Sign in with Apple + server
+ledger; explicit accounts, survives even a different Apple ID). Pick during the review.
+
 ## Onboarding redesign (SUPERSEDED by screenshot capture — keep for reference)
 
 Approach: **static image crossfade** showing the path through Settings → Accessibility → Touch → Back Tap → Triple Tap → Replr Capture. 5–6 PNG screenshots of the key states, crossfaded with native SwiftUI animation.
