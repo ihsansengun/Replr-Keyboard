@@ -119,9 +119,9 @@ struct IdlePanelView: View {
             Button {
                 withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = true }
             } label: {
-                HStack(spacing: 6) {
-                    Text("Start").font(.system(size: 15, weight: .semibold))
-                    Image(systemName: "arrow.right").font(.system(size: 13, weight: .semibold))
+                HStack(spacing: 7) {
+                    Image(systemName: "sparkles").font(.system(size: 14, weight: .semibold))
+                    Text("Start").font(.system(size: 16, weight: .semibold)).tracking(0.2)
                 }
                 .foregroundColor(ReplrTheme.Color.onAccent)
                 .frame(maxWidth: .infinity)
