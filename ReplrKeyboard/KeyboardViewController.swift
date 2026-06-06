@@ -164,10 +164,14 @@ final class KeyboardViewController: UIInputViewController {
 
         if AppGroupService.shared.isGenerating {
             model.state = .loading
+        } else if AppGroupService.shared.persistReplies,
+                  let cached = AppGroupService.shared.readCachedReplies() {
+            // Keep-replies: restore the last replies on reopen. The height is (re)computed in
+            // viewDidAppear — sizeThatFits is unreliable here, before the view is laid out.
+            model.currentReplies = cached
+            model.repliesGeneratedInMode = .chat
+            model.state = .replies(cached)
         }
-        // Reopening starts fresh at idle — we intentionally do NOT restore cached replies here.
-        // Fresh replies still arrive via the capture poll; this avoids reopening into a stale,
-        // mis-sized replies panel (e.g. after switching chats), which broke the layout.
         if AppGroupService.shared.effectiveCreditBalance == 0 {
             model.state = .paywall
         }
@@ -191,6 +195,16 @@ final class KeyboardViewController: UIInputViewController {
             guard let self else { return }
             let draft = self.textDocumentProxy.documentContextBeforeInput ?? ""
             self.model.pendingContext = draft
+        }
+
+        // The view is laid out now, so sizeThatFits is reliable. Recompute the replies height for
+        // the restored "keep replies" case (viewWillAppear set it before layout → wrong size).
+        if case .replies = model.state {
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.view.bounds.width > 0 else { return }
+                let fit = self.hostingVC.sizeThatFits(in: CGSize(width: self.view.bounds.width, height: 10_000))
+                self.setHeight(min(560, max(260, fit.height)))
+            }
         }
     }
 
