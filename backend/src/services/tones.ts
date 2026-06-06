@@ -100,6 +100,26 @@ export const TONE_LIBRARY: Record<string, ToneSpec> = {
     "can't do friday. saturday works",
   ] },
 
+  // ── Email tones ────────────────────────────────────────────────────────────
+
+  // "Professional but genuinely warm" — trusted advisor register, not corporate auto-reply
+  'Warm Professional': { temperature: 0.8, examples: [
+    "Thanks for flagging this — really helpful context. I'll take a look today and come back to you with thoughts.",
+    "Appreciate the detail in your message. Here's where I see this going, and what I'd suggest as the next step.",
+  ] },
+
+  // "I need to decline, deliver difficult news, or push back without burning the bridge"
+  'Diplomatic': { temperature: 0.75, examples: [
+    "I can see why this feels frustrating, and I want to find something that works. Here's what I can do on my end — let me know if that gives you what you need.",
+    "That's a fair point, and I've thought about it carefully. The reason I'm hesitant is X. What if we approached it this way instead?",
+  ] },
+
+  // "Firm, clear, no hedging — setting expectations or boundaries professionally"
+  'Assertive': { temperature: 0.7, examples: [
+    "I need the revised brief by Thursday to hit the deadline. If that's not possible, let's talk scope.",
+    "My rate for this project is X. That reflects the timeline and deliverables as discussed. Let me know how you'd like to proceed.",
+  ] },
+
   // ── Hidden by default (available in Settings → Tones) ─────────────────────
 
   'Sarcastic':    { temperature: 0.95, examples: [

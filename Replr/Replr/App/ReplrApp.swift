@@ -106,6 +106,7 @@ struct ContentView: View {
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             CustomTabBar(selection: $selectedTab)
+                .ignoresSafeArea(.keyboard) // pin tab bar to screen bottom — keyboard must not push it up
         }
         .task {
             await CreditsManager.shared.load()

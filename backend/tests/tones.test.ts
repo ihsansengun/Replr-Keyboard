@@ -36,17 +36,25 @@ describe('toneSpecFor', () => {
     expect(toneSpecFor('Seductive', 'x').temperature).toBeGreaterThan(0.9)
   })
 
-  it('has a library entry for every shipped preset name (incl. new + compat alias)', () => {
+  it('has a library entry for every shipped preset name (incl. email tones + compat alias)', () => {
     const names = [
-      // Default visible tones
+      // Chat tones
       'Natural','Friendly','Casual','Playful','Witty','Joker','Flirty','Seductive',
       'Empathetic','Confident','Direct',
+      // Email tones
+      'Warm Professional','Professional','Diplomatic','Assertive','Enthusiastic','Concise',
       // Hidden-by-default tones
-      'Sarcastic','Passive Aggressive','Gen Z','Enthusiastic','Concise','Professional','Formal',
+      'Sarcastic','Passive Aggressive','Gen Z','Formal',
       // Backward-compat alias (Dating → Flirty rename)
       'Dating',
     ]
     for (const n of names) expect(TONE_LIBRARY[n], n).toBeDefined()
+  })
+
+  it('email tones have appropriate temperatures (professional register = lower)', () => {
+    expect(toneSpecFor('Diplomatic', 'x').temperature).toBeLessThan(0.8)
+    expect(toneSpecFor('Assertive', 'x').temperature).toBeLessThan(0.8)
+    expect(toneSpecFor('Warm Professional', 'x').temperature).toBeLessThanOrEqual(0.85)
   })
 
   it('Confident has a low-moderate temperature (self-assured brevity)', () => {

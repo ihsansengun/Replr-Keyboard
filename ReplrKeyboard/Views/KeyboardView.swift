@@ -551,8 +551,8 @@ struct ModeSegmentedControl: View {
         Button {
             withAnimation(ReplrTheme.Motion.quick) {
                 model.inputMode = mode
-                if mode == .email, model.selectedTone.name == "Dating" {
-                    model.selectedTone = model.tones.first { $0.name != "Dating" } ?? model.selectedTone
+                if mode == .email, !model.selectedTone.availableInEmail {
+                    model.selectedTone = model.tones.first { $0.isEnabled && $0.availableInEmail } ?? model.selectedTone
                 }
             }
         } label: {
@@ -582,7 +582,10 @@ struct ToneRow: View {
         HStack(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
-                    ForEach(model.tones.filter { $0.isEnabled && (model.inputMode == .chat || $0.name != "Dating") }) { tone in
+                    ForEach(model.tones.filter { tone in
+                        guard tone.isEnabled else { return false }
+                        return model.inputMode == .email ? tone.availableInEmail : tone.availableInChat
+                    }) { tone in
                         Chip(
                             label: tone.name,
                             isSelected: tone.name == model.selectedTone.name,

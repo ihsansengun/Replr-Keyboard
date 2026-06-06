@@ -195,7 +195,7 @@ struct SettingsView: View {
         settingsSection("About You") {
             VStack(alignment: .leading, spacing: 8) {
                 TextField(
-                    "A few words about you — age, gender, your vibe, what you're into. Helps Replr sound like you.\ne.g. 27, guy, dry sense of humour, into climbing and techno.",
+                    "Age, gender, your vibe, what you're into…",
                     text: $aboutUser,
                     axis: .vertical
                 )
@@ -216,6 +216,10 @@ struct SettingsView: View {
                             .foregroundStyle(ReplrTheme.Color.accent)
                     }
                 }
+                Text("e.g. 27, guy, dry sense of humour, into climbing and techno")
+                    .font(.system(size: 12))
+                    .foregroundStyle(ReplrTheme.Color.textTertiary)
+                    .padding(.top, 2)
 
                 Text("Stays on your device — sent only to draft your replies.")
                     .font(.system(size: 12))
