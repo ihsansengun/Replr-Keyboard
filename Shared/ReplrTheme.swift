@@ -113,6 +113,20 @@ enum ReplrTheme {
         static let overline = SwiftUI.Font.system(size: 12, weight: .semibold, design: .default)
         // Tracking must be applied as .tracking(value) at call site — Font constants cannot carry tracking.
         // display: -0.5, title: -0.4, heading: -0.2, overline: +1.5, rest: 0
+
+        // MARK: Serif display — Fraunces (bundled). Onboarding / marketing headlines ONLY; see DESIGN.md.
+        /// Fraunces serif at an explicit size/weight. Falls back to the system serif (New York)
+        /// if the bundled font isn't registered (e.g. in the keyboard extension), so headlines never break.
+        static func serif(_ size: CGFloat, weight: SwiftUI.Font.Weight = .semibold) -> SwiftUI.Font {
+            let bold = (weight == .bold || weight == .heavy || weight == .black)
+            let face = bold ? "Fraunces-Bold" : "Fraunces-SemiBold"
+            if UIFont(name: face, size: size) != nil {
+                return .custom(face, size: size)
+            }
+            return .system(size: size, weight: weight, design: .serif)
+        }
+        static var serifDisplay: SwiftUI.Font { serif(34, weight: .bold) }   // big claim headlines
+        static var serifTitle:   SwiftUI.Font { serif(26, weight: .semibold) } // step titles
     }
 
     // MARK: Spacing
