@@ -114,6 +114,29 @@ struct ContentView: View {
         .task {
             await CreditsManager.shared.load()
         }
+        .task {
+            await RemoteConfig.refreshShortcutURL()
+        }
+    }
+}
+
+// MARK: - Remote config (backend values swappable without an App Store release)
+
+/// Best-effort fetch of runtime config from the backend. Currently just the Back Tap
+/// shortcut install link — so it can be swapped if the iCloud link ever breaks. Failures
+/// are silent; the app falls back to the baked-in `Constants.shortcutInstallURL`.
+enum RemoteConfig {
+    private struct Response: Decodable { let shortcutInstallURL: String? }
+
+    static func refreshShortcutURL() async {
+        guard let url = URL(string: Constants.backendURL + "/config") else { return }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 8
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              let http = response as? HTTPURLResponse, http.statusCode == 200,
+              let decoded = try? JSONDecoder().decode(Response.self, from: data),
+              let link = decoded.shortcutInstallURL, !link.isEmpty else { return }
+        AppGroupService.shared.remoteShortcutInstallURL = link
     }
 }
 

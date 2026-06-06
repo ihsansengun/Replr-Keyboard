@@ -694,7 +694,7 @@ struct BackTapSetupFullView: View {
                             .foregroundColor(ReplrTheme.Color.textSecondary)
                             .lineSpacing(2)
                         PrimaryButton(label: "Add shortcut →") {
-                            if let url = URL(string: Constants.shortcutInstallURL) {
+                            if let url = URL(string: AppGroupService.shared.effectiveShortcutInstallURL) {
                                 UIApplication.shared.open(url)
                             }
                         }

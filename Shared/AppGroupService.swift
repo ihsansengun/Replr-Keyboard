@@ -91,6 +91,19 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.preferredCaptureKey); defaults.synchronize() }
     }
 
+    /// Remote-config override for the Back Tap shortcut link, fetched from /config at
+    /// launch. Lets the link be swapped without an App Store release. Nil/empty → use baked-in.
+    var remoteShortcutInstallURL: String? {
+        get { defaults.string(forKey: Constants.remoteShortcutInstallURLKey) }
+        set { defaults.set(newValue, forKey: Constants.remoteShortcutInstallURLKey); defaults.synchronize() }
+    }
+
+    /// URL the "Add shortcut" button opens: the remote value if we have one, else the baked-in default.
+    var effectiveShortcutInstallURL: String {
+        if let remote = remoteShortcutInstallURL, !remote.isEmpty { return remote }
+        return Constants.shortcutInstallURL
+    }
+
     // MARK: - Error relay
 
     func saveError(_ message: String) {
