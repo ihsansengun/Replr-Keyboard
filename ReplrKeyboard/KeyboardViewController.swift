@@ -164,12 +164,10 @@ final class KeyboardViewController: UIInputViewController {
 
         if AppGroupService.shared.isGenerating {
             model.state = .loading
-        } else if AppGroupService.shared.persistReplies,
-                  let cached = AppGroupService.shared.readCachedReplies() {
-            model.currentReplies = cached
-            model.repliesGeneratedInMode = .chat
-            model.state = .replies(cached)
         }
+        // Reopening starts fresh at idle — we intentionally do NOT restore cached replies here.
+        // Fresh replies still arrive via the capture poll; this avoids reopening into a stale,
+        // mis-sized replies panel (e.g. after switching chats), which broke the layout.
         if AppGroupService.shared.effectiveCreditBalance == 0 {
             model.state = .paywall
         }
