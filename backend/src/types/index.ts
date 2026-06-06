@@ -17,6 +17,7 @@ export interface Env {
   GOOGLE_API_KEY: string        // Google (Gemini) — get from aistudio.google.com
   FREE_DAILY_LIMIT: string
   RATE_LIMIT_KV: KVNamespace
+  SHORTCUT_INSTALL_URL?: string  // Back Tap shortcut iCloud link — swappable without an App Store release
 }
 
 export interface ReplyRequest {
