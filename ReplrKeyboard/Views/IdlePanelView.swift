@@ -4,8 +4,9 @@ import Lottie
 struct IdlePanelView: View {
     @ObservedObject var model: KeyboardModel
     @State private var hasClipboardText: Bool = false
-    /// Carousel page in the chat idle card: 0 = capture, 1 = Back Tap, 2 = steer.
-    @State private var carouselPage = 0
+    /// Teaching overlay (how-to for steer + Back Tap) behind the sliders button.
+    @State private var showTeachingPanel = false
+    @State private var teachingPage = 0
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -19,20 +20,86 @@ struct IdlePanelView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ReplrTheme.Color.bg)
+        .overlay { if showTeachingPanel { teachingPanel } }
     }
 
-    // MARK: - Carousel slides
+    // MARK: - Teaching overlay + cards
 
     private var pageDots: some View {
         HStack(spacing: 6) {
-            ForEach(0..<3, id: \.self) { i in
+            ForEach(0..<2, id: \.self) { i in
                 Circle()
-                    .fill(i == carouselPage ? ReplrTheme.Color.accent
+                    .fill(i == teachingPage ? ReplrTheme.Color.accent
                                             : ReplrTheme.Color.textSecondary.opacity(0.30))
-                    .frame(width: i == carouselPage ? 7 : 6, height: i == carouselPage ? 7 : 6)
+                    .frame(width: i == teachingPage ? 7 : 6, height: i == teachingPage ? 7 : 6)
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: carouselPage)
+        .animation(.easeInOut(duration: 0.2), value: teachingPage)
+    }
+
+    /// Sliders button on the idle card — opens the teaching overlay.
+    private var settingsButton: some View {
+        Button {
+            teachingPage = 0
+            withAnimation(.easeInOut(duration: 0.18)) { showTeachingPanel = true }
+        } label: {
+            Image(systemName: "slider.horizontal.3")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(ReplrTheme.Color.accent)
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(ReplrTheme.Color.surfaceRaised))
+                .overlay(Circle().strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .padding(10)
+    }
+
+    /// Full-keyboard how-to overlay: steer (intent) + Back Tap (shortcut). Swipe + ✕ to close.
+    private var teachingPanel: some View {
+        ZStack {
+            Color.black.opacity(0.55)
+                .ignoresSafeArea()
+                .onTapGesture { withAnimation(.easeInOut(duration: 0.15)) { showTeachingPanel = false } }
+            VStack(spacing: 6) {
+                HStack {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.15)) { showTeachingPanel = false }
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(ReplrTheme.Color.textPrimary)
+                            .frame(width: 30, height: 30)
+                            .background(Circle().fill(ReplrTheme.Color.surfaceRaised))
+                    }
+                    .buttonStyle(.plain)
+                    Spacer()
+                }
+                .padding(.horizontal, 6)
+                .padding(.top, 6)
+
+                TabView(selection: $teachingPage) {
+                    steerSlide.tag(0)
+                    backTapSlide.tag(1)
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                pageDots
+                    .padding(.bottom, 8)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(ReplrTheme.Color.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                    )
+            )
+            .elevatedSurface(.level1)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+        }
+        .transition(.opacity)
     }
 
     /// Slide 1 — the capture flow + the Start CTA (the default landing slide).
@@ -143,19 +210,7 @@ struct IdlePanelView: View {
     // MARK: - Chat idle
 
     private var chatContent: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(spacing: 6) {
-                TabView(selection: $carouselPage) {
-                    captureSlide.tag(0)
-                    backTapSlide.tag(1)
-                    steerSlide.tag(2)
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                pageDots
-                    .padding(.bottom, 10)
-            }
+        captureSlide
             .background(
                 ZStack {
                     ReplrTheme.Color.surface
@@ -176,12 +231,11 @@ struct IdlePanelView: View {
                         lineWidth: 1
                     )
             )
+            .overlay(alignment: .topLeading) { settingsButton }
             .elevatedSurface(.level1)
-        }
-        .padding(.horizontal, 18)
-        .padding(.bottom, 8)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear { carouselPage = 0 }   // always land on the capture slide
+            .padding(.horizontal, 18)
+            .padding(.bottom, 8)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Email idle
