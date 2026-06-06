@@ -667,32 +667,35 @@ struct BackTapSetupFullView: View {
                             .font(ReplrTheme.Font.overline)
                             .tracking(1.5)
                             .foregroundColor(ReplrTheme.Color.accent)
-                        Text("Triple-tap = capture.")
+                        Text("Triple-tap = instant openers.")
                             .font(.system(size: 24, weight: .bold))
                             .tracking(-0.3)
                             .foregroundColor(ReplrTheme.Color.textPrimary)
-                        Text("Triple-tapping the back of your iPhone triggers Replr to capture a screenshot and generate replies.")
+                        Text("Works anywhere — even on dating profiles, where the keyboard can't open. Triple-tap the back of your phone: Replr screenshots what's on screen and drafts replies. Nothing is saved to your Photos. Two-minute, one-time setup.")
                             .font(ReplrTheme.Font.callout)
                             .foregroundColor(ReplrTheme.Color.textSecondary)
                             .lineSpacing(3)
                     }
 
+                    // Step 1 — add the shortcut (one tap → opens the iCloud shortcut)
                     VStack(alignment: .leading, spacing: 12) {
-                        ForEach(Array([
-                            "Settings → Accessibility → Touch → Back Tap",
-                            "Tap \"Triple Tap\"",
-                            "Scroll down and choose Shortcuts → Replr Capture"
-                        ].enumerated()), id: \.offset) { idx, text in
-                            HStack(alignment: .top, spacing: 12) {
-                                Text("\(idx + 1)")
-                                    .font(.system(size: 12, weight: .bold).monospacedDigit())
-                                    .foregroundColor(ReplrTheme.Color.onAccent)
-                                    .frame(width: 22, height: 22)
-                                    .background(Circle().fill(ReplrTheme.Color.accent))
-                                Text(text)
-                                    .font(ReplrTheme.Font.callout)
-                                    .foregroundColor(ReplrTheme.Color.textPrimary)
-                                    .lineSpacing(2)
+                        HStack(spacing: 10) {
+                            Text("1")
+                                .font(.system(size: 12, weight: .bold).monospacedDigit())
+                                .foregroundColor(ReplrTheme.Color.onAccent)
+                                .frame(width: 22, height: 22)
+                                .background(Circle().fill(ReplrTheme.Color.accent))
+                            Text("Add the Replr Capture shortcut")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(ReplrTheme.Color.textPrimary)
+                        }
+                        Text("Opens the Shortcuts app — tap \"Add Shortcut\" to confirm.")
+                            .font(ReplrTheme.Font.footnote)
+                            .foregroundColor(ReplrTheme.Color.textSecondary)
+                            .lineSpacing(2)
+                        PrimaryButton(label: "Add shortcut →") {
+                            if let url = URL(string: Constants.shortcutInstallURL) {
+                                UIApplication.shared.open(url)
                             }
                         }
                     }
@@ -704,16 +707,51 @@ struct BackTapSetupFullView: View {
                             .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
                     )
 
-                    Text("First time you triple-tap, iOS will ask to share the screenshot with Replr. Tap \"Allow Always\".")
+                    // Step 2 — assign it to Back Tap (manual — iOS has no deep link to Back Tap)
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 10) {
+                            Text("2")
+                                .font(.system(size: 12, weight: .bold).monospacedDigit())
+                                .foregroundColor(ReplrTheme.Color.onAccent)
+                                .frame(width: 22, height: 22)
+                                .background(Circle().fill(ReplrTheme.Color.accent))
+                            Text("Assign it to Back Tap")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(ReplrTheme.Color.textPrimary)
+                        }
+                        ForEach(Array([
+                            "Open Settings → Accessibility → Touch → Back Tap",
+                            "Tap \"Triple Tap\" (or \"Double Tap\")",
+                            "Scroll to Shortcuts and choose \"Replr Capture\""
+                        ].enumerated()), id: \.offset) { idx, text in
+                            HStack(alignment: .top, spacing: 10) {
+                                Text("•")
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundColor(ReplrTheme.Color.accent)
+                                Text(text)
+                                    .font(ReplrTheme.Font.callout)
+                                    .foregroundColor(ReplrTheme.Color.textPrimary)
+                                    .lineSpacing(2)
+                            }
+                        }
+                        TertiaryButton(label: "Open Settings app →") {
+                            if let url = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(url)
+                            }
+                        }
+                    }
+                    .padding(16)
+                    .background(ReplrTheme.Color.surfaceRaised)
+                    .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                            .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                    )
+
+                    Text("First triple-tap, iOS asks to allow Replr to receive the screenshot — tap \"Allow Always.\"")
                         .font(ReplrTheme.Font.footnote)
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .lineSpacing(3)
-
-                    PrimaryButton(label: "Open Settings →") {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
-                        }
-                    }
 
                     Spacer(minLength: 24)
                 }
