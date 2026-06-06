@@ -725,7 +725,6 @@ struct SkeletonLine: View {
 struct PaywallCardView: View {
     @ObservedObject var model: KeyboardModel
     @Environment(\.colorScheme) private var colorScheme
-    @State private var opening = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -741,49 +740,36 @@ struct PaywallCardView: View {
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
 
-                Button {
-                    openPaywallInApp()
-                } label: {
-                    Text(opening ? "Open Replr →" : "Unlock Pro in Replr")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(ReplrTheme.Color.onAccent)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                                .fill(ReplrTheme.Color.accent)
-                        )
-                        .shadow(color: ReplrTheme.Color.accent.opacity(
-                            colorScheme == .dark ? 0.55 : 0), radius: 14, x: 0, y: 5)
+                // The upgrade is purchased in the app, so this is a single, honest step:
+                // open Replr. A SwiftUI Link is the only thing that opens the containing app
+                // from a keyboard extension on iOS 18+ (same approach as the idle-card CTAs).
+                if let url = URL(string: "replr://paywall") {
+                    Link(destination: url) {
+                        Text("Open Replr →")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(ReplrTheme.Color.onAccent)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(
+                                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                                    .fill(ReplrTheme.Color.accent)
+                            )
+                            .shadow(color: ReplrTheme.Color.accent.opacity(
+                                colorScheme == .dark ? 0.55 : 0), radius: 14, x: 0, y: 5)
+                    }
                 }
-                .buttonStyle(.plain)
 
-                if opening {
-                    Text("Switch to the Replr app to finish — your upgrade is waiting there.")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(ReplrTheme.Color.accent)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                } else {
-                    Text("$9.99/mo · $59.99/yr")
-                        .font(.system(size: 12))
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
-                }
+                Text("Switch to the Replr app to finish — your upgrade is waiting there.")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(ReplrTheme.Color.accent)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 20)
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ReplrTheme.Color.bg)
-    }
-
-    private func openPaywallInApp() {
-        AppGroupService.shared.paywallRequested = true
-        // Best-effort: try to open the Replr app (works on some iOS versions). The app also
-        // shows the paywall on next foreground when credits are 0, so the instruction below
-        // is the reliable path if the open is silently ignored.
-        model.onOpenContainingApp?("replr://paywall")
-        withAnimation(.easeInOut(duration: 0.2)) { opening = true }
     }
 }
 
