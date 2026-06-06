@@ -84,6 +84,10 @@ enum ReplrTheme {
             endPoint: .bottomTrailing
         )
 
+        /// The amber stop of the brand gradient (#FFB45E) as a standalone accent —
+        /// used for onboarding one-word highlights and hand-drawn doodle coachmarks.
+        static let amber = SwiftUI.Color(red: 1.000, green: 0.706, blue: 0.369)
+
         /// Live accent as resolved RGBA (0–1) for a scheme. Lets Lottie's
         /// ColorValueProvider read the current accent without importing Lottie here.
         static func accentRGBA(for scheme: ColorScheme) -> (r: Double, g: Double, b: Double, a: Double) {
