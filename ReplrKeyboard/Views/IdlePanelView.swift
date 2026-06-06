@@ -23,6 +23,7 @@ struct IdlePanelView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ReplrTheme.Color.bg)
         .overlay(alignment: .top) { tipBalloon }
+        .overlay(alignment: .bottom) { devTipRow }
     }
 
     /// The single discovery tip (if any) the coordinator says to show, as a balloon
@@ -76,6 +77,26 @@ struct IdlePanelView: View {
         .padding(.top, 3)
         .padding(.horizontal, 20)
         .transition(.opacity)
+    }
+
+    /// Dev-only: force a specific tip to preview it without grinding milestones.
+    @ViewBuilder
+    private var devTipRow: some View {
+        if AppGroupService.shared.devMode {
+            HStack(spacing: 8) {
+                Text("DEV tip")
+                    .foregroundColor(ReplrTheme.Color.textSecondary)
+                Button("steer")   { withAnimation { currentTip = .steer } }
+                Button("backTap") { withAnimation { currentTip = .backTap } }
+                Button("none")    { withAnimation { currentTip = .none } }
+            }
+            .font(.system(size: 9, weight: .bold))
+            .foregroundColor(ReplrTheme.Color.accent)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Capsule().fill(ReplrTheme.Color.surfaceRaised))
+            .padding(.bottom, 2)
+        }
     }
 
     // MARK: - Chat idle

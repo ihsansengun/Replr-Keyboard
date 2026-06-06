@@ -552,6 +552,9 @@ struct UsageTutorialView: View {
                 title: "Steer the reply",
                 body: "Optional: type what you want to say first — like \"ask her to dinner\" — then switch to Replr and tap Start. Your replies come back built around it.",
                 heroFlow: true),
+        TutStep(animation: nil, icon: "hand.tap",
+                title: "Reply anywhere with Back Tap",
+                body: "Optional: set up a triple-tap on the back of your phone to capture any screen — even dating profiles, where the keyboard can't open. Turn it on in Settings → Keyboard → Back Tap capture."),
     ]
 
     @State private var page = 0
