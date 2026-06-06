@@ -107,14 +107,14 @@ export interface LlmResult extends ParsedOutput {
 
 // Cost per million tokens (USD) — sourced June 2026
 const PRICING: Record<string, { inputPerM: number; outputPerM: number }> = {
-  'claude-sonnet-4-6':      { inputPerM: 3.00,  outputPerM: 15.00 }, // anthropic.com
-  'claude-opus-4-6':        { inputPerM: 15.00, outputPerM: 75.00 }, // anthropic.com
-  'gpt-5.4':                { inputPerM: 2.50,  outputPerM: 15.00 }, // openai.com
-  'gpt-5.4-mini':           { inputPerM: 0.75,  outputPerM: 4.50  }, // openai.com
-  'gpt-5.5':                { inputPerM: 5.00,  outputPerM: 30.00 }, // openai.com
-  'grok-4':                 { inputPerM: 3.00,  outputPerM: 15.00 }, // x.ai
-  'grok-4.3':               { inputPerM: 1.25,  outputPerM: 2.50  }, // x.ai
-  'gemini-3.1-pro-preview': { inputPerM: 2.00,  outputPerM: 12.00 }, // ai.google.dev
+  'claude-sonnet-4-6':      { inputPerM: 3.00,  outputPerM: 15.00 }, // platform.claude.com/docs/pricing
+  'claude-opus-4-6':        { inputPerM: 5.00,  outputPerM: 25.00 }, // platform.claude.com/docs/pricing (was $15/$75 — Opus 4.1 legacy price, corrected 2026-06-06)
+  'gpt-5.4':                { inputPerM: 2.50,  outputPerM: 15.00 }, // openai.com/api/pricing
+  'gpt-5.4-mini':           { inputPerM: 0.75,  outputPerM: 4.50  }, // openai.com/api/pricing
+  'gpt-5.5':                { inputPerM: 5.00,  outputPerM: 30.00 }, // openai.com/api/pricing
+  'grok-4':                 { inputPerM: 1.25,  outputPerM: 2.50  }, // docs.x.ai — grok-4 is an alias for grok-4.3, same price (corrected 2026-06-06)
+  'grok-4.3':               { inputPerM: 1.25,  outputPerM: 2.50  }, // docs.x.ai
+  'gemini-3.1-pro-preview': { inputPerM: 2.00,  outputPerM: 12.00 }, // ai.google.dev/gemini-api/docs/pricing
 }
 
 function calcCost(apiModel: string, inputTokens: number, outputTokens: number): number {
