@@ -14,9 +14,6 @@ struct GenerateReplyIntent: AppIntent {
     )
     var screenshot: IntentFile
 
-    @Parameter(title: "Tone", default: .friendly)
-    var tone: ReplyTone
-
     func perform() async throws -> some IntentResult {
         NSLog("[Replr][Intent] GenerateReplyIntent fired")
         AppGroupService.shared.lastIntentFiredAt = Date()
@@ -46,8 +43,8 @@ struct GenerateReplyIntent: AppIntent {
 
         let context = AppGroupService.shared.readPendingContext()
 
-        // Always use the tone selected in the keyboard — the Shortcut parameter is
-        // ignored because it defaults to Friendly and users never edit it manually.
+        // Tone always comes from the keyboard selection (never the Shortcut), so a
+        // Back Tap capture respects whatever tone the user last picked.
         let effectiveTone = AppGroupService.shared.readSelectedTone()
         NSLog("[Replr][Intent] Calling API: tone=%@ (keyboard selection), hasContext=%d", effectiveTone.name, context != nil ? 1 : 0)
 
