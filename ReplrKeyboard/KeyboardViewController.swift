@@ -109,16 +109,22 @@ final class KeyboardViewController: UIInputViewController {
                 let height: CGFloat
                 switch state {
                 case .idle:         height = inputMode == .email ? 224 : 300
-                case .loading:      height = 250
+                case .loading:      height = 310
                 case .error:        height = 240
                 case .paywall:      height = 280
                 case .disambiguate: height = 300
                 case .replies:
-                    // Ask UIKit directly for the natural content size — no estimate needed.
-                    // sizeThatFits returns the exact height the SwiftUI content wants to be.
-                    let w = self.view.bounds.width > 0 ? self.view.bounds.width : UIScreen.main.bounds.width
-                    let fit = self.hostingVC.sizeThatFits(in: CGSize(width: w, height: 10_000))
-                    height = min(560, max(260, fit.height))
+                    // sizeThatFits is only reliable once the view is in the window and laid out.
+                    // Before that (e.g. on reappear via viewWillAppear, where state is restored
+                    // from cached replies) it returns a near-max height and the keyboard opens
+                    // "very big". So use a sane initial and let RepliesPanelView.onContentHeightChanged
+                    // refine it to the exact size once it lays out and measures.
+                    if self.viewIfLoaded?.window != nil, self.view.bounds.width > 0 {
+                        let fit = self.hostingVC.sizeThatFits(in: CGSize(width: self.view.bounds.width, height: 10_000))
+                        height = min(560, max(260, fit.height))
+                    } else {
+                        height = 320
+                    }
                 }
                 self.setHeight(height)
             }

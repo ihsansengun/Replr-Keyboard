@@ -91,26 +91,30 @@ struct IdlePanelView: View {
     private var captureSlide: some View {
         VStack(spacing: 12) {
             Spacer(minLength: 0)
-            ZStack {
-                Circle()
-                    .fill(ReplrTheme.Color.accent)
-                    .frame(width: 104, height: 104)
-                    .blur(radius: 32)
-                    .opacity(colorScheme == .dark ? 0.30 : 0.16)
-                CaptureStepsAnimation()
-                    .frame(width: 132, height: 108)
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(ReplrTheme.Color.accent)
+                        .frame(width: 70, height: 70)
+                        .blur(radius: 22)
+                        .opacity(colorScheme == .dark ? 0.30 : 0.16)
+                    CaptureStepsAnimation()
+                        .frame(width: 92, height: 78)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Drop in your chat")
+                        .font(ReplrTheme.Font.serif(18, weight: .bold))
+                        .foregroundColor(ReplrTheme.Color.textPrimary)
+                    Text(AppGroupService.shared.preferredCapture == "backtap"
+                         ? "Triple-tap the back of your phone — replies appear right here."
+                         : "Tap Start, then screenshot the chat — Replr drafts the replies.")
+                        .font(.system(size: 13))
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            Text("Drop in your chat")
-                .font(ReplrTheme.Font.serif(20, weight: .bold))
-                .foregroundColor(ReplrTheme.Color.textPrimary)
-            Text(AppGroupService.shared.preferredCapture == "backtap"
-                 ? "Triple-tap the back of your phone — replies appear right here."
-                 : "Tap Start, then screenshot the chat. Replr drafts the replies.")
-                .font(.system(size: 13))
-                .foregroundColor(ReplrTheme.Color.textSecondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 26)
+            .padding(.horizontal, 16)
 
             Button {
                 withAnimation(.easeInOut(duration: 0.18)) { model.isCollapsed = true }
