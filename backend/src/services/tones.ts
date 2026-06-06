@@ -16,77 +16,134 @@ export interface ResolvedTone {
 
 const DEFAULT_TEMPERATURE = 0.85
 
-/** Keyed by the tone's display name (matches Shared/Models/Tone.swift). Examples are
- *  FLAVOR — the model is told never to reuse their words. Priority 4 (Joker, Witty,
- *  Dating, Seductive) carry the most-crafted sets; the rest get first-pass sets (Task 7). */
+/**
+ * Tone library keyed by display name (must match Shared/Models/Tone.swift exactly).
+ *
+ * Examples are FLAVOR — the model is told never to reuse their words or content.
+ * They show the VOICE, not a script. The model reads the actual conversation and
+ * generates something new; the examples calibrate register and personality.
+ *
+ * Tone design principle: each tone maps to a distinct human psychological state —
+ * not a style label, but an emotional posture someone is in when they need to reply.
+ */
 export const TONE_LIBRARY: Record<string, ToneSpec> = {
-  'Natural':      { temperature: 0.8,  examples: [], baseOnly: true },
 
-  'Joker':        { temperature: 0.95, examples: [
-    "oh you're 'fine'? that's the most threatening word in the english language, name a more iconic villain origin",
-    "i was gonna say something charming here but you've emotionally disarmed me with a single emoji, well played",
-    "breaking news: local girl claims she's 'busy', sources suspect she's lying down staring at the ceiling like the rest of us",
+  // ── Base ──────────────────────────────────────────────────────────────────
+  // Natural is the clean default. No personality overlay — base identity only.
+  'Natural':      { temperature: 0.8, examples: [], baseOnly: true },
+
+  // ── Default visible tones (ordered as they appear in the keyboard row) ────
+
+  // "I want to be warm and make them feel good" — universal opener
+  'Friendly':     { temperature: 0.85, examples: [
+    "honestly that just made my whole afternoon, tell me everything",
+    "ok i love that for you, how are you feeling about it?",
   ] },
+
+  // "I'm texting like a close friend, not performing" — laid-back, mirrors their energy
+  'Casual':       { temperature: 0.85, examples: [
+    "lol yeah i'm down, what time",
+    "omg same. wanna just figure it out later",
+  ] },
+
+  // "Light, a little teasing, effortlessly fun" — breezy mischief without committing to a full bit
+  'Playful':      { temperature: 0.90, examples: [
+    "oh interesting, so you're that kind of person 👀",
+    "okay i like where this is going, tell me more",
+    "you realise you've made it very difficult for me to pretend i'm not interested",
+  ] },
+
+  // "Say something clever they'll remember" — understatement, surprise, never explain the wit
   'Witty':        { temperature: 0.95, examples: [
     "incredible — you've managed to make 'running late' sound like a personality trait",
     "bold of you to assume i had plans that weren't just rearranging my whole week around this text",
     "a genuinely slow clap for that one",
   ] },
-  'Dating':       { temperature: 0.9,  examples: [
+
+  // "Commit to making them laugh" — absurdist, unexpected callbacks, commit to the bit
+  'Joker':        { temperature: 0.95, examples: [
+    "oh you're 'fine'? that's the most threatening word in the english language, name a more iconic villain origin",
+    "i was gonna say something charming here but you've emotionally disarmed me with a single emoji, well played",
+    "breaking news: local girl claims she's 'busy', sources suspect she's lying down staring at the ceiling like the rest of us",
+  ] },
+
+  // "Show romantic interest without showing all your cards" — playful tension, don't give everything away
+  'Flirty':       { temperature: 0.9, examples: [
     "you're trouble, i can already tell. the good kind, allegedly",
     "careful — keep being this interesting and i'll have to actually make an effort",
     "okay that was smooth. i'm choosing to be deeply suspicious of how smooth that was",
   ] },
+
+  // "Turn the heat up — bold and forward" — explicitly sensual, specific, no hedging
   'Seductive':    { temperature: 0.95, examples: [
     "keep talking like that and you'll find out exactly how much i was paying attention",
     "i had a perfectly productive evening planned before you turned up in my notifications",
     "you say that like you don't already know what it does to me",
   ] },
 
-  // First-pass sets filled in Task 7 — temperatures set now so §4 is complete.
-  'Friendly':     { temperature: 0.85, examples: [
-    "honestly that just made my whole afternoon, tell me everything",
-    "ok i love that for you, how are you feeling about it?",
-  ] },
-  'Casual':       { temperature: 0.85, examples: [
-    "lol yeah i'm down, what time",
-    "omg same. wanna just figure it out later",
-  ] },
-  'Direct':       { temperature: 0.6,  examples: [
-    "yes. send the address and i'll be there",
-    "can't do friday. saturday works",
-  ] },
-  'Professional': { temperature: 0.6,  examples: [
-    "Happy to help — I'll review it today and send notes tomorrow.",
-    "Thanks for flagging. Let's sync at 2pm to lock the details.",
-  ] },
-  'Empathetic':   { temperature: 0.8,  examples: [
+  // "Make them feel heard, not advised" — reflect emotion first, never jump to solutions
+  'Empathetic':   { temperature: 0.8, examples: [
     "that sounds genuinely exhausting, no wonder you're drained",
     "yeah, that would mess me up too. you don't have to have it figured out yet",
   ] },
-  'Enthusiastic': { temperature: 0.9,  examples: [
-    "wait this is amazing, i'm so happy for you",
-    "ok i did not expect that and now i'm fully invested, tell me more",
+
+  // "Reply from self-assurance, not eagerness" — grounded, doesn't over-explain, leaves them curious
+  'Confident':    { temperature: 0.75, examples: [
+    "sounds good. let's see how it goes",
+    "i had a feeling you'd say that",
+    "you're more interesting than i expected",
   ] },
-  'Concise':      { temperature: 0.6,  examples: [
-    "works for me. 8pm?",
-    "got it. on my way",
+
+  // "Just the answer, no fuss" — lead with the point, cut everything after that
+  'Direct':       { temperature: 0.6, examples: [
+    "yes. send the address and i'll be there",
+    "can't do friday. saturday works",
   ] },
-  'Formal':       { temperature: 0.55, examples: [
-    "Thank you for the update. I will confirm the details shortly.",
-    "Understood — I appreciate you letting me know in advance.",
+
+  // ── Hidden by default (available in Settings → Tones) ─────────────────────
+
+  'Sarcastic':    { temperature: 0.95, examples: [
+    "wow, a whole twenty minutes of effort, you must be exhausted",
+    "no please, take your time, it's not like i was waiting or anything",
   ] },
+
   'Passive Aggressive': { temperature: 0.9, examples: [
     "no totally, it's fine, i didn't need that much notice anyway",
     "so glad you could fit me in, genuinely, no worries at all",
   ] },
+
   'Gen Z':        { temperature: 0.95, examples: [
     "not me lowkey obsessed with this plan, it's giving main character",
     "ok this is sending me, say less",
   ] },
-  'Sarcastic':    { temperature: 0.95, examples: [
-    "wow, a whole twenty minutes of effort, you must be exhausted",
-    "no please, take your time, it's not like i was waiting or anything",
+
+  'Enthusiastic': { temperature: 0.9, examples: [
+    "wait this is amazing, i'm so happy for you",
+    "ok i did not expect that and now i'm fully invested, tell me more",
+  ] },
+
+  'Concise':      { temperature: 0.6, examples: [
+    "works for me. 8pm?",
+    "got it. on my way",
+  ] },
+
+  'Professional': { temperature: 0.6, examples: [
+    "Happy to help — I'll review it today and send notes tomorrow.",
+    "Thanks for flagging. Let's sync at 2pm to lock the details.",
+  ] },
+
+  'Formal':       { temperature: 0.55, examples: [
+    "Thank you for the update. I will confirm the details shortly.",
+    "Understood — I appreciate you letting me know in advance.",
+  ] },
+
+  // ── Backward-compat alias ─────────────────────────────────────────────────
+  // "Dating" was renamed to "Flirty" in the iOS app. Older clients still send
+  // toneName: "Dating" — this keeps them working identically.
+  'Dating':       { temperature: 0.9, examples: [
+    "you're trouble, i can already tell. the good kind, allegedly",
+    "careful — keep being this interesting and i'll have to actually make an effort",
+    "okay that was smooth. i'm choosing to be deeply suspicious of how smooth that was",
   ] },
 }
 

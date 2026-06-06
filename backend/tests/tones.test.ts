@@ -36,9 +36,30 @@ describe('toneSpecFor', () => {
     expect(toneSpecFor('Seductive', 'x').temperature).toBeGreaterThan(0.9)
   })
 
-  it('has a library entry for every shipped preset name', () => {
-    const names = ['Natural','Friendly','Casual','Direct','Witty','Professional','Empathetic',
-      'Enthusiastic','Concise','Formal','Dating','Joker','Passive Aggressive','Gen Z','Seductive','Sarcastic']
+  it('has a library entry for every shipped preset name (incl. new + compat alias)', () => {
+    const names = [
+      // Default visible tones
+      'Natural','Friendly','Casual','Playful','Witty','Joker','Flirty','Seductive',
+      'Empathetic','Confident','Direct',
+      // Hidden-by-default tones
+      'Sarcastic','Passive Aggressive','Gen Z','Enthusiastic','Concise','Professional','Formal',
+      // Backward-compat alias (Dating → Flirty rename)
+      'Dating',
+    ]
     for (const n of names) expect(TONE_LIBRARY[n], n).toBeDefined()
+  })
+
+  it('Confident has a low-moderate temperature (self-assured brevity)', () => {
+    expect(toneSpecFor('Confident', 'x').temperature).toBeLessThan(0.85)
+  })
+
+  it('Playful has examples and a creative temperature', () => {
+    const r = toneSpecFor('Playful', 'be fun')
+    expect(r.examples.length).toBeGreaterThan(0)
+    expect(r.temperature).toBeGreaterThanOrEqual(0.85)
+  })
+
+  it('Flirty and Dating resolve to the same temperature (compat alias)', () => {
+    expect(toneSpecFor('Flirty', 'x').temperature).toBe(toneSpecFor('Dating', 'x').temperature)
   })
 })

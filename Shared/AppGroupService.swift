@@ -256,15 +256,21 @@ final class AppGroupService {
         defaults.synchronize()
         guard let data = defaults.data(forKey: Constants.selectedToneKey),
               let tone = try? JSONDecoder().decode(Tone.self, from: data) else {
-            return readTones().first ?? Tone.presets[0]
+            // Default: Natural (the clean base), falling back to first available tone.
+            return defaultTone
         }
-        // If the stored tone is a preset whose name no longer exists (e.g. Casual, Formal, Bold, Dating),
-        // fall back to the first current preset so the user never sees a dangling tone name.
+        // If the stored tone is a preset whose name no longer exists (e.g. renamed Dating → Flirty),
+        // fall back to Natural so the user never sees a dangling tone name.
         let validPresetNames = Set(Tone.presets.map(\.name))
         if tone.isPreset && !validPresetNames.contains(tone.name) {
-            return Tone.presets[0]
+            return defaultTone
         }
         return tone
+    }
+
+    private var defaultTone: Tone {
+        let all = readTones()
+        return all.first { $0.name == "Natural" } ?? all.first ?? Tone.presets[0]
     }
 
     // MARK: - Tones list
