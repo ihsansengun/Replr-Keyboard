@@ -115,7 +115,7 @@ internal terms ("capture", "collapse"); say what the user does ("screenshot",
 
 ## Typography
 
-System font (SF Pro), `design: .default`. Scale (size / weight / tracking):
+Body & UI: system font (SF Pro), `design: .default`. Scale (size / weight / tracking):
 
 `display` 32/700/−0.5 · `title` 26/700/−0.4 · `heading` 20/600/−0.2 ·
 `headline` 17/600 · `body` 17/400 · `callout` 15/400 · `footnote` 13/400 ·
@@ -123,7 +123,12 @@ System font (SF Pro), `design: .default`. Scale (size / weight / tracking):
 
 - **Max two weights per region.** Pair a bold/semibold heading with a regular body.
 - Tracking is applied at the call site: `.tracking(-0.5)` etc. (Font constants can't carry it.)
-- No custom fonts.
+- **Serif display — onboarding / marketing headlines only.** `ReplrTheme.Font.serif(size:weight:)`
+  → bundled **Fraunces** (registered at launch via Core Text; falls back to the system serif).
+  Tokens: `serifDisplay` (34/bold), `serifTitle` (26/semibold). Never use serif in the keyboard
+  extension or for body/UI — SF Pro only there.
+- **Amber accent** `ReplrTheme.Color.amber` (#FFB45E): onboarding doodle coachmarks. For a
+  highlighted word in a headline, use `accent` (rose) — amber lacks contrast on light cards.
 
 ## Layout
 
