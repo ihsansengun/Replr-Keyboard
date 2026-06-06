@@ -93,7 +93,7 @@ struct IdlePanelView: View {
                   title: "Reply anywhere",
                   body: "Set up a triple-tap to capture any screen — even dating profiles, where the keyboard can't open.",
                   cta: "Set up Back Tap →",
-                  action: { model.onOpenContainingApp?("replr://setup") })
+                  url: "replr://setup")
     }
 
     /// Slide 3 — Steer (opens the app for the how-to).
@@ -102,11 +102,11 @@ struct IdlePanelView: View {
                   title: "Steer the reply",
                   body: "Type your gist first — like \u{201C}ask her to dinner\u{201D} — then tap Start. Replr builds the reply around it.",
                   cta: "Show me how →",
-                  action: { model.onOpenContainingApp?("replr://tutorial") })
+                  url: "replr://tutorial")
     }
 
     private func infoSlide(icon: String, title: String, body: String,
-                           cta: String, action: @escaping () -> Void) -> some View {
+                           cta: String, url: String) -> some View {
         VStack(spacing: 8) {
             Spacer(minLength: 0)
             Image(systemName: icon)
@@ -120,16 +120,20 @@ struct IdlePanelView: View {
                 .foregroundColor(ReplrTheme.Color.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
-            Button(action: action) {
-                Text(cta)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(ReplrTheme.Color.onAccent)
-                    .padding(.horizontal, 18)
-                    .frame(height: 38)
-                    .background(Capsule().fill(ReplrTheme.Color.brandGradient))
+            if let dest = URL(string: url) {
+                // A SwiftUI Link is the only path that still opens the containing app from a
+                // keyboard extension on iOS 18+ (extensionContext.open is a no-op for keyboards,
+                // and the selector / responder-chain trick was killed in iOS 18). Full Access required.
+                Link(destination: dest) {
+                    Text(cta)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(ReplrTheme.Color.onAccent)
+                        .padding(.horizontal, 18)
+                        .frame(height: 38)
+                        .background(Capsule().fill(ReplrTheme.Color.brandGradient))
+                }
+                .padding(.top, 2)
             }
-            .buttonStyle(.plain)
-            .padding(.top, 2)
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 22)
