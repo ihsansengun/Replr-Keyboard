@@ -152,6 +152,32 @@ describe('generateReplies', () => {
 
     expect(result.replies).toHaveLength(5)
   })
+
+  it('passes a high temperature for a bold tone (Joker) to Claude', async () => {
+    anthropicMessagesCreate.mockResolvedValue({
+      content: [{ type: 'text', text: 'CONTACT: X\nSUMMARY: y\n1. a\n2. b\n3. c' }],
+      usage: { input_tokens: 10, output_tokens: 5 },
+    })
+    await generateReplies({
+      screenshotBase64: 'abc', tone: 'find the joke', toneName: 'Joker',
+      model: 'claude-sonnet-4-6', anthropicKey: 'k', openaiKey: 'k',
+    })
+    expect(anthropicMessagesCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ temperature: 0.95 }))
+  })
+
+  it('passes the default temperature when no toneName is sent (older client)', async () => {
+    anthropicMessagesCreate.mockResolvedValue({
+      content: [{ type: 'text', text: 'CONTACT: X\nSUMMARY: y\n1. a\n2. b\n3. c' }],
+      usage: { input_tokens: 10, output_tokens: 5 },
+    })
+    await generateReplies({
+      screenshotBase64: 'abc', tone: 'be warm',
+      model: 'claude-sonnet-4-6', anthropicKey: 'k', openaiKey: 'k',
+    })
+    expect(anthropicMessagesCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ temperature: 0.85 }))
+  })
 })
 
 describe('buildSystemPrompt', () => {

@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import type { Model } from '../types'
-import type { ResolvedTone } from './tones'
+import { toneSpecFor, type ResolvedTone } from './tones'
 
 const IDENTITY = `You are Replr. You generate human-like replies to text conversations.
 
@@ -161,6 +161,7 @@ interface LlmCallParams {
   user: string
   images: string[]
   model: Model
+  temperature: number
   anthropicKey: string
   openaiKey: string
   xaiKey?: string
@@ -171,6 +172,7 @@ interface LlmTextParams {
   system: string
   user: string
   model: Model
+  temperature: number
   anthropicKey: string
   openaiKey: string
   xaiKey?: string
@@ -178,7 +180,7 @@ interface LlmTextParams {
 }
 
 async function callLlm(params: LlmCallParams): Promise<LlmResult> {
-  const { system, user, images, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
+  const { system, user, images, model, temperature, anthropicKey, openaiKey, xaiKey, googleKey } = params
   const { provider, apiModel } = resolveModel(model)
 
   if (provider === 'anthropic') {
@@ -190,6 +192,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
     const response = await client.messages.create({
       model: apiModel,
       max_tokens: 2048,
+      temperature,
       system,
       messages: [{ role: 'user', content: [...imageContent, { type: 'text', text: user }] }],
     })
@@ -219,6 +222,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
   const response = await client.chat.completions.create({
     model: apiModel,
     max_completion_tokens: 2048,
+    temperature,
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: [...imageContent, { type: 'text', text: user }] as any },
@@ -235,7 +239,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
 }
 
 async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
-  const { system, user, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
+  const { system, user, model, temperature, anthropicKey, openaiKey, xaiKey, googleKey } = params
   const { provider, apiModel } = resolveModel(model)
 
   if (provider === 'anthropic') {
@@ -243,6 +247,7 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
     const response = await client.messages.create({
       model: apiModel,
       max_tokens: 2048,
+      temperature,
       system,
       messages: [{ role: 'user', content: user }],
     })
@@ -267,6 +272,7 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
   const response = await client.chat.completions.create({
     model: apiModel,
     max_completion_tokens: 2048,
+    temperature,
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: user },
@@ -285,6 +291,7 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
 export interface GenerateEmailParams {
   emailText: string
   tone: string
+  toneName?: string
   summary?: string
   previousContext?: string
   aboutUser?: string
@@ -298,6 +305,7 @@ export interface GenerateEmailParams {
 export interface GenerateParams {
   screenshotBase64: string
   tone: string
+  toneName?: string
   summary?: string
   previousContext?: string
   aboutUser?: string
@@ -311,6 +319,7 @@ export interface GenerateParams {
 export interface GenerateMultipleParams {
   screenshots: string[]
   tone: string
+  toneName?: string
   summary?: string
   previousContext?: string
   aboutUser?: string
@@ -342,9 +351,10 @@ ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
 }
 
 export async function generateReplies(params: GenerateParams): Promise<LlmResult> {
-  const { screenshotBase64, tone, summary, previousContext, aboutUser, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
+  const { screenshotBase64, tone, toneName, summary, previousContext, aboutUser, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
 
-  const system = buildSystemPrompt(tone, aboutUser)
+  const spec = toneSpecFor(toneName, tone)
+  const system = buildSystemPrompt(spec, aboutUser)
 
   const user = `${buildContextBlock(summary, previousContext)}Reading guide — CRITICAL:
 - RIGHT-side bubbles = YOUR USER (the person you are writing FOR — do not reply to these)
@@ -356,14 +366,15 @@ ${DECISIONS}
 
 ${buildReplyFormat(REPLY_COUNT)}`
 
-  return callLlm({ system, user, images: [screenshotBase64], model, anthropicKey, openaiKey, xaiKey, googleKey })
+  return callLlm({ system, user, images: [screenshotBase64], model, temperature: spec.temperature, anthropicKey, openaiKey, xaiKey, googleKey })
 }
 
 export async function generateRepliesFromMultiple(params: GenerateMultipleParams): Promise<LlmResult> {
-  const { screenshots, tone, summary, previousContext, aboutUser, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
+  const { screenshots, tone, toneName, summary, previousContext, aboutUser, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
   const count = REPLY_COUNT
 
-  const system = buildSystemPrompt(tone, aboutUser)
+  const spec = toneSpecFor(toneName, tone)
+  const system = buildSystemPrompt(spec, aboutUser)
 
   const user = `${buildContextBlock(summary, previousContext)}The following screenshots show a conversation scrolled through from bottom to top. Read all of them together to understand the full context.
 
@@ -377,17 +388,18 @@ ${DECISIONS}
 
 ${buildReplyFormat(count)}`
 
-  return callLlm({ system, user, images: screenshots, model, anthropicKey, openaiKey, xaiKey, googleKey })
+  return callLlm({ system, user, images: screenshots, model, temperature: spec.temperature, anthropicKey, openaiKey, xaiKey, googleKey })
 }
 
 export async function generateRepliesFromEmail(params: GenerateEmailParams): Promise<LlmResult> {
-  const { emailText, tone, summary, previousContext, aboutUser, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
+  const { emailText, tone, toneName, summary, previousContext, aboutUser, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
 
-  const system = buildSystemPrompt(tone, aboutUser)
+  const spec = toneSpecFor(toneName, tone)
+  const system = buildSystemPrompt(spec, aboutUser)
 
   const user = `${buildContextBlock(summary, previousContext)}EMAIL TO REPLY TO:\n${emailText}\n\n${DECISIONS}\n\n${buildReplyFormat(REPLY_COUNT)}`
 
-  return callLlmText({ system, user, model, anthropicKey, openaiKey, xaiKey, googleKey })
+  return callLlmText({ system, user, model, temperature: spec.temperature, anthropicKey, openaiKey, xaiKey, googleKey })
 }
 
 /** Kept for any callers that still use the old signature — returns only replies. */
