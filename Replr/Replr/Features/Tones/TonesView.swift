@@ -20,6 +20,15 @@ final class TonesViewModel: ObservableObject {
 
     func add(_ tone: Tone) { tones.append(tone); save() }
 
+    /// Reorder preset tones (drag-to-reorder in Settings). The new order persists and
+    /// drives the keyboard row order. Presets always precede custom tones in storage.
+    func movePresets(from source: IndexSet, to destination: Int) {
+        var reordered = presets
+        reordered.move(fromOffsets: source, toOffset: destination)
+        tones = reordered + custom
+        save()
+    }
+
     func delete(at offsets: IndexSet) {
         let customTones = tones.filter { !$0.isPreset }
         let toDelete = offsets.map { customTones[$0] }
@@ -41,6 +50,7 @@ struct TonesView: View {
                             .listRowBackground(ReplrTheme.Color.surface)
                             .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                     }
+                    .onMove { vm.movePresets(from: $0, to: $1) }
                 } header: {
                     HStack {
                         Text("Presets")
@@ -74,8 +84,11 @@ struct TonesView: View {
             .tint(ReplrTheme.Color.accent)
             .navigationTitle("Tones")
             .toolbar {
-                Button { showBuilder = true } label: {
-                    Image(systemName: "plus")
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    EditButton()
+                    Button { showBuilder = true } label: {
+                        Image(systemName: "plus")
+                    }
                 }
             }
             .sheet(isPresented: $showBuilder) {
@@ -108,7 +121,7 @@ struct PresetToneRow: View {
                             .clipShape(Capsule())
                     }
                 }
-                Text(tone.instruction)
+                Text(tone.blurb.isEmpty ? tone.instruction : tone.blurb)
                     .font(.caption)
                     .foregroundStyle(ReplrTheme.Color.textSecondary)
                     .lineLimit(2)
@@ -122,6 +135,6 @@ struct PresetToneRow: View {
     }
 
     private func isDefaultPreset(_ tone: Tone) -> Bool {
-        ["Friendly", "Professional", "Direct", "Witty"].contains(tone.name)
+        tone.name == "Natural"   // the default-selected tone (see AppGroupService.defaultTone)
     }
 }

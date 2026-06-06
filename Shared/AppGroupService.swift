@@ -311,13 +311,39 @@ final class AppGroupService {
     func readTones() -> [Tone] {
         defaults.synchronize()
         guard let data = defaults.data(forKey: Constants.tonesKey),
-              let saved = try? JSONDecoder().decode([Tone].self, from: data) else { return Tone.presets }
-        // Merge: add any new presets that aren't in the saved array yet (e.g. after an app update).
-        // Existing presets keep their saved isEnabled value; new ones use the preset default.
-        let savedPresetNames = Set(saved.filter(\.isPreset).map(\.name))
-        let addedPresets = Tone.presets.filter { !savedPresetNames.contains($0.name) }
-        let presets = saved.filter(\.isPreset) + addedPresets
-        let custom  = saved.filter { !$0.isPreset }
+              let saved = try? JSONDecoder().decode([Tone].self, from: data) else {
+            return Tone.presets   // fresh install
+        }
+
+        let presetByName = Dictionary(Tone.presets.map { ($0.name, $0) }, uniquingKeysWith: { a, _ in a })
+        let savedPresets = saved.filter(\.isPreset)
+        let custom       = saved.filter { !$0.isPreset }
+
+        // One-time migration: saved data predating `blurb` → re-seed presets to the
+        // current default order + blurbs, carrying over only the user's enabled state.
+        let needsReseed = savedPresets.isEmpty || savedPresets.contains { $0.blurb.isEmpty }
+        if needsReseed {
+            let enabledByName = Dictionary(savedPresets.map { ($0.name, $0.isEnabled) },
+                                           uniquingKeysWith: { a, _ in a })
+            let fresh = Tone.presets.map { p in
+                Tone(id: p.id, name: p.name, instruction: p.instruction, blurb: p.blurb,
+                     isPreset: true, isEnabled: enabledByName[p.name] ?? p.isEnabled)
+            }
+            let merged = fresh + custom
+            try? writeTones(merged)
+            return merged
+        }
+
+        // Normal path: keep the user's saved order + enabled state, but refresh preset
+        // content (blurb/instruction) from the current app version. Drop presets removed
+        // from the app, append presets new to this version, custom tones last.
+        var presets: [Tone] = savedPresets.compactMap { s in
+            guard let p = presetByName[s.name] else { return nil }
+            return Tone(id: s.id, name: p.name, instruction: p.instruction, blurb: p.blurb,
+                        isPreset: true, isEnabled: s.isEnabled)
+        }
+        let savedNames = Set(savedPresets.map(\.name))
+        presets.append(contentsOf: Tone.presets.filter { !savedNames.contains($0.name) })
         return presets + custom
     }
 
