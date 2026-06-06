@@ -14,7 +14,7 @@ replyRoute.post('/', async (c) => {
     return c.json({ error: 'Invalid JSON body' }, 400)
   }
 
-  const { screenshotBase64, emailText, tone, summary, previousContext, aboutUser, model, userId } =
+  const { screenshotBase64, emailText, tone, toneName, summary, previousContext, aboutUser, model, userId } =
     body as Record<string, string | undefined>
 
   if ((!screenshotBase64 && !emailText) || !tone || !model || !userId) {
@@ -28,14 +28,14 @@ replyRoute.post('/', async (c) => {
   try {
     const result = emailText
       ? await generateRepliesFromEmail({
-          emailText, tone, summary, previousContext, aboutUser,
+          emailText, tone, toneName, summary, previousContext, aboutUser,
           model: model as Model,
           anthropicKey: c.env.ANTHROPIC_API_KEY, xaiKey: c.env.XAI_API_KEY, googleKey: c.env.GOOGLE_API_KEY,
           openaiKey: c.env.OPENAI_API_KEY,
         })
       : await generateReplies({
           screenshotBase64: screenshotBase64!,
-          tone, summary, previousContext, aboutUser,
+          tone, toneName, summary, previousContext, aboutUser,
           model: model as Model,
           anthropicKey: c.env.ANTHROPIC_API_KEY, xaiKey: c.env.XAI_API_KEY, googleKey: c.env.GOOGLE_API_KEY,
           openaiKey: c.env.OPENAI_API_KEY,
@@ -58,8 +58,8 @@ replyRoute.post('/scroll', async (c) => {
     return c.json({ error: 'Invalid JSON body' }, 400)
   }
 
-  const { screenshots, tone, model, userId, summary, previousContext, aboutUser } =
-    body as { screenshots?: string[], tone?: string, model?: string, userId?: string, summary?: string, previousContext?: string, aboutUser?: string }
+  const { screenshots, tone, toneName, model, userId, summary, previousContext, aboutUser } =
+    body as { screenshots?: string[], tone?: string, toneName?: string, model?: string, userId?: string, summary?: string, previousContext?: string, aboutUser?: string }
 
   if (!Array.isArray(screenshots) || screenshots.length === 0 || !tone || !model || !userId) {
     return c.json({ error: 'Missing required fields: screenshots, tone, model, userId' }, 400)
@@ -75,7 +75,7 @@ replyRoute.post('/scroll', async (c) => {
 
   try {
     const result = await generateRepliesFromMultiple({
-      screenshots, tone, summary, previousContext, aboutUser,
+      screenshots, tone, toneName, summary, previousContext, aboutUser,
       model: model as Model,
       anthropicKey: c.env.ANTHROPIC_API_KEY, xaiKey: c.env.XAI_API_KEY, googleKey: c.env.GOOGLE_API_KEY,
       openaiKey: c.env.OPENAI_API_KEY,

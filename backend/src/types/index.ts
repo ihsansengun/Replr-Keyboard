@@ -21,6 +21,7 @@ export interface ReplyRequest {
   screenshotBase64?: string
   emailText?: string
   tone: string
+  toneName?: string
   summary?: string
   previousContext?: string
   model: Model
