@@ -31,6 +31,8 @@ final class KeyboardModel: ObservableObject {
     @Published var hasAnySessions: Bool = false
     @Published var inputMode: KeyboardInputMode = .chat
     @Published var repliesGeneratedInMode: KeyboardInputMode = .chat
+    /// Currently selected model for the dev header switcher. Only meaningful in dev mode.
+    @Published var selectedDevModel: String = AppGroupService.shared.selectedModel
     var lastEmailText: String? = nil   // email text behind the current replies, for Regenerate
     @Published var isCaptureMode: Bool = false
     @Published var isCollapsed: Bool = false
@@ -636,14 +638,35 @@ struct KeyboardHeader: View {
                 Spacer()
                 switch model.creditDisplay {
                 case .unlimited:
-                    HStack(spacing: 4) {
-                        Text("∞")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(ReplrTheme.Color.accent)
-                        Text(AppGroupService.shared.selectedModelShortLabel)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(ReplrTheme.Color.accent.opacity(0.7))
+                    // Dev mode: tappable model switcher — all models available.
+                    Menu {
+                        ForEach(DevModelOption.all) { option in
+                            Button {
+                                AppGroupService.shared.selectedModel = option.id
+                                model.selectedDevModel = option.id
+                            } label: {
+                                if model.selectedDevModel == option.id {
+                                    Label(option.label, systemImage: "checkmark")
+                                } else {
+                                    Text(option.label)
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("∞")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(ReplrTheme.Color.accent)
+                            Text(DevModelOption.shortLabel(for: model.selectedDevModel))
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(ReplrTheme.Color.accent.opacity(0.7))
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.system(size: 8, weight: .semibold))
+                                .foregroundStyle(ReplrTheme.Color.accent.opacity(0.55))
+                        }
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                 case .count(let n) where n <= 20:
                     CreditCounterBadge(count: n)
                 case .count:
@@ -825,3 +848,28 @@ enum PhotosCapture {
     }
 }
 
+
+// MARK: - Dev model switcher
+
+/// Lightweight model descriptor for the dev model Menu in the keyboard header.
+/// Dev-only — never shown to production users. Mirrors ReplrModel from the app target
+/// but avoids a cross-target import by re-declaring only what the keyboard needs.
+private struct DevModelOption: Identifiable {
+    let id: String       // matches the API model identifier
+    let label: String    // short display label shown in the Menu
+
+    static let all: [DevModelOption] = [
+        DevModelOption(id: "claude-sonnet-4-6",      label: "Sonnet 4.6"),
+        DevModelOption(id: "gpt-5.4",               label: "GPT-5.4"),
+        DevModelOption(id: "claude-opus-4-6",        label: "Opus 4.6 ★"),
+        DevModelOption(id: "gpt-5.5",               label: "GPT-5.5 ★"),
+        DevModelOption(id: "gemini-3.1-pro-preview", label: "Gemini 3.1 ★"),
+        DevModelOption(id: "grok-4",                label: "Grok 4"),
+        DevModelOption(id: "grok-4.3",              label: "Grok 4.3"),
+        DevModelOption(id: "gpt-5.4-mini",          label: "GPT-5.4 Mini"),
+    ]
+
+    static func shortLabel(for id: String) -> String {
+        all.first { $0.id == id }?.label ?? id
+    }
+}

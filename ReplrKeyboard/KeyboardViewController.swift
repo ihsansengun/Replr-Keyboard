@@ -151,6 +151,7 @@ final class KeyboardViewController: UIInputViewController {
             model.contactName = nil
         }
         model.hasAnySessions = !AppGroupService.shared.loadCaptureSessions().isEmpty
+        model.selectedDevModel = AppGroupService.shared.selectedModel   // keep dev switcher in sync
 
         if AppGroupService.shared.isGenerating {
             model.state = .loading
