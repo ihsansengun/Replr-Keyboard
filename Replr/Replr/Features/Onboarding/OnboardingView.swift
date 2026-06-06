@@ -296,7 +296,7 @@ private struct KeyboardSetupStep: View {
 
     var body: some View {
         OnboardingStep(
-            step: 1, totalSteps: 2,
+            step: 2, totalSteps: 4,
             sectionLabel: "Keyboard",
             headline: "Add Replr & allow Full Access.",
             bodyText: "Add the Replr keyboard, then turn on Full Access so it can draft your replies.",
@@ -360,7 +360,7 @@ private struct PhotosPermissionStep: View {
 
     var body: some View {
         OnboardingStep(
-            step: 2, totalSteps: 2,
+            step: 3, totalSteps: 4,
             sectionLabel: "Permissions",
             headline: "Allow Photos.",
             bodyText: "Replr drafts replies from the screenshot you take of a chat. Your photo library stays private:",
@@ -473,7 +473,7 @@ private struct ReadyStep: View {
                         .foregroundColor(ReplrTheme.Color.textPrimary)
                         .multilineTextAlignment(.center)
 
-                    Text("Here's how it works — about 30 seconds.")
+                    Text("One quick demo, then you're ready.")
                         .font(ReplrTheme.Font.callout)
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .multilineTextAlignment(.center)
@@ -484,7 +484,7 @@ private struct ReadyStep: View {
                 Spacer()
 
                 VStack(spacing: 12) {
-                    PrimaryButton(label: "Show me how →", action: onDone)
+                    PrimaryButton(label: "See it in action →", action: onDone)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 40)
@@ -542,57 +542,62 @@ struct OnboardingView: View {
     var startAtSetup: Bool = false   // revisit from Settings: skip the Welcome screen
     @AppStorage("onboardingStep") private var step = 0
 
-    /// Whether a permission step (1 = keyboard + Full Access, 2 = Photos) is already granted.
+    /// Whether a permission step (3 = keyboard + Full Access, 4 = Photos) is already granted.
     private func isSatisfied(_ s: Int) -> Bool {
         switch s {
-        case 1: return AppGroupService.shared.fullAccessGranted   // keyboard + Full Access are one signal
-        case 2:
+        case 3: return AppGroupService.shared.fullAccessGranted   // keyboard + Full Access are one signal
+        case 4:
             let st = PHPhotoLibrary.authorizationStatus(for: .readWrite)
             return st == .authorized || st == .limited
         default: return false
         }
     }
 
-    /// First permission step (1...2) at or after `from` that still needs action; 4 (Ready) if all met.
-    private func nextStep(from: Int) -> Int {
-        var s = max(from, 1)
-        while s <= 2 {
+    /// First permission step (3...4) at or after `from` that still needs action; 5 (Back Tap) if all met.
+    private func nextPermission(from: Int) -> Int {
+        var s = max(from, 3)
+        while s <= 4 {
             if !isSatisfied(s) { return s }
             s += 1
         }
-        return 4
+        return 5
     }
 
     var body: some View {
         Group {
             switch step {
             case 0:
-                WelcomeStep(onNext: { step = nextStep(from: 1) }, onSignIn: onSignIn)
+                WelcomeStep(onNext: { step = 1 }, onSignIn: onSignIn)
             case 1:
-                KeyboardSetupStep(onNext: { step = nextStep(from: 2) }, onBack: { step = 0 })
+                IntroCarouselStep(onDone: { step = 2 })
             case 2:
-                PhotosPermissionStep(onNext: { step = 4 }, onBack: { step = 1 })
+                PersonalizationSurveyStep(step: 1, totalSteps: 4,
+                                          onNext: { step = nextPermission(from: 3) },
+                                          onBack: { step = 1 })
             case 3:
-                // The iOS 26 Full-Screen Previews tip now lives in Settings → Screenshots.
-                // Kept as a no-op redirect so a persisted step == 3 moves on to the handoff.
-                Color.clear.onAppear { step = 4 }
+                KeyboardSetupStep(onNext: { step = nextPermission(from: 4) }, onBack: { step = 2 })
             case 4:
-                ReadyStep(onDone: { step = 5 })
+                PhotosPermissionStep(onNext: { step = 5 }, onBack: { step = 3 })
             case 5:
-                UsageTutorialView(onDone: { step = 0; onComplete() })
+                BackTapOnboardingStep(step: 4, totalSteps: 4,
+                                      onNext: { step = 6 }, onBack: { step = 4 })
+            case 6:
+                ReadyStep(onDone: { step = 7 })
+            case 7:
+                SampleDemoStep(onFinish: { step = 0; onComplete() })
             default:
-                WelcomeStep(onNext: { step = nextStep(from: 1) }, onSignIn: onSignIn)
+                WelcomeStep(onNext: { step = 1 }, onSignIn: onSignIn)
             }
         }
         .onAppear {
-            if step > 5 { step = 0 }
-            // Revisit from Settings: skip the Welcome marketing screen, go straight to setup.
+            if step > 7 { step = 0 }
+            // Revisit from Settings: skip the intro + survey, jump to the first unmet permission.
             if startAtSetup && step == 0 {
-                step = nextStep(from: 1)
+                step = nextPermission(from: 3)
             }
-            // If we resumed onto an already-granted permission step, skip forward to the first that needs action.
-            if step >= 1 && step <= 2 && isSatisfied(step) {
-                step = nextStep(from: step)
+            // If we resumed onto an already-granted permission step, skip forward.
+            if (step == 3 || step == 4) && isSatisfied(step) {
+                step = nextPermission(from: step)
             }
         }
     }
