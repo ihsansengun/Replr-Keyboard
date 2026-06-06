@@ -141,6 +141,10 @@ struct SettingsView: View {
     @State private var preferredCapture = AppGroupService.shared.preferredCapture
     @State private var aboutUser = AppGroupService.shared.aboutUser
     @FocusState private var aboutFocused: Bool
+    #if DEBUG
+    // Dev-only: re-trigger the onboarding flow for previewing (it's first-launch-gated).
+    @AppStorage("onboardingComplete") private var onboardingComplete = false
+    #endif
 
     var body: some View {
         NavigationStack {
@@ -560,6 +564,27 @@ struct SettingsView: View {
             .onLongPressGesture(minimumDuration: 1.5) {
                 showModelPicker = true
             }
+
+            #if DEBUG
+            cardDivider
+            Button {
+                onboardingComplete = false
+            } label: {
+                settingsRow {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 15))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                        .frame(width: 22)
+                    Text("Replay onboarding")
+                        .font(.system(size: 17))
+                    Spacer()
+                    Text("DEBUG")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.textTertiary)
+                }
+            }
+            .buttonStyle(.plain)
+            #endif
         }
     }
 
