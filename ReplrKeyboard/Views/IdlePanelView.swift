@@ -40,50 +40,49 @@ struct IdlePanelView: View {
         .animation(.easeInOut(duration: 0.2), value: teachingPage)
     }
 
-    /// Full-keyboard how-to overlay: steer (intent) + Back Tap (shortcut). Swipe + ✕ to close.
+    /// Compact, centered how-to card: steer (intent) + Back Tap (shortcut). Swipe + ✕ to close.
     private var teachingPanel: some View {
         ZStack {
             Color.black.opacity(0.55)
                 .ignoresSafeArea()
                 .onTapGesture { withAnimation(.easeInOut(duration: 0.15)) { showTeachingPanel = false } }
-            VStack(spacing: 6) {
-                HStack {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.15)) { showTeachingPanel = false }
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(ReplrTheme.Color.textPrimary)
-                            .frame(width: 30, height: 30)
-                            .background(Circle().fill(ReplrTheme.Color.surfaceRaised))
-                    }
-                    .buttonStyle(.plain)
-                    Spacer()
-                }
-                .padding(.horizontal, 6)
-                .padding(.top, 6)
-
+            // Card hugs its content (fixed-height slide area) and centers in the keyboard,
+            // so it reads as a compact landscape card rather than a near-full-height square.
+            VStack(spacing: 10) {
                 TabView(selection: $teachingPage) {
                     steerSlide.tag(0)
                     backTapSlide.tag(1)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(height: 160)
 
                 pageDots
-                    .padding(.bottom, 8)
             }
+            .padding(.top, 16)
+            .padding(.bottom, 12)
             .background(
                 brandedSurface
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
                             .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
                     )
             )
+            .overlay(alignment: .topLeading) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.15)) { showTeachingPanel = false }
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(ReplrTheme.Color.textPrimary)
+                        .frame(width: 26, height: 26)
+                        .background(Circle().fill(ReplrTheme.Color.surfaceRaised))
+                }
+                .buttonStyle(.plain)
+                .padding(10)
+            }
             .elevatedSurface(.level1)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
         }
         .transition(.opacity)
     }
