@@ -1014,7 +1014,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 7R8XD8NCB2;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
@@ -1036,7 +1036,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 7R8XD8NCB2;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
@@ -1057,7 +1057,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 7R8XD8NCB2;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
@@ -1078,7 +1078,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 7R8XD8NCB2;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
@@ -1100,7 +1100,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ReplrKeyboard/ReplrKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 7R8XD8NCB2;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ReplrKeyboard/Info.plist;
@@ -1132,7 +1132,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ReplrKeyboard/ReplrKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 7R8XD8NCB2;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ReplrKeyboard/Info.plist;
@@ -1164,7 +1164,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ReplrBroadcast/ReplrBroadcast.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 7R8XD8NCB2;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ReplrBroadcast/Info.plist;
@@ -1194,7 +1194,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ReplrBroadcast/ReplrBroadcast.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 7R8XD8NCB2;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ReplrBroadcast/Info.plist;
@@ -1223,7 +1223,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 7R8XD8NCB2;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ReplrBroadcastSetupUI/Info.plist;
@@ -1252,7 +1252,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 7R8XD8NCB2;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ReplrBroadcastSetupUI/Info.plist;
