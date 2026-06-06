@@ -254,8 +254,8 @@ struct RepliesPanelView: View {
                     .foregroundColor(ReplrTheme.Color.textPrimary)
                     .padding(.horizontal, 14)
                     .frame(height: 40)
-                    .background(Capsule().fill(Color.white.opacity(0.06)))
-                    .overlay(Capsule().strokeBorder(Color.white.opacity(0.18), lineWidth: 1))
+                    .background(Capsule().fill(ReplrTheme.Color.textPrimary.opacity(0.06)))
+                    .overlay(Capsule().strokeBorder(ReplrTheme.Color.textPrimary.opacity(0.18), lineWidth: 1))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Regenerate replies")
@@ -265,8 +265,8 @@ struct RepliesPanelView: View {
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .frame(width: 42, height: 40)
-                        .background(Capsule().fill(Color.white.opacity(0.06)))
-                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.18), lineWidth: 1))
+                        .background(Capsule().fill(ReplrTheme.Color.textPrimary.opacity(0.06)))
+                        .overlay(Capsule().strokeBorder(ReplrTheme.Color.textPrimary.opacity(0.18), lineWidth: 1))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Reset")
