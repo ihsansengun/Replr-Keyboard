@@ -155,33 +155,43 @@ describe('generateReplies', () => {
 })
 
 describe('buildSystemPrompt', () => {
-  it('always includes the Replr identity and the role/tone', () => {
-    const sys = buildSystemPrompt('flirty')
+  const overlayTone = (voice: string, examples: string[] = []) =>
+    ({ voice, examples, temperature: 0.9, baseOnly: false })
+
+  it('always includes the Replr identity and the "what makes a reply land" rubric', () => {
+    const sys = buildSystemPrompt(overlayTone('flirty'))
     expect(sys).toContain('You are Replr')
-    expect(sys).toContain('ROLE: flirty')
+    expect(sys).toContain('What makes a reply land')
   })
 
-  it('includes the ABOUT-THE-USER block when aboutUser is provided', () => {
-    const sys = buildSystemPrompt('casual', '27, guy, into climbing and techno')
+  it('layers the tone VOICE on top of the base', () => {
+    const sys = buildSystemPrompt(overlayTone('be dryly funny'))
+    expect(sys).toContain('VOICE')
+    expect(sys).toContain('be dryly funny')
+  })
+
+  it('includes few-shot examples when the tone has them', () => {
+    const sys = buildSystemPrompt(overlayTone('joke around', ['ha example one', 'ha example two']))
+    expect(sys).toContain('Examples of this voice')
+    expect(sys).toContain('ha example one')
+    expect(sys).toContain('ha example two')
+  })
+
+  it('emits NO overlay for a base-only tone (Natural)', () => {
+    const sys = buildSystemPrompt({ voice: '', examples: [], temperature: 0.8, baseOnly: true })
+    expect(sys).toContain('You are Replr')
+    expect(sys).not.toContain('VOICE')
+  })
+
+  it('includes the ABOUT-THE-USER block when aboutUser is provided, trimmed + capped', () => {
+    const sys = buildSystemPrompt(overlayTone('casual'), '  ' + 'x'.repeat(500) + '  ')
     expect(sys).toContain('ABOUT THE USER')
-    expect(sys).toContain('27, guy, into climbing and techno')
-  })
-
-  it('omits the ABOUT block when aboutUser is undefined, empty, or whitespace', () => {
-    expect(buildSystemPrompt('casual')).not.toContain('ABOUT THE USER')
-    expect(buildSystemPrompt('casual', '')).not.toContain('ABOUT THE USER')
-    expect(buildSystemPrompt('casual', '   ')).not.toContain('ABOUT THE USER')
-  })
-
-  it('trims the aboutUser text', () => {
-    const sys = buildSystemPrompt('casual', '  hi there  ')
-    expect(sys).toContain('hi there')
-    expect(sys).not.toContain('  hi there  ')
-  })
-
-  it('hard-caps aboutUser to protect the system prompt', () => {
-    const sys = buildSystemPrompt('casual', 'x'.repeat(500))
     expect(sys).toContain('x'.repeat(300))
     expect(sys).not.toContain('x'.repeat(301))
+  })
+
+  it('omits the ABOUT block when aboutUser is empty/whitespace/undefined', () => {
+    expect(buildSystemPrompt(overlayTone('casual'))).not.toContain('ABOUT THE USER')
+    expect(buildSystemPrompt(overlayTone('casual'), '   ')).not.toContain('ABOUT THE USER')
   })
 })

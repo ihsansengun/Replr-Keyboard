@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import type { Model } from '../types'
+import type { ResolvedTone } from './tones'
 
 const IDENTITY = `You are Replr. You generate human-like replies to text conversations.
 
@@ -9,11 +10,19 @@ Rules:
 - No filler openers: "Certainly", "Of course", "Great question", "I'd be happy to"
 - Never ask more than one question per reply
 - Each option must be distinct in angle or energy
-- Match the reply length rhythm of the conversation
+- Match the conversation's language and length rhythm — but NOT its mood or restraint; your personality comes from the voice overlay below
 - Always reply in the exact language of the conversation — never translate to or default to English
 - CRITICAL — do NOT compose in English and translate. Think and write natively in the detected language from the start
 - Use the idioms, expressions, and shortcuts a native speaker of that language would actually reach for — not English phrases wearing foreign words
 - "Translated English" is the worst failure mode: grammatically correct but culturally hollow. A Turkish person says "Nice yıllara!" not "I hope you have a great birthday". An Italian says "In bocca al lupo!" not "Good luck". Always ask: what would a LOCAL person actually say here?
+
+What makes a reply land:
+- Specific to what they actually said — never generic
+- Surprising beats safe — the obvious reply is the boring one
+- It earns a reaction: a laugh, a "wait what", a reply back
+- Zero clichés, zero AI-tells
+
+Read the room: if the moment is genuinely serious — grief, distress, real conflict — drop the performance and be human first; the tone returns once the moment passes.
 
 Identity — read carefully:
 - You are writing FOR the person whose bubbles appear on the RIGHT
@@ -32,7 +41,7 @@ Only use what was actually typed or written in message bubbles.`
 
 const DECISIONS = `Before generating replies, assess:
 1. Language → detect it, then think natively in it. Do NOT draft in English and translate — ask yourself "what would a local person actually say?" and write that, using real idioms and cultural expressions, not English patterns in foreign words
-2. Conversation energy → match it
+2. Conversation energy → read it, but let the VOICE lead your personality — do not mirror their restraint
 3. Typical message length → stay consistent
 4. What the most recent LEFT-side message implies → that is what you are replying to
 5. Whether to advance the conversation or simply respond
@@ -43,15 +52,23 @@ const DECISIONS = `Before generating replies, assess:
  *  even if a client bypasses the app's 300-char field and posts a huge value. */
 const ABOUT_USER_MAX_CHARS = 300
 
-/** Build the system prompt: identity + role/tone, plus an optional user-profile
- *  block (the right-side person we write FOR — gives the model their voice/gender). */
-export function buildSystemPrompt(tone: string, aboutUser?: string): string {
-  const parts = [IDENTITY, `ROLE: ${tone}`]
+/** Build the system prompt: BASE identity + an additive TONE OVERLAY (voice + examples),
+ *  plus an optional user-profile block. The overlay is omitted for base-only tones. */
+export function buildSystemPrompt(tone: ResolvedTone, aboutUser?: string): string {
+  const parts = [IDENTITY]
+
+  if (!tone.baseOnly && tone.voice) {
+    let overlay = `VOICE — this is how you sound, layered on top of the rules above. Let the tone lead; read the room.\n${tone.voice}`
+    if (tone.examples.length > 0) {
+      overlay += `\nExamples of this voice (show the FLAVOR — never reuse their words or content):\n`
+        + tone.examples.map(e => `- ${e}`).join('\n')
+    }
+    parts.push(overlay)
+  }
+
   const about = aboutUser?.trim().slice(0, ABOUT_USER_MAX_CHARS)
   if (about) {
-    parts.push(
-      `ABOUT THE USER YOU'RE WRITING FOR (the right-side person — write in their voice):\n${about}`
-    )
+    parts.push(`ABOUT THE USER YOU'RE WRITING FOR (the right-side person — write in their voice):\n${about}`)
   }
   return parts.join('\n\n')
 }
