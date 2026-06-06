@@ -566,6 +566,7 @@ final class AppGroupService {
         case "claude-opus-4-6":          return 15
         case "gpt-5.5":                  return 15
         case "gemini-3.1-pro-preview":   return 6
+        case "gemini-3.1-pro-low":       return 6
         case "gemini-3-flash-preview":   return 3
         case "grok-4":                   return 7
         case "grok-4.3":                 return 2
@@ -581,7 +582,8 @@ final class AppGroupService {
         case "gpt-5.4":               return "GPT-5.4"
         case "claude-opus-4-6":        return "Opus 4.6"
         case "gpt-5.5":               return "GPT-5.5"
-        case "gemini-3.1-pro-preview": return "Gemini 3.1"
+        case "gemini-3.1-pro-preview": return "Pro High"
+        case "gemini-3.1-pro-low":     return "Pro Low"
         case "gemini-3-flash-preview": return "Gemini Flash"
         case "grok-4":                return "Grok 4"
         case "grok-4.3":              return "Grok 4.3"

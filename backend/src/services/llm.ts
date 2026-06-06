@@ -78,6 +78,7 @@ const REPLY_COUNT = 3
 interface ModelResolution {
   provider: 'openai' | 'anthropic' | 'xai' | 'google'
   apiModel: string
+  reasoningEffort?: 'low' | 'high'  // Gemini thinking level (Google path only). Omitted = provider default.
 }
 
 function resolveModel(model: Model): ModelResolution {
@@ -89,8 +90,9 @@ function resolveModel(model: Model): ModelResolution {
     case 'claude-opus-4-6':          return { provider: 'anthropic', apiModel: 'claude-opus-4-6' }
     case 'grok-4':                   return { provider: 'xai',       apiModel: 'grok-4' }
     case 'grok-4.3':                 return { provider: 'xai',       apiModel: 'grok-4.3' }
-    case 'gemini-3.1-pro-preview':   return { provider: 'google',    apiModel: 'gemini-3.1-pro-preview' }
-    case 'gemini-3-flash-preview':   return { provider: 'google',    apiModel: 'gemini-3-flash-preview' }
+    case 'gemini-3.1-pro-preview':   return { provider: 'google',    apiModel: 'gemini-3.1-pro-preview', reasoningEffort: 'high' }
+    case 'gemini-3.1-pro-low':       return { provider: 'google',    apiModel: 'gemini-3.1-pro-preview', reasoningEffort: 'low' }
+    case 'gemini-3-flash-preview':   return { provider: 'google',    apiModel: 'gemini-3-flash-preview', reasoningEffort: 'low' }
   }
 }
 
@@ -200,7 +202,7 @@ interface LlmTextParams {
 
 async function callLlm(params: LlmCallParams): Promise<LlmResult> {
   const { system, user, images, model, temperature, anthropicKey, openaiKey, xaiKey, googleKey } = params
-  const { provider, apiModel } = resolveModel(model)
+  const { provider, apiModel, reasoningEffort } = resolveModel(model)
 
   if (provider === 'anthropic') {
     const client = new Anthropic({ apiKey: anthropicKey })
@@ -244,11 +246,10 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
     // Gemini's OpenAI-compatible endpoint silently ignores max_completion_tokens.
     max_tokens: 4096,
     temperature,
-    // Gemini 3 models default to HIGH thinking → slow + costly. Reply drafting is a
-    // chat task that doesn't need deep reasoning, so cap thinking to LOW. Google-only:
-    // GPT/Grok share this path and must keep their own defaults. (Gemini 3 Pro rejects
-    // "medium" via the OpenAI-compat layer; "low" is valid for both Pro and Flash.)
-    ...(provider === 'google' ? { reasoning_effort: 'low' } : {}),
+    // Per-model thinking level (Gemini only — set in resolveModel). GPT/Grok share this
+    // path but never set reasoningEffort, so they keep their own defaults. Gemini 3 Pro
+    // rejects "medium" via the OpenAI-compat layer; only "low"/"high" are valid.
+    ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: [...imageContent, { type: 'text', text: user }] as any },
@@ -266,7 +267,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
 
 async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
   const { system, user, model, temperature, anthropicKey, openaiKey, xaiKey, googleKey } = params
-  const { provider, apiModel } = resolveModel(model)
+  const { provider, apiModel, reasoningEffort } = resolveModel(model)
 
   if (provider === 'anthropic') {
     const client = new Anthropic({ apiKey: anthropicKey })
@@ -299,7 +300,7 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
     model: apiModel,
     max_tokens: 4096,  // universally supported; max_completion_tokens silently ignored by Gemini
     temperature,
-    ...(provider === 'google' ? { reasoning_effort: 'low' } : {}),  // cap Gemini thinking → faster (see callLlm)
+    ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),  // per-model Gemini thinking level (see callLlm)
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: user },

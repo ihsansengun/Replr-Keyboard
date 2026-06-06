@@ -9,7 +9,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     // Dev-only — available in ModelPickerView for testing
     case claudeOpus     = "claude-opus-4-6"
     case gpt5_5         = "gpt-5.5"
-    case gemini         = "gemini-3.1-pro-preview"
+    case gemini         = "gemini-3.1-pro-preview"   // Pro at HIGH thinking
+    case geminiProLow   = "gemini-3.1-pro-low"        // Pro at LOW thinking (routes to the same API model)
     case geminiFlash    = "gemini-3-flash-preview"
     case grok4          = "grok-4"
     case grok4_3        = "grok-4.3"
@@ -30,7 +31,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         case .gpt5_4:       return "GPT-5.4"
         case .claudeOpus:   return "Opus"
         case .gpt5_5:       return "GPT-5.5"
-        case .gemini:       return "Gemini"
+        case .gemini:       return "Pro Hi"
+        case .geminiProLow: return "Pro Lo"
         case .geminiFlash:  return "Gem Flash"
         case .grok4:        return "Grok 4"
         case .grok4_3:      return "Grok 4.3"
@@ -44,7 +46,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         case .gpt5_4:       return "GPT-5.4"
         case .claudeOpus:   return "Claude Opus 4.6 ★"
         case .gpt5_5:       return "GPT-5.5 ★"
-        case .gemini:       return "Gemini 3.1 Pro ★"
+        case .gemini:       return "Gemini Pro · High ★"
+        case .geminiProLow: return "Gemini Pro · Low"
         case .geminiFlash:  return "Gemini 3 Flash"
         case .grok4:        return "Grok 4"
         case .grok4_3:      return "Grok 4.3"
@@ -59,6 +62,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         case .claudeOpus:   return 15
         case .gpt5_5:       return 15
         case .gemini:       return 6
+        case .geminiProLow: return 6
         case .geminiFlash:  return 3
         case .grok4:        return 7
         case .grok4_3:      return 2
@@ -74,6 +78,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         switch self {
         case .gpt5_5:       return "1506"
         case .gemini:       return "1505"
+        case .geminiProLow: return "—"
         case .geminiFlash:  return "—"
         case .claudeOpus:   return "1490"
         case .gpt5_4:       return "1495"
@@ -102,6 +107,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         case .claudeOpus:   return "$0.022"
         case .gpt5_5:       return "$0.025"
         case .gemini:       return "$0.015"
+        case .geminiProLow: return "$0.015"
         case .geminiFlash:  return "$0.004"
         case .grok4:        return "$0.011"
         case .grok4_3:      return "$0.004"
@@ -114,7 +120,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         switch self {
         case .grok4_3, .gpt5_4mini, .geminiFlash: return Color.green.opacity(0.85)
         case .claudeSonnet, .gpt5_4, .grok4:    return Color.orange.opacity(0.85)
-        case .claudeOpus, .gpt5_5, .gemini:     return Color.red.opacity(0.75)
+        case .claudeOpus, .gpt5_5, .gemini, .geminiProLow: return Color.red.opacity(0.75)
         }
     }
 

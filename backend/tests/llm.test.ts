@@ -200,13 +200,31 @@ describe('generateReplies', () => {
       choices: [{ message: { content: 'CONTACT: X\nSUMMARY: y\n1. a\n2. b\n3. c' } }],
       usage: { prompt_tokens: 10, completion_tokens: 5 },
     })
-    // Gemini → reasoning_effort: 'low'
+    // Gemini Flash → reasoning_effort: 'low'
     await generateReplies({
       screenshotBase64: 'abc', tone: 'be funny', toneName: 'Joker',
       model: 'gemini-3-flash-preview', anthropicKey: 'k', openaiKey: 'k', googleKey: 'g',
     })
     expect(openaiChatCreate).toHaveBeenCalledWith(
       expect.objectContaining({ reasoning_effort: 'low' }))
+
+    // Gemini Pro (full) → reasoning_effort: 'high' (preserves quality)
+    openaiChatCreate.mockClear()
+    await generateReplies({
+      screenshotBase64: 'abc', tone: 'be funny', toneName: 'Joker',
+      model: 'gemini-3.1-pro-preview', anthropicKey: 'k', openaiKey: 'k', googleKey: 'g',
+    })
+    expect(openaiChatCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ reasoning_effort: 'high' }))
+
+    // Gemini Pro Low → reasoning_effort: 'low' (same model, capped thinking)
+    openaiChatCreate.mockClear()
+    await generateReplies({
+      screenshotBase64: 'abc', tone: 'be funny', toneName: 'Joker',
+      model: 'gemini-3.1-pro-low', anthropicKey: 'k', openaiKey: 'k', googleKey: 'g',
+    })
+    expect(openaiChatCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ model: 'gemini-3.1-pro-preview', reasoning_effort: 'low' }))
 
     // GPT (same code path) → must NOT carry reasoning_effort
     openaiChatCreate.mockClear()
