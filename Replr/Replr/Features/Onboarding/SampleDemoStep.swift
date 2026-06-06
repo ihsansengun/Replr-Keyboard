@@ -139,8 +139,8 @@ struct SampleDemoStep: View {
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(ReplrTheme.Color.textPrimary)
                 Text(didScreenshot
-                     ? "It drops straight into the box below."
-                     : "Long-press 🌐 → pick Replr → screenshot this chat. Your reply lands below.")
+                     ? "Tap a reply in Replr — it drops into the box below."
+                     : "Long-press 🌐 → pick Replr → tap Start → screenshot this chat. Your reply lands below.")
                     .font(.system(size: 12))
                     .foregroundColor(ReplrTheme.Color.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
