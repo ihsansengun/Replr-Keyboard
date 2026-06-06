@@ -114,17 +114,11 @@ final class KeyboardViewController: UIInputViewController {
                 case .paywall:      height = 280
                 case .disambiguate: height = 300
                 case .replies:
-                    // sizeThatFits is only reliable once the view is in the window and laid out.
-                    // Before that (e.g. on reappear via viewWillAppear, where state is restored
-                    // from cached replies) it returns a near-max height and the keyboard opens
-                    // "very big". So use a sane initial and let RepliesPanelView.onContentHeightChanged
-                    // refine it to the exact size once it lays out and measures.
-                    if self.viewIfLoaded?.window != nil, self.view.bounds.width > 0 {
-                        let fit = self.hostingVC.sizeThatFits(in: CGSize(width: self.view.bounds.width, height: 10_000))
-                        height = min(560, max(260, fit.height))
-                    } else {
-                        height = 320
-                    }
+                    // The exact height comes from RepliesPanelView.onContentHeightChanged, which
+                    // measures the real rendered content. We only set a sane floor here and never
+                    // use sizeThatFits — it returns near-max values pre-layout and in some hosts
+                    // (e.g. FaceTime via Back Tap), which opened the keyboard "huge".
+                    height = max(320, min(560, self.heightConstraint.constant))
                 }
                 self.setHeight(height)
             }
@@ -195,16 +189,6 @@ final class KeyboardViewController: UIInputViewController {
             guard let self else { return }
             let draft = self.textDocumentProxy.documentContextBeforeInput ?? ""
             self.model.pendingContext = draft
-        }
-
-        // The view is laid out now, so sizeThatFits is reliable. Recompute the replies height for
-        // the restored "keep replies" case (viewWillAppear set it before layout → wrong size).
-        if case .replies = model.state {
-            DispatchQueue.main.async { [weak self] in
-                guard let self, self.view.bounds.width > 0 else { return }
-                let fit = self.hostingVC.sizeThatFits(in: CGSize(width: self.view.bounds.width, height: 10_000))
-                self.setHeight(min(560, max(260, fit.height)))
-            }
         }
     }
 
