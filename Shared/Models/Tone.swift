@@ -27,6 +27,7 @@ struct Tone: Codable, Identifiable, Equatable {
 
     // All 10 presets enabled by default. User can hide any from Tones settings.
     static let presets: [Tone] = [
+        Tone(id: UUID(), name: "Natural",      instruction: "A clean, natural reply — well-written and human, no special personality.", isPreset: true),
         Tone(id: UUID(), name: "Friendly",     instruction: "Open with something personal from the chat. Warm but grounded — no exclamation marks after every sentence. Make them feel seen, not managed.",                              isPreset: true),
         Tone(id: UUID(), name: "Casual",       instruction: "Text like a close friend. Contractions, fragments, and shorthand are all fine. Match their spelling and punctuation style exactly. Never be more polished than they are.", isPreset: true),
         Tone(id: UUID(), name: "Direct",       instruction: "Lead with the answer. One sentence when possible, two at most. Cut the closing line — it's usually filler.",                                                              isPreset: true),
