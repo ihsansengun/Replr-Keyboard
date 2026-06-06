@@ -568,6 +568,9 @@ struct SettingsView: View {
             #if DEBUG
             cardDivider
             Button {
+                // Dev: top up credits so the live demo + first use work without reinstalling.
+                AppGroupService.shared.creditBalance = max(AppGroupService.shared.creditBalance, 40)
+                CreditsManager.shared.refreshBalance()
                 onboardingComplete = false
             } label: {
                 settingsRow {
@@ -575,7 +578,7 @@ struct SettingsView: View {
                         .font(.system(size: 15))
                         .foregroundStyle(ReplrTheme.Color.accent)
                         .frame(width: 22)
-                    Text("Replay onboarding")
+                    Text("Replay onboarding (+credits)")
                         .font(.system(size: 17))
                     Spacer()
                     Text("DEBUG")
