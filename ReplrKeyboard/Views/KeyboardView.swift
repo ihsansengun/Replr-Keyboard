@@ -209,8 +209,15 @@ final class KeyboardModel: ObservableObject {
             return
         }
         AppGroupService.shared.sessionRegenerateCount += 1   // steer-tip discovery trigger
-        let summary = pendingContext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            ? nil : pendingContext
+        // Steer (REPLY DIRECTION) for the regenerate. Prefer a steer the user just
+        // typed; otherwise reuse the steer that produced the CURRENT replies — the
+        // latest session's contextHint. The compose field is cleared/consumed after
+        // the first generation, so `pendingContext` is empty by the time we're here.
+        let liveHint = pendingContext.trimmingCharacters(in: .whitespacesAndNewlines)
+        let savedHint = (AppGroupService.shared.loadCaptureSessions().last?.contextHint ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let steer = liveHint.isEmpty ? savedHint : liveHint
+        let summary = steer.isEmpty ? nil : steer
         let isEmail = (repliesGeneratedInMode == .email)
 
         // Resolve the source up front so we can bail before showing loading.
