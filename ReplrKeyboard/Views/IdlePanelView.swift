@@ -165,7 +165,7 @@ struct IdlePanelView: View {
                 .font(.system(size: 24, weight: .semibold))
                 .foregroundColor(ReplrTheme.Color.accent)
             Text(title)
-                .font(.system(size: 15, weight: .bold))
+                .font(ReplrTheme.Font.serif(18, weight: .bold))
                 .foregroundColor(ReplrTheme.Color.textPrimary)
             Text(body)
                 .font(.system(size: 12))

@@ -78,7 +78,7 @@ struct RepliesPanelView: View {
                     Color.black.opacity(0.55).ignoresSafeArea()
                     VStack(spacing: 14) {
                         Text("Before your first reply")
-                            .font(.system(size: 15, weight: .bold))
+                            .font(ReplrTheme.Font.serif(17, weight: .bold))
                             .foregroundStyle(ReplrTheme.Color.textPrimary)
                         Text("Replr sent this screenshot to its server to generate these replies. The screenshot is not stored. Only a one-line summary stays on your device for the memory feature.")
                             .font(.system(size: 12))

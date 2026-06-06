@@ -27,7 +27,7 @@ struct ErrorPanelView: View {
                 .padding(.bottom, 8)
 
             Text(parsed.title)
-                .font(.system(size: 13, weight: .semibold))
+                .font(ReplrTheme.Font.serif(16, weight: .semibold))
                 .foregroundColor(ReplrTheme.Color.textPrimary)
                 .multilineTextAlignment(.center)
 
