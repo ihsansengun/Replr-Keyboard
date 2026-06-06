@@ -426,14 +426,14 @@ struct BrandToggle: View {
     var body: some View {
         ZStack(alignment: isOn ? .trailing : .leading) {
             Capsule()
-                .fill(isOn ? ReplrTheme.Color.accent : Color.white.opacity(0.10))
+                .fill(isOn ? ReplrTheme.Color.accent : ReplrTheme.Color.textPrimary.opacity(0.18))
                 .frame(width: 48, height: 28)
                 .overlay(
                     Capsule()
                         .strokeBorder(
                             isOn
                                 ? ReplrTheme.Color.accent.opacity(0.40)
-                                : Color.white.opacity(0.12),
+                                : ReplrTheme.Color.textPrimary.opacity(0.24),
                             lineWidth: 1
                         )
                 )
