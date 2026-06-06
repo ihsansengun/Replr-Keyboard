@@ -11,7 +11,10 @@ struct IdlePanelView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            KeyboardHeader(model: model)
+            KeyboardHeader(model: model, onOpenSettings: {
+                teachingPage = 0
+                withAnimation(.easeInOut(duration: 0.18)) { showTeachingPanel = true }
+            })
             if model.inputMode == .chat {
                 chatContent
             } else {
@@ -35,23 +38,6 @@ struct IdlePanelView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: teachingPage)
-    }
-
-    /// Sliders button on the idle card — opens the teaching overlay.
-    private var settingsButton: some View {
-        Button {
-            teachingPage = 0
-            withAnimation(.easeInOut(duration: 0.18)) { showTeachingPanel = true }
-        } label: {
-            Image(systemName: "slider.horizontal.3")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(ReplrTheme.Color.accent)
-                .frame(width: 32, height: 32)
-                .background(Circle().fill(ReplrTheme.Color.surfaceRaised))
-                .overlay(Circle().strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-        .padding(10)
     }
 
     /// Full-keyboard how-to overlay: steer (intent) + Back Tap (shortcut). Swipe + ✕ to close.
@@ -88,8 +74,8 @@ struct IdlePanelView: View {
                     .padding(.bottom, 8)
             }
             .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(ReplrTheme.Color.surface)
+                brandedSurface
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
@@ -207,19 +193,25 @@ struct IdlePanelView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    /// Soft brand wash over the white surface so cards read on-brand, not flat white.
+    private var brandedSurface: some View {
+        ZStack {
+            ReplrTheme.Color.surface
+            LinearGradient(
+                colors: [
+                    ReplrTheme.Color.accent.opacity(colorScheme == .dark ? 0.13 : 0.09),
+                    ReplrTheme.Color.accent.opacity(colorScheme == .dark ? 0.03 : 0.02),
+                ],
+                startPoint: .top, endPoint: .bottom
+            )
+        }
+    }
+
     // MARK: - Chat idle
 
     private var chatContent: some View {
         captureSlide
-            .background(
-                ZStack {
-                    ReplrTheme.Color.surface
-                    LinearGradient(
-                        colors: [ReplrTheme.Color.accent.opacity(colorScheme == .dark ? 0.10 : 0.06), .clear],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    )
-                }
-            )
+            .background(brandedSurface)
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
@@ -231,7 +223,11 @@ struct IdlePanelView: View {
                         lineWidth: 1
                     )
             )
-            .overlay(alignment: .topLeading) { settingsButton }
+            .overlay(alignment: .topLeading) {
+                ReplrMark(size: 17)
+                    .padding(.leading, 16)
+                    .padding(.top, 14)
+            }
             .elevatedSurface(.level1)
             .padding(.horizontal, 18)
             .padding(.bottom, 8)

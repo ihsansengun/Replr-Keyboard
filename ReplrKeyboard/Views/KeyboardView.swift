@@ -639,10 +639,23 @@ struct KeyboardHeader: View {
     var isSegmentedDisabled: Bool = false
     var isToneHidden: Bool = false
     var isToneDimmed: Bool = false
+    /// When provided (idle state only), shows a sliders button that opens the how-to overlay.
+    var onOpenSettings: (() -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
+                if let onOpenSettings {
+                    Button(action: onOpenSettings) {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(ReplrTheme.Color.accent)
+                            .frame(width: 30, height: 30)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 10)
+                }
                 ModeSegmentedControl(model: model)
                     .opacity(isSegmentedDisabled ? 0.4 : 1.0)
                     .allowsHitTesting(!isSegmentedDisabled)
@@ -681,8 +694,8 @@ struct KeyboardHeader: View {
                 case .count(let n) where n <= 20:
                     CreditCounterBadge(count: n)
                 case .count:
-                    ReplrMark(size: 16)
-                        .opacity(isSegmentedDisabled ? 0.4 : 1.0)
+                    // Logo removed from the header — the ReplrMark now lives on the idle card.
+                    EmptyView()
                 }
             }
             .padding(.horizontal, 16)
