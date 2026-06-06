@@ -301,33 +301,45 @@ struct SettingsView: View {
 
     private var aiModelSection: some View {
         settingsSection("AI Model") {
-            HStack(spacing: 0) {
-                modelOption("claude-sonnet-4-6", label: "Claude Sonnet")
-                ReplrTheme.Color.glassBorder.frame(width: 1, height: 24)
-                modelOption("gpt-5.4", label: "GPT-5.4")
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 0) {
+                    modelOption("gemini-3.1-pro-preview", label: "Gemini Pro", sublabel: "Best quality")
+                    ReplrTheme.Color.glassBorder.frame(width: 1, height: 38)
+                    modelOption("gemini-3-flash-preview", label: "Gemini Flash", sublabel: "Faster")
+                }
+                .padding(6)
+                Text("Pro thinks a little longer for sharper replies. Flash is quicker. Switch anytime.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(ReplrTheme.Color.textTertiary)
+                    .padding(.horizontal, 10)
+                    .padding(.bottom, 6)
             }
-            .padding(6)
         }
     }
 
     @ViewBuilder
-    private func modelOption(_ modelID: String, label: String) -> some View {
+    private func modelOption(_ modelID: String, label: String, sublabel: String) -> some View {
         let isSelected = selectedModel == modelID
         Button {
             selectedModel = modelID
             AppGroupService.shared.userModel = modelID   // always writes production choice
         } label: {
-            Text(label)
-                .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                .foregroundStyle(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
-                .frame(maxWidth: .infinity)
-                .frame(height: 38)
-                .background(isSelected ? ReplrTheme.Color.accentSubtle : Color.clear)
-                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                        .strokeBorder(isSelected ? ReplrTheme.Color.accent.opacity(0.55) : Color.clear, lineWidth: 1)
-                )
+            VStack(spacing: 2) {
+                Text(label)
+                    .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                    .foregroundStyle(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textPrimary)
+                Text(sublabel)
+                    .font(.system(size: 11))
+                    .foregroundStyle(isSelected ? ReplrTheme.Color.accent.opacity(0.8) : ReplrTheme.Color.textTertiary)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(isSelected ? ReplrTheme.Color.accentSubtle : Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                    .strokeBorder(isSelected ? ReplrTheme.Color.accent.opacity(0.55) : Color.clear, lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
         .animation(ReplrTheme.Motion.quick, value: isSelected)

@@ -20,7 +20,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
 
     var isProductionModel: Bool {
         switch self {
-        case .claudeSonnet, .gpt5_4, .gemini: return true
+        case .gemini, .geminiFlash: return true   // user-facing: Gemini Pro (quality) + Flash (speed)
         default: return false
         }
     }
