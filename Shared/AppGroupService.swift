@@ -524,15 +524,15 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.creditBalanceKey); defaults.synchronize() }
     }
 
-    /// User's production model choice (shown in Settings → AI Model). Sonnet or GPT-5.4.
+    /// User's production model choice (shown in Settings → AI Model). Default: Gemini 3.1 Pro (High).
     var userModel: String {
-        get { defaults.string(forKey: Constants.selectedModelKey) ?? "claude-sonnet-4-6" }
+        get { defaults.string(forKey: Constants.selectedModelKey) ?? "gemini-3.1-pro-preview" }
         set { defaults.set(newValue, forKey: Constants.selectedModelKey); defaults.synchronize() }
     }
 
     /// Dev override model (only active when devMode=true). Can be any model in the expanded list.
     var devModel: String {
-        get { defaults.string(forKey: Constants.devModelKey) ?? "claude-sonnet-4-6" }
+        get { defaults.string(forKey: Constants.devModelKey) ?? "gemini-3.1-pro-preview" }
         set { defaults.set(newValue, forKey: Constants.devModelKey); defaults.synchronize() }
     }
 

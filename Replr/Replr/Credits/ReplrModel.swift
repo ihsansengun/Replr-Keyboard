@@ -20,7 +20,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
 
     var isProductionModel: Bool {
         switch self {
-        case .claudeSonnet, .gpt5_4: return true
+        case .claudeSonnet, .gpt5_4, .gemini: return true
         default: return false
         }
     }
@@ -71,7 +71,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     }
 
     var apiModelID: String { rawValue }
-    static let defaultModel: ReplrModel = .claudeSonnet
+    static let defaultModel: ReplrModel = .gemini
 
     /// Approximate Arena Elo (human preference leaderboard) for display in dev picker.
     var arenaElo: String {
