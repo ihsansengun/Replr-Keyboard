@@ -72,9 +72,12 @@ struct ReplrApp: App {
                         if AppGroupService.shared.effectiveCreditBalance == 0 {
                             showPaywall = true
                         }
-                        if AppGroupService.shared.autoClearScreenshots,
-                           ScreenshotCleaner.pendingCount() >= 5 {
-                            ScreenshotCleaner.clean()
+                        if AppGroupService.shared.autoClearScreenshots {
+                            // "After each reply" → clean any single pending shot; otherwise batch at 5.
+                            let threshold = AppGroupService.shared.deleteScreenshotAfterEach ? 1 : 5
+                            if ScreenshotCleaner.pendingCount() >= threshold {
+                                ScreenshotCleaner.clean()
+                            }
                         }
                     }
                     .fullScreenCover(isPresented: $showPaywall) {

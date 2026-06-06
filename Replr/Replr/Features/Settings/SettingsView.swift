@@ -134,6 +134,7 @@ struct SettingsView: View {
     @State private var selectedModel = AppGroupService.shared.userModel
     @State private var showModelPicker = false
     @State private var autoClear = AppGroupService.shared.autoClearScreenshots
+    @State private var deleteAfterEach = AppGroupService.shared.deleteScreenshotAfterEach
     @State private var pendingShots = ScreenshotCleaner.pendingCount()
     @State private var showTutorial = false
     @State private var aboutUser = AppGroupService.shared.aboutUser
@@ -401,6 +402,21 @@ struct SettingsView: View {
                 BrandToggle(isOn: $autoClear)
                     .onChange(of: autoClear) { AppGroupService.shared.autoClearScreenshots = $0 }
             }
+            if autoClear {
+                cardDivider
+                settingsRow {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Delete after each reply")
+                            .font(.system(size: 17))
+                        Text(deleteAfterEach ? "Each one, as soon as you reopen Replr" : "In batches, once a few pile up")
+                            .font(.system(size: 12))
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
+                    }
+                    Spacer()
+                    BrandToggle(isOn: $deleteAfterEach)
+                        .onChange(of: deleteAfterEach) { AppGroupService.shared.deleteScreenshotAfterEach = $0 }
+                }
+            }
             if pendingShots > 0 {
                 cardDivider
                 Button {
@@ -416,7 +432,7 @@ struct SettingsView: View {
                 .buttonStyle(.plain)
             }
             cardDivider
-            Text("Only deletes screenshots Replr captured for replies — never your other photos. iOS asks you to confirm.")
+            Text("Only deletes screenshots Replr captured for replies — never your other photos. Cleanup runs the next time you open Replr (iOS can't let the keyboard delete photos on its own), and iOS asks you to confirm.")
                 .font(.system(size: 12))
                 .foregroundStyle(ReplrTheme.Color.textSecondary)
                 .padding(.horizontal, 16)

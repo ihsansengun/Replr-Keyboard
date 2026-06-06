@@ -77,6 +77,13 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.autoClearScreenshotsKey); defaults.synchronize() }
     }
 
+    /// When auto-clear is on: delete each captured screenshot at the next app open
+    /// (threshold 1) instead of waiting for a batch of 5. Off by default (batch).
+    var deleteScreenshotAfterEach: Bool {
+        get { defaults.bool(forKey: Constants.deleteScreenshotAfterEachKey) }
+        set { defaults.set(newValue, forKey: Constants.deleteScreenshotAfterEachKey); defaults.synchronize() }
+    }
+
     // MARK: - Error relay
 
     func saveError(_ message: String) {

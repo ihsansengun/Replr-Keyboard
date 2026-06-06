@@ -10,6 +10,7 @@ enum Constants {
     static let selectedToneKey        = "selected_tone"
     static let capturedScreenshotIDsKey = "captured_screenshot_ids"
     static let autoClearScreenshotsKey  = "auto_clear_screenshots"
+    static let deleteScreenshotAfterEachKey = "delete_screenshot_after_each"
     static let tonesKey               = "tones"
     static let userIDKey              = "user_id"
     static let transactionIDKey       = "transaction_id"
