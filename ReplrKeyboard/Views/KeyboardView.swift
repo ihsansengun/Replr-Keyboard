@@ -699,7 +699,7 @@ struct KeyboardHeader: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.top, 12)
+            .padding(.top, 8)
             .padding(.bottom, 8)
             if !isToneHidden {
                 ToneRow(model: model, isDimmed: isToneDimmed)

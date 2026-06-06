@@ -230,7 +230,8 @@ struct IdlePanelView: View {
                     )
             )
             .elevatedSurface(.level1)
-            .padding(.horizontal, 18)
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
             .padding(.bottom, 8)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -316,7 +317,8 @@ struct IdlePanelView: View {
                 )
         )
         .elevatedSurface(.level1)
-        .padding(.horizontal, 18)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
         .padding(.bottom, 8)
         .onAppear {
             hasClipboardText = UIPasteboard.general.hasStrings
