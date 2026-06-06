@@ -208,6 +208,7 @@ final class KeyboardModel: ObservableObject {
             withAnimation(.easeInOut(duration: 0.2)) { state = .paywall }
             return
         }
+        AppGroupService.shared.sessionRegenerateCount += 1   // steer-tip discovery trigger
         let summary = pendingContext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             ? nil : pendingContext
         let isEmail = (repliesGeneratedInMode == .email)

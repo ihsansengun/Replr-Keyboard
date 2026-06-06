@@ -104,6 +104,23 @@ final class AppGroupService {
         return Constants.shortcutInstallURL
     }
 
+    // MARK: - Feature discovery (tip milestones + per-tip state)
+
+    /// Regenerates within the current capture. Reset to 0 on each new capture.
+    var sessionRegenerateCount: Int {
+        get { defaults.integer(forKey: Constants.sessionRegenerateCountKey) }
+        set { defaults.set(newValue, forKey: Constants.sessionRegenerateCountKey); defaults.synchronize() }
+    }
+
+    func tipDismissed(_ id: String) -> Bool { defaults.bool(forKey: Constants.tipDismissedPrefix + id) }
+    func setTipDismissed(_ id: String) {
+        defaults.set(true, forKey: Constants.tipDismissedPrefix + id); defaults.synchronize()
+    }
+    func tipShowCount(_ id: String) -> Int { defaults.integer(forKey: Constants.tipShowCountPrefix + id) }
+    func incrementTipShowCount(_ id: String) {
+        defaults.set(tipShowCount(id) + 1, forKey: Constants.tipShowCountPrefix + id); defaults.synchronize()
+    }
+
     // MARK: - Error relay
 
     func saveError(_ message: String) {
@@ -210,6 +227,7 @@ final class AppGroupService {
             sessions.removeFirst(sessions.count - Self.maxSessions)
         }
         saveCaptureSessions(sessions)
+        sessionRegenerateCount = 0   // new capture → reset the regenerate counter
     }
 
     func markLastSessionReplySelected(_ reply: String) {
@@ -650,4 +668,44 @@ final class AppGroupService {
 enum AppGroupError: Error {
     case encodingFailed
     case decodingFailed
+}
+
+// MARK: - Keyboard tip discovery
+
+/// Which discovery tip (if any) the keyboard should surface right now.
+enum KeyboardTip: Equatable {
+    case none
+    case steer
+    case backTap
+}
+
+/// Decides the single tip to show from competence milestones + per-tip state.
+/// Pure and deterministic (unit-tested). One tip at a time; steer precedes Back Tap.
+/// Steer unlocks at 2 captures or 2 regenerates in a session; Back Tap at 5 captures,
+/// and only once steer is retired (dismissed or shown its max number of times).
+enum KeyboardTipCoordinator {
+    static let maxSteerShows = 3
+    static let maxBackTapShows = 3
+
+    static func currentTip(
+        captureCount: Int,
+        sessionRegenerateCount: Int,
+        steerDismissed: Bool,
+        steerShowCount: Int,
+        backTapDismissed: Bool,
+        backTapShowCount: Int,
+        isChatMode: Bool
+    ) -> KeyboardTip {
+        guard isChatMode else { return .none }
+
+        let steerRetired = steerDismissed || steerShowCount >= maxSteerShows
+        let steerEligible = captureCount >= 2 || sessionRegenerateCount >= 2
+        if steerEligible && !steerRetired { return .steer }
+
+        let backTapRetired = backTapDismissed || backTapShowCount >= maxBackTapShows
+        let backTapEligible = captureCount >= 5
+        if backTapEligible && steerRetired && !backTapRetired { return .backTap }
+
+        return .none
+    }
 }
