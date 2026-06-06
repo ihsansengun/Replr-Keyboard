@@ -223,11 +223,6 @@ struct IdlePanelView: View {
                         lineWidth: 1
                     )
             )
-            .overlay(alignment: .topLeading) {
-                ReplrMark(size: 17)
-                    .padding(.leading, 16)
-                    .padding(.top, 14)
-            }
             .elevatedSurface(.level1)
             .padding(.horizontal, 18)
             .padding(.bottom, 8)

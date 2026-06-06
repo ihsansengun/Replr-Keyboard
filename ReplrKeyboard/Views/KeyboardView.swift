@@ -654,12 +654,12 @@ struct KeyboardHeader: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .padding(.trailing, 10)
                 }
+                Spacer(minLength: 8)
                 ModeSegmentedControl(model: model)
                     .opacity(isSegmentedDisabled ? 0.4 : 1.0)
                     .allowsHitTesting(!isSegmentedDisabled)
-                Spacer()
+                Spacer(minLength: 8)
                 switch model.creditDisplay {
                 case .unlimited:
                     // Dev mode: tappable model switcher — all models available.
@@ -694,8 +694,8 @@ struct KeyboardHeader: View {
                 case .count(let n) where n <= 20:
                     CreditCounterBadge(count: n)
                 case .count:
-                    // Logo removed from the header — the ReplrMark now lives on the idle card.
-                    EmptyView()
+                    ReplrMark(size: 16)
+                        .opacity(isSegmentedDisabled ? 0.4 : 1.0)
                 }
             }
             .padding(.horizontal, 16)
