@@ -7,6 +7,7 @@ export type Model =
   | 'grok-4'
   | 'grok-4.3'
   | 'gemini-3.1-pro-preview'
+  | 'gemini-3-flash-preview'
 
 export interface Env {
   ANTHROPIC_API_KEY: string

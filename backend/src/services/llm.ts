@@ -90,6 +90,7 @@ function resolveModel(model: Model): ModelResolution {
     case 'grok-4':                   return { provider: 'xai',       apiModel: 'grok-4' }
     case 'grok-4.3':                 return { provider: 'xai',       apiModel: 'grok-4.3' }
     case 'gemini-3.1-pro-preview':   return { provider: 'google',    apiModel: 'gemini-3.1-pro-preview' }
+    case 'gemini-3-flash-preview':   return { provider: 'google',    apiModel: 'gemini-3-flash-preview' }
   }
 }
 
@@ -115,6 +116,7 @@ const PRICING: Record<string, { inputPerM: number; outputPerM: number }> = {
   'grok-4':                 { inputPerM: 1.25,  outputPerM: 2.50  }, // docs.x.ai — grok-4 is an alias for grok-4.3, same price (corrected 2026-06-06)
   'grok-4.3':               { inputPerM: 1.25,  outputPerM: 2.50  }, // docs.x.ai
   'gemini-3.1-pro-preview': { inputPerM: 2.00,  outputPerM: 12.00 }, // ai.google.dev/gemini-api/docs/pricing
+  'gemini-3-flash-preview': { inputPerM: 0.50,  outputPerM: 3.00  }, // ai.google.dev/gemini-api/docs/pricing
 }
 
 function calcCost(apiModel: string, inputTokens: number, outputTokens: number): number {
@@ -242,6 +244,11 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
     // Gemini's OpenAI-compatible endpoint silently ignores max_completion_tokens.
     max_tokens: 4096,
     temperature,
+    // Gemini 3 models default to HIGH thinking → slow + costly. Reply drafting is a
+    // chat task that doesn't need deep reasoning, so cap thinking to LOW. Google-only:
+    // GPT/Grok share this path and must keep their own defaults. (Gemini 3 Pro rejects
+    // "medium" via the OpenAI-compat layer; "low" is valid for both Pro and Flash.)
+    ...(provider === 'google' ? { reasoning_effort: 'low' } : {}),
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: [...imageContent, { type: 'text', text: user }] as any },
@@ -292,6 +299,7 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
     model: apiModel,
     max_tokens: 4096,  // universally supported; max_completion_tokens silently ignored by Gemini
     temperature,
+    ...(provider === 'google' ? { reasoning_effort: 'low' } : {}),  // cap Gemini thinking → faster (see callLlm)
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: user },

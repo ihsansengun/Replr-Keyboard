@@ -4,7 +4,7 @@ import type { Env, Model } from '../types'
 
 export const replyRoute = new Hono<{ Bindings: Env }>()
 
-const VALID_MODELS: Model[] = ["gpt-5.4", "gpt-5.4-mini", "gpt-5.5", "claude-sonnet-4-6", "claude-opus-4-6", "grok-4", "grok-4.3", "gemini-3.1-pro-preview"]
+const VALID_MODELS: Model[] = ["gpt-5.4", "gpt-5.4-mini", "gpt-5.5", "claude-sonnet-4-6", "claude-opus-4-6", "grok-4", "grok-4.3", "gemini-3.1-pro-preview", "gemini-3-flash-preview"]
 
 replyRoute.post('/', async (c) => {
   let body: Record<string, unknown>

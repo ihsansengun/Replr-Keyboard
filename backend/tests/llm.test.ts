@@ -194,6 +194,29 @@ describe('generateReplies', () => {
     expect(anthropicMessagesCreate).toHaveBeenCalledWith(
       expect.objectContaining({ temperature: 0.85 }))
   })
+
+  it('caps thinking to LOW for Gemini (reasoning_effort) but NOT for GPT', async () => {
+    openaiChatCreate.mockResolvedValue({
+      choices: [{ message: { content: 'CONTACT: X\nSUMMARY: y\n1. a\n2. b\n3. c' } }],
+      usage: { prompt_tokens: 10, completion_tokens: 5 },
+    })
+    // Gemini → reasoning_effort: 'low'
+    await generateReplies({
+      screenshotBase64: 'abc', tone: 'be funny', toneName: 'Joker',
+      model: 'gemini-3-flash-preview', anthropicKey: 'k', openaiKey: 'k', googleKey: 'g',
+    })
+    expect(openaiChatCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ reasoning_effort: 'low' }))
+
+    // GPT (same code path) → must NOT carry reasoning_effort
+    openaiChatCreate.mockClear()
+    await generateReplies({
+      screenshotBase64: 'abc', tone: 'be funny',
+      model: 'gpt-5.4', anthropicKey: 'k', openaiKey: 'k',
+    })
+    expect(openaiChatCreate).not.toHaveBeenCalledWith(
+      expect.objectContaining({ reasoning_effort: expect.anything() }))
+  })
 })
 
 describe('buildSystemPrompt', () => {

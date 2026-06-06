@@ -867,6 +867,7 @@ private struct DevModelOption: Identifiable {
         DevModelOption(id: "claude-opus-4-6",        label: "Opus 4.6 ★"),
         DevModelOption(id: "gpt-5.5",               label: "GPT-5.5 ★"),
         DevModelOption(id: "gemini-3.1-pro-preview", label: "Gemini 3.1 ★"),
+        DevModelOption(id: "gemini-3-flash-preview", label: "Gemini Flash"),
         DevModelOption(id: "grok-4",                label: "Grok 4"),
         DevModelOption(id: "grok-4.3",              label: "Grok 4.3"),
         DevModelOption(id: "gpt-5.4-mini",          label: "GPT-5.4 Mini"),
