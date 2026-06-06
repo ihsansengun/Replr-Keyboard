@@ -83,6 +83,7 @@ final class KeyboardModel: ObservableObject {
             return
         }
         lastEmailText = emailText   // remember for Regenerate
+        repliesGeneratedInMode = .email   // a retry-after-error must target the email, not a stale screenshot
         withAnimation(.easeInOut(duration: 0.2)) { state = .loading }
         Task { @MainActor [weak self] in
             guard let self else { return }
@@ -142,6 +143,7 @@ final class KeyboardModel: ObservableObject {
             return
         }
         let context = pendingContext.trimmingCharacters(in: .whitespacesAndNewlines)
+        repliesGeneratedInMode = .chat   // a retry-after-error must target this screenshot, not stale email text
         withAnimation(.easeInOut(duration: 0.2)) { isCollapsed = false; state = .loading }
 
         Task { @MainActor [weak self] in
@@ -302,7 +304,11 @@ final class KeyboardModel: ObservableObject {
     }
 
     func retryGeneration() {
-        retryTrigger?()
+        // Re-run generation on the last input (saved screenshot in chat mode,
+        // email text in email mode) — mirrors Regenerate. The old poll-restart
+        // did nothing: the error had already been consumed and no generation was
+        // in flight, so no poll branch ever fired and the button looked dead.
+        regenerateReplies()
     }
 }
 

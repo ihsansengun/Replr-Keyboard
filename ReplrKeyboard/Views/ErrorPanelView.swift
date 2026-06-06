@@ -135,9 +135,9 @@ private struct ParsedError {
         default:
             // Show truncated raw message if nothing matched
             let cleaned = raw
-                .replacingOccurrences(of: "Something went wrong. Tap Capture to retry.", with: "")
+                .replacingOccurrences(of: "Something went wrong. Tap Try again.", with: "")
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-            if cleaned.isEmpty { return "Something went wrong. Tap Capture to retry." }
+            if cleaned.isEmpty { return "Something went wrong. Tap Try again." }
             return cleaned.count > 100 ? String(cleaned.prefix(100)) + "…" : cleaned
         }
     }

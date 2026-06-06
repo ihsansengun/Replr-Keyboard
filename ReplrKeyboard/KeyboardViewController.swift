@@ -285,6 +285,8 @@ final class KeyboardViewController: UIInputViewController {
                     await MainActor.run {
                         self.model.isCaptureMode = false
                         self.model.isCollapsed = false
+                        // Intent captures are screenshots → a retry must read the saved screenshot.
+                        self.model.repliesGeneratedInMode = .chat
                         withAnimation { self.model.state = .error(error) }
                     }
                 }

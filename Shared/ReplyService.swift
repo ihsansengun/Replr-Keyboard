@@ -177,9 +177,9 @@ enum ReplyError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .encodingFailed:      return "Couldn't process the screenshot."
-        case .invalidResponse:     return "Something went wrong. Tap Capture to retry."
+        case .invalidResponse:     return "Something went wrong. Tap Try again."
         case .rateLimitReached:    return "Daily limit reached. Upgrade to premium for unlimited replies."
-        case .serverError:         return "Something went wrong. Tap Capture to retry."
+        case .serverError:         return "Something went wrong. Tap Try again."
         }
     }
 }
