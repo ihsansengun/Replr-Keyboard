@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import CoreText
 
 final class AppGroupService {
     static let shared = AppGroupService()
@@ -17,6 +18,27 @@ final class AppGroupService {
             forSecurityApplicationGroupIdentifier: Constants.appGroupID
         ) else { fatalError("App Group container not found") }
         container = url
+    }
+
+    // MARK: - Shared serif font (lets the keyboard extension use Fraunces)
+
+    /// Shared location for the bundled serif font. The keyboard extension can't read the app's
+    /// bundle, so the app copies Fraunces here and both processes register it from here.
+    var serifFontURL: URL { container.appendingPathComponent("Fraunces-VF.ttf") }
+
+    /// App-side: copy the app-bundled Fraunces into the shared container if it isn't there yet.
+    func installSerifFontIfNeeded() {
+        let dst = serifFontURL
+        guard !FileManager.default.fileExists(atPath: dst.path),
+              let src = Bundle.main.url(forResource: "Fraunces-VF", withExtension: "ttf") else { return }
+        try? FileManager.default.copyItem(at: src, to: dst)
+    }
+
+    /// Registers the shared Fraunces font for this process so `ReplrTheme.Font.serif` resolves to it.
+    func registerSerifFont() {
+        let url = serifFontURL
+        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
     }
 
     // MARK: - Pending replies (UserDefaults — fast, no stale files)

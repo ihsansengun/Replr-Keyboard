@@ -13,6 +13,9 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        // Register the shared Fraunces font (copied to the App Group by the app) so the keyboard's
+        // serif headlines render in Fraunces rather than the system-serif fallback.
+        AppGroupService.shared.registerSerifFont()
         // NOTE: hasFullAccess is unreliable in viewDidLoad (host connection not yet established).
         // The setup flags are recorded in viewDidAppear instead.
 
