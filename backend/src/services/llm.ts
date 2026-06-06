@@ -124,32 +124,49 @@ function calcCost(apiModel: string, inputTokens: number, outputTokens: number): 
 }
 
 /** Parse LLM output: optional CONTACT: line, optional SUMMARY: line, numbered replies.
- *  Replies may span multiple lines (e.g. email bodies). */
+ *  Replies may span multiple lines (e.g. email bodies).
+ *
+ *  Robust against common provider formatting variations:
+ *  - Markdown bold stripped (**1.** → 1.)
+ *  - Optional space after number+punctuation (1.reply or 1. reply both match)
+ *  - Leading/trailing asterisks stripped from reply text
+ */
 export function parseLlmOutput(text: string): ParsedOutput {
   const lines = text.split('\n')
   let summary = ''
   let contactName = ''
   const replies: string[] = []
 
+  // Strip markdown bold/italic from a line before pattern matching.
+  const stripMarkdown = (s: string) => s.replace(/\*+/g, '').trim()
+
+  // Matches numbered reply starters: "1. ", "1) ", "1." (no space), "1)"
+  const isNumberedReply = (s: string) => /^\d+[.)]\s*\S/.test(s)
+  // Also detect them in continuation-break logic
+  const isBreak = (s: string) =>
+    /^contact:/i.test(s) || /^summary:/i.test(s) || isNumberedReply(s)
+
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim()
+    const rawLine = lines[i].trim()
+    const line = stripMarkdown(rawLine)
     if (!line) continue
 
     if (!contactName && /^contact:/i.test(line)) {
       contactName = line.replace(/^contact:\s*/i, '').trim()
     } else if (!summary && /^summary:/i.test(line)) {
       summary = line.replace(/^summary:\s*/i, '').trim()
-    } else if (/^\d+[.)]\s/.test(line)) {
-      // Collect this line and all continuation lines until next numbered item or header.
-      // Preserve blank lines so multi-paragraph email replies keep their structure.
+    } else if (isNumberedReply(line)) {
+      // Strip the leading number + punctuation (with or without a trailing space)
       const replyLines = [line.replace(/^\d+[.)]\s*/, '').trim()]
       while (i + 1 < lines.length) {
-        const next = lines[i + 1].trim()
-        if (/^contact:/i.test(next) || /^summary:/i.test(next) || /^\d+[.)]\s/.test(next)) break
+        const nextRaw = lines[i + 1].trim()
+        const next = stripMarkdown(nextRaw)
+        if (isBreak(next)) break
         i++
         replyLines.push(next) // blank lines become '' — preserved as paragraph breaks
       }
-      replies.push(replyLines.join('\n').trimEnd())
+      const reply = replyLines.join('\n').trimEnd()
+      if (reply) replies.push(reply)
     }
   }
 
@@ -191,7 +208,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
     }))
     const response = await client.messages.create({
       model: apiModel,
-      max_tokens: 2048,
+      max_tokens: 4096,
       temperature,
       system,
       messages: [{ role: 'user', content: [...imageContent, { type: 'text', text: user }] }],
@@ -221,13 +238,15 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
   }))
   const response = await client.chat.completions.create({
     model: apiModel,
-    max_completion_tokens: 2048,
+    // Use max_tokens (the universally-supported name) rather than max_completion_tokens —
+    // Gemini's OpenAI-compatible endpoint silently ignores max_completion_tokens.
+    max_tokens: 4096,
     temperature,
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: [...imageContent, { type: 'text', text: user }] as any },
     ],
-  })
+  } as any)
   const inputTokens = response.usage?.prompt_tokens ?? 0
   const outputTokens = response.usage?.completion_tokens ?? 0
   const costUsd = calcCost(apiModel, inputTokens, outputTokens)
@@ -246,7 +265,7 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
     const client = new Anthropic({ apiKey: anthropicKey })
     const response = await client.messages.create({
       model: apiModel,
-      max_tokens: 2048,
+      max_tokens: 4096,
       temperature,
       system,
       messages: [{ role: 'user', content: user }],
@@ -271,13 +290,13 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
   const client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) })
   const response = await client.chat.completions.create({
     model: apiModel,
-    max_completion_tokens: 2048,
+    max_tokens: 4096,  // universally supported; max_completion_tokens silently ignored by Gemini
     temperature,
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: user },
     ],
-  })
+  } as any)
   const inputTokens = response.usage?.prompt_tokens ?? 0
   const outputTokens = response.usage?.completion_tokens ?? 0
   const costUsd = calcCost(apiModel, inputTokens, outputTokens)
@@ -342,9 +361,11 @@ function buildContextBlock(summary?: string, previousContext?: string): string {
 }
 
 function buildReplyFormat(count: number): string {
-  return `You MUST output exactly ${count} replies — no more, no fewer. Even if the conversation is simple, always produce all ${count} options.
+  return `Output EXACTLY ${count} replies — never fewer. Even simple conversations require all ${count} options.
 
-Output format — exactly this structure, no other text before or after:
+Plain text only — no markdown, no bold, no bullet symbols, no extra commentary.
+Start with CONTACT: on the very first line. Nothing before it.
+
 CONTACT: [display name of the person you are replying TO, exactly as shown in the chat header. "Group: [name]" for group chats. "Unknown" if not visible.]
 SUMMARY: [one sentence: topic of conversation and what was last said]
 ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`

@@ -75,6 +75,22 @@ describe('parseLlmOutput', () => {
     expect(result.contactName).toBe('Sam')
   })
 
+  it('strips markdown bold formatting from replies (Gemini sometimes adds **)', () => {
+    const raw = `CONTACT: Ayşe\nSUMMARY: Flirty banter\n**1.** yüzüğü kapalıçarşıda okutup tatile gidiyoruz\n**2.** bu kadara mı kolay kandırılıyorum sanıyorsun\n**3.** avukat falan değil noter lazım bize`
+    const result = parseLlmOutput(raw)
+    expect(result.replies).toHaveLength(3)
+    expect(result.replies[0]).toBe('yüzüğü kapalıçarşıda okutup tatile gidiyoruz')
+    expect(result.replies[1]).toBe('bu kadara mı kolay kandırılıyorum sanıyorsun')
+    expect(result.replies[2]).toBe('avukat falan değil noter lazım bize')
+  })
+
+  it('handles numbered replies with no space after the dot (1.reply)', () => {
+    const raw = `CONTACT: Sam\nSUMMARY: Chat\n1.First reply\n2.Second reply\n3.Third reply`
+    const result = parseLlmOutput(raw)
+    expect(result.replies).toHaveLength(3)
+    expect(result.replies[0]).toBe('First reply')
+  })
+
   it('collects multi-line replies (email bodies)', () => {
     const raw = `CONTACT: Nina\nSUMMARY: Email about project\n1. Dear Nina,\n\nThank you for reaching out.\n\nBest regards\n2. Hi Nina,\n\nSounds good to me!\n3. Got it, will follow up.`
     const result = parseLlmOutput(raw)
@@ -110,7 +126,7 @@ describe('generateReplies', () => {
     expect(result.contactName).toBe('Dana')
     expect(anthropicMessagesCreate).toHaveBeenCalledWith(expect.objectContaining({
       model: 'claude-sonnet-4-6',
-      max_tokens: 2048,
+      max_tokens: 4096,
     }))
   })
 
@@ -132,7 +148,7 @@ describe('generateReplies', () => {
     expect(result.contactName).toBe('Pat')
     expect(openaiChatCreate).toHaveBeenCalledWith(expect.objectContaining({
       model: 'gpt-5.4',
-      max_completion_tokens: 2048,
+      max_tokens: 4096,
     }))
   })
 
