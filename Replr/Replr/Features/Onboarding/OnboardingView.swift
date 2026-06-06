@@ -228,37 +228,6 @@ private struct KeyboardSettingsPreview: View {
     }
 }
 
-/// Replica of Settings → Replr → Photos, in Replr branding.
-private struct PhotosSettingsPreview: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Settings › Replr")
-                .font(.system(size: 11))
-                .foregroundColor(ReplrTheme.Color.textTertiary)
-                .padding(.leading, 4)
-            settingsCardChrome(
-                HStack(spacing: 11) {
-                    settingsRowIcon("photo")
-                    Text("Photos")
-                        .font(.system(size: 14))
-                        .foregroundColor(ReplrTheme.Color.textPrimary)
-                    Spacer()
-                    HStack(spacing: 3) {
-                        Text("All Photos")
-                            .font(.system(size: 13))
-                            .foregroundColor(ReplrTheme.Color.textSecondary)
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(ReplrTheme.Color.textTertiary)
-                    }
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 11)
-            )
-        }
-    }
-}
-
 private struct KeyboardSetupStep: View {
     let onNext: () -> Void
     let onBack: () -> Void
@@ -328,23 +297,19 @@ private struct PhotosPermissionStep: View {
             bodyText: "Replr drafts replies from the screenshot you take of a chat. Your photo library stays private:",
             onBack: onBack
         ) {
-            VStack(spacing: 14) {
-                PhotosSettingsPreview()
-
-                VStack(alignment: .leading, spacing: 10) {
-                    privacyRow("Reads only your most-recent screenshot")
-                    privacyRow("Never scans or browses your other photos")
-                    privacyRow("Nothing else ever leaves your phone")
-                }
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(ReplrTheme.Color.surfaceRaised)
-                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                        .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
-                )
+            VStack(alignment: .leading, spacing: 10) {
+                privacyRow("Reads only your most-recent screenshot")
+                privacyRow("Never scans or browses your other photos")
+                privacyRow("Nothing else ever leaves your phone")
             }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(ReplrTheme.Color.surfaceRaised)
+            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                    .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
+            )
         } cta: {
             if granted {
                 PrimaryButton(label: "Photos allowed ✓ — Continue →", action: onNext)
@@ -425,7 +390,7 @@ private struct ReadyStep: View {
 
                 Spacer()
 
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(spacing: 16) {
                     OnboardingCelebration()
                         .frame(height: 130)
                         .frame(maxWidth: .infinity)
@@ -434,11 +399,14 @@ private struct ReadyStep: View {
                         .font(.system(size: 32, weight: .bold))
                         .tracking(-0.5)
                         .foregroundColor(ReplrTheme.Color.textPrimary)
+                        .multilineTextAlignment(.center)
 
                     Text("Here's how it works — about 30 seconds.")
                         .font(ReplrTheme.Font.callout)
                         .foregroundColor(ReplrTheme.Color.textSecondary)
+                        .multilineTextAlignment(.center)
                 }
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 24)
 
                 Spacer()
