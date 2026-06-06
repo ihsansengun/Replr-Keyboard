@@ -299,10 +299,19 @@ private struct KeyboardSetupStep: View {
             step: 1, totalSteps: 2,
             sectionLabel: "Keyboard",
             headline: "Add Replr & allow Full Access.",
-            bodyText: "Add the Replr keyboard, then turn on Full Access so it can draft replies. Already did it? Tap “I've enabled it” — we confirm the next time you open the Replr keyboard.",
+            bodyText: "Add the Replr keyboard, then turn on Full Access so it can draft your replies.",
             onBack: onBack
         ) {
-            KeyboardSettingsPreview()
+            VStack(spacing: 14) {
+                PrimingCard(
+                    icon: "lock.shield",
+                    lead: "Your data is ",
+                    highlight: "safe",
+                    trail: ".",
+                    detail: "Full Access just lets Replr work across your apps — nothing you type is stored."
+                )
+                KeyboardSettingsPreview()
+            }
         } cta: {
             if detected {
                 PrimaryButton(label: "All set ✓ — Continue →", action: onNext)
@@ -460,8 +469,7 @@ private struct ReadyStep: View {
                         .frame(maxWidth: .infinity)
 
                     Text("You're set up.")
-                        .font(.system(size: 32, weight: .bold))
-                        .tracking(-0.5)
+                        .font(ReplrTheme.Font.serif(32, weight: .bold))
                         .foregroundColor(ReplrTheme.Color.textPrimary)
                         .multilineTextAlignment(.center)
 
@@ -485,6 +493,45 @@ private struct ReadyStep: View {
     }
 
     
+}
+
+// MARK: - Priming card (reused on permission steps)
+
+/// A calm reassurance card: a serif line with one accent-highlighted word + a detail line.
+private struct PrimingCard: View {
+    let icon: String
+    let lead: String
+    let highlight: String
+    let trail: String
+    let detail: String
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(ReplrTheme.Color.accent)
+            (Text(lead)
+             + Text(highlight).foregroundColor(ReplrTheme.Color.accent)
+             + Text(trail))
+                .font(ReplrTheme.Font.serif(19, weight: .semibold))
+                .foregroundColor(ReplrTheme.Color.textPrimary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(detail)
+                .font(.system(size: 13))
+                .foregroundColor(ReplrTheme.Color.textSecondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity)
+        .background(ReplrTheme.Color.surfaceRaised)
+        .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
+        )
+    }
 }
 
 // MARK: - Root coordinator
