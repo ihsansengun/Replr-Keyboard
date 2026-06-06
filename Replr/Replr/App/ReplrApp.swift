@@ -13,6 +13,7 @@ struct ReplrApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
+        ReplrFonts.registerBundledFonts()
         applyBrandAppearance()
         NSLog("[Replr][Shortcuts] App init — calling updateAppShortcutParameters")
         ReplrShortcuts.updateAppShortcutParameters()
