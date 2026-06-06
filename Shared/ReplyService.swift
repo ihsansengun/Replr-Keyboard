@@ -4,6 +4,7 @@ import UIKit
 struct ReplyRequest: Codable {
     let screenshotBase64: String
     let tone: String
+    let toneName: String
     let summary: String?
     let previousContext: String?
     let model: String
@@ -14,6 +15,7 @@ struct ReplyRequest: Codable {
 struct ReplyEmailRequest: Codable {
     let emailText: String
     let tone: String
+    let toneName: String
     let summary: String?
     let previousContext: String?
     let model: String
@@ -63,6 +65,7 @@ final class ReplyService {
         let body = ReplyRequest(
             screenshotBase64: base64,
             tone: tone.instruction,
+            toneName: tone.name,
             summary: summary,
             previousContext: previousContext,
             model: AppGroupService.shared.selectedModel,
@@ -94,6 +97,7 @@ final class ReplyService {
         let body = ReplyEmailRequest(
             emailText: emailText,
             tone: tone.instruction,
+            toneName: tone.name,
             summary: summary,
             previousContext: previousContext,
             model: AppGroupService.shared.selectedModel,
@@ -128,6 +132,7 @@ final class ReplyService {
         struct ScrollRequest: Encodable {
             let screenshots: [String]
             let tone: String
+            let toneName: String
             let summary: String?
             let previousContext: String?
             let model: String
@@ -138,6 +143,7 @@ final class ReplyService {
         let scrollBody = ScrollRequest(
             screenshots: frames,
             tone: tone.instruction,
+            toneName: tone.name,
             summary: summary,
             previousContext: previousContext,
             model: AppGroupService.shared.selectedModel,
