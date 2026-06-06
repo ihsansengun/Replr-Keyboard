@@ -138,6 +138,7 @@ struct SettingsView: View {
     @State private var pendingShots = ScreenshotCleaner.pendingCount()
     @State private var showTutorial = false
     @State private var showBackTapSetup = false
+    @State private var preferredCapture = AppGroupService.shared.preferredCapture
     @State private var aboutUser = AppGroupService.shared.aboutUser
     @FocusState private var aboutFocused: Bool
 
@@ -275,6 +276,29 @@ struct SettingsView: View {
                 }
             }
             .buttonStyle(.plain)
+
+            cardDivider
+
+            // Preferred capture — tailors in-app guidance (both methods always work)
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Preferred capture")
+                    .font(.system(size: 17))
+                    .foregroundStyle(ReplrTheme.Color.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Picker("", selection: $preferredCapture) {
+                    Text("Keyboard").tag("keyboard")
+                    Text("Back Tap").tag("backtap")
+                }
+                .pickerStyle(.segmented)
+                Text(preferredCapture == "backtap"
+                     ? "Tips point to Back Tap — works anywhere, even on profiles."
+                     : "Tips point to the keyboard: tap Start, then screenshot.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(ReplrTheme.Color.textSecondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .onChange(of: preferredCapture) { AppGroupService.shared.preferredCapture = $0 }
 
             cardDivider
 

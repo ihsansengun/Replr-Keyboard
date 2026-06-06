@@ -37,6 +37,7 @@ enum Constants {
     static let backTapSetupStartedKey     = "back_tap_setup_started"
     static let lastIntentFiredAtKey        = "last_intent_fired_at"
     static let shortcutInstallURL         = "https://www.icloud.com/shortcuts/73472454024d4a48b1d2a9108fec4bc8"
+    static let preferredCaptureKey        = "preferred_capture"   // "keyboard" | "backtap"
 
     // Trial + paywall
     static let trialUsedCountKey     = "replr.trial.usedCount"

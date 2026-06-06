@@ -83,7 +83,9 @@ struct IdlePanelView: View {
                             .frame(width: 100, height: 84)
                     }
 
-                    Text("Tap Start to minimise the keyboard, then screenshot the chat. Replr reads it and drafts the replies.")
+                    Text(AppGroupService.shared.preferredCapture == "backtap"
+                         ? "Triple-tap the back of your phone to capture — replies appear right here. Or tap Start to screenshot manually."
+                         : "Tap Start to minimise the keyboard, then screenshot the chat. Replr reads it and drafts the replies.")
                         .font(.system(size: 13))
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)

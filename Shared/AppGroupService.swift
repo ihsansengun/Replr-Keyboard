@@ -84,6 +84,13 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.deleteScreenshotAfterEachKey); defaults.synchronize() }
     }
 
+    /// User's preferred capture method — tailors in-app guidance only (both methods
+    /// always work). "keyboard" (Photos-watch, chats) or "backtap" (works anywhere incl. profiles).
+    var preferredCapture: String {
+        get { defaults.string(forKey: Constants.preferredCaptureKey) ?? "keyboard" }
+        set { defaults.set(newValue, forKey: Constants.preferredCaptureKey); defaults.synchronize() }
+    }
+
     // MARK: - Error relay
 
     func saveError(_ message: String) {
