@@ -14,6 +14,10 @@ struct ReplrApp: App {
 
     init() {
         ReplrFonts.registerBundledFonts()
+        // Run the free-credit grant at launch (not lazily on first ContentView, which is
+        // post-onboarding) so new users have their starting credits during onboarding and
+        // first use. CreditsManager.migrateIfNeeded() is idempotent.
+        _ = CreditsManager.shared
         applyBrandAppearance()
         NSLog("[Replr][Shortcuts] App init — calling updateAppShortcutParameters")
         ReplrShortcuts.updateAppShortcutParameters()
