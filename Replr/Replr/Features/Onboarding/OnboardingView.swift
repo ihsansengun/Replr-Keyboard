@@ -61,8 +61,7 @@ struct OnboardingStep<Content: View, CTA: View>: View {
             VStack(alignment: .leading, spacing: 8) {
                 Badge(sectionLabel)
                 Text(headline)
-                    .font(.system(size: 28, weight: .bold))
-                    .tracking(-0.3)
+                    .font(ReplrTheme.Font.serif(28, weight: .bold))
                     .foregroundColor(ReplrTheme.Color.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(bodyText)
@@ -117,12 +116,10 @@ private struct WelcomeStep: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("The reply is")
-                            .font(.system(size: 34, weight: .bold))
-                            .tracking(-0.5)
+                            .font(ReplrTheme.Font.serif(34, weight: .bold))
                             .foregroundColor(ReplrTheme.Color.textPrimary)
                         Text("already written.")
-                            .font(.system(size: 34, weight: .bold))
-                            .tracking(-0.5)
+                            .font(ReplrTheme.Font.serif(34, weight: .bold))
                             .foregroundColor(ReplrTheme.Color.textSecondary)
                     }
 
