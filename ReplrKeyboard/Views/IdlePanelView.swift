@@ -234,8 +234,22 @@ struct IdlePanelView: View {
     // MARK: - Email idle
 
     private var emailContent: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 12) {
             Spacer(minLength: 0)
+
+            ZStack {
+                Circle()
+                    .fill(ReplrTheme.Color.accent)
+                    .frame(width: 92, height: 92)
+                    .blur(radius: 30)
+                    .opacity(colorScheme == .dark ? 0.28 : 0.14)
+                Image(systemName: "envelope.fill")
+                    .font(.system(size: 38, weight: .regular))
+                    .foregroundColor(ReplrTheme.Color.accent)
+            }
+            Text("Reply to any email")
+                .font(ReplrTheme.Font.serif(20, weight: .bold))
+                .foregroundColor(ReplrTheme.Color.textPrimary)
 
             Button { model.generateEmailReply() } label: {
                 HStack(spacing: 8) {
@@ -280,12 +294,26 @@ struct IdlePanelView: View {
                     .font(ReplrTheme.Font.caption)
                     .foregroundColor(hasClipboardText ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
             }
-            .padding(.top, 10)
             .animation(.easeInOut(duration: 0.2), value: hasClipboardText)
 
             Spacer(minLength: 0)
         }
-        .frame(maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(brandedSurface)
+        .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [ReplrTheme.Color.accent.opacity(0.45), ReplrTheme.Color.glassBorder],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .elevatedSurface(.level1)
+        .padding(.horizontal, 18)
+        .padding(.bottom, 8)
         .onAppear {
             hasClipboardText = UIPasteboard.general.hasStrings
         }
