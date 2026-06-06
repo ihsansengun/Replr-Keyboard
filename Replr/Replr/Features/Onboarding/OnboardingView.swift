@@ -228,6 +228,69 @@ private struct KeyboardSettingsPreview: View {
     }
 }
 
+/// Approximation of the multicolour Apple Photos app icon — a rainbow pinwheel on white.
+/// Deliberately uses literal system-icon colours (not Replr tokens): it's a faithful
+/// replica of Apple's icon so the preview is recognisable, not a Replr-branded element.
+private struct PhotosAppIcon: View {
+    private static let petals: [Color] = [
+        Color(red: 0.99, green: 0.79, blue: 0.21),  // yellow (top)
+        Color(red: 0.45, green: 0.78, blue: 0.36),  // green
+        Color(red: 0.18, green: 0.74, blue: 0.73),  // teal
+        Color(red: 0.25, green: 0.52, blue: 0.92),  // blue
+        Color(red: 0.50, green: 0.34, blue: 0.80),  // purple
+        Color(red: 0.86, green: 0.27, blue: 0.62),  // magenta
+        Color(red: 0.94, green: 0.27, blue: 0.30),  // red
+        Color(red: 0.97, green: 0.55, blue: 0.16),  // orange
+    ]
+    var body: some View {
+        ZStack {
+            ForEach(Self.petals.indices, id: \.self) { i in
+                Capsule()
+                    .fill(Self.petals[i])
+                    .frame(width: 5.5, height: 13)
+                    .offset(y: -6)
+                    .rotationEffect(.degrees(Double(i) * 45))
+            }
+            Circle().fill(.white).frame(width: 7, height: 7)   // bright centre
+        }
+        .frame(width: 26, height: 26)
+        .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(.white))
+        .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous)
+            .stroke(ReplrTheme.Color.glassBorder, lineWidth: 0.5))
+    }
+}
+
+/// Replica of Settings → Replr → "Allow Replr to Access" → Photos: Full Access.
+private struct PhotosSettingsPreview: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Allow Replr to Access")
+                .font(.system(size: 11))
+                .foregroundColor(ReplrTheme.Color.textTertiary)
+                .padding(.leading, 4)
+            settingsCardChrome(
+                HStack(spacing: 11) {
+                    PhotosAppIcon()
+                    Text("Photos")
+                        .font(.system(size: 14))
+                        .foregroundColor(ReplrTheme.Color.textPrimary)
+                    Spacer()
+                    HStack(spacing: 3) {
+                        Text("Full Access")
+                            .font(.system(size: 13))
+                            .foregroundColor(ReplrTheme.Color.textSecondary)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(ReplrTheme.Color.textTertiary)
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 11)
+            )
+        }
+    }
+}
+
 private struct KeyboardSetupStep: View {
     let onNext: () -> Void
     let onBack: () -> Void
@@ -297,19 +360,23 @@ private struct PhotosPermissionStep: View {
             bodyText: "Replr drafts replies from the screenshot you take of a chat. Your photo library stays private:",
             onBack: onBack
         ) {
-            VStack(alignment: .leading, spacing: 10) {
-                privacyRow("Reads only your most-recent screenshot")
-                privacyRow("Never scans or browses your other photos")
-                privacyRow("Nothing else ever leaves your phone")
+            VStack(spacing: 14) {
+                PhotosSettingsPreview()
+
+                VStack(alignment: .leading, spacing: 10) {
+                    privacyRow("Reads only your most-recent screenshot")
+                    privacyRow("Never scans or browses your other photos")
+                    privacyRow("Nothing else ever leaves your phone")
+                }
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(ReplrTheme.Color.surfaceRaised)
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                        .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                )
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(ReplrTheme.Color.surfaceRaised)
-            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
-            )
         } cta: {
             if granted {
                 PrimaryButton(label: "Photos allowed ✓ — Continue →", action: onNext)
