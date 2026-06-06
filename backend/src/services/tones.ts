@@ -44,17 +44,50 @@ export const TONE_LIBRARY: Record<string, ToneSpec> = {
   ] },
 
   // First-pass sets filled in Task 7 — temperatures set now so §4 is complete.
-  'Friendly':     { temperature: 0.85, examples: [] },
-  'Casual':       { temperature: 0.85, examples: [] },
-  'Direct':       { temperature: 0.6,  examples: [] },
-  'Professional': { temperature: 0.6,  examples: [] },
-  'Empathetic':   { temperature: 0.8,  examples: [] },
-  'Enthusiastic': { temperature: 0.9,  examples: [] },
-  'Concise':      { temperature: 0.6,  examples: [] },
-  'Formal':       { temperature: 0.55, examples: [] },
-  'Passive Aggressive': { temperature: 0.9, examples: [] },
-  'Gen Z':        { temperature: 0.95, examples: [] },
-  'Sarcastic':    { temperature: 0.95, examples: [] },
+  'Friendly':     { temperature: 0.85, examples: [
+    "honestly that just made my whole afternoon, tell me everything",
+    "ok i love that for you, how are you feeling about it?",
+  ] },
+  'Casual':       { temperature: 0.85, examples: [
+    "lol yeah i'm down, what time",
+    "omg same. wanna just figure it out later",
+  ] },
+  'Direct':       { temperature: 0.6,  examples: [
+    "yes. send the address and i'll be there",
+    "can't do friday. saturday works",
+  ] },
+  'Professional': { temperature: 0.6,  examples: [
+    "Happy to help — I'll review it today and send notes tomorrow.",
+    "Thanks for flagging. Let's sync at 2pm to lock the details.",
+  ] },
+  'Empathetic':   { temperature: 0.8,  examples: [
+    "that sounds genuinely exhausting, no wonder you're drained",
+    "yeah, that would mess me up too. you don't have to have it figured out yet",
+  ] },
+  'Enthusiastic': { temperature: 0.9,  examples: [
+    "wait this is amazing, i'm so happy for you",
+    "ok i did not expect that and now i'm fully invested, tell me more",
+  ] },
+  'Concise':      { temperature: 0.6,  examples: [
+    "works for me. 8pm?",
+    "got it. on my way",
+  ] },
+  'Formal':       { temperature: 0.55, examples: [
+    "Thank you for the update. I will confirm the details shortly.",
+    "Understood — I appreciate you letting me know in advance.",
+  ] },
+  'Passive Aggressive': { temperature: 0.9, examples: [
+    "no totally, it's fine, i didn't need that much notice anyway",
+    "so glad you could fit me in, genuinely, no worries at all",
+  ] },
+  'Gen Z':        { temperature: 0.95, examples: [
+    "not me lowkey obsessed with this plan, it's giving main character",
+    "ok this is sending me, say less",
+  ] },
+  'Sarcastic':    { temperature: 0.95, examples: [
+    "wow, a whole twenty minutes of effort, you must be exhausted",
+    "no please, take your time, it's not like i was waiting or anything",
+  ] },
 }
 
 export function toneSpecFor(toneName: string | undefined, sentInstruction: string): ResolvedTone {
