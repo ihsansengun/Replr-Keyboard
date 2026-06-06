@@ -212,6 +212,21 @@ final class KeyboardViewController: UIInputViewController {
         }
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // The hosting view is pinned to all four edges, so SwiftUI's content is forced to the
+        // frame — the GeometryReader can only measure the frame, never the natural height. So
+        // sizeThatFits is the only reliable measure, and it needs final bounds. Recompute the
+        // replies height here (after layout, correct width) so the keyboard grows to fit in every
+        // host (normal capture, reopen, FaceTime/Back Tap). sizeThatFits returns the content's
+        // natural height independent of the current frame, so this converges without looping.
+        guard viewIfLoaded?.window != nil, view.bounds.width > 0, let model = self.model else { return }
+        if case .replies = model.state {
+            let fit = hostingVC.sizeThatFits(in: CGSize(width: view.bounds.width, height: 10_000))
+            setHeight(min(560, max(260, fit.height)))
+        }
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         capturePollingTask?.cancel()
