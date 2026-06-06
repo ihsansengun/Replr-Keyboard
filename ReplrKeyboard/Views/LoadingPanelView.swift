@@ -1,7 +1,19 @@
 import SwiftUI
+import Combine
 
 struct LoadingPanelView: View {
     @ObservedObject var model: KeyboardModel
+
+    // Rotating status — maps to the real pipeline phases so the wait reads as
+    // "working" not "stuck". Advances and HOLDS on the last line (never loops back).
+    @State private var statusIndex = 0
+    private let statuses = [
+        "Reading the chat…",
+        "Catching the vibe…",
+        "Crafting your replies…",
+        "Almost there…",
+    ]
+    private let statusTimer = Timer.publish(every: 1.4, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -14,20 +26,27 @@ struct LoadingPanelView: View {
 
             Spacer(minLength: 0)
 
-            // Status line
+            // Status line — rotating phase text, cross-fading in place
             HStack(spacing: 6) {
                 ProgressView()
                     .progressViewStyle(.circular)
                     .scaleEffect(0.5)
                     .tint(ReplrTheme.Color.textSecondary)
-                Text("Generating replies…")
+                Text(statuses[statusIndex])
                     .font(ReplrTheme.Font.caption)
                     .foregroundColor(ReplrTheme.Color.textSecondary)
+                    .contentTransition(.opacity)
+                    .animation(.easeInOut(duration: 0.3), value: statusIndex)
             }
             .padding(.bottom, 14)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ReplrTheme.Color.bg)
+        .onReceive(statusTimer) { _ in
+            if statusIndex < statuses.count - 1 {
+                withAnimation(.easeInOut(duration: 0.3)) { statusIndex += 1 }
+            }
+        }
     }
 
     private var skeletonCard: some View {
