@@ -233,7 +233,7 @@ struct RepliesPanelView: View {
                     .frame(height: 40)
                     .padding(.horizontal, 16)
                     .foregroundColor(ReplrTheme.Color.onAccent)
-                    .background(Capsule().fill(ReplrTheme.Color.accent))
+                    .background(Capsule().fill(ReplrTheme.Color.brandGradient))
                     .overlay(
                         Capsule().strokeBorder(Color.white.opacity(0.25), lineWidth: 1).blendMode(.overlay)
                     )

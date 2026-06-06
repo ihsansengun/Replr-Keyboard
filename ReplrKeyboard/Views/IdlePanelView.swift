@@ -127,9 +127,9 @@ struct IdlePanelView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 44)
                 .background(
-                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                    Capsule(style: .continuous)
                         .fill(ReplrTheme.Color.brandGradient)
-                        .overlay(ShimmerOverlay(cornerRadius: ReplrTheme.Radius.sm))
+                        .overlay(ShimmerOverlay(cornerRadius: 22))
                 )
                 .shadow(
                     color: colorScheme == .dark ? ReplrTheme.Color.accent.opacity(0.45) : .black.opacity(0.10),
@@ -267,14 +267,14 @@ struct IdlePanelView: View {
                 .padding(.horizontal, 24)
                 .frame(height: 42)
                 .background(
-                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                    Capsule(style: .continuous)
                         .fill(hasClipboardText
                               ? AnyShapeStyle(ReplrTheme.Color.brandGradient)
                               : AnyShapeStyle(ReplrTheme.Color.surface))
-                        .overlay(hasClipboardText ? ShimmerOverlay(cornerRadius: ReplrTheme.Radius.sm) : nil)
+                        .overlay(hasClipboardText ? ShimmerOverlay(cornerRadius: 21) : nil)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                    Capsule(style: .continuous)
                         .strokeBorder(hasClipboardText ? Color.clear : ReplrTheme.Color.accent.opacity(0.25), lineWidth: 1)
                 )
                 .shadow(
