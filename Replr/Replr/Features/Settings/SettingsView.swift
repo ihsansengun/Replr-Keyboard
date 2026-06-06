@@ -137,6 +137,7 @@ struct SettingsView: View {
     @State private var deleteAfterEach = AppGroupService.shared.deleteScreenshotAfterEach
     @State private var pendingShots = ScreenshotCleaner.pendingCount()
     @State private var showTutorial = false
+    @State private var showBackTapSetup = false
     @State private var aboutUser = AppGroupService.shared.aboutUser
     @FocusState private var aboutFocused: Bool
 
@@ -162,6 +163,9 @@ struct SettingsView: View {
         }
         .fullScreenCover(isPresented: $showTutorial) {
             UsageTutorialView(onDone: { showTutorial = false })
+        }
+        .sheet(isPresented: $showBackTapSetup) {
+            BackTapSetupFullView(isPresented: $showBackTapSetup)
         }
     }
 
@@ -241,6 +245,28 @@ struct SettingsView: View {
                         .font(.system(size: 17))
                     Spacer()
                     Image(systemName: "checklist")
+                        .font(.system(size: 14))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.textTertiary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            cardDivider
+
+            Button { showBackTapSetup = true } label: {
+                settingsRow {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Back Tap capture")
+                            .font(.system(size: 17))
+                        Text("Optional — screenshot anywhere, no keyboard needed")
+                            .font(.system(size: 12))
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
+                    }
+                    Spacer()
+                    Image(systemName: "hand.tap")
                         .font(.system(size: 14))
                         .foregroundStyle(ReplrTheme.Color.accent)
                     Image(systemName: "chevron.right")
