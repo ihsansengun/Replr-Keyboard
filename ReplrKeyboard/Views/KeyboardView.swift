@@ -88,7 +88,7 @@ final class KeyboardModel: ObservableObject {
         Task { @MainActor [weak self] in
             guard let self else { return }
             let previousContext: String?
-            if let contactID = AppGroupService.shared.currentContactID {
+            if AppGroupService.shared.memoryEnabled, let contactID = AppGroupService.shared.currentContactID {
                 let summaries = AppGroupService.shared.recentSummaries(
                     forContactID: contactID, limit: AppGroupService.shared.memoryDepth)
                 previousContext = summaries.isEmpty ? nil : summaries.joined(separator: "\n")
@@ -167,7 +167,7 @@ final class KeyboardModel: ObservableObject {
             // Persist so Regenerate (which reads the App Group screenshot) re-runs THIS screenshot, not a stale one.
             try? AppGroupService.shared.writeScreenshot(image)
             let previousContext: String?
-            if let contactID = AppGroupService.shared.currentContactID {
+            if AppGroupService.shared.memoryEnabled, let contactID = AppGroupService.shared.currentContactID {
                 let summaries = AppGroupService.shared.recentSummaries(
                     forContactID: contactID, limit: AppGroupService.shared.memoryDepth)
                 previousContext = summaries.isEmpty ? nil : summaries.joined(separator: "\n")
@@ -252,7 +252,7 @@ final class KeyboardModel: ObservableObject {
         Task { @MainActor [weak self] in
             guard let self else { return }
             let previousContext: String?
-            if let contactID = AppGroupService.shared.currentContactID {
+            if AppGroupService.shared.memoryEnabled, let contactID = AppGroupService.shared.currentContactID {
                 let summaries = AppGroupService.shared.recentSummaries(
                     forContactID: contactID, limit: AppGroupService.shared.memoryDepth)
                 previousContext = summaries.isEmpty ? nil : summaries.joined(separator: "\n")

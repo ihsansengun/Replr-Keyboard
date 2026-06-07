@@ -128,6 +128,10 @@ private struct WelcomeStep: View {
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .lineSpacing(4)
 
+                    Text("Free to try — no credit card.")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(ReplrTheme.Color.accent)
+
                     Text("Your conversations are sent to generate replies, then discarded — nothing stored on any server. See Privacy in Settings.")
                         .font(.system(size: 12))
                         .foregroundColor(ReplrTheme.Color.textTertiary)

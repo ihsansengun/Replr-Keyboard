@@ -515,7 +515,7 @@ struct SettingsView: View {
         settingsSection("Account") {
             NavigationLink(destination: CreditPacksView()) {
                 settingsRow {
-                    Text("Subscription")
+                    Text("Credits")
                         .font(.system(size: 17))
                     Spacer()
                     Image(systemName: "chevron.right")
