@@ -49,6 +49,31 @@ exact measured number, then tune. (Offered to the user.)
 
 ---
 
+## 1B. PRIORITY (next session) — Screenshot capture rework: native-first, bypass Back Tap
+
+Make the **native screenshot the primary capture path** and drop the dependency on the
+optional **Back Tap → Shortcut** setup. The core ("kernel") logic should continuously detect
+newly-generated screenshots and cache them for the keyboard — even when the keyboard (or app)
+was NOT open at capture time.
+
+Why Back Tap exists today (the two advantages to preserve):
+1. It auto-deletes the captured shot on the fly so screenshots don't pile up in Photos
+   (nice-to-have, not critical — already partly handled by `ScreenshotCleaner` / auto-clear).
+2. It works without the keyboard being activated — the user can screenshot anything, anytime.
+
+Target: keep #1 + #2 while removing the Back Tap setup step (lower onboarding friction).
+
+Investigate first (verify-before-claiming): iOS restricts background Photos monitoring — a
+keyboard extension only runs while active; the companion app only observes `PHPhotoLibrary`
+while running. "Always listening even when nothing is open" likely has to be realized as: on
+next keyboard/app open, scan Photos for screenshots created since a stored baseline and
+surface them (extends the existing `detectedScreenshotID` flow + `ScreenshotCleaner` from
+Phase 1/2). Confirm what's actually achievable before designing. This also overlaps the
+deferred "Phase 3" onboarding restructure (formally demote Back Tap). Task #88; see memory
+`project_screenshot_capture.md`.
+
+---
+
 ## 2. Standing constraints (from the user — keep following)
 
 - **Never push / merge / deploy without an explicit ask.** (The 2026-06-07 merge+push of
