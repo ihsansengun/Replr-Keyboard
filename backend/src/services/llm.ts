@@ -93,6 +93,9 @@ function resolveModel(model: Model): ModelResolution {
     case 'gemini-3.1-pro-preview':   return { provider: 'google',    apiModel: 'gemini-3.1-pro-preview', reasoningEffort: 'high' }
     case 'gemini-3.1-pro-low':       return { provider: 'google',    apiModel: 'gemini-3.1-pro-preview', reasoningEffort: 'low' }
     case 'gemini-3-flash-preview':   return { provider: 'google',    apiModel: 'gemini-3-flash-preview', reasoningEffort: 'low' }
+    case 'gemini-3.5-flash':         return { provider: 'google',    apiModel: 'gemini-3.5-flash',       reasoningEffort: 'low' }
+    case 'gemini-3.1-flash-lite':    return { provider: 'google',    apiModel: 'gemini-3.1-flash-lite',  reasoningEffort: 'low' }
+    case 'gemini-2.5-pro':           return { provider: 'google',    apiModel: 'gemini-2.5-pro' }
   }
 }
 
@@ -119,6 +122,9 @@ const PRICING: Record<string, { inputPerM: number; outputPerM: number }> = {
   'grok-4.3':               { inputPerM: 1.25,  outputPerM: 2.50  }, // docs.x.ai
   'gemini-3.1-pro-preview': { inputPerM: 2.00,  outputPerM: 12.00 }, // ai.google.dev/gemini-api/docs/pricing
   'gemini-3-flash-preview': { inputPerM: 0.50,  outputPerM: 3.00  }, // ai.google.dev/gemini-api/docs/pricing
+  'gemini-3.5-flash':       { inputPerM: 1.50,  outputPerM: 9.00  }, // ai.google.dev/gemini-api/docs/pricing
+  'gemini-3.1-flash-lite':  { inputPerM: 0.25,  outputPerM: 1.50  }, // ai.google.dev/gemini-api/docs/pricing
+  'gemini-2.5-pro':         { inputPerM: 1.25,  outputPerM: 10.00 }, // ai.google.dev/gemini-api/docs/pricing (≤200K tier)
 }
 
 function calcCost(apiModel: string, inputTokens: number, outputTokens: number): number {

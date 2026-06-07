@@ -9,6 +9,9 @@ export type Model =
   | 'gemini-3.1-pro-preview'
   | 'gemini-3.1-pro-low'
   | 'gemini-3-flash-preview'
+  | 'gemini-3.5-flash'
+  | 'gemini-3.1-flash-lite'
+  | 'gemini-2.5-pro'
 
 export interface Env {
   ANTHROPIC_API_KEY: string
