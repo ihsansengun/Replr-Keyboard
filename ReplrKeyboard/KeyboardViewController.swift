@@ -6,6 +6,7 @@ final class KeyboardViewController: UIInputViewController {
     private var model: KeyboardModel!
     private var capturePollingTask: Task<Void, Never>?
     private var heightConstraint: NSLayoutConstraint!
+    private var lastRepliesContentHeight: CGFloat = 500  // last measured replies height (placeholder until measured)
     private var autoSwitchTask: DispatchWorkItem?
     private var stateCancellable: AnyCancellable?
     private var collapseCancellable: AnyCancellable?
@@ -59,9 +60,13 @@ final class KeyboardViewController: UIInputViewController {
         }
         model.retryTrigger = { [weak self] in self?.triggerRetry() }
         model.onContentHeightChanged = { [weak self] height in
-            // RepliesPanelView measures its own natural height (one GeometryReader on the plain,
-            // self-sizing stack) and reports it here. Set the keyboard to exactly that, clamped.
-            self?.setHeight(min(600, max(300, height)), duration: 0.15)
+            // RepliesPanelView sums its pieces' natural heights and reports the total here. Remember
+            // it (so a state re-publish can't snap the keyboard back to the placeholder) and set the
+            // keyboard to exactly that, clamped.
+            guard let self else { return }
+            let clamped = min(600, max(300, height))
+            self.lastRepliesContentHeight = clamped
+            self.setHeight(clamped, duration: 0.15)
         }
 
         let adaptiveBg = UIColor { tc in
@@ -116,10 +121,10 @@ final class KeyboardViewController: UIInputViewController {
                 case .paywall:      height = 280
                 case .disambiguate: height = 300
                 case .replies:
-                    // Transient default; RepliesPanelView's content-height reporter immediately
-                    // overrides this with the EXACT natural height via onContentHeightChanged. A
-                    // typical 3-reply size avoids a visible jump before that fires.
-                    height = 500
+                    // Use the last measured replies height (500 until the first measurement); the
+                    // panel's reporter overrides it with the EXACT natural height via
+                    // onContentHeightChanged the moment it lays out.
+                    height = self.lastRepliesContentHeight
                 }
                 self.setHeight(height)
             }

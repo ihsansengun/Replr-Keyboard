@@ -1,14 +1,13 @@
 import SwiftUI
 
-// Reports the panel's natural content height from a single measurer on the outermost stack. The
-// panel is self-sizing (a plain VStack — NO ScrollView), so this reads the TRUE height of the
-// header + cards + action row — the equivalent of an HTML element's `height: auto`. (A ScrollView
-// deliberately hides its content height, which is why measuring through one under-reported and
-// clipped the action row.) The hosting view forces its OWN frame to the keyboard bounds, but a
-// self-sizing child keeps its natural height regardless, so this stays accurate.
+// Sums the natural heights of the panel's three pieces (header + cards + action row). Each piece
+// reports its OWN height via .background, so the total is the true CONTENT height, independent of the
+// keyboard frame. (Measuring the OUTER view instead reads the frame height back — which locks the
+// keyboard at its placeholder size and leaves a gap below the action row.) The pieces are plain
+// stacks — no ScrollView to hide their height — so each measurement is exact on the first layout.
 private struct ContentHeightKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value += nextValue() }
 }
 
 struct RepliesPanelView: View {
@@ -43,6 +42,7 @@ struct RepliesPanelView: View {
                     .background(ReplrTheme.Color.accentSubtle)
                 }
             }
+            .background(heightReporter)
 
             // Reply cards — a plain stack (NO ScrollView), so the panel self-sizes to fit every
             // reply exactly. Whatever each reply's line count, the keyboard grows to match: no
@@ -54,20 +54,17 @@ struct RepliesPanelView: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
+            .background(heightReporter)
 
             actionRow
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
+                .background(heightReporter)
         }
         .background(ReplrTheme.Color.bg.ignoresSafeArea())
-        // One measurer on the whole self-sizing panel = its true natural height. Drives the keyboard
-        // height (clamped in the controller). Re-fires on every layout, so it stays exact as the
-        // text wraps or the replies change.
-        .background(
-            GeometryReader { geo in
-                Color.clear.preference(key: ContentHeightKey.self, value: geo.size.height)
-            }
-        )
+        // Sum of the three pieces' natural heights = the panel's true content height. Drives the
+        // keyboard height (clamped in the controller). Re-fires whenever the text wraps or the
+        // replies change, so the keyboard always fits exactly — no clip, no gap.
         .onPreferenceChange(ContentHeightKey.self) { measured in
             guard measured > 10 else { return }
             model.onContentHeightChanged?(measured)
@@ -108,6 +105,13 @@ struct RepliesPanelView: View {
                     .padding(.horizontal, 16)
                 }
             }
+        }
+    }
+
+    /// A transparent measurer that contributes its backed view's natural height to ContentHeightKey.
+    private var heightReporter: some View {
+        GeometryReader { geo in
+            Color.clear.preference(key: ContentHeightKey.self, value: geo.size.height)
         }
     }
 
