@@ -65,4 +65,8 @@ export interface AppleClaims {
   sub: string          // stable Apple user identifier
   email?: string
   email_verified?: boolean | string
+  iss?: string
+  aud?: string | string[]
+  exp?: number
+  iat?: number
 }
