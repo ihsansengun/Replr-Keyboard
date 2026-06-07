@@ -163,6 +163,13 @@ final class KeyboardModel: ObservableObject {
     /// User tapped the chip body → generate replies from it.
     func useScreenshotChip() {
         guard case .idle = state else { return }
+        // Guard credits BEFORE consuming — consuming is irreversible and a free user
+        // hitting the paywall would permanently lose the chip (it won't resurface).
+        let required = AppGroupService.shared.creditsRequired
+        guard AppGroupService.shared.effectiveCreditBalance >= required else {
+            withAnimation(.easeInOut(duration: 0.2)) { state = .paywall }
+            return
+        }
         guard let id = screenshotChipService.consume() else { return }
         // Route through the existing detected-screenshot path — no logic duplication.
         detectedScreenshotID = id

@@ -15,7 +15,11 @@ struct IdlePanelView: View {
                 teachingPage = 0
                 withAnimation(.easeInOut(duration: 0.18)) { showTeachingPanel = true }
             })
-            if model.pendingScreenshotChip != nil {
+            // Show the pre-open screenshot chip only when the full "Screenshot captured"
+            // panel is not already showing — both can be non-nil simultaneously (chip =
+            // pre-open baseline; detectedID = a NEW shot taken while the keyboard was up),
+            // and the full panel supersedes the compact chip in that case.
+            if model.pendingScreenshotChip != nil && model.detectedScreenshotID == nil {
                 screenshotChipBanner
             }
             if model.detectedScreenshotID != nil {
