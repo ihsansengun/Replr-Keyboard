@@ -6,7 +6,6 @@ final class KeyboardViewController: UIInputViewController {
     private var model: KeyboardModel!
     private var capturePollingTask: Task<Void, Never>?
     private var heightConstraint: NSLayoutConstraint!
-    private var lastRepliesEstimate: CGFloat = 480   // deterministic floor for the replies-panel height
     private var autoSwitchTask: DispatchWorkItem?
     private var stateCancellable: AnyCancellable?
     private var collapseCancellable: AnyCancellable?
@@ -59,12 +58,8 @@ final class KeyboardViewController: UIInputViewController {
             self.advanceToNextInputMode()
         }
         model.retryTrigger = { [weak self] in self?.triggerRetry() }
-        model.onContentHeightChanged = { [weak self] height in
-            guard let self else { return }
-            // Never shrink below the deterministic estimate (which guarantees 3 replies fit);
-            // the measured content height can only grow it, for unusually long replies.
-            self.setHeight(min(600, max(self.lastRepliesEstimate, height)), duration: 0.15)
-        }
+        // Replies height is set exactly in viewDidLayoutSubviews via sizeThatFits on the self-sizing
+        // content (measured post-layout at the real width). No estimate, no per-piece preference.
 
         let adaptiveBg = UIColor { tc in
             tc.userInterfaceStyle == .dark
@@ -117,14 +112,11 @@ final class KeyboardViewController: UIInputViewController {
                 case .error:        height = 240
                 case .paywall:      height = 280
                 case .disambiguate: height = 300
-                case .replies(let replies):
-                    // Compute the height DETERMINISTICALLY from the actual reply text the moment
-                    // replies arrive — so the keyboard is the right size on the FIRST render and all
-                    // 3 replies fit without scrolling. SwiftUI's first-layout measurement was
-                    // unreliable here (it kept dropping the 3rd reply off-screen). The measured
-                    // height (onContentHeightChanged) can only GROW this, never shrink it.
-                    self.lastRepliesEstimate = self.estimatedRepliesHeight(replies, width: self.view.bounds.width)
-                    height = self.lastRepliesEstimate
+                case .replies:
+                    // Transient placeholder; viewDidLayoutSubviews immediately sets the EXACT height
+                    // from sizeThatFits on the self-sizing content. Keep the current height (clamped)
+                    // to avoid a flash before that runs.
+                    height = max(300, min(600, self.heightConstraint.constant))
                 }
                 self.setHeight(height)
             }
@@ -223,11 +215,19 @@ final class KeyboardViewController: UIInputViewController {
         }
     }
 
-    // Replies height is driven by RepliesPanelView's per-piece ContentHeightSumKey → onContentHeightChanged
-    // (clamped to [260, 560]). It measures the natural content height independently of the frame, and the
-    // panel pins its header + action row while the cards scroll, so content never clips and the keyboard
-    // never exceeds the cap. No sizeThatFits here — with the cards in a flexible ScrollView it would read
-    // a greedy near-max value and force the keyboard to its cap every time.
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // EXACT, dynamic replies height — the SwiftUI "flex-box fit-content" equivalent. The replies
+        // content is self-sizing (the cards' scroll area is .fixedSize vertically), so sizeThatFits
+        // returns its TRUE natural height at the real width. Measured here (post-layout) so the width
+        // is correct, it makes the keyboard fit the replies precisely: no clipping (under-measure) and
+        // no empty gap (over-estimate), for any mix of 1-, 2-, or 3-line replies.
+        guard viewIfLoaded?.window != nil, view.bounds.width > 0, let model else { return }
+        if case .replies = model.state {
+            let fit = hostingVC.sizeThatFits(in: CGSize(width: view.bounds.width, height: 10_000))
+            setHeight(min(600, max(300, fit.height)), duration: 0.15)
+        }
+    }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -354,26 +354,6 @@ final class KeyboardViewController: UIInputViewController {
         capturePollingTask?.cancel()
         capturePollingTask = nil
         startCapturePoll()
-    }
-
-    /// Deterministic replies-panel height from the actual reply text, computed the instant replies
-    /// arrive — independent of SwiftUI's (flaky-on-first-pass) layout measurement, so all 3 replies
-    /// fit on the very first render. Biased slightly UP so it never under-shoots; clamped to the cap.
-    private func estimatedRepliesHeight(_ replies: [String], width: CGFloat) -> CGFloat {
-        let w = width > 0 ? width : 390
-        let textWidth = max(40, w - 80)            // outer + inner padding + number column + spacing
-        let font = UIFont.systemFont(ofSize: 15)   // 1pt over the real 14 → safety margin on wrapping
-        var cards: CGFloat = 0
-        for reply in replies {
-            let textH = (reply as NSString).boundingRect(
-                with: CGSize(width: textWidth, height: .greatestFiniteMagnitude),
-                options: [.usesLineFragmentOrigin, .usesFontLeading],
-                attributes: [.font: font], context: nil).height
-            cards += ceil(textH) + 32               // card vertical padding (24) + safety (8)
-        }
-        cards += CGFloat(max(0, replies.count - 1)) * 8   // inter-card spacing
-        let chrome: CGFloat = 270                  // header (mode+tones) + contact row + paddings + action row
-        return min(600, max(320, cards + chrome))
     }
 
     private func setHeight(_ height: CGFloat, duration: TimeInterval = 0.25) {

@@ -64,6 +64,7 @@ struct RepliesPanelView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .background(heightReporter)   // contributes the cards' natural (content) height
             }
+            .fixedSize(horizontal: false, vertical: true)   // self-size the scroll area → exact panel height
 
             actionRow
                 .padding(.horizontal, 16)
