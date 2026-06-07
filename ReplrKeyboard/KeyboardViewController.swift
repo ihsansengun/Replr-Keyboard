@@ -6,6 +6,7 @@ final class KeyboardViewController: UIInputViewController {
     private var model: KeyboardModel!
     private var capturePollingTask: Task<Void, Never>?
     private var heightConstraint: NSLayoutConstraint!
+    private var lastRepliesEstimate: CGFloat = 480   // deterministic floor for the replies-panel height
     private var autoSwitchTask: DispatchWorkItem?
     private var stateCancellable: AnyCancellable?
     private var collapseCancellable: AnyCancellable?
@@ -60,7 +61,9 @@ final class KeyboardViewController: UIInputViewController {
         model.retryTrigger = { [weak self] in self?.triggerRetry() }
         model.onContentHeightChanged = { [weak self] height in
             guard let self else { return }
-            self.setHeight(min(600, max(260, height)), duration: 0.15)
+            // Never shrink below the deterministic estimate (which guarantees 3 replies fit);
+            // the measured content height can only grow it, for unusually long replies.
+            self.setHeight(min(600, max(self.lastRepliesEstimate, height)), duration: 0.15)
         }
 
         let adaptiveBg = UIColor { tc in
@@ -114,12 +117,14 @@ final class KeyboardViewController: UIInputViewController {
                 case .error:        height = 240
                 case .paywall:      height = 280
                 case .disambiguate: height = 300
-                case .replies:
-                    // The exact height comes from RepliesPanelView.onContentHeightChanged, which
-                    // measures the real rendered content. We only set a sane floor here and never
-                    // use sizeThatFits — it returns near-max values pre-layout and in some hosts
-                    // (e.g. FaceTime via Back Tap), which opened the keyboard "huge".
-                    height = max(320, min(600, self.heightConstraint.constant))
+                case .replies(let replies):
+                    // Compute the height DETERMINISTICALLY from the actual reply text the moment
+                    // replies arrive — so the keyboard is the right size on the FIRST render and all
+                    // 3 replies fit without scrolling. SwiftUI's first-layout measurement was
+                    // unreliable here (it kept dropping the 3rd reply off-screen). The measured
+                    // height (onContentHeightChanged) can only GROW this, never shrink it.
+                    self.lastRepliesEstimate = self.estimatedRepliesHeight(replies, width: self.view.bounds.width)
+                    height = self.lastRepliesEstimate
                 }
                 self.setHeight(height)
             }
@@ -349,6 +354,26 @@ final class KeyboardViewController: UIInputViewController {
         capturePollingTask?.cancel()
         capturePollingTask = nil
         startCapturePoll()
+    }
+
+    /// Deterministic replies-panel height from the actual reply text, computed the instant replies
+    /// arrive — independent of SwiftUI's (flaky-on-first-pass) layout measurement, so all 3 replies
+    /// fit on the very first render. Biased slightly UP so it never under-shoots; clamped to the cap.
+    private func estimatedRepliesHeight(_ replies: [String], width: CGFloat) -> CGFloat {
+        let w = width > 0 ? width : 390
+        let textWidth = max(40, w - 80)            // outer + inner padding + number column + spacing
+        let font = UIFont.systemFont(ofSize: 15)   // 1pt over the real 14 → safety margin on wrapping
+        var cards: CGFloat = 0
+        for reply in replies {
+            let textH = (reply as NSString).boundingRect(
+                with: CGSize(width: textWidth, height: .greatestFiniteMagnitude),
+                options: [.usesLineFragmentOrigin, .usesFontLeading],
+                attributes: [.font: font], context: nil).height
+            cards += ceil(textH) + 32               // card vertical padding (24) + safety (8)
+        }
+        cards += CGFloat(max(0, replies.count - 1)) * 8   // inter-card spacing
+        let chrome: CGFloat = 270                  // header (mode+tones) + contact row + paddings + action row
+        return min(600, max(320, cards + chrome))
     }
 
     private func setHeight(_ height: CGFloat, duration: TimeInterval = 0.25) {
