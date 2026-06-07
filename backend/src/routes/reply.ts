@@ -46,7 +46,9 @@ replyRoute.post('/', async (c) => {
     return c.json({ replies: result.replies, summary: result.summary, contactName: result.contactName, inputTokens: result.inputTokens, outputTokens: result.outputTokens, costUsd: result.costUsd })
   } catch (err) {
     console.error('LLM error:', err)
-    return c.json({ error: 'Failed to generate replies. Please try again.' }, 500)
+    // detail carries the raw provider error (e.g. "max_tokens not supported") so the app's dev
+    // model-tester can surface WHY a model failed. The user-facing `error` stays friendly.
+    return c.json({ error: 'Failed to generate replies. Please try again.', detail: String((err as { message?: string })?.message ?? err) }, 500)
   }
 })
 
@@ -86,6 +88,8 @@ replyRoute.post('/scroll', async (c) => {
     return c.json({ replies: result.replies, summary: result.summary, contactName: result.contactName, inputTokens: result.inputTokens, outputTokens: result.outputTokens, costUsd: result.costUsd })
   } catch (err) {
     console.error('Scroll LLM error:', err)
-    return c.json({ error: 'Failed to generate replies. Please try again.' }, 500)
+    // detail carries the raw provider error (e.g. "max_tokens not supported") so the app's dev
+    // model-tester can surface WHY a model failed. The user-facing `error` stays friendly.
+    return c.json({ error: 'Failed to generate replies. Please try again.', detail: String((err as { message?: string })?.message ?? err) }, 500)
   }
 })

@@ -41,6 +41,17 @@ struct ReplyResult {
     let costUsd: Double?
 }
 
+/// Result of a dev model-tester ping (ModelPickerView → "Test all models").
+struct ModelTestResult {
+    let modelID: String
+    let ok: Bool
+    let latencyMs: Int
+    let message: String   // "OK" or the raw backend error detail
+}
+
+/// Decodes the backend's `{ error, detail }` error envelope so the tester can show WHY a model failed.
+private struct ErrorDetailBody: Decodable { let error: String?; let detail: String? }
+
 final class ReplyService {
     static let shared = ReplyService()
 
@@ -118,6 +129,39 @@ final class ReplyService {
 
         let decoded = try JSONDecoder().decode(ReplyResponse.self, from: data)
         return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd)
+    }
+
+    /// Dev model-tester (ModelPickerView): pings the backend with a fixed sample using an EXPLICIT
+    /// model id and surfaces OK + latency, or the raw error detail. Never throws — returns a result.
+    func testModel(_ modelID: String) async -> ModelTestResult {
+        let start = Date()
+        func ms() -> Int { Int(Date().timeIntervalSince(start) * 1000) }
+        let body = ReplyEmailRequest(
+            emailText: "Hey, are you free to chat tomorrow about the report?",
+            tone: "natural", toneName: "Natural",
+            summary: nil, previousContext: nil,
+            model: modelID, userId: AppGroupService.shared.userID(),
+            aboutUser: nil
+        )
+        var request = URLRequest(url: backendURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 45
+        do {
+            request.httpBody = try JSONEncoder().encode(body)
+            let (data, response) = try await session.data(for: request)
+            guard let http = response as? HTTPURLResponse else {
+                return ModelTestResult(modelID: modelID, ok: false, latencyMs: ms(), message: "No HTTP response")
+            }
+            if http.statusCode == 200 {
+                return ModelTestResult(modelID: modelID, ok: true, latencyMs: ms(), message: "OK")
+            }
+            let parsed = try? JSONDecoder().decode(ErrorDetailBody.self, from: data)
+            let detail = parsed?.detail ?? parsed?.error ?? String(data: data, encoding: .utf8) ?? "HTTP \(http.statusCode)"
+            return ModelTestResult(modelID: modelID, ok: false, latencyMs: ms(), message: "HTTP \(http.statusCode): \(detail)")
+        } catch {
+            return ModelTestResult(modelID: modelID, ok: false, latencyMs: ms(), message: error.localizedDescription)
+        }
     }
 
     func generateRepliesFromScroll(

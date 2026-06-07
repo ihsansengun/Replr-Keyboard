@@ -20,6 +20,8 @@ struct ModelPickerView: View {
     @State private var photosStatus: String = "\(PHPhotoLibrary.authorizationStatus(for: .readWrite).rawValue)"  // SPIKE — remove after Phase 0
     @State private var totalCostUsd: Double = 0
     @State private var modelStats: [ModelCostStat] = []
+    @State private var testResults: [String: ModelTestResult] = [:]
+    @State private var testing = false
 
     private func refreshCostStats() {
         let sessions = AppGroupService.shared.loadCaptureSessions()
@@ -40,6 +42,20 @@ struct ModelPickerView: View {
         modelStats = grouped
             .map { ModelCostStat(id: $0.key, cost: $0.value.cost, inputTokens: $0.value.input, outputTokens: $0.value.output, captures: $0.value.count) }
             .sorted { $0.cost > $1.cost }
+    }
+
+    /// Ping every model on the backend (sequentially, to be gentle on rate limits) and record
+    /// OK + latency or the raw error — so failures are visible right here on the model screen.
+    private func testAllModels() {
+        testing = true
+        testResults = [:]
+        Task {
+            for model in ReplrModel.allCases {
+                let result = await ReplyService.shared.testModel(model.apiModelID)
+                await MainActor.run { testResults[model.apiModelID] = result }
+            }
+            await MainActor.run { testing = false }
+        }
     }
 
     var body: some View {
@@ -65,10 +81,27 @@ struct ModelPickerView: View {
 
             // MARK: Model Comparison Table
             Section {
+                Button {
+                    testAllModels()
+                } label: {
+                    HStack(spacing: 8) {
+                        if testing {
+                            ProgressView().scaleEffect(0.8)
+                        } else {
+                            Image(systemName: "stethoscope")
+                        }
+                        Text(testing ? "Testing all models…" : "Test all models")
+                            .fontWeight(.medium)
+                    }
+                    .foregroundStyle(ReplrTheme.Color.accent)
+                }
+                .disabled(testing)
+
                 ForEach(ReplrModel.allCases) { model in
                     ModelRow(
                         model: model,
                         isSelected: selectedModelID == model.apiModelID,
+                        testResult: testResults[model.apiModelID],
                         onTap: {
                             selectedModelID = model.apiModelID
                             if AppGroupService.shared.devMode {
@@ -190,6 +223,7 @@ struct ModelPickerView: View {
 private struct ModelRow: View {
     let model: ReplrModel
     let isSelected: Bool
+    var testResult: ModelTestResult? = nil
     let onTap: () -> Void
 
     var body: some View {
@@ -219,6 +253,19 @@ private struct ModelRow: View {
                     Text("\(model.creditsPerRequest) credit\(model.creditsPerRequest == 1 ? "" : "s") / reply")
                         .font(.system(size: 11))
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
+
+                    if let r = testResult {
+                        HStack(alignment: .top, spacing: 4) {
+                            Image(systemName: r.ok ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                .font(.system(size: 10))
+                            Text(r.ok ? "OK · \(r.latencyMs)ms" : r.message)
+                                .font(.system(size: 10))
+                                .lineLimit(r.ok ? 1 : 6)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .foregroundStyle(r.ok ? Color.green : Color.red)
+                        .padding(.top, 2)
+                    }
                 }
 
                 Spacer()
