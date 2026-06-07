@@ -41,7 +41,13 @@ final class KeyboardModel: ObservableObject {
     @Published var detectedScreenshotID: String? = nil   // a new screenshot awaiting the confirm tap
     var captureBaselineScreenshotID: String? = nil        // newest screenshot at moment-of-collapse (dedup)
     @Published var showFullScreenPreviewHint: Bool = false   // iOS 26: likely needs Full-Screen Previews off
+    /// localIdentifier of a pre-keyboard-open screenshot within the 5-minute detection window.
+    /// Non-nil → the idle panel shows a compact "📸 Screenshot detected" chip.
+    @Published var pendingScreenshotChip: String? = nil
     var collapseStartedAt: Date? = nil
+
+    // Lazy so self is fully initialized before the service captures it.
+    private(set) lazy var screenshotChipService: ScreenshotChipService = ScreenshotChipService(model: self)
 
     var onReplySelected: ((String) -> Void)?
     var onToneChanged: ((Tone) -> Void)?
@@ -146,6 +152,25 @@ final class KeyboardModel: ObservableObject {
     func dismissDetectedScreenshot() {
         if let id = detectedScreenshotID { captureBaselineScreenshotID = id }
         detectedScreenshotID = nil
+    }
+
+    /// Call from KeyboardViewController.viewDidAppear — checks if the baseline screenshot
+    /// (newest screenshot that existed when the keyboard opened) is recent enough to chip.
+    func activateScreenshotChip() {
+        screenshotChipService.activate(baselineAssetID: captureBaselineScreenshotID)
+    }
+
+    /// User tapped the chip body → generate replies from it.
+    func useScreenshotChip() {
+        guard let id = screenshotChipService.consume() else { return }
+        // Route through the existing detected-screenshot path — no logic duplication.
+        detectedScreenshotID = id
+        generateFromScreenshot()
+    }
+
+    /// User tapped X → dismiss the chip and prevent it from resurfacing.
+    func dismissScreenshotChip() {
+        screenshotChipService.dismiss()
     }
 
     /// Phase 1 — generate replies from the detected screenshot (mirrors generateEmailReply).
