@@ -248,9 +248,10 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
   }))
   const response = await client.chat.completions.create({
     model: apiModel,
-    // Use max_tokens (the universally-supported name) rather than max_completion_tokens —
-    // Gemini's OpenAI-compatible endpoint silently ignores max_completion_tokens.
-    max_tokens: 4096,
+    // Token-cap param differs by provider: OpenAI's GPT-5.x REQUIRES max_completion_tokens (it now
+    // rejects max_tokens); Gemini's OpenAI-compat endpoint ignores max_completion_tokens and wants
+    // max_tokens; xAI accepts max_tokens. So pick per provider.
+    ...(provider === 'openai' ? { max_completion_tokens: 4096 } : { max_tokens: 4096 }),
     temperature,
     // Per-model thinking level (Gemini only — set in resolveModel). GPT/Grok share this
     // path but never set reasoningEffort, so they keep their own defaults. Gemini 3 Pro
@@ -304,7 +305,8 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
   const client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) })
   const response = await client.chat.completions.create({
     model: apiModel,
-    max_tokens: 4096,  // universally supported; max_completion_tokens silently ignored by Gemini
+    // OpenAI GPT-5.x requires max_completion_tokens; Gemini/xAI want max_tokens (see vision path).
+    ...(provider === 'openai' ? { max_completion_tokens: 4096 } : { max_tokens: 4096 }),
     temperature,
     ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),  // per-model Gemini thinking level (see callLlm)
     messages: [

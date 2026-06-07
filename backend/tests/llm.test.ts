@@ -148,7 +148,7 @@ describe('generateReplies', () => {
     expect(result.contactName).toBe('Pat')
     expect(openaiChatCreate).toHaveBeenCalledWith(expect.objectContaining({
       model: 'gpt-5.4',
-      max_tokens: 4096,
+      max_completion_tokens: 4096,  // OpenAI GPT-5.x rejects max_tokens — must use max_completion_tokens
     }))
   })
 
@@ -206,7 +206,7 @@ describe('generateReplies', () => {
       model: 'gemini-3-flash-preview', anthropicKey: 'k', openaiKey: 'k', googleKey: 'g',
     })
     expect(openaiChatCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ reasoning_effort: 'low' }))
+      expect.objectContaining({ reasoning_effort: 'low', max_tokens: 4096 }))  // Gemini keeps max_tokens
 
     // Gemini Pro (full) → reasoning_effort: 'high' (preserves quality)
     openaiChatCreate.mockClear()
@@ -234,6 +234,11 @@ describe('generateReplies', () => {
     })
     expect(openaiChatCreate).not.toHaveBeenCalledWith(
       expect.objectContaining({ reasoning_effort: expect.anything() }))
+    // GPT-5.x must use max_completion_tokens, never max_tokens (OpenAI rejects it).
+    expect(openaiChatCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ model: 'gpt-5.4', max_completion_tokens: 4096 }))
+    expect(openaiChatCreate).not.toHaveBeenCalledWith(
+      expect.objectContaining({ max_tokens: expect.anything() }))
   })
 })
 
