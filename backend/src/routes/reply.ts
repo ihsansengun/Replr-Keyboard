@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
 import { generateReplies, generateRepliesFromEmail, generateRepliesFromMultiple } from '../services/llm'
 import type { Env, Model } from '../types'
-import { sessionMiddleware } from '../middleware/session'
+import { sessionMiddleware, SessionVariables } from '../middleware/session'
 
-export const replyRoute = new Hono<{ Bindings: Env }>()
+export const replyRoute = new Hono<{ Bindings: Env; Variables: SessionVariables }>()
 
 replyRoute.use('*', sessionMiddleware)
 

@@ -23,12 +23,16 @@ export const sessionMiddleware: MiddlewareHandler<{
     const token = authorization.slice(7).trim()
     if (token.length === 64) {  // our tokens are always 64 hex chars
       const now = Math.floor(Date.now() / 1000)
-      const session = await c.env.DB
-        .prepare('SELECT user_id FROM sessions WHERE token = ? AND expires_at > ?')
-        .bind(token, now)
-        .first<{ user_id: string }>()
-      if (session) {
-        c.set(SESSION_USER_ID_KEY, session.user_id)
+      try {
+        const session = await c.env.DB
+          .prepare('SELECT user_id FROM sessions WHERE token = ? AND expires_at > ?')
+          .bind(token, now)
+          .first<{ user_id: string }>()
+        if (session) {
+          c.set(SESSION_USER_ID_KEY, session.user_id)
+        }
+      } catch (err) {
+        console.error('[sessionMiddleware] D1 error:', err)
       }
     }
   }
