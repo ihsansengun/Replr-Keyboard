@@ -162,6 +162,7 @@ final class KeyboardModel: ObservableObject {
 
     /// User tapped the chip body → generate replies from it.
     func useScreenshotChip() {
+        guard case .idle = state else { return }
         guard let id = screenshotChipService.consume() else { return }
         // Route through the existing detected-screenshot path — no logic duplication.
         detectedScreenshotID = id
