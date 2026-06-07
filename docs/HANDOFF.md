@@ -1,0 +1,143 @@
+# Session handoff — 2026-06-07
+
+This documents the project state for the next working session. The repo was moved
+out of iCloud today; start fresh sessions from this folder (`~/Developer/Replr`).
+
+---
+
+## 0. Where things are (READ FIRST)
+
+- **Canonical repo: `/Users/WORK2/Developer/Replr`** (moved here 2026-06-07 because the
+  old path `~/Desktop/DesktopCloud/Replr` is under iCloud, which evicted `.git` pack
+  objects on a near-full disk and broke git).
+- **`origin/main` = `fb9975d`** — everything below is merged + pushed. Branch from `main`.
+- Old `~/Desktop/DesktopCloud/Replr` = frozen backup, safe to delete once you're happy.
+- Disk was ~98% full — free space so iCloud/Xcode don't choke.
+- Uncommitted (intentionally carried, not committed): `backend/package.json` +
+  `package-lock.json` wrangler downgrade (`^3.74.0` working vs `^4.90.1` committed) —
+  **reconcile before next deploy**. Plus untracked `docs/design/screenshots/IMG_*.PNG`.
+- Cosmetic broken local refs (local-only objects iCloud lost; not on origin; harmless):
+  branch `worktree-feat+payment-paywall`, tag `phase1-keyboard`. Delete if you want a
+  clean `git fsck`.
+
+---
+
+## 1. TOP PRIORITY — verify the keyboard replies-height fix
+
+**Requirement (firm):** the keyboard always shows all **3 replies, no scroll, fitting
+exactly** — no clip, no gap — and the height is **dynamic to the line counts** (the CSS
+`height: auto` equivalent). Reproduce in onboarding "Practice" (that's the real keyboard).
+
+**Current fix (`fb9975d`)** in `ReplrKeyboard/Views/RepliesPanelView.swift` +
+`ReplrKeyboard/KeyboardViewController.swift`:
+- Panel is a **plain `VStack` (no ScrollView)**. Each piece (header, cards, action row)
+  reports its height via `.background(heightReporter)` → a **summing** `ContentHeightKey`
+  → `onContentHeightChanged(sum)` → `setHeight(clamp 300...600)`. `lastRepliesContentHeight`
+  remembers the measured value (used as the `.replies` placeholder).
+
+**Status: built, merged, NOT yet verified on a device.** To test: **delete the app →
+reinstall → re-enable the Replr keyboard** (the extension caches code hard), then check
+the first capture and several reply lengths.
+
+**Rejected approaches — do not repeat** (see
+`~/.claude/projects/-Users-WORK2-Developer-Replr/memory/project_keyboard_replies_height.md`):
+boundingRect estimate (gap), `sizeThatFits`+ScrollView (clip — ScrollView hides content
+height), single outer GeometryReader (reads frame back — gap).
+
+**If still wrong:** add a temporary on-screen height readout so a screenshot reveals the
+exact measured number, then tune. (Offered to the user.)
+
+---
+
+## 2. Standing constraints (from the user — keep following)
+
+- **Never push / merge / deploy without an explicit ask.** (The 2026-06-07 merge+push of
+  `main` was explicitly requested.)
+- **Commit after each discrete change.** End commit messages with a
+  `Co-Authored-By: Claude <model> <noreply@anthropic.com>` trailer (use the current
+  model from the system prompt).
+- **Read `DESIGN.md` before any UI work. Never hardcode colors/fonts/spacing — use
+  `ReplrTheme.*`.** Verify dark AND light.
+- **Verify before claiming** — read/grep/build to confirm; don't argue from a screenshot.
+- **"Review the whole architecture later"** for credits/monetization — defer building the
+  ledger until then.
+- SourceKit errors like "No such module 'UIKit'/'Lottie'" or "Cannot find
+  'ReplrTheme'/'KeyboardModel'/'AppGroupService'" are **false positives** — `xcodebuild`
+  is the source of truth.
+
+---
+
+## 3. What shipped recently (this session, all on `main`)
+
+- **Keyboard CTAs**: consistent system — gradient capsule = primary, outlined = secondary.
+  `✨ Start`; "Try again" now actually regenerates; open-keyboard capture (no Start tap) →
+  opt-in "tap to generate" chip.
+- **Models**: added **Gemini 3.5 Flash (now DEFAULT)**, Gemini 3.1 Pro (2nd), 3.1 Flash
+  Lite, 2.5 Pro; Claude Opus 4.7 + Haiku 4.5. Fixed GPT-5.x (use `max_completion_tokens`;
+  `temperatureLocked` for gpt-5.5 + claude-opus-4-7 which reject non-default temperature).
+- **Model tester** in companion app (`ModelPickerView` "Test all models", per-row ✓/✗ via
+  `ReplyService.testModel`; surfaces the backend `detail` error string).
+- **Tutorial deep-link**: keyboard "Show me how" → `replr://tutorial/steer` opens
+  `UsageTutorialView` directly on the Steer step (custom `init` with `State(initialValue:)`).
+- **Memory wedge part 1**: cross-contamination kill + `normalizeContactName` (moved into
+  `Shared/AppGroupService.swift` for per-target membership) + tests.
+- **Trust quick wins** from the SmoothSpeak teardown ("Free to try — no credit card", etc.).
+
+### Where models are registered (touch ALL of these when adding one)
+- Backend: `types/index.ts` Model union; `services/llm.ts` `resolveModel()` + `PRICING`;
+  `routes/reply.ts` `VALID_MODELS`.
+- App: `Replr/Credits/ReplrModel.swift` enum (6 exhaustive switches);
+  keyboard `DevModelOption.all`; `AppGroupService` `creditsRequired` +
+  `selectedModelShortLabel`.
+
+---
+
+## 4. Pending / next tasks
+
+1. **Verify the replies-height fix on device** (section 1) — highest priority.
+2. **Memory wedge part 2** (approved, not built): proactive "I remember [Name] — tap to
+   use" chip + auto-disambiguate when >1 contact matches a name.
+3. **Unify the model registry** (keyboard `DevModelOption` vs app `ReplrModel`) — was a
+   spawned background task.
+4. **Tone→model routing** (`ToneSpec.preferredModel`) — future, backend-only; Gemini
+   seemed better for Joker. See memory `project_tone_model_routing.md`.
+5. **Reconcile the backend wrangler downgrade** (uncommitted) before next deploy.
+6. **Delete vestigial `trialUsedCount`** — careful, it's read by the credits migration.
+7. **Relationship dynamic per contact** — PARKED (needs keyboard UX decision).
+
+### Competitor teardown (SmoothSpeak — AI Dating Coach), key finding
+Trust/billing is their #1 crack (chargeback/auto-renew complaints); **reply quality is
+NOT a crack**; memory is a smaller crack; scale is small/beatable. Chosen wedges:
+**Trust & honesty positioning** + **Memory proof**. Replr's own trust posture audited
+clean.
+
+---
+
+## 5. Build / test / deploy gates
+
+```bash
+# iOS (build gate)
+cd ~/Developer/Replr/Replr && xcodebuild -project Replr.xcodeproj -scheme Replr \
+  -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' build
+# iOS tests: scheme ReplrTests (⌘U in Xcode)
+
+# Backend
+cd ~/Developer/Replr/backend && npm run typecheck && npm test
+cd ~/Developer/Replr/backend && npm run deploy   # only when explicitly asked
+
+# Production probe
+curl https://api.replr.app/reply -d '{"emailText":"...","tone":"natural","toneName":"Natural","model":"<id>","userId":"diag-..."}'
+npx wrangler tail --format pretty   # raw server errors
+```
+
+### Architecture quick map
+- iOS app + 3 extensions (keyboard, broadcast, broadcast-setup) share `Shared/` via App
+  Group `group.com.ihsan.replr` through `AppGroupService.shared`. **`Shared/` files have
+  per-target membership — a helper used by multiple targets must live in a file compiled
+  into all of them** (e.g. `AppGroupService.swift`), not one some targets exclude.
+- Reply flow: capture → `GenerateReplyIntent` → `ReplyService.generateReplies()` POSTs to
+  `https://api.replr.app/reply` → backend `routes/reply.ts` → `services/llm.ts`
+  (`parseLlmOutput` expects `CONTACT:` / `SUMMARY:` / numbered replies) → results to App
+  Group → keyboard polls App Group every 1s.
+- **Never call async APIs from the keyboard extension** — heavy work runs in
+  `GenerateReplyIntent` (companion app process).
