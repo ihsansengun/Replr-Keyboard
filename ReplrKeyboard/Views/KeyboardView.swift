@@ -41,9 +41,6 @@ final class KeyboardModel: ObservableObject {
     @Published var detectedScreenshotID: String? = nil   // a new screenshot awaiting the confirm tap
     var captureBaselineScreenshotID: String? = nil        // newest screenshot at moment-of-collapse (dedup)
     @Published var showFullScreenPreviewHint: Bool = false   // iOS 26: likely needs Full-Screen Previews off
-    /// localIdentifier of a pre-keyboard-open screenshot within the 5-minute detection window.
-    /// Non-nil → the idle panel shows a compact "📸 Screenshot detected" chip.
-    @Published var pendingScreenshotChip: String? = nil
     var collapseStartedAt: Date? = nil
 
     // Lazy so self is fully initialized before the service captures it.
@@ -147,10 +144,15 @@ final class KeyboardModel: ObservableObject {
     /// watcher whenever the keyboard is open, not only after the user taps Start.
     var isIdleState: Bool { if case .idle = state { return true } else { return false } }
 
-    /// User declined the auto-caught screenshot — clear it and advance the baseline so the same
-    /// shot won't be re-detected on the next poll.
+    /// User declined the auto-caught screenshot — clear it and mark it consumed so it won't
+    /// resurface via activateScreenshotChip on the next keyboard open.
     func dismissDetectedScreenshot() {
-        if let id = detectedScreenshotID { captureBaselineScreenshotID = id }
+        if let id = detectedScreenshotID {
+            // Advance baseline so the poll won't re-detect in this keyboard session.
+            captureBaselineScreenshotID = id
+            // Mark consumed so activateScreenshotChip skips this asset on reopen.
+            AppGroupService.shared.lastConsumedScreenshotID = id
+        }
         detectedScreenshotID = nil
     }
 
@@ -158,27 +160,6 @@ final class KeyboardModel: ObservableObject {
     /// (newest screenshot that existed when the keyboard opened) is recent enough to chip.
     func activateScreenshotChip() {
         screenshotChipService.activate(baselineAssetID: captureBaselineScreenshotID)
-    }
-
-    /// User tapped the chip body → generate replies from it.
-    func useScreenshotChip() {
-        guard case .idle = state else { return }
-        // Guard credits BEFORE consuming — consuming is irreversible and a free user
-        // hitting the paywall would permanently lose the chip (it won't resurface).
-        let required = AppGroupService.shared.creditsRequired
-        guard AppGroupService.shared.effectiveCreditBalance >= required else {
-            withAnimation(.easeInOut(duration: 0.2)) { state = .paywall }
-            return
-        }
-        guard let id = screenshotChipService.consume() else { return }
-        // Route through the existing detected-screenshot path — no logic duplication.
-        detectedScreenshotID = id
-        generateFromScreenshot()
-    }
-
-    /// User tapped X → dismiss the chip and prevent it from resurfacing.
-    func dismissScreenshotChip() {
-        screenshotChipService.dismiss()
     }
 
     /// Phase 1 — generate replies from the detected screenshot (mirrors generateEmailReply).
@@ -189,6 +170,10 @@ final class KeyboardModel: ObservableObject {
             withAnimation(.easeInOut(duration: 0.2)) { isCollapsed = false; state = .paywall }
             return
         }
+        // Mark consumed immediately — the screenshot has been committed for generation.
+        // If generation fails, the retry uses the App Group screenshot file, not Photos.
+        // This also prevents the "Screenshot captured" panel from resurfacing on keyboard reopen.
+        AppGroupService.shared.lastConsumedScreenshotID = assetID
         let context = pendingContext.trimmingCharacters(in: .whitespacesAndNewlines)
         repliesGeneratedInMode = .chat   // a retry-after-error must target this screenshot, not stale email text
         // Fresh capture: drop any prior contact so this reply isn't seasoned with another person's
@@ -874,25 +859,24 @@ struct CreditCounterBadge: View {
 // Inlined here (same reason as PhotosCapture below — keyboard target does not auto-include new files).
 
 /// Detects whether the `captureBaselineScreenshotID` — the newest screenshot that existed
-/// when the keyboard opened — was taken within the last 5 minutes. If so, surfaces it as a
-/// compact "📸 Screenshot detected" chip in the idle panel. The chip lives for 30 seconds;
-/// tapping it routes through the existing `generateFromScreenshot()` path unchanged.
+/// when the keyboard opened — was taken within the last 5 minutes and not yet consumed.
+/// If so, surfaces it as `detectedScreenshotID`, triggering the same "Screenshot captured"
+/// full-panel UI that post-open screenshots use. No separate chip state needed.
 @MainActor
 final class ScreenshotChipService {
     private weak var model: KeyboardModel?
-    private var dismissTimer: Timer?
 
     init(model: KeyboardModel) { self.model = model }
 
     /// Call from viewDidAppear, after captureBaselineScreenshotID is set.
-    /// Silently no-ops if Photos is not authorized, asset is too old, or asset was already consumed/dismissed.
+    /// Silently no-ops if Photos is not authorized, asset is too old, or asset was already consumed.
     func activate(baselineAssetID: String?) {
         guard let id = baselineAssetID else { return }
         guard id != AppGroupService.shared.lastConsumedScreenshotID else { return }
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         guard status == .authorized || status == .limited else { return }
 
-        // Verify it's actually a screenshot using a predicate
+        // Verify it's actually a screenshot using a predicate (not just any recent photo).
         let opts = PHFetchOptions()
         opts.predicate = NSPredicate(
             format: "localIdentifier == %@ AND (mediaSubtype & %d) != 0",
@@ -903,48 +887,9 @@ final class ScreenshotChipService {
         guard let asset = assets.firstObject,
               let createdAt = asset.creationDate,
               createdAt >= Date().addingTimeInterval(-5 * 60) else { return }
-        model?.pendingScreenshotChip = id
-        scheduleDismiss()
-    }
 
-    /// Called when user taps X. Marks the screenshot as consumed so it won't resurface.
-    func dismiss() {
-        cancelTimer()
-        if let id = model?.pendingScreenshotChip {
-            AppGroupService.shared.lastConsumedScreenshotID = id
-        }
-        model?.pendingScreenshotChip = nil
-    }
-
-    /// Called when user taps the chip body to generate. Returns the assetID to use.
-    /// Marks the screenshot as consumed and clears the chip.
-    func consume() -> String? {
-        cancelTimer()
-        guard let id = model?.pendingScreenshotChip else { return nil }
-        AppGroupService.shared.lastConsumedScreenshotID = id
-        model?.pendingScreenshotChip = nil
-        return id
-    }
-
-    // 30-second auto-dismiss: does NOT mark consumed — the user may reopen the keyboard
-    // and still want to use this screenshot.
-    private func scheduleDismiss() {
-        cancelTimer()
-        dismissTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: false) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.dismissTimer = nil
-                self?.model?.pendingScreenshotChip = nil
-            }
-        }
-    }
-
-    deinit {
-        dismissTimer?.invalidate()
-    }
-
-    private func cancelTimer() {
-        dismissTimer?.invalidate()
-        dismissTimer = nil
+        // Surface via the existing "Screenshot captured" panel — no separate chip UI needed.
+        model?.detectedScreenshotID = id
     }
 }
 

@@ -15,13 +15,6 @@ struct IdlePanelView: View {
                 teachingPage = 0
                 withAnimation(.easeInOut(duration: 0.18)) { showTeachingPanel = true }
             })
-            // Show the pre-open screenshot chip only when the full "Screenshot captured"
-            // panel is not already showing — both can be non-nil simultaneously (chip =
-            // pre-open baseline; detectedID = a NEW shot taken while the keyboard was up),
-            // and the full panel supersedes the compact chip in that case.
-            if model.pendingScreenshotChip != nil && model.detectedScreenshotID == nil {
-                screenshotChipBanner
-            }
             if model.detectedScreenshotID != nil {
                 screenshotReadyContent
             } else if model.inputMode == .chat {
@@ -160,59 +153,6 @@ struct IdlePanelView: View {
         }
         .padding(.top, 12)
         .padding(.bottom, 8)
-    }
-
-    /// Compact chip shown when a pre-open screenshot is within the 5-minute window.
-    /// Sits between KeyboardHeader and the main idle content — does not replace it.
-    private var screenshotChipBanner: some View {
-        HStack(spacing: 8) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.18)) { model.useScreenshotChip() }
-            } label: {
-                HStack(spacing: 6) {
-                    Text("📸")
-                        .font(.system(size: 13))
-                    Text("Screenshot detected")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(ReplrTheme.Color.textPrimary)
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
-                }
-                .padding(.leading, 10)
-                .padding(.trailing, 8)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule(style: .continuous)
-                        .fill(ReplrTheme.Color.surfaceRaised)
-                        .overlay(
-                            Capsule(style: .continuous)
-                                .strokeBorder(ReplrTheme.Color.accent.opacity(0.35), lineWidth: 1)
-                        )
-                )
-            }
-            .buttonStyle(.plain)
-
-            Spacer(minLength: 0)
-
-            Button {
-                withAnimation(.easeInOut(duration: 0.18)) { model.dismissScreenshotChip() }
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(ReplrTheme.Color.textSecondary)
-                    .frame(width: 22, height: 22)
-                    .background(Circle().fill(ReplrTheme.Color.surfaceRaised))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 6)
-        .padding(.bottom, 2)
-        .transition(.asymmetric(
-            insertion: .opacity.combined(with: .move(edge: .top)),
-            removal: .opacity
-        ))
     }
 
     /// Slide 1 — the capture flow + the Start CTA (the default landing slide).
