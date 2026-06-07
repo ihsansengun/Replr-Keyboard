@@ -858,7 +858,15 @@ final class ScreenshotChipService {
         guard id != AppGroupService.shared.lastConsumedScreenshotID else { return }
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         guard status == .authorized || status == .limited else { return }
-        let assets = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil)
+
+        // Verify it's actually a screenshot using a predicate
+        let opts = PHFetchOptions()
+        opts.predicate = NSPredicate(
+            format: "localIdentifier == %@ AND (mediaSubtype & %d) != 0",
+            id,
+            PHAssetMediaSubtype.photoScreenshot.rawValue
+        )
+        let assets = PHAsset.fetchAssets(with: .image, options: opts)
         guard let asset = assets.firstObject,
               let createdAt = asset.creationDate,
               createdAt >= Date().addingTimeInterval(-5 * 60) else { return }
@@ -895,6 +903,10 @@ final class ScreenshotChipService {
                 self?.model?.pendingScreenshotChip = nil
             }
         }
+    }
+
+    deinit {
+        dismissTimer?.invalidate()
     }
 
     private func cancelTimer() {
