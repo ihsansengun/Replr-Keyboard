@@ -16,6 +16,7 @@ struct ReplrTests {
 
     @Test func lastConsumedScreenshotIDRoundTrip() {
         let svc = AppGroupService.shared
+        defer { svc.lastConsumedScreenshotID = nil }   // cleanup — prevent state leak between runs
         // Save and read back
         svc.lastConsumedScreenshotID = "test-asset-abc-123"
         #expect(svc.lastConsumedScreenshotID == "test-asset-abc-123")
