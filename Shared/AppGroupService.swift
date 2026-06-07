@@ -107,6 +107,18 @@ final class AppGroupService {
         defaults.synchronize()
     }
 
+    /// The localIdentifier of the last screenshot that was explicitly consumed (used to generate
+    /// replies) or dismissed (X button) via the screenshot chip. Prevents the same screenshot
+    /// from resurfacing on subsequent keyboard opens within the 5-minute detection window.
+    var lastConsumedScreenshotID: String? {
+        get { defaults.string(forKey: Constants.lastConsumedScreenshotIDKey) }
+        set {
+            if let v = newValue { defaults.set(v, forKey: Constants.lastConsumedScreenshotIDKey) }
+            else { defaults.removeObject(forKey: Constants.lastConsumedScreenshotIDKey) }
+            defaults.synchronize()
+        }
+    }
+
     var autoClearScreenshots: Bool {
         get { defaults.bool(forKey: Constants.autoClearScreenshotsKey) }
         set { defaults.set(newValue, forKey: Constants.autoClearScreenshotsKey); defaults.synchronize() }

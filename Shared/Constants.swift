@@ -40,6 +40,7 @@ enum Constants {
     static let preferredCaptureKey        = "preferred_capture"   // "keyboard" | "backtap"
     static let remoteShortcutInstallURLKey = "remote_shortcut_install_url"  // overrides shortcutInstallURL, fetched from /config
     static let sessionRegenerateCountKey  = "session_regenerate_count"      // regenerates since last capture
+    static let lastConsumedScreenshotIDKey = "last_consumed_screenshot_id"
     static let tipDismissedPrefix         = "tip_dismissed_"                // + tip id
     static let tipShowCountPrefix         = "tip_show_count_"               // + tip id
 
