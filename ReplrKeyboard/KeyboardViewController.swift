@@ -98,10 +98,11 @@ final class KeyboardViewController: UIInputViewController {
             .combineLatest(model.$inputMode)
             .combineLatest(model.$isCollapsed)
             .combineLatest(model.$detectedScreenshotID)
+            .combineLatest(model.$pendingScreenshotChip)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] combined, detectedID in
+            .sink { [weak self] combined, chipID in
                 guard let self else { return }
-                let (((state, isCaptureMode), inputMode), isCollapsed) = combined
+                let ((((state, isCaptureMode), inputMode), isCollapsed), detectedID) = combined
                 if isCaptureMode {
                     self.setHeight(0, duration: 0.15)
                     return
@@ -115,7 +116,14 @@ final class KeyboardViewController: UIInputViewController {
                 }
                 let height: CGFloat
                 switch state {
-                case .idle:         height = (detectedID != nil) ? 300 : (inputMode == .email ? 224 : 300)
+                case .idle:
+                    if detectedID != nil {
+                        height = 300
+                    } else if chipID != nil {
+                        height = inputMode == .email ? 260 : 330   // extra room for chip banner (~33px)
+                    } else {
+                        height = inputMode == .email ? 224 : 300
+                    }
                 case .loading:      height = 310
                 case .error:        height = 240
                 case .paywall:      height = 280
