@@ -84,6 +84,9 @@ final class KeyboardModel: ObservableObject {
         }
         lastEmailText = emailText   // remember for Regenerate
         repliesGeneratedInMode = .email   // a retry-after-error must target the email, not a stale screenshot
+        // Fresh capture: drop any prior contact so this email's reply isn't seasoned with a previous
+        // chat contact's memory before this sender is identified (resolveContact re-sets it after).
+        AppGroupService.shared.currentContactID = nil
         withAnimation(.easeInOut(duration: 0.2)) { state = .loading }
         Task { @MainActor [weak self] in
             guard let self else { return }
@@ -155,6 +158,9 @@ final class KeyboardModel: ObservableObject {
         }
         let context = pendingContext.trimmingCharacters(in: .whitespacesAndNewlines)
         repliesGeneratedInMode = .chat   // a retry-after-error must target this screenshot, not stale email text
+        // Fresh capture: drop any prior contact so this reply isn't seasoned with another person's
+        // memory before THIS screenshot's contact is identified (resolveContact re-sets it after).
+        AppGroupService.shared.currentContactID = nil
         withAnimation(.easeInOut(duration: 0.2)) { isCollapsed = false; state = .loading }
 
         Task { @MainActor [weak self] in

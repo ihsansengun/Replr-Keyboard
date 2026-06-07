@@ -2,6 +2,19 @@ import Foundation
 import UIKit
 import CoreText
 
+/// Normalizes a contact display name for identity matching: trims, collapses internal whitespace,
+/// strips trailing emoji/symbols/punctuation, and lowercases. Stops minor header variance
+/// ("Alex 🌸", "alex", "Alex ", "Sarah!!") from forking one person into separate contacts —
+/// which would silently split (and lose) their memory. Lives in this file (compiled into every
+/// target) so the Broadcast/keyboard targets that use AppGroupService can see it too.
+func normalizeContactName(_ raw: String) -> String {
+    var s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+    while let last = s.unicodeScalars.last, !CharacterSet.alphanumerics.contains(last) {
+        s.unicodeScalars.removeLast()
+    }
+    return s.split(whereSeparator: { $0.isWhitespace }).joined(separator: " ").lowercased()
+}
+
 final class AppGroupService {
     static let shared = AppGroupService()
 
@@ -490,10 +503,8 @@ final class AppGroupService {
     }
 
     func findContacts(named name: String) -> [Contact] {
-        let needle = name.trimmingCharacters(in: .whitespaces).lowercased()
-        return loadContacts().filter {
-            $0.displayName.trimmingCharacters(in: .whitespaces).lowercased() == needle
-        }
+        let needle = normalizeContactName(name)
+        return loadContacts().filter { normalizeContactName($0.displayName) == needle }
     }
 
     var currentContactID: UUID? {

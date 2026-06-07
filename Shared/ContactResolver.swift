@@ -23,8 +23,7 @@ func resolveContact(from result: ReplyResult) -> ResolvedContact {
        let existingContact = AppGroupService.shared.loadContacts()
            .first(where: { $0.id == existingID }),
        let llmName = result.contactName,
-       existingContact.displayName.trimmingCharacters(in: .whitespaces).lowercased()
-           == llmName.trimmingCharacters(in: .whitespaces).lowercased() {
+       normalizeContactName(existingContact.displayName) == normalizeContactName(llmName) {
         return ResolvedContact(id: existingID, name: existingContact.displayName)
     }
 

@@ -1,6 +1,24 @@
 import Testing
 @testable import Replr
 
+struct ContactIdentityTests {
+
+    @Test func normalizeStripsTrailingEmojiCaseAndPunctuation() {
+        #expect(normalizeContactName("Alex 🌸") == normalizeContactName("alex"))
+        #expect(normalizeContactName("  Mom ") == normalizeContactName("mom"))
+        #expect(normalizeContactName("Sarah!!") == "sarah")
+    }
+
+    @Test func normalizeCollapsesInternalWhitespace() {
+        #expect(normalizeContactName("Mary   Jane") == "mary jane")
+    }
+
+    @Test func normalizeKeepsDistinctNamesDistinct() {
+        #expect(normalizeContactName("Mom") != normalizeContactName("Mum"))
+        #expect(normalizeContactName("Alex") != normalizeContactName("Alexa"))
+    }
+}
+
 struct OnboardingSurveyTests {
 
     @Test func emptySelectionSeedsNatural() {
