@@ -89,7 +89,7 @@ function resolveModel(model: Model): ModelResolution {
     case 'gpt-5.5':                  return { provider: 'openai',    apiModel: 'gpt-5.5', temperatureLocked: true }
     case 'claude-sonnet-4-6':        return { provider: 'anthropic', apiModel: 'claude-sonnet-4-6' }
     case 'claude-opus-4-6':          return { provider: 'anthropic', apiModel: 'claude-opus-4-6' }
-    case 'claude-opus-4-7':          return { provider: 'anthropic', apiModel: 'claude-opus-4-7' }
+    case 'claude-opus-4-7':          return { provider: 'anthropic', apiModel: 'claude-opus-4-7', temperatureLocked: true }
     case 'claude-haiku-4-5':         return { provider: 'anthropic', apiModel: 'claude-haiku-4-5' }
     case 'grok-4':                   return { provider: 'xai',       apiModel: 'grok-4' }
     case 'grok-4.3':                 return { provider: 'xai',       apiModel: 'grok-4.3' }
@@ -224,7 +224,8 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
     const response = await client.messages.create({
       model: apiModel,
       max_tokens: 4096,
-      temperature,
+      // Newer Claude (Opus 4.7+) deprecates temperature — omit when the model locks it.
+      ...(temperatureLocked ? {} : { temperature }),
       system,
       messages: [{ role: 'user', content: [...imageContent, { type: 'text', text: user }] }],
     })
@@ -287,7 +288,8 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
     const response = await client.messages.create({
       model: apiModel,
       max_tokens: 4096,
-      temperature,
+      // Newer Claude (Opus 4.7+) deprecates temperature — omit when the model locks it.
+      ...(temperatureLocked ? {} : { temperature }),
       system,
       messages: [{ role: 'user', content: user }],
     })

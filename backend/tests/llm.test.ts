@@ -254,6 +254,20 @@ describe('generateReplies', () => {
     expect(openaiChatCreate).not.toHaveBeenCalledWith(
       expect.objectContaining({ temperature: expect.anything() }))
   })
+
+  it('omits temperature for claude-opus-4-7 (deprecated on newer Claude)', async () => {
+    anthropicMessagesCreate.mockResolvedValue({
+      content: [{ type: 'text', text: 'CONTACT: X\nSUMMARY: y\n1. a\n2. b\n3. c' }],
+      usage: { input_tokens: 10, output_tokens: 5 },
+    })
+    await generateReplies({
+      screenshotBase64: 'abc', tone: 'casual',
+      model: 'claude-opus-4-7', anthropicKey: 'k', openaiKey: 'k',
+    })
+    // Anthropic deprecates temperature on Opus 4.7+ → the field must be omitted.
+    expect(anthropicMessagesCreate).not.toHaveBeenCalledWith(
+      expect.objectContaining({ temperature: expect.anything() }))
+  })
 })
 
 describe('buildSystemPrompt', () => {
