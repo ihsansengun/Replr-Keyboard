@@ -240,6 +240,20 @@ describe('generateReplies', () => {
     expect(openaiChatCreate).not.toHaveBeenCalledWith(
       expect.objectContaining({ max_tokens: expect.anything() }))
   })
+
+  it('omits temperature for gpt-5.5 (only the default temperature is supported)', async () => {
+    openaiChatCreate.mockResolvedValue({
+      choices: [{ message: { content: 'CONTACT: X\nSUMMARY: y\n1. a\n2. b\n3. c' } }],
+      usage: { prompt_tokens: 10, completion_tokens: 5 },
+    })
+    await generateReplies({
+      screenshotBase64: 'abc', tone: 'casual',
+      model: 'gpt-5.5', anthropicKey: 'k', openaiKey: 'k',
+    })
+    // gpt-5.5 rejects any non-default temperature → the field must be omitted entirely.
+    expect(openaiChatCreate).not.toHaveBeenCalledWith(
+      expect.objectContaining({ temperature: expect.anything() }))
+  })
 })
 
 describe('buildSystemPrompt', () => {

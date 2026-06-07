@@ -79,13 +79,14 @@ interface ModelResolution {
   provider: 'openai' | 'anthropic' | 'xai' | 'google'
   apiModel: string
   reasoningEffort?: 'low' | 'high'  // Gemini thinking level (Google path only). Omitted = provider default.
+  temperatureLocked?: boolean       // true = model only allows the default temperature (e.g. gpt-5.5)
 }
 
 function resolveModel(model: Model): ModelResolution {
   switch (model) {
     case 'gpt-5.4':                  return { provider: 'openai',    apiModel: 'gpt-5.4' }
     case 'gpt-5.4-mini':             return { provider: 'openai',    apiModel: 'gpt-5.4-mini' }
-    case 'gpt-5.5':                  return { provider: 'openai',    apiModel: 'gpt-5.5' }
+    case 'gpt-5.5':                  return { provider: 'openai',    apiModel: 'gpt-5.5', temperatureLocked: true }
     case 'claude-sonnet-4-6':        return { provider: 'anthropic', apiModel: 'claude-sonnet-4-6' }
     case 'claude-opus-4-6':          return { provider: 'anthropic', apiModel: 'claude-opus-4-6' }
     case 'grok-4':                   return { provider: 'xai',       apiModel: 'grok-4' }
@@ -208,7 +209,7 @@ interface LlmTextParams {
 
 async function callLlm(params: LlmCallParams): Promise<LlmResult> {
   const { system, user, images, model, temperature, anthropicKey, openaiKey, xaiKey, googleKey } = params
-  const { provider, apiModel, reasoningEffort } = resolveModel(model)
+  const { provider, apiModel, reasoningEffort, temperatureLocked } = resolveModel(model)
 
   if (provider === 'anthropic') {
     const client = new Anthropic({ apiKey: anthropicKey })
@@ -252,7 +253,8 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
     // rejects max_tokens); Gemini's OpenAI-compat endpoint ignores max_completion_tokens and wants
     // max_tokens; xAI accepts max_tokens. So pick per provider.
     ...(provider === 'openai' ? { max_completion_tokens: 4096 } : { max_tokens: 4096 }),
-    temperature,
+    // Some OpenAI reasoning models (e.g. gpt-5.5) reject any non-default temperature.
+    ...(temperatureLocked ? {} : { temperature }),
     // Per-model thinking level (Gemini only — set in resolveModel). GPT/Grok share this
     // path but never set reasoningEffort, so they keep their own defaults. Gemini 3 Pro
     // rejects "medium" via the OpenAI-compat layer; only "low"/"high" are valid.
@@ -274,7 +276,7 @@ async function callLlm(params: LlmCallParams): Promise<LlmResult> {
 
 async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
   const { system, user, model, temperature, anthropicKey, openaiKey, xaiKey, googleKey } = params
-  const { provider, apiModel, reasoningEffort } = resolveModel(model)
+  const { provider, apiModel, reasoningEffort, temperatureLocked } = resolveModel(model)
 
   if (provider === 'anthropic') {
     const client = new Anthropic({ apiKey: anthropicKey })
@@ -307,7 +309,8 @@ async function callLlmText(params: LlmTextParams): Promise<LlmResult> {
     model: apiModel,
     // OpenAI GPT-5.x requires max_completion_tokens; Gemini/xAI want max_tokens (see vision path).
     ...(provider === 'openai' ? { max_completion_tokens: 4096 } : { max_tokens: 4096 }),
-    temperature,
+    // Some OpenAI reasoning models (e.g. gpt-5.5) reject any non-default temperature.
+    ...(temperatureLocked ? {} : { temperature }),
     ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),  // per-model Gemini thinking level (see callLlm)
     messages: [
       { role: 'system', content: system },
