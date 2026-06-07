@@ -1,8 +1,11 @@
 import { Hono } from 'hono'
 import { generateReplies, generateRepliesFromEmail, generateRepliesFromMultiple } from '../services/llm'
 import type { Env, Model } from '../types'
+import { sessionMiddleware } from '../middleware/session'
 
 export const replyRoute = new Hono<{ Bindings: Env }>()
+
+replyRoute.use('*', sessionMiddleware)
 
 const VALID_MODELS: Model[] = ["gpt-5.4", "gpt-5.4-mini", "gpt-5.5", "claude-sonnet-4-6", "claude-opus-4-6", "grok-4", "grok-4.3", "gemini-3.1-pro-preview", "gemini-3.1-pro-low", "gemini-3-flash-preview", "gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-pro", "claude-opus-4-7", "claude-haiku-4-5"]
 
