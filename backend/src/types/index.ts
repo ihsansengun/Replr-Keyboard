@@ -1,3 +1,5 @@
+import type { D1Database, KVNamespace } from '@cloudflare/workers-types'
+
 export type Model =
   | 'gpt-5.4'
   | 'gpt-5.4-mini'
@@ -18,11 +20,12 @@ export type Model =
 export interface Env {
   ANTHROPIC_API_KEY: string
   OPENAI_API_KEY: string
-  XAI_API_KEY: string           // xAI (Grok) — get from console.x.ai
-  GOOGLE_API_KEY: string        // Google (Gemini) — get from aistudio.google.com
+  XAI_API_KEY: string
+  GOOGLE_API_KEY: string
   FREE_DAILY_LIMIT: string
   RATE_LIMIT_KV: KVNamespace
-  SHORTCUT_INSTALL_URL?: string  // Back Tap shortcut iCloud link — swappable without an App Store release
+  DB: D1Database
+  SHORTCUT_INSTALL_URL?: string
 }
 
 export interface ReplyRequest {
@@ -40,4 +43,26 @@ export interface ReplyResponse {
   replies: string[]
   summary: string
   contactName: string
+}
+
+// Auth types
+export interface User {
+  id: string
+  apple_id: string
+  email: string | null
+  name: string | null
+  created_at: number
+}
+
+export interface Session {
+  token: string
+  user_id: string
+  expires_at: number
+  created_at: number
+}
+
+export interface AppleClaims {
+  sub: string          // stable Apple user identifier
+  email?: string
+  email_verified?: boolean | string
 }
