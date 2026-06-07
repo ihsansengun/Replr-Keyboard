@@ -22,7 +22,7 @@ out of iCloud today; start fresh sessions from this folder (`~/Developer/Replr`)
 
 ---
 
-## 1. TOP PRIORITY — verify the keyboard replies-height fix
+## 1. DONE — keyboard replies-height fix (verified on device 2026-06-07)
 
 **Requirement (firm):** the keyboard always shows all **3 replies, no scroll, fitting
 exactly** — no clip, no gap — and the height is **dynamic to the line counts** (the CSS
@@ -35,9 +35,8 @@ exactly** — no clip, no gap — and the height is **dynamic to the line counts
   → `onContentHeightChanged(sum)` → `setHeight(clamp 300...600)`. `lastRepliesContentHeight`
   remembers the measured value (used as the `.replies` placeholder).
 
-**Status: built, merged, NOT yet verified on a device.** To test: **delete the app →
-reinstall → re-enable the Replr keyboard** (the extension caches code hard), then check
-the first capture and several reply lengths.
+**Status: RESOLVED — confirmed working on device 2026-06-07.** Kept here (with the rejected
+approaches in memory) in case of regression. **The top priority is now §1B (screenshot rework).**
 
 **Rejected approaches — do not repeat** (see
 `~/.claude/projects/-Users-WORK2-Developer-Replr/memory/project_keyboard_replies_height.md`):
