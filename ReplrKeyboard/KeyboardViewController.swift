@@ -60,7 +60,7 @@ final class KeyboardViewController: UIInputViewController {
         model.retryTrigger = { [weak self] in self?.triggerRetry() }
         model.onContentHeightChanged = { [weak self] height in
             guard let self else { return }
-            self.setHeight(min(560, max(260, height)), duration: 0.15)
+            self.setHeight(min(600, max(260, height)), duration: 0.15)
         }
 
         let adaptiveBg = UIColor { tc in
@@ -119,7 +119,7 @@ final class KeyboardViewController: UIInputViewController {
                     // measures the real rendered content. We only set a sane floor here and never
                     // use sizeThatFits — it returns near-max values pre-layout and in some hosts
                     // (e.g. FaceTime via Back Tap), which opened the keyboard "huge".
-                    height = max(320, min(560, self.heightConstraint.constant))
+                    height = max(320, min(600, self.heightConstraint.constant))
                 }
                 self.setHeight(height)
             }

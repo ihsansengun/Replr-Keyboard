@@ -16,7 +16,7 @@ struct RepliesPanelView: View {
     @State private var selectedIndex: Int = 0
     @State private var totalH: CGFloat = 0
 
-    private let maxKbH: CGFloat = 560  // hard cap — keyboard never exceeds this; taller content scrolls
+    private let maxKbH: CGFloat = 600  // hard cap — keyboard never exceeds this; taller content scrolls
 
     private var currentReply: String {
         replies.indices.contains(selectedIndex) ? replies[selectedIndex] : replies.first ?? ""
@@ -57,6 +57,11 @@ struct RepliesPanelView: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
+                // Claim the cards' full natural height so the measurement is deterministic — the
+                // flexible ScrollView alone can under-measure on the first layout pass, dropping the
+                // 3rd reply just off-screen. The ScrollView stays flexible, so the rare case where
+                // content exceeds the cap still scrolls with the header + action row pinned.
+                .fixedSize(horizontal: false, vertical: true)
                 .background(heightReporter)   // contributes the cards' natural (content) height
             }
 
