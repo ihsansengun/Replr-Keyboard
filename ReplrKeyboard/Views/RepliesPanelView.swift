@@ -1,12 +1,14 @@
 import SwiftUI
 
-// Sums the natural heights of the panel's pieces (top chrome + cards content + action row).
-// Each piece reports via .background, so the total is the *content* height — independent of the
-// frame, which the hosting view forces to its bounds (so a plain outer GeometryReader would only
-// ever read the frame back, never the natural height).
-private struct ContentHeightSumKey: PreferenceKey {
+// Reports the panel's natural content height from a single measurer on the outermost stack. The
+// panel is self-sizing (a plain VStack — NO ScrollView), so this reads the TRUE height of the
+// header + cards + action row — the equivalent of an HTML element's `height: auto`. (A ScrollView
+// deliberately hides its content height, which is why measuring through one under-reported and
+// clipped the action row.) The hosting view forces its OWN frame to the keyboard bounds, but a
+// self-sizing child keeps its natural height regardless, so this stays accurate.
+private struct ContentHeightKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value += nextValue() }
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }
 
 struct RepliesPanelView: View {
@@ -14,9 +16,6 @@ struct RepliesPanelView: View {
     let replies: [String]
 
     @State private var selectedIndex: Int = 0
-    @State private var totalH: CGFloat = 0
-
-    private let maxKbH: CGFloat = 600  // hard cap — keyboard never exceeds this; taller content scrolls
 
     private var currentReply: String {
         replies.indices.contains(selectedIndex) ? replies[selectedIndex] : replies.first ?? ""
@@ -44,48 +43,35 @@ struct RepliesPanelView: View {
                     .background(ReplrTheme.Color.accentSubtle)
                 }
             }
-            .background(heightReporter)
 
-            // Reply cards — the ONLY flexible region. Scrolls when the cards are taller than the
-            // space left under the cap, so the header and action row are NEVER pushed off-screen.
-            // The cap stops the keyboard ballooning; the scroll stops the content ever clipping.
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 8) {
-                    ForEach(Array(replies.enumerated()), id: \.offset) { idx, reply in
-                        replyCard(idx: idx, reply: reply)
-                    }
+            // Reply cards — a plain stack (NO ScrollView), so the panel self-sizes to fit every
+            // reply exactly. Whatever each reply's line count, the keyboard grows to match: no
+            // clipping, no empty gap.
+            VStack(spacing: 8) {
+                ForEach(Array(replies.enumerated()), id: \.offset) { idx, reply in
+                    replyCard(idx: idx, reply: reply)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                // Claim the cards' full natural height so the measurement is deterministic — the
-                // flexible ScrollView alone can under-measure on the first layout pass, dropping the
-                // 3rd reply just off-screen. The ScrollView stays flexible, so the rare case where
-                // content exceeds the cap still scrolls with the header + action row pinned.
-                .fixedSize(horizontal: false, vertical: true)
-                .background(heightReporter)   // contributes the cards' natural (content) height
             }
-            .fixedSize(horizontal: false, vertical: true)   // self-size the scroll area → exact panel height
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
 
             actionRow
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .background(heightReporter)
         }
         .background(ReplrTheme.Color.bg.ignoresSafeArea())
-        // Sum of the three pieces' natural heights = the panel's true content height, measured
-        // independently of the frame. Reported clamped so the keyboard fits the content when small
-        // and caps when large (cards scroll past the cap — header + action row stay pinned).
-        .onPreferenceChange(ContentHeightSumKey.self) { measured in
-            // Take the MAX measured height for this render. The first layout pass on a fresh
-            // open-keyboard capture can land ~one line short; never let a transient small value
-            // win, so the keyboard settles UP to the true content height (and scrolls only past
-            // the cap). totalH is reset when the replies change (regenerate), so it re-measures.
-            guard measured > totalH + 0.5 else { return }
-            totalH = measured
-            reportHeight()
+        // One measurer on the whole self-sizing panel = its true natural height. Drives the keyboard
+        // height (clamped in the controller). Re-fires on every layout, so it stays exact as the
+        // text wraps or the replies change.
+        .background(
+            GeometryReader { geo in
+                Color.clear.preference(key: ContentHeightKey.self, value: geo.size.height)
+            }
+        )
+        .onPreferenceChange(ContentHeightKey.self) { measured in
+            guard measured > 10 else { return }
+            model.onContentHeightChanged?(measured)
         }
-        .onChange(of: replies) { _ in totalH = 0 }
-        .onAppear { reportHeight() }
         .overlay {
             if model.showConsentPrompt {
                 ZStack {
@@ -123,18 +109,6 @@ struct RepliesPanelView: View {
                 }
             }
         }
-    }
-
-    /// A transparent measurer that contributes its backed view's height to ContentHeightSumKey.
-    private var heightReporter: some View {
-        GeometryReader { geo in
-            Color.clear.preference(key: ContentHeightSumKey.self, value: geo.size.height)
-        }
-    }
-
-    private func reportHeight() {
-        guard totalH > 10 else { return }
-        model.onContentHeightChanged?(min(maxKbH, max(260, totalH)))
     }
 
     // MARK: - Reply card

@@ -58,8 +58,11 @@ final class KeyboardViewController: UIInputViewController {
             self.advanceToNextInputMode()
         }
         model.retryTrigger = { [weak self] in self?.triggerRetry() }
-        // Replies height is set exactly in viewDidLayoutSubviews via sizeThatFits on the self-sizing
-        // content (measured post-layout at the real width). No estimate, no per-piece preference.
+        model.onContentHeightChanged = { [weak self] height in
+            // RepliesPanelView measures its own natural height (one GeometryReader on the plain,
+            // self-sizing stack) and reports it here. Set the keyboard to exactly that, clamped.
+            self?.setHeight(min(600, max(300, height)), duration: 0.15)
+        }
 
         let adaptiveBg = UIColor { tc in
             tc.userInterfaceStyle == .dark
@@ -113,10 +116,10 @@ final class KeyboardViewController: UIInputViewController {
                 case .paywall:      height = 280
                 case .disambiguate: height = 300
                 case .replies:
-                    // Transient placeholder; viewDidLayoutSubviews immediately sets the EXACT height
-                    // from sizeThatFits on the self-sizing content. Keep the current height (clamped)
-                    // to avoid a flash before that runs.
-                    height = max(300, min(600, self.heightConstraint.constant))
+                    // Transient default; RepliesPanelView's content-height reporter immediately
+                    // overrides this with the EXACT natural height via onContentHeightChanged. A
+                    // typical 3-reply size avoids a visible jump before that fires.
+                    height = 500
                 }
                 self.setHeight(height)
             }
@@ -215,19 +218,10 @@ final class KeyboardViewController: UIInputViewController {
         }
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        // EXACT, dynamic replies height — the SwiftUI "flex-box fit-content" equivalent. The replies
-        // content is self-sizing (the cards' scroll area is .fixedSize vertically), so sizeThatFits
-        // returns its TRUE natural height at the real width. Measured here (post-layout) so the width
-        // is correct, it makes the keyboard fit the replies precisely: no clipping (under-measure) and
-        // no empty gap (over-estimate), for any mix of 1-, 2-, or 3-line replies.
-        guard viewIfLoaded?.window != nil, view.bounds.width > 0, let model else { return }
-        if case .replies = model.state {
-            let fit = hostingVC.sizeThatFits(in: CGSize(width: view.bounds.width, height: 10_000))
-            setHeight(min(600, max(300, fit.height)), duration: 0.15)
-        }
-    }
+    // Replies height is driven by RepliesPanelView's single content-height GeometryReader →
+    // onContentHeightChanged (wired in setupModel). Because that panel is a plain, self-sizing
+    // stack (no ScrollView), the reported height is the true natural content height, so the keyboard
+    // fits the replies exactly — no clip, no gap. No sizeThatFits needed.
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
