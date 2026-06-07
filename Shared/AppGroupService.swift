@@ -657,6 +657,8 @@ final class AppGroupService {
         case "claude-sonnet-4-6":        return 8
         case "gpt-5.4":                  return 7
         case "claude-opus-4-6":          return 15
+        case "claude-opus-4-7":          return 15
+        case "claude-haiku-4-5":         return 3
         case "gpt-5.5":                  return 15
         case "gemini-3.1-pro-preview":   return 6
         case "gemini-3.1-pro-low":       return 6
@@ -677,6 +679,8 @@ final class AppGroupService {
         case "claude-sonnet-4-6":      return "Sonnet 4.6"
         case "gpt-5.4":               return "GPT-5.4"
         case "claude-opus-4-6":        return "Opus 4.6"
+        case "claude-opus-4-7":        return "Opus 4.7"
+        case "claude-haiku-4-5":       return "Haiku 4.5"
         case "gpt-5.5":               return "GPT-5.5"
         case "gemini-3.1-pro-preview": return "Pro High"
         case "gemini-3.1-pro-low":     return "Pro Low"

@@ -8,6 +8,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
 
     // Dev-only — available in ModelPickerView for testing
     case claudeOpus     = "claude-opus-4-6"
+    case claudeOpus47   = "claude-opus-4-7"      // independent #1 human-like writer
+    case claudeHaiku45  = "claude-haiku-4-5"     // fast + cheap
     case gpt5_5         = "gpt-5.5"
     case gemini         = "gemini-3.1-pro-preview"   // Pro at HIGH thinking
     case geminiProLow   = "gemini-3.1-pro-low"        // Pro at LOW thinking (routes to the same API model)
@@ -33,6 +35,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         case .claudeSonnet: return "Sonnet"
         case .gpt5_4:       return "GPT-5.4"
         case .claudeOpus:   return "Opus"
+        case .claudeOpus47: return "Opus 4.7"
+        case .claudeHaiku45: return "Haiku 4.5"
         case .gpt5_5:       return "GPT-5.5"
         case .gemini:       return "Pro Hi"
         case .geminiProLow: return "Pro Lo"
@@ -51,6 +55,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         case .claudeSonnet: return "Claude Sonnet 4.6"
         case .gpt5_4:       return "GPT-5.4"
         case .claudeOpus:   return "Claude Opus 4.6 ★"
+        case .claudeOpus47: return "Claude Opus 4.7 ★"
+        case .claudeHaiku45: return "Claude Haiku 4.5"
         case .gpt5_5:       return "GPT-5.5 ★"
         case .gemini:       return "Gemini Pro · High ★"
         case .geminiProLow: return "Gemini Pro · Low"
@@ -69,6 +75,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         case .claudeSonnet: return 8
         case .gpt5_4:       return 7
         case .claudeOpus:   return 15
+        case .claudeOpus47: return 15
+        case .claudeHaiku45: return 3
         case .gpt5_5:       return 15
         case .gemini:       return 6
         case .geminiProLow: return 6
@@ -96,6 +104,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         case .geminiFlashLite: return "—"
         case .gemini25Pro:     return "—"
         case .claudeOpus:   return "1490"
+        case .claudeOpus47: return "1501"
+        case .claudeHaiku45: return "1407"
         case .gpt5_4:       return "1495"
         case .grok4:        return "1496"
         case .claudeSonnet: return "1460"
@@ -107,7 +117,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     /// SwiftUI color for Elo — green for top tier, dimmer otherwise.
     var eloColor: Color {
         switch self {
-        case .gpt5_5, .gemini, .claudeOpus, .grok4: return Color.green.opacity(0.85)
+        case .gpt5_5, .gemini, .claudeOpus, .claudeOpus47, .grok4: return Color.green.opacity(0.85)
         case .gpt5_4, .claudeSonnet:                 return Color.orange.opacity(0.85)
         case .geminiFlash:                           return Color.gray.opacity(0.6)
         default:                                      return Color.gray.opacity(0.6)
@@ -120,6 +130,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
         case .claudeSonnet: return "$0.013"
         case .gpt5_4:       return "$0.011"
         case .claudeOpus:   return "$0.022"
+        case .claudeOpus47: return "$0.022"
+        case .claudeHaiku45: return "$0.004"
         case .gpt5_5:       return "$0.025"
         case .gemini:       return "$0.015"
         case .geminiProLow: return "$0.015"
@@ -136,9 +148,9 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     /// SwiftUI color for cost — green = cheap, red = expensive.
     var costColor: Color {
         switch self {
-        case .grok4_3, .gpt5_4mini, .geminiFlash, .geminiFlashLite: return Color.green.opacity(0.85)
+        case .grok4_3, .gpt5_4mini, .geminiFlash, .geminiFlashLite, .claudeHaiku45: return Color.green.opacity(0.85)
         case .claudeSonnet, .gpt5_4, .grok4, .gemini35Flash, .gemini25Pro: return Color.orange.opacity(0.85)
-        case .claudeOpus, .gpt5_5, .gemini, .geminiProLow: return Color.red.opacity(0.75)
+        case .claudeOpus, .claudeOpus47, .gpt5_5, .gemini, .geminiProLow: return Color.red.opacity(0.75)
         }
     }
 

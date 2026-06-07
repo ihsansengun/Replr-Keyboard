@@ -89,6 +89,8 @@ function resolveModel(model: Model): ModelResolution {
     case 'gpt-5.5':                  return { provider: 'openai',    apiModel: 'gpt-5.5', temperatureLocked: true }
     case 'claude-sonnet-4-6':        return { provider: 'anthropic', apiModel: 'claude-sonnet-4-6' }
     case 'claude-opus-4-6':          return { provider: 'anthropic', apiModel: 'claude-opus-4-6' }
+    case 'claude-opus-4-7':          return { provider: 'anthropic', apiModel: 'claude-opus-4-7' }
+    case 'claude-haiku-4-5':         return { provider: 'anthropic', apiModel: 'claude-haiku-4-5' }
     case 'grok-4':                   return { provider: 'xai',       apiModel: 'grok-4' }
     case 'grok-4.3':                 return { provider: 'xai',       apiModel: 'grok-4.3' }
     case 'gemini-3.1-pro-preview':   return { provider: 'google',    apiModel: 'gemini-3.1-pro-preview', reasoningEffort: 'high' }
@@ -116,6 +118,8 @@ export interface LlmResult extends ParsedOutput {
 const PRICING: Record<string, { inputPerM: number; outputPerM: number }> = {
   'claude-sonnet-4-6':      { inputPerM: 3.00,  outputPerM: 15.00 }, // platform.claude.com/docs/pricing
   'claude-opus-4-6':        { inputPerM: 5.00,  outputPerM: 25.00 }, // platform.claude.com/docs/pricing (was $15/$75 — Opus 4.1 legacy price, corrected 2026-06-06)
+  'claude-opus-4-7':        { inputPerM: 5.00,  outputPerM: 25.00 }, // platform.claude.com/docs/pricing
+  'claude-haiku-4-5':       { inputPerM: 1.00,  outputPerM: 5.00  }, // platform.claude.com/docs/pricing
   'gpt-5.4':                { inputPerM: 2.50,  outputPerM: 15.00 }, // openai.com/api/pricing
   'gpt-5.4-mini':           { inputPerM: 0.75,  outputPerM: 4.50  }, // openai.com/api/pricing
   'gpt-5.5':                { inputPerM: 5.00,  outputPerM: 30.00 }, // openai.com/api/pricing

@@ -889,6 +889,8 @@ private struct DevModelOption: Identifiable {
         DevModelOption(id: "claude-sonnet-4-6",      label: "Sonnet 4.6"),
         DevModelOption(id: "gpt-5.4",               label: "GPT-5.4"),
         DevModelOption(id: "claude-opus-4-6",        label: "Opus 4.6 ★"),
+        DevModelOption(id: "claude-opus-4-7",        label: "Opus 4.7 ★"),
+        DevModelOption(id: "claude-haiku-4-5",       label: "Haiku 4.5"),
         DevModelOption(id: "gpt-5.5",               label: "GPT-5.5 ★"),
         DevModelOption(id: "gemini-3.1-pro-preview", label: "Gemini Pro · High ★"),
         DevModelOption(id: "gemini-3.1-pro-low",     label: "Gemini Pro · Low"),

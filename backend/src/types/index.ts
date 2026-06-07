@@ -4,6 +4,8 @@ export type Model =
   | 'gpt-5.5'
   | 'claude-sonnet-4-6'
   | 'claude-opus-4-6'
+  | 'claude-opus-4-7'
+  | 'claude-haiku-4-5'
   | 'grok-4'
   | 'grok-4.3'
   | 'gemini-3.1-pro-preview'
