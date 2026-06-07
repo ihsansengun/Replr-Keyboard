@@ -1,9 +1,12 @@
 import SwiftUI
 
-// Measures the outer VStack's actual rendered height for keyboard sizing
-private struct TotalHeightKey: PreferenceKey {
+// Sums the natural heights of the panel's pieces (top chrome + cards content + action row).
+// Each piece reports via .background, so the total is the *content* height — independent of the
+// frame, which the hosting view forces to its bounds (so a plain outer GeometryReader would only
+// ever read the frame back, never the natural height).
+private struct ContentHeightSumKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value += nextValue() }
 }
 
 struct RepliesPanelView: View {
@@ -13,7 +16,7 @@ struct RepliesPanelView: View {
     @State private var selectedIndex: Int = 0
     @State private var totalH: CGFloat = 0
 
-    private let maxKbH: CGFloat = 560  // upper bound for GeometryReader fallback
+    private let maxKbH: CGFloat = 560  // hard cap — keyboard never exceeds this; taller content scrolls
 
     private var currentReply: String {
         replies.indices.contains(selectedIndex) ? replies[selectedIndex] : replies.first ?? ""
@@ -21,26 +24,31 @@ struct RepliesPanelView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            KeyboardHeader(model: model)
+            // Top chrome — pinned, always visible.
+            VStack(spacing: 0) {
+                KeyboardHeader(model: model)
 
-            if let name = model.contactName { contactHeader(name) }
+                if let name = model.contactName { contactHeader(name) }
 
-            if let memoryName = model.memoryContactName {
-                HStack(spacing: 5) {
-                    Image(systemName: "sparkles").font(.system(size: 9))
-                    Text("Remembering your last chat with \(memoryName)")
-                        .font(.system(size: 11))
-                        .lineLimit(1)
+                if let memoryName = model.memoryContactName {
+                    HStack(spacing: 5) {
+                        Image(systemName: "sparkles").font(.system(size: 9))
+                        Text("Remembering your last chat with \(memoryName)")
+                            .font(.system(size: 11))
+                            .lineLimit(1)
+                    }
+                    .foregroundStyle(ReplrTheme.Color.accent)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 5)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(ReplrTheme.Color.accentSubtle)
                 }
-                .foregroundStyle(ReplrTheme.Color.accent)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 5)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(ReplrTheme.Color.accentSubtle)
             }
+            .background(heightReporter)
 
-            // fixedSize forces the ScrollView to take its content's natural height —
-            // no frame estimation needed, no gap, scroll kicks in when content overflows.
+            // Reply cards — the ONLY flexible region. Scrolls when the cards are taller than the
+            // space left under the cap, so the header and action row are NEVER pushed off-screen.
+            // The cap stops the keyboard ballooning; the scroll stops the content ever clipping.
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 8) {
                     ForEach(Array(replies.enumerated()), id: \.offset) { idx, reply in
@@ -49,28 +57,23 @@ struct RepliesPanelView: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
+                .background(heightReporter)   // contributes the cards' natural (content) height
             }
-            .fixedSize(horizontal: false, vertical: true)
 
             actionRow
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
+                .background(heightReporter)
         }
-        // Measure the outer VStack's rendered height — reliable because every child has
-        // a definite height (ScrollView is content-sized via fixedSize above).
-        .background(
-            GeometryReader { geo in
-                Color.clear.preference(key: TotalHeightKey.self, value: geo.size.height)
-            }
-        )
         .background(ReplrTheme.Color.bg.ignoresSafeArea())
-        .onPreferenceChange(TotalHeightKey.self) { measured in
+        // Sum of the three pieces' natural heights = the panel's true content height, measured
+        // independently of the frame. Reported clamped so the keyboard fits the content when small
+        // and caps when large (cards scroll past the cap — header + action row stay pinned).
+        .onPreferenceChange(ContentHeightSumKey.self) { measured in
             guard measured > 10, abs(measured - totalH) > 1 else { return }
             totalH = measured
             reportHeight()
         }
-        .onChange(of: model.contactName)       { _ in reportHeight() }
-        .onChange(of: model.memoryContactName) { _ in reportHeight() }
         .onAppear { reportHeight() }
         .overlay {
             if model.showConsentPrompt {
@@ -108,6 +111,13 @@ struct RepliesPanelView: View {
                     .padding(.horizontal, 16)
                 }
             }
+        }
+    }
+
+    /// A transparent measurer that contributes its backed view's height to ContentHeightSumKey.
+    private var heightReporter: some View {
+        GeometryReader { geo in
+            Color.clear.preference(key: ContentHeightSumKey.self, value: geo.size.height)
         }
     }
 
