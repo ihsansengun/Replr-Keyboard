@@ -193,6 +193,9 @@ final class KeyboardViewController: UIInputViewController {
         }
         // Connection to host app is established by now — safe to read needsInputModeSwitchKey.
         model.needsGlobeKey = needsInputModeSwitchKey
+        // Check for a screenshot taken before the keyboard opened (within 5-minute window).
+        // captureBaselineScreenshotID was already set in viewWillAppear.
+        model.activateScreenshotChip()
         // documentContextBeforeInput is unreliable until the proxy fully connects;
         // a short delay ensures we read the actual pre-existing draft text.
         Task { @MainActor [weak self] in
