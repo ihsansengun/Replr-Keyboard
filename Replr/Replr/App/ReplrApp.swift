@@ -63,7 +63,7 @@ struct ReplrApp: App {
                         BackTapSetupFullView(isPresented: $showSetup)
                     }
                     .sheet(isPresented: $showTutorial) {
-                        UsageTutorialView(onDone: { showTutorial = false }, startTopic: tutorialTopic)
+                        UsageTutorialView(startTopic: tutorialTopic, onDone: { showTutorial = false })
                     }
                     .onOpenURL { url in
                         guard url.scheme == "replr" else { return }

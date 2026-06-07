@@ -615,7 +615,6 @@ struct OnboardingView: View {
 /// until the Lottie scenes are dropped in.
 struct UsageTutorialView: View {
     var onDone: () -> Void
-    var startTopic: String? = nil   // deep-link target, e.g. "steer" → open at the Steer step
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
@@ -710,7 +709,20 @@ struct UsageTutorialView: View {
                 body: "Optional: set up a triple-tap on the back of your phone to capture any screen — even dating profiles, where the keyboard can't open. Turn it on in Settings → Keyboard → Back Tap capture."),
     ]
 
-    @State private var page = 0
+    @State private var page: Int
+
+    /// `startTopic` (from a deep link like replr://tutorial/steer) opens the tutorial directly at
+    /// that step instead of from the beginning. Indices map to `steps` below — keep in sync.
+    init(startTopic: String? = nil, onDone: @escaping () -> Void) {
+        self.onDone = onDone
+        let idx: Int
+        switch startTopic {
+        case "steer":   idx = 5   // "Steer the reply"
+        case "backtap": idx = 6   // "Reply anywhere with Back Tap"
+        default:        idx = 0
+        }
+        _page = State(initialValue: idx)
+    }
 
     var body: some View {
         ZStack {
@@ -733,15 +745,6 @@ struct UsageTutorialView: View {
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.easeInOut(duration: 0.25), value: page)
-                .onAppear {
-                    // Deep-link target (e.g. "steer" from the keyboard's "Show me how") jumps
-                    // straight to that step instead of starting the whole tutorial over.
-                    guard let topic = startTopic,
-                          let i = steps.firstIndex(where: { $0.title.lowercased().contains(topic.lowercased()) }),
-                          page != i else { return }
-                    var tx = Transaction(); tx.disablesAnimations = true
-                    withTransaction(tx) { page = i }
-                }
 
                 HStack(spacing: 8) {
                     ForEach(steps.indices, id: \.self) { i in
