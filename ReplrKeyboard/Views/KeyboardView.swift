@@ -837,6 +837,72 @@ struct CreditCounterBadge: View {
     }
 }
 
+// MARK: - ScreenshotChipService
+// Inlined here (same reason as PhotosCapture below — keyboard target does not auto-include new files).
+
+/// Detects whether the `captureBaselineScreenshotID` — the newest screenshot that existed
+/// when the keyboard opened — was taken within the last 5 minutes. If so, surfaces it as a
+/// compact "📸 Screenshot detected" chip in the idle panel. The chip lives for 30 seconds;
+/// tapping it routes through the existing `generateFromScreenshot()` path unchanged.
+@MainActor
+final class ScreenshotChipService {
+    private weak var model: KeyboardModel?
+    private var dismissTimer: Timer?
+
+    init(model: KeyboardModel) { self.model = model }
+
+    /// Call from viewDidAppear, after captureBaselineScreenshotID is set.
+    /// Silently no-ops if Photos is not authorized, asset is too old, or asset was already consumed/dismissed.
+    func activate(baselineAssetID: String?) {
+        guard let id = baselineAssetID else { return }
+        guard id != AppGroupService.shared.lastConsumedScreenshotID else { return }
+        let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        guard status == .authorized || status == .limited else { return }
+        let assets = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil)
+        guard let asset = assets.firstObject,
+              let createdAt = asset.creationDate,
+              createdAt >= Date().addingTimeInterval(-5 * 60) else { return }
+        model?.pendingScreenshotChip = id
+        scheduleDismiss()
+    }
+
+    /// Called when user taps X. Marks the screenshot as consumed so it won't resurface.
+    func dismiss() {
+        cancelTimer()
+        if let id = model?.pendingScreenshotChip {
+            AppGroupService.shared.lastConsumedScreenshotID = id
+        }
+        model?.pendingScreenshotChip = nil
+    }
+
+    /// Called when user taps the chip body to generate. Returns the assetID to use.
+    /// Marks the screenshot as consumed and clears the chip.
+    func consume() -> String? {
+        cancelTimer()
+        guard let id = model?.pendingScreenshotChip else { return nil }
+        AppGroupService.shared.lastConsumedScreenshotID = id
+        model?.pendingScreenshotChip = nil
+        return id
+    }
+
+    // 30-second auto-dismiss: does NOT mark consumed — the user may reopen the keyboard
+    // and still want to use this screenshot.
+    private func scheduleDismiss() {
+        cancelTimer()
+        dismissTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: false) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.dismissTimer = nil
+                self?.model?.pendingScreenshotChip = nil
+            }
+        }
+    }
+
+    private func cancelTimer() {
+        dismissTimer?.invalidate()
+        dismissTimer = nil
+    }
+}
+
 // MARK: - PhotosCapture (Phase 1 — screenshot capture; run() kept for dev spike button)
 // Inlined here because the keyboard target does not auto-include new files.
 
