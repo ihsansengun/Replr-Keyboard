@@ -23,7 +23,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
 
     var isProductionModel: Bool {
         switch self {
-        case .gemini, .geminiFlash: return true   // user-facing: Gemini Pro (quality) + Flash (speed)
+        case .gemini, .gemini35Flash: return true   // user-facing: Gemini 3.5 Flash (default) + Pro (quality)
         default: return false
         }
     }
@@ -83,7 +83,7 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     }
 
     var apiModelID: String { rawValue }
-    static let defaultModel: ReplrModel = .gemini
+    static let defaultModel: ReplrModel = .gemini35Flash
 
     /// Approximate Arena Elo (human preference leaderboard) for display in dev picker.
     var arenaElo: String {

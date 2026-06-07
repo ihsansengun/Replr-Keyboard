@@ -358,12 +358,12 @@ struct SettingsView: View {
         settingsSection("AI Model") {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 0) {
-                    modelOption("gemini-3.1-pro-preview", label: "Gemini Pro", sublabel: "Best quality")
+                    modelOption("gemini-3.5-flash", label: "Gemini Flash", sublabel: "Recommended")
                     ReplrTheme.Color.glassBorder.frame(width: 1, height: 38)
-                    modelOption("gemini-3-flash-preview", label: "Gemini Flash", sublabel: "Faster")
+                    modelOption("gemini-3.1-pro-preview", label: "Gemini Pro", sublabel: "Best quality")
                 }
                 .padding(6)
-                Text("Pro thinks a little longer for sharper replies. Flash is quicker. Switch anytime.")
+                Text("Flash is quick and natural — great for most replies. Pro thinks a little longer for extra-sharp ones. Switch anytime.")
                     .font(.system(size: 12))
                     .foregroundStyle(ReplrTheme.Color.textTertiary)
                     .padding(.horizontal, 10)

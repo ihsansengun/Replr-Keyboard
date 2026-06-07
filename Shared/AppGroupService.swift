@@ -619,13 +619,13 @@ final class AppGroupService {
 
     /// User's production model choice (shown in Settings → AI Model). Default: Gemini 3.1 Pro (High).
     var userModel: String {
-        get { defaults.string(forKey: Constants.selectedModelKey) ?? "gemini-3.1-pro-preview" }
+        get { defaults.string(forKey: Constants.selectedModelKey) ?? "gemini-3.5-flash" }
         set { defaults.set(newValue, forKey: Constants.selectedModelKey); defaults.synchronize() }
     }
 
     /// Dev override model (only active when devMode=true). Can be any model in the expanded list.
     var devModel: String {
-        get { defaults.string(forKey: Constants.devModelKey) ?? "gemini-3.1-pro-preview" }
+        get { defaults.string(forKey: Constants.devModelKey) ?? "gemini-3.5-flash" }
         set { defaults.set(newValue, forKey: Constants.devModelKey); defaults.synchronize() }
     }
 
@@ -661,6 +661,9 @@ final class AppGroupService {
         case "gemini-3.1-pro-preview":   return 6
         case "gemini-3.1-pro-low":       return 6
         case "gemini-3-flash-preview":   return 3
+        case "gemini-3.5-flash":         return 4
+        case "gemini-3.1-flash-lite":    return 2
+        case "gemini-2.5-pro":           return 4
         case "grok-4":                   return 7
         case "grok-4.3":                 return 2
         case "gpt-5.4-mini":             return 2
@@ -678,6 +681,9 @@ final class AppGroupService {
         case "gemini-3.1-pro-preview": return "Pro High"
         case "gemini-3.1-pro-low":     return "Pro Low"
         case "gemini-3-flash-preview": return "Gemini Flash"
+        case "gemini-3.5-flash":      return "3.5 Flash"
+        case "gemini-3.1-flash-lite": return "Flash Lite"
+        case "gemini-2.5-pro":        return "2.5 Pro"
         case "grok-4":                return "Grok 4"
         case "grok-4.3":              return "Grok 4.3"
         case "gpt-5.4-mini":          return "5.4 Mini"
