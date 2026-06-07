@@ -10,6 +10,7 @@ struct ReplrApp: App {
     @State private var showSetup = false
     @State private var showPaywall = false
     @State private var showTutorial = false
+    @State private var tutorialTopic: String? = nil
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -62,7 +63,7 @@ struct ReplrApp: App {
                         BackTapSetupFullView(isPresented: $showSetup)
                     }
                     .sheet(isPresented: $showTutorial) {
-                        UsageTutorialView(onDone: { showTutorial = false })
+                        UsageTutorialView(onDone: { showTutorial = false }, startTopic: tutorialTopic)
                     }
                     .onOpenURL { url in
                         guard url.scheme == "replr" else { return }
@@ -72,6 +73,8 @@ struct ReplrApp: App {
                         case "setup":
                             showSetup = true
                         case "tutorial":
+                            // e.g. replr://tutorial/steer opens directly at the Steer step.
+                            tutorialTopic = url.path.isEmpty ? nil : url.lastPathComponent
                             showTutorial = true
                         case "paywall":
                             showPaywall = true

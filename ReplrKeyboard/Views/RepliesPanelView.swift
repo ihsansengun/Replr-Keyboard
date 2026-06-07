@@ -70,10 +70,15 @@ struct RepliesPanelView: View {
         // independently of the frame. Reported clamped so the keyboard fits the content when small
         // and caps when large (cards scroll past the cap — header + action row stay pinned).
         .onPreferenceChange(ContentHeightSumKey.self) { measured in
-            guard measured > 10, abs(measured - totalH) > 1 else { return }
+            // Take the MAX measured height for this render. The first layout pass on a fresh
+            // open-keyboard capture can land ~one line short; never let a transient small value
+            // win, so the keyboard settles UP to the true content height (and scrolls only past
+            // the cap). totalH is reset when the replies change (regenerate), so it re-measures.
+            guard measured > totalH + 0.5 else { return }
             totalH = measured
             reportHeight()
         }
+        .onChange(of: replies) { _ in totalH = 0 }
         .onAppear { reportHeight() }
         .overlay {
             if model.showConsentPrompt {

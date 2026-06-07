@@ -229,7 +229,7 @@ struct IdlePanelView: View {
                   title: "Steer the reply",
                   body: "Type your gist first — like \u{201C}ask her to dinner\u{201D} — then tap Start. Replr builds the reply around it.",
                   cta: "Show me how →",
-                  url: "replr://tutorial")
+                  url: "replr://tutorial/steer")
     }
 
     private func infoSlide(icon: String, title: String, body: String,
