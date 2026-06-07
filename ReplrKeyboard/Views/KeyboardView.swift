@@ -134,6 +134,17 @@ final class KeyboardModel: ObservableObject {
     func selectReply(_ text: String) { onReplySelected?(text) }
     func editReply(_ text: String) { onEditReply?(text) }
 
+    /// True when the panel is in its idle (capture-ready) state — used to arm the screenshot
+    /// watcher whenever the keyboard is open, not only after the user taps Start.
+    var isIdleState: Bool { if case .idle = state { return true } else { return false } }
+
+    /// User declined the auto-caught screenshot — clear it and advance the baseline so the same
+    /// shot won't be re-detected on the next poll.
+    func dismissDetectedScreenshot() {
+        if let id = detectedScreenshotID { captureBaselineScreenshotID = id }
+        detectedScreenshotID = nil
+    }
+
     /// Phase 1 — generate replies from the detected screenshot (mirrors generateEmailReply).
     func generateFromScreenshot() {
         guard let assetID = detectedScreenshotID else { return }

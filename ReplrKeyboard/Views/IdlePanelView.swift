@@ -15,7 +15,9 @@ struct IdlePanelView: View {
                 teachingPage = 0
                 withAnimation(.easeInOut(duration: 0.18)) { showTeachingPanel = true }
             })
-            if model.inputMode == .chat {
+            if model.detectedScreenshotID != nil {
+                screenshotReadyContent
+            } else if model.inputMode == .chat {
                 chatContent
             } else {
                 emailContent
@@ -85,6 +87,72 @@ struct IdlePanelView: View {
             .padding(.horizontal, 16)
         }
         .transition(.opacity)
+    }
+
+    /// Auto-caught screenshot (keyboard was open, user didn't tap Start). Mirrors the collapsed
+    /// "Screenshot ready" confirm: one tap to generate, plus a gentle nudge toward Start next time.
+    private var screenshotReadyContent: some View {
+        VStack(spacing: 10) {
+            Spacer(minLength: 0)
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(ReplrTheme.Color.accent)
+                        .frame(width: 64, height: 64)
+                        .blur(radius: 20)
+                        .opacity(colorScheme == .dark ? 0.30 : 0.16)
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 38))
+                        .foregroundStyle(ReplrTheme.Color.brandGradient)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Screenshot captured")
+                        .font(ReplrTheme.Font.serif(18, weight: .bold))
+                        .foregroundColor(ReplrTheme.Color.textPrimary)
+                    Text("We caught it — tap below for replies. Tip: tap Start first next time for a fuller capture.")
+                        .font(.system(size: 12.5))
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 16)
+
+            Button { model.generateFromScreenshot() } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: "sparkles").font(.system(size: 14, weight: .semibold))
+                    Text("Generate replies").font(.system(size: 16, weight: .semibold)).tracking(0.2)
+                }
+                .foregroundColor(ReplrTheme.Color.onAccent)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(
+                    Capsule(style: .continuous)
+                        .fill(ReplrTheme.Color.brandGradient)
+                        .overlay(ShimmerOverlay(cornerRadius: 22))
+                )
+                .shadow(
+                    color: colorScheme == .dark ? ReplrTheme.Color.accent.opacity(0.45) : .black.opacity(0.10),
+                    radius: colorScheme == .dark ? 14 : 6, x: 0, y: colorScheme == .dark ? 5 : 3
+                )
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 18)
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) { model.dismissDetectedScreenshot() }
+            } label: {
+                Text("Not now")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(ReplrTheme.Color.textTertiary)
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 1)
+
+            Spacer(minLength: 0)
+        }
+        .padding(.top, 12)
+        .padding(.bottom, 8)
     }
 
     /// Slide 1 — the capture flow + the Start CTA (the default landing slide).

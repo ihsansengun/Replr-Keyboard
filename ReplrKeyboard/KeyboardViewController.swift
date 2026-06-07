@@ -91,10 +91,11 @@ final class KeyboardViewController: UIInputViewController {
             .combineLatest(model.$isCaptureMode)
             .combineLatest(model.$inputMode)
             .combineLatest(model.$isCollapsed)
+            .combineLatest(model.$detectedScreenshotID)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] combined, isCollapsed in
+            .sink { [weak self] combined, detectedID in
                 guard let self else { return }
-                let ((state, isCaptureMode), inputMode) = combined
+                let (((state, isCaptureMode), inputMode), isCollapsed) = combined
                 if isCaptureMode {
                     self.setHeight(0, duration: 0.15)
                     return
@@ -108,7 +109,7 @@ final class KeyboardViewController: UIInputViewController {
                 }
                 let height: CGFloat
                 switch state {
-                case .idle:         height = inputMode == .email ? 224 : 300
+                case .idle:         height = (detectedID != nil) ? 300 : (inputMode == .email ? 224 : 300)
                 case .loading:      height = 310
                 case .error:        height = 240
                 case .paywall:      height = 280
@@ -144,6 +145,11 @@ final class KeyboardViewController: UIInputViewController {
         super.viewWillAppear(animated)
         model.isCaptureMode = false   // safety reset — ensures 0px collapse never gets stuck
         model.isCollapsed = false
+        // Arm the screenshot watcher from the moment the keyboard opens, so a screenshot taken
+        // with the keyboard still up (no Start tap) is still caught. Baseline = newest existing
+        // shot, so only a screenshot taken AFTER this point triggers a capture.
+        model.detectedScreenshotID = nil
+        model.captureBaselineScreenshotID = PhotosCapture.latestScreenshotID()
 
         // Resolve contact display name from App Group
         AppGroupService.shared.synchronize()
@@ -291,18 +297,22 @@ final class KeyboardViewController: UIInputViewController {
                     }
                 }
 
-                // Phase 1 — Photos watcher: arm on a screenshot newer than the collapse baseline
-                let (collapsed, alreadyDetected, baseline, collapsedAt) = await MainActor.run {
-                    (self.model.isCollapsed,
+                // Photos watcher: arm on a screenshot newer than the baseline. Watches whenever the
+                // keyboard is idle — after the user taps Start (collapsed) OR with the keyboard still
+                // open — so Start is optional and a screenshot is caught either way.
+                let (idle, collapsed, alreadyDetected, baseline, collapsedAt) = await MainActor.run {
+                    (self.model.isIdleState,
+                     self.model.isCollapsed,
                      self.model.detectedScreenshotID != nil,
                      self.model.captureBaselineScreenshotID,
                      self.model.collapseStartedAt)
                 }
-                if collapsed && !alreadyDetected {
+                if idle && !alreadyDetected {
                     if let latest = PhotosCapture.latestScreenshotID(), latest != baseline {
                         NSLog("[Replr][Keyboard] new screenshot detected: %@", latest)
                         await MainActor.run { self.model.detectedScreenshotID = latest }
-                    } else if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26,
+                    } else if collapsed,
+                              ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26,
                               let started = collapsedAt, Date().timeIntervalSince(started) > 5 {
                         await MainActor.run { self.model.showFullScreenPreviewHint = true }
                     }
