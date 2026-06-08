@@ -140,6 +140,7 @@ struct SettingsView: View {
     @State private var showBackTapSetup = false
     @State private var preferredCapture = AppGroupService.shared.preferredCapture
     @State private var aboutUser = AppGroupService.shared.aboutUser
+    @ObservedObject private var auth = AuthService.shared
     @FocusState private var aboutFocused: Bool
     #if DEBUG
     // Dev-only: re-trigger the onboarding flow for previewing (it's first-launch-gated).
@@ -514,14 +515,14 @@ struct SettingsView: View {
     private var accountSection: some View {
         settingsSection("Account") {
             // Signed-in identity
-            if let email = AuthService.shared.userEmail {
+            if let email = auth.userEmail {
                 settingsRow {
                     Image(systemName: "person.crop.circle")
-                        .foregroundColor(ReplrTheme.Color.accent)
+                        .foregroundStyle(ReplrTheme.Color.accent)
                         .frame(width: 28)
                     Text(email)
                         .font(.system(size: 15))
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
@@ -530,15 +531,15 @@ struct SettingsView: View {
 
             // Sign out
             Button {
-                AuthService.shared.signOut()
+                auth.signOut()
             } label: {
                 settingsRow {
                     Image(systemName: "rectangle.portrait.and.arrow.right")
-                        .foregroundColor(ReplrTheme.Color.danger)
+                        .foregroundStyle(ReplrTheme.Color.danger)
                         .frame(width: 28)
                     Text("Sign out")
                         .font(.system(size: 17))
-                        .foregroundColor(ReplrTheme.Color.danger)
+                        .foregroundStyle(ReplrTheme.Color.danger)
                 }
             }
             .buttonStyle(.plain)
