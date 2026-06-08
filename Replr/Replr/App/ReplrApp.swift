@@ -6,6 +6,8 @@ import AppIntents
 @main
 struct ReplrApp: App {
     @AppStorage("onboardingComplete") var onboardingComplete = false
+    @StateObject private var authService = AuthService.shared
+    @State private var signedIn: Bool = AuthService.shared.isSignedIn
     @State private var showCapture = false
     @State private var showSetup = false
     @State private var showPaywall = false
@@ -54,7 +56,12 @@ struct ReplrApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if onboardingComplete {
+            if !signedIn {
+                SignInView(onSuccess: { signedIn = true })
+                    .environmentObject(authService)
+            } else if !onboardingComplete {
+                OnboardingView(onComplete: { onboardingComplete = true })
+            } else {
                 ContentView()
                     .fullScreenCover(isPresented: $showCapture) {
                         CaptureView(isPresented: $showCapture)
@@ -102,8 +109,9 @@ struct ReplrApp: App {
                             CreditPacksView(showCloseButton: true)
                         }
                     }
-            } else {
-                OnboardingView(onComplete: { onboardingComplete = true })
+                    .onChange(of: authService.isSignedIn) { newValue in
+                        if !newValue { signedIn = false }
+                    }
             }
         }
     }
