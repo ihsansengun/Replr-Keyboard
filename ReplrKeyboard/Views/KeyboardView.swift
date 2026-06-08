@@ -295,10 +295,14 @@ final class KeyboardModel: ObservableObject {
                         summary: summary, previousContext: previousContext)
                 }
                 if !AppGroupService.shared.devMode { AppGroupService.shared.creditBalance -= required }
-                self.currentReplies = result.replies
+                // Accumulate: append new replies to whatever was showing before the loading state.
+                // The X button (regenerate()) still clears everything; this sparkles button adds more
+                // so the user can scroll through all options and pick.
+                let accumulated = self.currentReplies + result.replies
+                self.currentReplies = accumulated
                 self.repliesGeneratedInMode = isEmail ? .email : .chat
-                AppGroupService.shared.saveReplies(result.replies)
-                withAnimation(.easeInOut(duration: 0.2)) { self.state = .replies(result.replies) }
+                AppGroupService.shared.saveReplies(accumulated)
+                withAnimation(.easeInOut(duration: 0.2)) { self.state = .replies(accumulated) }
             } catch {
                 withAnimation { self.state = .error(error.localizedDescription) }
             }
