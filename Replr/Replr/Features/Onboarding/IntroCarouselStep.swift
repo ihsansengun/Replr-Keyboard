@@ -34,7 +34,7 @@ struct IntroCarouselStep: View {
                         .tag(1)
                     CarouselSlide(illustration: { AnyChatArt() },
                                   lead: "Works in ", highlight: "any chat", trail: ".",
-                                  sub: "Hinge, Instagram, iMessage. If you can screenshot it, Replr handles the reply.")
+                                  sub: "Screenshot any chat and Replr writes the reply. Every app, every platform.")
                         .tag(2)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
@@ -211,63 +211,73 @@ private struct ToneArt: View {
     }
 }
 
-/// Scattered app-name chips orbiting the Replr logo — "works in any chat".
-/// Chips stagger in on appear; the logo pulses gently to anchor the cluster.
+/// 3 × 3 grid of real app names with the Replr logo anchoring the centre.
+/// Chips cascade in from corners → edges; logo pops last and breathes.
 private struct AnyChatArt: View {
-    private struct Chip { let name: String; let offset: CGSize }
-    private let chips: [Chip] = [
-        Chip(name: "Hinge",     offset: CGSize(width: -88,  height: -54)),
-        Chip(name: "WhatsApp",  offset: CGSize(width: 78,   height: -60)),
-        Chip(name: "Instagram", offset: CGSize(width: -100, height: 10)),
-        Chip(name: "iMessage",  offset: CGSize(width: 84,   height: 14)),
-        Chip(name: "Tinder",    offset: CGSize(width: -66,  height: 74)),
-        Chip(name: "Slack",     offset: CGSize(width: 70,   height: 72)),
+    // nil = centre slot reserved for the Replr logo
+    private let rows: [[String?]] = [
+        ["Hinge",  "WhatsApp",  "Instagram"],
+        ["Tinder",  nil,         "iMessage" ],
+        ["Slack",  "Bumble",    "Gmail"    ],
     ]
-    @State private var shown = false
-    @State private var pulse = false
+    @State private var shown     = false
+    @State private var logoPulse = false
 
     var body: some View {
-        ZStack {
-            // App name chips
-            ForEach(chips.indices, id: \.self) { i in
-                Text(chips[i].name)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(ReplrTheme.Color.textSecondary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 7)
-                    .background(ReplrTheme.Color.surfaceRaised)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
-                    )
-                    .offset(chips[i].offset)
-                    .opacity(shown ? 1 : 0)
-                    .scaleEffect(shown ? 1 : 0.72)
-                    .animation(
-                        .spring(response: 0.45, dampingFraction: 0.78).delay(Double(i) * 0.07),
-                        value: shown
-                    )
+        VStack(spacing: 8) {
+            ForEach(rows.indices, id: \.self) { r in
+                HStack(spacing: 8) {
+                    ForEach(rows[r].indices, id: \.self) { c in
+                        if let name = rows[r][c] {
+                            let idx = r * 3 + c
+                            Text(name)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(ReplrTheme.Color.textSecondary)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 42)
+                                .background(ReplrTheme.Color.surfaceRaised)
+                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                                )
+                                .opacity(shown ? 1 : 0)
+                                .scaleEffect(shown ? 1 : 0.72)
+                                .animation(
+                                    .spring(response: 0.40, dampingFraction: 0.76)
+                                        .delay(Double(idx) * 0.055),
+                                    value: shown
+                                )
+                        } else {
+                            // Centre: Replr logo with accent border pulse
+                            Image("ReplrLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 48, height: 48)
+                                .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 13, style: .continuous)
+                                        .strokeBorder(
+                                            ReplrTheme.Color.accent.opacity(logoPulse ? 0.70 : 0.20),
+                                            lineWidth: 1.5
+                                        )
+                                )
+                                .scaleEffect(logoPulse ? 1.07 : 1.0)
+                                .shadow(color: ReplrTheme.Color.accent.opacity(0.25), radius: 12, x: 0, y: 0)
+                                .frame(maxWidth: .infinity, minHeight: 42)
+                                .animation(
+                                    .easeInOut(duration: 1.8).repeatForever(autoreverses: true),
+                                    value: logoPulse
+                                )
+                        }
+                    }
+                }
             }
-
-            // Replr logo — gentle breathing pulse
-            Image("ReplrLogo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 58, height: 58)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .strokeBorder(ReplrTheme.Color.accent.opacity(pulse ? 0.6 : 0.2), lineWidth: 1.5)
-                )
-                .scaleEffect(pulse ? 1.05 : 1.0)
-                .shadow(color: ReplrTheme.Color.accent.opacity(0.18), radius: 12, x: 0, y: 0)
-                .animation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true), value: pulse)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 20)
         .onAppear {
-            shown = true
-            pulse = true
+            shown     = true
+            logoPulse = true
         }
     }
 }
