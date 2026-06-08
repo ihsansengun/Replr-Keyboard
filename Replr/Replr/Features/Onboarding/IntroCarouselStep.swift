@@ -211,73 +211,113 @@ private struct ToneArt: View {
     }
 }
 
-/// 3 × 3 grid of real app names with the Replr logo anchoring the centre.
-/// Chips cascade in from corners → edges; logo pops last and breathes.
+/// A single chat card that cycles through three app contexts (iMessage → Hinge → WhatsApp).
+/// Each cycle: incoming message fades in → Replr reply slides up → crossfade to next app.
+/// No brand logos required — only text, a coloured dot, and brand-adjacent accent colours.
 private struct AnyChatArt: View {
-    // nil = centre slot reserved for the Replr logo
-    private let rows: [[String?]] = [
-        ["Hinge",  "WhatsApp",  "Instagram"],
-        ["Tinder",  nil,         "iMessage" ],
-        ["Slack",  "Bumble",    "Gmail"    ],
+    private struct AppCtx {
+        let name: String
+        let accent: Color
+        let message: String
+        let reply: String
+    }
+
+    private let contexts: [AppCtx] = [
+        AppCtx(name: "iMessage",
+               accent: Color(red: 0.04, green: 0.52, blue: 1.00),
+               message: "You free this weekend?",
+               reply:   "Yeah! What'd you have in mind? 😊"),
+        AppCtx(name: "Hinge",
+               accent: Color(red: 0.91, green: 0.28, blue: 0.18),
+               message: "Your dog is adorable 🐶",
+               reply:   "Ha, he thinks so too. Want to meet him?"),
+        AppCtx(name: "WhatsApp",
+               accent: Color(red: 0.15, green: 0.83, blue: 0.40),
+               message: "Dinner still on tonight?",
+               reply:   "Absolutely. 7:30 work for you?"),
     ]
-    @State private var shown     = false
-    @State private var logoPulse = false
+
+    @State private var active    = 0
+    @State private var showReply = false
+    @State private var showCtx   = true
+
+    private var ctx: AppCtx { contexts[active] }
 
     var body: some View {
-        VStack(spacing: 8) {
-            ForEach(rows.indices, id: \.self) { r in
-                HStack(spacing: 8) {
-                    ForEach(rows[r].indices, id: \.self) { c in
-                        if let name = rows[r][c] {
-                            let idx = r * 3 + c
-                            Text(name)
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(ReplrTheme.Color.textSecondary)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 42)
-                                .background(ReplrTheme.Color.surfaceRaised)
-                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                        .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
-                                )
-                                .opacity(shown ? 1 : 0)
-                                .scaleEffect(shown ? 1 : 0.72)
-                                .animation(
-                                    .spring(response: 0.40, dampingFraction: 0.76)
-                                        .delay(Double(idx) * 0.055),
-                                    value: shown
-                                )
-                        } else {
-                            // Centre: Replr logo with accent border pulse
-                            Image("ReplrLogo")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 48, height: 48)
-                                .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 13, style: .continuous)
-                                        .strokeBorder(
-                                            ReplrTheme.Color.accent.opacity(logoPulse ? 0.70 : 0.20),
-                                            lineWidth: 1.5
-                                        )
-                                )
-                                .scaleEffect(logoPulse ? 1.07 : 1.0)
-                                .shadow(color: ReplrTheme.Color.accent.opacity(0.25), radius: 12, x: 0, y: 0)
-                                .frame(maxWidth: .infinity, minHeight: 42)
-                                .animation(
-                                    .easeInOut(duration: 1.8).repeatForever(autoreverses: true),
-                                    value: logoPulse
-                                )
-                        }
-                    }
-                }
+        VStack(alignment: .leading, spacing: 10) {
+
+            // ── App context label (coloured dot + name) ─────────────
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(ctx.accent)
+                    .frame(width: 8, height: 8)
+                Text(ctx.name)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(ctx.accent)
+                Spacer()
             }
+            .opacity(showCtx ? 1 : 0)
+            .animation(.easeInOut(duration: 0.25), value: showCtx)
+
+            // ── Incoming message bubble ──────────────────────────────
+            Text(ctx.message)
+                .font(.system(size: 14))
+                .foregroundStyle(ReplrTheme.Color.textPrimary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(ReplrTheme.Color.surfaceRaised)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .opacity(showCtx ? 1 : 0)
+                .animation(.easeInOut(duration: 0.25), value: showCtx)
+
+            // ── Replr reply chip ─────────────────────────────────────
+            HStack(spacing: 6) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 12, weight: .semibold))
+                Text(ctx.reply)
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .foregroundStyle(ReplrTheme.Color.onAccent)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(Capsule().fill(ReplrTheme.Color.brandGradient))
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .opacity(showReply ? 1 : 0)
+            .offset(y: showReply ? 0 : 10)
+            .animation(.spring(response: 0.45, dampingFraction: 0.80), value: showReply)
         }
-        .padding(.horizontal, 20)
-        .onAppear {
-            shown     = true
-            logoPulse = true
+        .padding(20)
+        .frame(width: 290)
+        .background(ReplrTheme.Color.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
+        )
+        .task {
+            while !Task.isCancelled {
+                // Show reply after an initial beat
+                try? await Task.sleep(nanoseconds: 700_000_000)
+                withAnimation { showReply = true }
+
+                // Hold so the user can read the reply
+                try? await Task.sleep(nanoseconds: 1_900_000_000)
+
+                // Fade everything out
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    showReply = false
+                    showCtx   = false
+                }
+                try? await Task.sleep(nanoseconds: 320_000_000)
+
+                // Swap to next context while invisible
+                active = (active + 1) % contexts.count
+
+                // Fade new context in
+                withAnimation(.easeInOut(duration: 0.25)) { showCtx = true }
+                try? await Task.sleep(nanoseconds: 320_000_000)
+            }
         }
     }
 }
