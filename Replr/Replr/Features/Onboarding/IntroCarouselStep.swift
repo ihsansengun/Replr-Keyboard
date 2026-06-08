@@ -16,7 +16,7 @@ struct IntroCarouselStep: View {
                     Button(action: onDone) {
                         Text("Skip")
                             .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(ReplrTheme.Color.textTertiary)
+                            .foregroundStyle(ReplrTheme.Color.textTertiary)
                     }
                     .buttonStyle(.plain)
                 }
@@ -26,27 +26,18 @@ struct IntroCarouselStep: View {
                 TabView(selection: $page) {
                     CarouselSlide(illustration: { CaptureReplyArt() },
                                   lead: "Never stare at a ", highlight: "blank reply", trail: ".",
-                                  sub: "Screenshot any chat — Replr reads it and drafts your reply in seconds.")
+                                  sub: "Screenshot any chat. Replr reads it and writes your reply in seconds.")
                         .tag(0)
                     CarouselSlide(illustration: { ToneArt() },
                                   lead: "Replies in ", highlight: "your tone", trail: ".",
-                                  sub: "Flirty, casual, professional — pick a vibe and every reply matches it.")
+                                  sub: "Pick a vibe once and every reply matches it. Flirty, casual, direct.")
                         .tag(1)
                     CarouselSlide(illustration: { AnyChatArt() },
                                   lead: "Works in ", highlight: "any chat", trail: ".",
-                                  sub: "Even on profiles where the keyboard can't open — a triple-tap captures the screen.")
+                                  sub: "Works in any app. Even on profiles. Just screenshot and Replr handles it.")
                         .tag(2)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-
-                HStack(spacing: 7) {
-                    ForEach(0..<count, id: \.self) { i in
-                        Circle()
-                            .fill(i == page ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary.opacity(0.25))
-                            .frame(width: i == page ? 8 : 7, height: i == page ? 8 : 7)
-                    }
-                }
-                .animation(.easeInOut(duration: 0.2), value: page)
                 .padding(.bottom, 20)
 
                 PrimaryButton(label: page == count - 1 ? "Get started →" : "Next →") {
@@ -72,15 +63,15 @@ private struct CarouselSlide<Art: View>: View {
             illustration().frame(height: 200)
             VStack(spacing: 12) {
                 (Text(lead)
-                 + Text(highlight).foregroundColor(ReplrTheme.Color.accent)
+                 + Text(highlight).foregroundStyle(ReplrTheme.Color.accent)
                  + Text(trail))
                     .font(ReplrTheme.Font.serif(32, weight: .bold))
-                    .foregroundColor(ReplrTheme.Color.textPrimary)
+                    .foregroundStyle(ReplrTheme.Color.textPrimary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(sub)
                     .font(ReplrTheme.Font.callout)
-                    .foregroundColor(ReplrTheme.Color.textSecondary)
+                    .foregroundStyle(ReplrTheme.Color.textSecondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -99,7 +90,7 @@ private struct CaptureReplyArt: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Hey! Are we still on for Friday?")
                 .font(.system(size: 14))
-                .foregroundColor(ReplrTheme.Color.textPrimary)
+                .foregroundStyle(ReplrTheme.Color.textPrimary)
                 .padding(.horizontal, 14).padding(.vertical, 10)
                 .background(ReplrTheme.Color.surfaceRaised)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -109,7 +100,7 @@ private struct CaptureReplyArt: View {
                 Image(systemName: "sparkles").font(.system(size: 12, weight: .semibold))
                 Text("Wouldn't miss it — 7pm?").font(.system(size: 14, weight: .medium))
             }
-            .foregroundColor(ReplrTheme.Color.onAccent)
+            .foregroundStyle(ReplrTheme.Color.onAccent)
             .padding(.horizontal, 14).padding(.vertical, 10)
             .background(Capsule().fill(ReplrTheme.Color.brandGradient))
             .frame(maxWidth: .infinity, alignment: .trailing)
@@ -136,7 +127,7 @@ private struct ToneArt: View {
             ForEach(Array(tones.enumerated()), id: \.offset) { i, t in
                 Text(t)
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(i == 0 ? ReplrTheme.Color.onAccent : ReplrTheme.Color.textSecondary)
+                    .foregroundStyle(i == 0 ? ReplrTheme.Color.onAccent : ReplrTheme.Color.textSecondary)
                     .padding(.horizontal, 22).frame(height: 44)
                     .background(
                         Capsule().fill(i == 0
@@ -160,7 +151,7 @@ private struct AnyChatArt: View {
             ForEach(0..<symbols.count, id: \.self) { i in
                 Image(systemName: symbols[i])
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(ReplrTheme.Color.accent)
+                    .foregroundStyle(ReplrTheme.Color.accent)
                     .frame(width: 54, height: 54)
                     .background(Circle().fill(ReplrTheme.Color.surfaceRaised))
                     .overlay(Circle().stroke(ReplrTheme.Color.glassBorder, lineWidth: 1))
