@@ -170,6 +170,11 @@ final class KeyboardModel: ObservableObject {
             withAnimation(.easeInOut(duration: 0.2)) { isCollapsed = false; state = .paywall }
             return
         }
+        // Discard any stale App Group replies/errors from a previous intent run. Without this,
+        // the poll could consume them ~250 ms later, force-uncollapse with stale data, and
+        // race against this in-keyboard generation — producing a broken or duplicate state.
+        _ = AppGroupService.shared.consumeReplies()
+        _ = AppGroupService.shared.consumeError()
         // Mark consumed immediately — the screenshot has been committed for generation.
         // If generation fails, the retry uses the App Group screenshot file, not Photos.
         // This also prevents the "Screenshot captured" panel from resurfacing on keyboard reopen.
@@ -295,10 +300,10 @@ final class KeyboardModel: ObservableObject {
                         summary: summary, previousContext: previousContext)
                 }
                 if !AppGroupService.shared.devMode { AppGroupService.shared.creditBalance -= required }
-                // Accumulate: append new replies to whatever was showing before the loading state.
+                // Accumulate: prepend new replies so the freshest results are always at the top.
                 // The X button (regenerate()) still clears everything; this sparkles button adds more
                 // so the user can scroll through all options and pick.
-                let accumulated = self.currentReplies + result.replies
+                let accumulated = result.replies + self.currentReplies
                 self.currentReplies = accumulated
                 self.repliesGeneratedInMode = isEmail ? .email : .chat
                 AppGroupService.shared.saveReplies(accumulated)
@@ -684,12 +689,16 @@ struct KeyboardHeader: View {
     var isSegmentedDisabled: Bool = false
     var isToneHidden: Bool = false
     var isToneDimmed: Bool = false
+    /// Hide the Chat/Email segmented control row entirely. Used in replies state to reclaim
+    /// ~44 px of vertical space — the mode is already locked once replies are showing.
+    var isModeHidden: Bool = false
     /// When provided (idle state only), shows a sliders button that opens the how-to overlay.
     var onOpenSettings: (() -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 0) {
+            if !isModeHidden {
+                HStack(spacing: 0) {
                 if let onOpenSettings {
                     Button(action: onOpenSettings) {
                         Image(systemName: "slider.horizontal.3")
@@ -746,6 +755,7 @@ struct KeyboardHeader: View {
             .padding(.horizontal, 16)
             .padding(.top, 8)
             .padding(.bottom, 8)
+            } // end if !isModeHidden
             if !isToneHidden {
                 ToneRow(model: model, isDimmed: isToneDimmed)
             }

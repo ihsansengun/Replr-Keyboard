@@ -17,7 +17,9 @@ struct LoadingPanelView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            KeyboardHeader(model: model, isToneDimmed: true)
+            // isModeHidden: same rationale as RepliesPanelView — saves ~44 px on
+            // apps that constrain keyboard height (e.g. WhatsApp).
+            KeyboardHeader(model: model, isToneDimmed: true, isModeHidden: true)
 
             // Skeleton reply cards — preview the shape of the replies that are on the way.
             skeletonCards

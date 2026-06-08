@@ -25,8 +25,11 @@ struct RepliesPanelView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Top chrome — pinned, always visible.
+            // isModeHidden: the Chat/Email mode is already fixed once replies are showing;
+            // hiding it reclaims ~44 px — critical on apps that constrain keyboard height
+            // (e.g. WhatsApp gives ~200 px, so every pixel of overhead costs card space).
             VStack(spacing: 0) {
-                KeyboardHeader(model: model)
+                KeyboardHeader(model: model, isModeHidden: true)
 
                 if let name = model.contactName { contactHeader(name) }
 

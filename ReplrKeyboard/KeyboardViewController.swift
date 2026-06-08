@@ -122,7 +122,7 @@ final class KeyboardViewController: UIInputViewController {
                         // Spacer(minLength: 0) flanking the content distributes the surplus equally → equal gutters.
                         height = inputMode == .email ? 308 : 300
                     }
-                case .loading:      height = 310
+                case .loading:      height = 265 // mode control hidden → ~44 px shorter than old 310
                 case .error:        height = 240
                 case .paywall:      height = 280
                 case .disambiguate: height = 300
