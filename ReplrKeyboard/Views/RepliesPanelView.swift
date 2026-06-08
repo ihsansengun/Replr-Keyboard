@@ -235,16 +235,22 @@ struct RepliesPanelView: View {
         }
     }
 
-    /// Compound action bar — one capsule, three zones separated by hairlines.
-    /// Left zone: gradient Insert (primary CTA, takes all remaining width).
-    /// Middle zone: Regenerate (✦ icon, fixed width).
-    /// Right zone: Reset (✕ icon, fixed width).
-    /// The Capsule clip rounds the outer corners; hairlines mark the zone boundaries.
-    /// Revert: git revert the commit tagged "ui: compound action bar"
+    /// Three-button action row — design-system correct per DESIGN.md.
+    ///
+    /// Insert reply: gradient Capsule + white inner stroke (kit signature) +
+    /// ShimmerOverlay (DESIGN.md's prescribed "premium cue" for accent CTAs) +
+    /// accentGlow + depth shadow — identical to PrimaryButtonStyle, adapted to
+    /// keyboard height (40 px vs the app's 48 px).
+    ///
+    /// "New": secondary ghost Capsule using adaptive textPrimary opacity tokens
+    /// (correct for both light and dark; SecondaryButtonStyle's white-only tokens
+    /// are dark-mode only). Renamed from "Regenerate" — shorter label, less crowding.
+    ///
+    /// Reset: same ghost Capsule, icon-only, fixed width.
     private var compoundBar: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 8) {
 
-            // ── Insert reply (gradient, full remaining width) ──────────────
+            // ── Insert reply ───────────────────────────────────────────────
             Button(action: { model.selectReply(currentReply) }) {
                 HStack(spacing: 6) {
                     Image(systemName: "arrow.up")
@@ -255,56 +261,57 @@ struct RepliesPanelView: View {
                         .minimumScaleFactor(0.9)
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: 44)
+                .frame(height: 40)
                 .padding(.horizontal, 16)
                 .foregroundColor(ReplrTheme.Color.onAccent)
-                .background(ReplrTheme.Color.brandGradient)
-                // Inner white overlay matches the glossy edge on the old standalone pill.
+                .background(Capsule().fill(ReplrTheme.Color.brandGradient))
+                // Kit signature: 1 px inner top highlight (from PrimaryButtonStyle).
                 .overlay(
-                    LinearGradient(
-                        colors: [Color.white.opacity(0.18), Color.clear],
-                        startPoint: .top, endPoint: .center
-                    )
+                    Capsule()
+                        .strokeBorder(Color.white.opacity(0.30), lineWidth: 1)
+                        .blendMode(.overlay)
+                )
+                // Premium cue: slow light sweep prescribed by DESIGN.md for accent CTAs.
+                .overlay(ShimmerOverlay(cornerRadius: 20))
+            }
+            .buttonStyle(.plain)
+            // Two-layer shadow: accent glow + depth — matches PrimaryButtonStyle exactly.
+            .shadow(color: ReplrTheme.Color.accentGlow, radius: 18, x: 0, y: 4)
+            .shadow(color: .black.opacity(0.35), radius: 6, x: 0, y: 2)
+            .accessibilityLabel("Insert reply")
+
+            // ── New (was "Regenerate") ─────────────────────────────────────
+            Button { model.regenerateReplies() } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("New")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(ReplrTheme.Color.textPrimary)
+                .padding(.horizontal, 14)
+                .frame(height: 40)
+                .background(Capsule().fill(ReplrTheme.Color.textPrimary.opacity(0.06)))
+                .overlay(
+                    Capsule().strokeBorder(ReplrTheme.Color.textPrimary.opacity(0.18), lineWidth: 1)
                 )
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Insert reply")
+            .accessibilityLabel("Generate new replies")
 
-            // Hairline between gradient and surface zones.
-            Color.white.opacity(0.22)
-                .frame(width: 0.5, height: 44)
-
-            // ── Regenerate (sparkles icon) ─────────────────────────────────
-            Button { model.regenerateReplies() } label: {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(ReplrTheme.Color.textPrimary)
-                    .frame(width: 50, height: 44)
-                    .background(ReplrTheme.Color.surface)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Regenerate replies")
-
-            // Hairline between the two surface zones.
-            ReplrTheme.Color.glassBorder
-                .frame(width: 0.5, height: 44)
-
-            // ── Reset (xmark icon) ─────────────────────────────────────────
+            // ── Reset ──────────────────────────────────────────────────────
             Button { model.regenerate() } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(ReplrTheme.Color.textSecondary)
-                    .frame(width: 44, height: 44)
-                    .background(ReplrTheme.Color.surface)
+                    .frame(width: 40, height: 40)
+                    .background(Capsule().fill(ReplrTheme.Color.textPrimary.opacity(0.06)))
+                    .overlay(
+                        Capsule().strokeBorder(ReplrTheme.Color.textPrimary.opacity(0.18), lineWidth: 1)
+                    )
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Reset")
         }
-        .clipShape(Capsule())
-        .overlay(
-            Capsule()
-                .strokeBorder(ReplrTheme.Color.accentGlow.opacity(0.55), lineWidth: 1)
-        )
-        .shadow(color: ReplrTheme.Color.accentGlow.opacity(0.6), radius: 10, x: 0, y: 2)
     }
 }
