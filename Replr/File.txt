@@ -1,0 +1,1 @@
+The second is that it's still signing is failed. It says Treyagin. I'm sharing the log from the Xcode. 

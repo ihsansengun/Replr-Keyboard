@@ -4,7 +4,7 @@ import { validateAppleToken } from '../services/auth'
 
 export const authRoute = new Hono<{ Bindings: Env }>()
 
-const APPLE_AUDIENCE = 'com.ihsan.replr'
+const APPLE_AUDIENCE = 'Theory-of-Web.Replr'
 const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60  // 30 days
 
 authRoute.post('/apple', async (c) => {

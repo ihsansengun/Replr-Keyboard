@@ -17,31 +17,43 @@ struct SignInView: View {
             VStack(spacing: 0) {
                 Spacer()
 
-                // App icon + wordmark
-                VStack(spacing: ReplrTheme.Spacing.lg) {
-                    // Actual app icon in a rounded rect (matches home screen appearance)
-                    Image("AppIcon")
+                // ── Brand mark ────────────────────────────────────────────────
+                ZStack {
+                    // Gradient aura behind the icon — makes the brand gradient prominent
+                    ReplrTheme.Color.brandGradient
+                        .blur(radius: 52)
+                        .frame(width: 260, height: 260)
+                        .opacity(colorScheme == .dark ? 0.38 : 0.22)
+
+                    // App icon (gradient bg + white bird, baked in); shown with iOS-standard
+                    // squircle radius (~22pt for 112pt side).
+                    Image("ReplrLogo")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 96, height: 96)
-                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                        .shadow(color: ReplrTheme.Color.accentGlow, radius: 16, y: 6)
+                        .frame(width: 112, height: 112)
+                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .shadow(color: .black.opacity(colorScheme == .dark ? 0.35 : 0.15),
+                                radius: 16, y: 6)
+                }
 
-                    VStack(spacing: ReplrTheme.Spacing.sm) {
-                        Text("Replr")
-                            .font(ReplrTheme.Font.serif(36, weight: .bold))
-                            .foregroundStyle(ReplrTheme.Color.textPrimary)
+                Spacer().frame(height: ReplrTheme.Spacing.xl)
 
-                        Text("AI-powered replies, instantly.")
-                            .font(ReplrTheme.Font.callout)
-                            .foregroundStyle(ReplrTheme.Color.textSecondary)
-                            .multilineTextAlignment(.center)
-                    }
+                // ── Wordmark ──────────────────────────────────────────────────
+                VStack(spacing: ReplrTheme.Spacing.xs) {
+                    Text("Replr")
+                        .font(ReplrTheme.Font.serif(36, weight: .bold))
+                        .foregroundStyle(ReplrTheme.Color.textPrimary)
+
+                    Text("AI-powered replies, instantly.")
+                        .font(ReplrTheme.Font.callout)
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                        .multilineTextAlignment(.center)
                 }
 
                 Spacer()
+                Spacer()
 
-                // Sign-in controls
+                // ── Sign-in controls ──────────────────────────────────────────
                 VStack(spacing: ReplrTheme.Spacing.md) {
                     if let error = errorMessage {
                         Text(error)
@@ -58,8 +70,8 @@ struct SignInView: View {
                     }
                     .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
                     .frame(height: 52)
-                    .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.lg, style: .continuous))
-                    .padding(.horizontal, ReplrTheme.Spacing.xxl)
+                    .clipShape(Capsule())
+                    .padding(.horizontal, ReplrTheme.Spacing.screenMarginApp)
 
                     Text("Your email is only used to help with account support.\nWe never send marketing emails.")
                         .font(ReplrTheme.Font.caption)
@@ -83,10 +95,9 @@ struct SignInView: View {
     private func handleResult(_ result: Result<ASAuthorization, Error>) {
         if case .failure(let err) = result {
             if (err as? ASAuthorizationError)?.code == .canceled { return }
-            // Show the actual Apple error for easier debugging
             let appleCode = (err as? ASAuthorizationError)?.code.rawValue
             errorMessage = appleCode != nil
-                ? "Sign in failed (code \(appleCode!)). Make sure Sign in with Apple is enabled for this app in Settings."
+                ? "Sign in failed (code \(appleCode!)). Check Settings → Apple ID → Password & Security → Apps Using Apple ID."
                 : "Sign in failed. Please try again."
             return
         }
