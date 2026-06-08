@@ -217,22 +217,22 @@ struct RepliesView: View {
                 Circle()
                     .fill(ReplrTheme.Color.accentSubtle)
                     .frame(width: 72, height: 72)
-                Image(systemName: “camera.viewfinder”)
+                Image(systemName: "camera.viewfinder")
                     .font(.system(size: 32))
                     .foregroundStyle(ReplrTheme.Color.accent)
             }
             VStack(spacing: 6) {
-                Text(“Ready for your first reply”)
+                Text("Ready for your first reply")
                     .font(ReplrTheme.Font.heading)
                     .foregroundStyle(ReplrTheme.Color.textPrimary)
-                Text(“Here's how to capture a chat:”)
+                Text("Here's how to capture a chat:")
                     .font(ReplrTheme.Font.callout)
                     .foregroundStyle(ReplrTheme.Color.textSecondary)
             }
             VStack(alignment: .leading, spacing: 14) {
-                emptyHowToRow(“1”, “Open a chat and switch to the Replr keyboard (🌐).”)
-                emptyHowToRow(“2”, “Tap “Start capture”, then take a screenshot of the chat.”)
-                emptyHowToRow(“3”, “Your replies show up here — and in the keyboard to tap in.”)
+                emptyHowToRow("1", "Open a chat and switch to the Replr keyboard (🌐).")
+                emptyHowToRow("2", "Tap \u{201C}Start\u{201D}, then screenshot the chat.")
+                emptyHowToRow("3", "Your replies show up here — and in the keyboard to tap in.")
             }
             .padding(.horizontal, 28)
             Spacer()
