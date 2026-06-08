@@ -6,6 +6,7 @@ struct SignInView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var signInTask: Task<Void, Never>? = nil
 
     /// Called by the parent (ReplrApp) when sign-in succeeds.
     var onSuccess: () -> Void
@@ -18,7 +19,7 @@ struct SignInView: View {
                 Spacer()
 
                 // Branding
-                VStack(spacing: 14) {
+                VStack(spacing: ReplrTheme.Spacing.lg) {
                     Image(systemName: "bubble.left.and.bubble.right.fill")
                         .font(.system(size: 60))
                         .foregroundStyle(ReplrTheme.Color.brandGradient)
@@ -28,7 +29,7 @@ struct SignInView: View {
                         .foregroundColor(ReplrTheme.Color.textPrimary)
 
                     Text("AI reply suggestions — for any conversation.")
-                        .font(.system(size: 16))
+                        .font(ReplrTheme.Font.callout)
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 32)
@@ -37,11 +38,11 @@ struct SignInView: View {
                 Spacer()
 
                 // Sign in area
-                VStack(spacing: 14) {
+                VStack(spacing: ReplrTheme.Spacing.lg) {
                     if let error = errorMessage {
                         Text(error)
-                            .font(.system(size: 14))
-                            .foregroundColor(.red)
+                            .font(ReplrTheme.Font.footnote)
+                            .foregroundColor(ReplrTheme.Color.danger)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 24)
                     }
@@ -57,7 +58,7 @@ struct SignInView: View {
                     .padding(.horizontal, 24)
 
                     Text("Your email is used only for account support. We don't send marketing emails.")
-                        .font(.system(size: 12))
+                        .font(ReplrTheme.Font.caption)
                         .foregroundColor(ReplrTheme.Color.textTertiary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 32)
@@ -69,6 +70,9 @@ struct SignInView: View {
                 Color.black.opacity(0.35).ignoresSafeArea()
                 ProgressView().tint(.white).scaleEffect(1.3)
             }
+        }
+        .onDisappear {
+            signInTask?.cancel()
         }
     }
 
@@ -98,7 +102,7 @@ struct SignInView: View {
         isLoading = true
         errorMessage = nil
 
-        Task {
+        signInTask = Task {
             do {
                 try await authService.signIn(identityToken: identityToken, email: email, name: name)
                 onSuccess()
