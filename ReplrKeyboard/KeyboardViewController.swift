@@ -7,7 +7,6 @@ final class KeyboardViewController: UIInputViewController {
     private var capturePollingTask: Task<Void, Never>?
     private var heightConstraint: NSLayoutConstraint!
     private var lastRepliesContentHeight: CGFloat = 500  // last measured replies height (placeholder until measured)
-    private var lastEmailIdleHeight: CGFloat = 300       // last measured email-idle height (placeholder until measured)
     private var autoSwitchTask: DispatchWorkItem?
     private var stateCancellable: AnyCancellable?
     private var collapseCancellable: AnyCancellable?
@@ -69,18 +68,6 @@ final class KeyboardViewController: UIInputViewController {
             self.lastRepliesContentHeight = clamped
             self.setHeight(clamped, duration: 0.15)
         }
-        model.onEmailHeightChanged = { [weak self] height in
-            // IdlePanelView.emailContent measures its natural content height and reports card+chrome
-            // total here. Remember it so the state machine can use it on the next email-idle entry,
-            // and resize immediately if we're currently in email-idle.
-            guard let self else { return }
-            let clamped = min(400, max(260, height))
-            self.lastEmailIdleHeight = clamped
-            if case .idle = self.model.state, self.model.inputMode == .email {
-                self.setHeight(clamped, duration: 0.15)
-            }
-        }
-
         let adaptiveBg = UIColor { tc in
             tc.userInterfaceStyle == .dark
                 ? UIColor(red: 0.082, green: 0.063, blue: 0.102, alpha: 1) // #15101A
@@ -131,7 +118,9 @@ final class KeyboardViewController: UIInputViewController {
                     if detectedID != nil {
                         height = 300
                     } else {
-                        height = inputMode == .email ? self.lastEmailIdleHeight : 300
+                        // 308 = content (~164px) + spacer room (~36px) + header (~90px) + card padding (16px) + margin (2px).
+                        // Spacer(minLength: 0) flanking the content distributes the surplus equally → equal gutters.
+                        height = inputMode == .email ? 308 : 300
                     }
                 case .loading:      height = 310
                 case .error:        height = 240

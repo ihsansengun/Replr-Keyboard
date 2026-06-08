@@ -54,7 +54,6 @@ final class KeyboardModel: ObservableObject {
     var onEditReply: ((String) -> Void)?
     var retryTrigger: (() -> Void)?
     var onContentHeightChanged: ((CGFloat) -> Void)?
-    var onEmailHeightChanged: ((CGFloat) -> Void)?
     var onOpenContainingApp: ((String) -> Void)?   // attempt to open the Replr app via a URL scheme
 
     enum CreditDisplay: Equatable {

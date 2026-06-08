@@ -309,79 +309,73 @@ struct IdlePanelView: View {
     // MARK: - Email idle
 
     private var emailContent: some View {
-        // Wrap the fixed-size content in a ZStack so it's vertically centered in the card
-        // without Spacers (Spacers fill the container and make natural-height measurement
-        // impossible). The GeometryReader on the inner VStack measures its true intrinsic
-        // height so we can tell the ViewController exactly how tall the keyboard needs to be.
-        ZStack {
-            VStack(spacing: 10) {
-                ZStack {
-                    Circle()
-                        .fill(ReplrTheme.Color.accent)
-                        .frame(width: 56, height: 56)
-                        .blur(radius: 18)
-                        .opacity(colorScheme == .dark ? 0.28 : 0.14)
-                    Image(systemName: "envelope.fill")
-                        .font(.system(size: 26, weight: .regular))
+        // Two Spacer(minLength: 0) flanking the content guarantee perfectly equal top
+        // and bottom gutters regardless of the card height: extra space is split evenly.
+        // The keyboard height for this mode is calibrated in KeyboardViewController so
+        // the card always has more space than the content needs.
+        VStack(spacing: 10) {
+            Spacer(minLength: 0)
+
+            ZStack {
+                Circle()
+                    .fill(ReplrTheme.Color.accent)
+                    .frame(width: 56, height: 56)
+                    .blur(radius: 18)
+                    .opacity(colorScheme == .dark ? 0.28 : 0.14)
+                Image(systemName: "envelope.fill")
+                    .font(.system(size: 26, weight: .regular))
+                    .foregroundColor(ReplrTheme.Color.accent)
+            }
+            Text("Reply to any email")
+                .font(ReplrTheme.Font.serif(18, weight: .bold))
+                .foregroundColor(ReplrTheme.Color.textPrimary)
+
+            Button { model.generateEmailReply() } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: hasClipboardText ? "doc.on.clipboard.fill" : "doc.on.clipboard")
+                        .font(.system(size: 13, weight: .semibold))
+                    Text("Generate from clipboard")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(hasClipboardText ? ReplrTheme.Color.onAccent : ReplrTheme.Color.accent.opacity(0.40))
+                .padding(.horizontal, 24)
+                .frame(height: 40)
+                .background(
+                    Capsule(style: .continuous)
+                        .fill(hasClipboardText
+                              ? AnyShapeStyle(ReplrTheme.Color.brandGradient)
+                              : AnyShapeStyle(ReplrTheme.Color.surface))
+                        .overlay(hasClipboardText ? ShimmerOverlay(cornerRadius: 20) : nil)
+                )
+                .overlay(
+                    Capsule(style: .continuous)
+                        .strokeBorder(hasClipboardText ? Color.clear : ReplrTheme.Color.accent.opacity(0.25), lineWidth: 1)
+                )
+                .shadow(
+                    color: colorScheme == .dark
+                        ? ReplrTheme.Color.accent.opacity(hasClipboardText ? 0.45 : 0)
+                        : .black.opacity(hasClipboardText ? 0.10 : 0),
+                    radius: colorScheme == .dark ? 14 : 6,
+                    x: 0, y: colorScheme == .dark ? 5 : 3
+                )
+            }
+            .buttonStyle(.plain)
+            .disabled(!hasClipboardText)
+            .padding(.horizontal, 16)
+
+            HStack(spacing: 4) {
+                if hasClipboardText {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 11))
                         .foregroundColor(ReplrTheme.Color.accent)
                 }
-                Text("Reply to any email")
-                    .font(ReplrTheme.Font.serif(18, weight: .bold))
-                    .foregroundColor(ReplrTheme.Color.textPrimary)
-
-                Button { model.generateEmailReply() } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: hasClipboardText ? "doc.on.clipboard.fill" : "doc.on.clipboard")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text("Generate from clipboard")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .foregroundColor(hasClipboardText ? ReplrTheme.Color.onAccent : ReplrTheme.Color.accent.opacity(0.40))
-                    .padding(.horizontal, 24)
-                    .frame(height: 40)
-                    .background(
-                        Capsule(style: .continuous)
-                            .fill(hasClipboardText
-                                  ? AnyShapeStyle(ReplrTheme.Color.brandGradient)
-                                  : AnyShapeStyle(ReplrTheme.Color.surface))
-                            .overlay(hasClipboardText ? ShimmerOverlay(cornerRadius: 20) : nil)
-                    )
-                    .overlay(
-                        Capsule(style: .continuous)
-                            .strokeBorder(hasClipboardText ? Color.clear : ReplrTheme.Color.accent.opacity(0.25), lineWidth: 1)
-                    )
-                    .shadow(
-                        color: colorScheme == .dark
-                            ? ReplrTheme.Color.accent.opacity(hasClipboardText ? 0.45 : 0)
-                            : .black.opacity(hasClipboardText ? 0.10 : 0),
-                        radius: colorScheme == .dark ? 14 : 6,
-                        x: 0, y: colorScheme == .dark ? 5 : 3
-                    )
-                }
-                .buttonStyle(.plain)
-                .disabled(!hasClipboardText)
-                .padding(.horizontal, 16)
-
-                HStack(spacing: 4) {
-                    if hasClipboardText {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 11))
-                            .foregroundColor(ReplrTheme.Color.accent)
-                    }
-                    Text(hasClipboardText ? "Email ready — tap to generate" : "Copy an email, then tap to generate")
-                        .font(ReplrTheme.Font.caption)
-                        .foregroundColor(hasClipboardText ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
-                }
-                .animation(.easeInOut(duration: 0.2), value: hasClipboardText)
+                Text(hasClipboardText ? "Email ready — tap to generate" : "Copy an email, then tap to generate")
+                    .font(ReplrTheme.Font.caption)
+                    .foregroundColor(hasClipboardText ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
             }
-            .padding(.vertical, 14)
-            .frame(maxWidth: .infinity)
-            // Measures this VStack's intrinsic height (not the container's height).
-            .background(
-                GeometryReader { geo in
-                    Color.clear.preference(key: EmailIdleHeightKey.self, value: geo.size.height)
-                }
-            )
+            .animation(.easeInOut(duration: 0.2), value: hasClipboardText)
+
+            Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(brandedSurface)
@@ -400,19 +394,8 @@ struct IdlePanelView: View {
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 8)
-        // card content height + KeyboardHeader (~88px: mode row + tone row) + card outer padding (8+8).
-        .onPreferenceChange(EmailIdleHeightKey.self) { cardH in
-            guard cardH > 10 else { return }
-            model.onEmailHeightChanged?(cardH + 88 + 16)
-        }
         .onAppear { hasClipboardText = UIPasteboard.general.hasStrings }
     }
-}
-
-// Accumulates the email card's natural content height via preference propagation.
-private struct EmailIdleHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }
 
 
