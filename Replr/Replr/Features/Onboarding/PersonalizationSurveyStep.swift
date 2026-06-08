@@ -1,34 +1,34 @@
 import SwiftUI
 
-/// "A bit about you" — collects pronouns, age range, and an optional free-text blurb.
-/// All three fields feed into AppGroupService.aboutUser which ships with every LLM call
-/// as "ABOUT THE USER YOU'RE WRITING FOR" in the system prompt.
+/// "A bit about you" — gender, age range, optional free-text.
+/// All three compose into AppGroupService.aboutUser which ships as
+/// "ABOUT THE USER YOU'RE WRITING FOR" in every LLM system prompt.
 ///
-/// Uses its own scrollable layout (not OnboardingStep) so the keyboard never
-/// covers the text field: ScrollView auto-scrolls to the focused field, and the
-/// CTA button is pinned above the keyboard via safeAreaInset.
+/// Layout: custom scrollable view (not OnboardingStep) so the keyboard
+/// never covers content. CTA is pinned via safeAreaInset; a keyboard
+/// toolbar "Done" button always lets the user close the keyboard.
 struct PersonalizationSurveyStep: View {
     let step: Int
     let totalSteps: Int
     let onNext: () -> Void
     let onBack: () -> Void
 
-    // ── Data ─────────────────────────────────────────────────────────────
-    private let pronounOptions = ["He/him", "She/her", "They/them"]
-    private let ageOptions     = ["Under 25", "25–34", "35–44", "45+"]
+    // ── Options ───────────────────────────────────────────────────────
+    private let genderOptions = ["Man", "Woman", "Non-binary", "Prefer not to say"]
+    private let ageOptions    = ["Under 25", "25–34", "35–44", "45+"]
 
-    @State private var pronounSelected: String? = nil
-    @State private var ageSelected: String?     = nil
-    @State private var aboutText                = ""
+    @State private var genderSelected: String? = nil
+    @State private var ageSelected: String?    = nil
+    @State private var aboutText               = ""
     @FocusState private var fieldFocused: Bool
 
     private var hasAnyInput: Bool {
-        pronounSelected != nil
+        genderSelected != nil
             || ageSelected != nil
             || !aboutText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    // ── Body ──────────────────────────────────────────────────────────────
+    // ── Body ──────────────────────────────────────────────────────────
     var body: some View {
         ZStack(alignment: .top) {
             ReplrTheme.Color.bg.ignoresSafeArea()
@@ -36,54 +36,56 @@ struct PersonalizationSurveyStep: View {
             ScrollViewReader { proxy in
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
+                        // Reserve space under the pinned header
+                        Color.clear.frame(height: 78)
 
-                        // Spacer that sits under the pinned header
-                        Color.clear.frame(height: headerHeight)
-
-                        // ── Body content ──────────────────────────────
                         VStack(alignment: .leading, spacing: 28) {
                             titleBlock
-                            pronounBlock
+                            genderBlock
                             ageBlock
                             aboutBlock
                         }
                         .padding(.horizontal, 24)
-                        .padding(.top, 24)
+                        .padding(.top, 20)
                         .padding(.bottom, 40)
                     }
                 }
                 .scrollDismissesKeyboard(.interactively)
                 .onChange(of: fieldFocused) { focused in
                     guard focused else { return }
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(.easeInOut(duration: 0.28)) {
                         proxy.scrollTo("aboutField", anchor: .bottom)
                     }
                 }
             }
 
-            // Pinned header (sits on top of the scroll content)
-            header
+            // Pinned header
+            pinnedHeader
         }
         // CTA always above the keyboard
         .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 0) {
-                PrimaryButton(label: hasAnyInput ? "Continue →" : "Skip →") {
-                    saveAndContinue()
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 14)
-                .padding(.bottom, 36)
+            PrimaryButton(label: hasAnyInput ? "Continue →" : "Skip →") {
+                saveAndContinue()
             }
+            .padding(.horizontal, 24)
+            .padding(.top, 14)
+            .padding(.bottom, 36)
             .background(ReplrTheme.Color.bg)
+        }
+        // "Done" button above the keyboard — the only reliable way to dismiss it
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { fieldFocused = false }
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(ReplrTheme.Color.accent)
+            }
         }
     }
 
-    // MARK: - Header (pinned above scroll)
+    // MARK: - Pinned header (replicates OnboardingStep exactly)
 
-    /// Approximate height of the pinned header so the scroll content starts below it.
-    private var headerHeight: CGFloat { 80 }
-
-    private var header: some View {
+    private var pinnedHeader: some View {
         VStack(spacing: 0) {
             ZStack {
                 HStack {
@@ -130,44 +132,41 @@ struct PersonalizationSurveyStep: View {
                 .font(ReplrTheme.Font.callout)
                 .foregroundColor(ReplrTheme.Color.textSecondary)
                 .lineSpacing(3)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
-    // MARK: - Pronouns
+    // MARK: - Gender
 
-    private var pronounBlock: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            sectionLabel("Your pronouns")
-            // Three natural-width chips in a single row
-            HStack(spacing: 10) {
-                ForEach(pronounOptions, id: \.self) { opt in
-                    chipView(opt, isOn: pronounSelected == opt) {
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            pronounSelected = pronounSelected == opt ? nil : opt
-                        }
-                    }
-                }
-            }
-        }
+    private var genderBlock: some View {
+        questionBlock(label: "Gender", options: genderOptions,
+                      selected: $genderSelected)
     }
 
     // MARK: - Age range
 
     private var ageBlock: some View {
+        questionBlock(label: "Age range", options: ageOptions,
+                      selected: $ageSelected)
+    }
+
+    private func questionBlock(label: String,
+                               options: [String],
+                               selected: Binding<String?>) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionLabel("Your age range")
-            // 2 × 2 equal-width grid
-            LazyVGrid(
-                columns: [GridItem(.flexible()), GridItem(.flexible())],
-                spacing: 10
-            ) {
-                ForEach(ageOptions, id: \.self) { opt in
-                    chipView(opt, isOn: ageSelected == opt) {
+            Text(label)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(ReplrTheme.Color.textSecondary)
+
+            VStack(spacing: 8) {
+                ForEach(options, id: \.self) { opt in
+                    selectRow(opt,
+                              isOn: selected.wrappedValue == opt,
+                              action: {
                         withAnimation(.easeInOut(duration: 0.15)) {
-                            ageSelected = ageSelected == opt ? nil : opt
+                            selected.wrappedValue =
+                                selected.wrappedValue == opt ? nil : opt
                         }
-                    }
+                    })
                 }
             }
         }
@@ -177,26 +176,29 @@ struct PersonalizationSurveyStep: View {
 
     private var aboutBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                sectionLabel("About you")
-                Text("optional")
-                    .font(ReplrTheme.Font.caption)
-                    .foregroundColor(ReplrTheme.Color.accent.opacity(0.8))
-            }
+            Text("About you")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(ReplrTheme.Color.textSecondary)
 
-            TextField(
-                "e.g. keep texts short, use humour, work in design…",
-                text: $aboutText,
-                axis: .vertical
-            )
-            .font(ReplrTheme.Font.callout)
-            .foregroundColor(ReplrTheme.Color.textPrimary)
-            .lineLimit(1...4)           // grows from 1 line up to 4
-            .submitLabel(.done)
-            .onSubmit { fieldFocused = false }
-            .focused($fieldFocused)
-            .padding(14)
-            .frame(minHeight: 52, alignment: .topLeading)
+            // TextEditor with manual placeholder so text never truncates
+            ZStack(alignment: .topLeading) {
+                if aboutText.isEmpty {
+                    Text("e.g. into fitness, keep texts short, use humour…")
+                        .font(ReplrTheme.Font.callout)
+                        .foregroundColor(ReplrTheme.Color.textTertiary)
+                        .padding(.top, 12)
+                        .padding(.horizontal, 14)
+                        .allowsHitTesting(false)
+                }
+                TextEditor(text: $aboutText)
+                    .font(ReplrTheme.Font.callout)
+                    .foregroundColor(ReplrTheme.Color.textPrimary)
+                    .scrollContentBackground(.hidden)
+                    .focused($fieldFocused)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .frame(minHeight: 92)
+            }
             .background(ReplrTheme.Color.surfaceRaised)
             .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
             .overlay(
@@ -208,39 +210,36 @@ struct PersonalizationSurveyStep: View {
                         lineWidth: fieldFocused ? 1.5 : 1
                     )
             )
-            .id("aboutField")           // anchor for ScrollViewReader
+            .id("aboutField")
         }
     }
 
-    // MARK: - Shared sub-views
+    // MARK: - Shared row
 
-    private func sectionLabel(_ text: String) -> some View {
-        Text(text)
-            .font(ReplrTheme.Font.caption)
-            .foregroundColor(ReplrTheme.Color.textTertiary)
-    }
-
-    private func chipView(_ label: String, isOn: Bool, action: @escaping () -> Void) -> some View {
+    private func selectRow(_ label: String,
+                           isOn: Bool,
+                           action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(label)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(isOn ? ReplrTheme.Color.onAccent : ReplrTheme.Color.textPrimary)
-                .padding(.horizontal, 16)
-                .frame(height: 48)
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                        .fill(isOn
-                              ? AnyShapeStyle(ReplrTheme.Color.brandGradient)
-                              : AnyShapeStyle(ReplrTheme.Color.surfaceRaised))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                        .strokeBorder(
-                            isOn ? Color.clear : ReplrTheme.Color.glassBorder,
-                            lineWidth: 1
-                        )
-                )
+            HStack(spacing: 12) {
+                Text(label)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(ReplrTheme.Color.textPrimary)
+                Spacer()
+                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 20))
+                    .foregroundColor(isOn ? ReplrTheme.Color.accent : ReplrTheme.Color.textTertiary)
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 52)
+            .background(isOn ? ReplrTheme.Color.accentSoft : ReplrTheme.Color.surfaceRaised)
+            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                    .strokeBorder(
+                        isOn ? ReplrTheme.Color.accent : ReplrTheme.Color.glassBorder,
+                        lineWidth: isOn ? 1.5 : 1
+                    )
+            )
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.15), value: isOn)
@@ -252,20 +251,18 @@ struct PersonalizationSurveyStep: View {
         fieldFocused = false
 
         var parts: [String] = []
-        if let p = pronounSelected {
-            parts.append("Pronouns: \(p).")
+        if let g = genderSelected, g != "Prefer not to say" {
+            parts.append("Gender: \(g).")
         }
         if let a = ageSelected {
             parts.append("Age: \(a).")
         }
         let typed = aboutText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !typed.isEmpty {
-            parts.append(typed)
-        }
+        if !typed.isEmpty { parts.append(typed) }
+
         if !parts.isEmpty {
             AppGroupService.shared.aboutUser = parts.joined(separator: " ")
         }
-
         onNext()
     }
 }
