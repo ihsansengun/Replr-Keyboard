@@ -93,22 +93,12 @@ struct OnboardingStep<Content: View, CTA: View>: View {
 
 private struct WelcomeStep: View {
     let onNext: () -> Void
-    let onSignIn: () -> Void
 
     var body: some View {
         ZStack {
             ReplrTheme.Color.bg.ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    Spacer()
-                    Text("Welcome")
-                        .font(ReplrTheme.Font.caption)
-                        .foregroundColor(ReplrTheme.Color.textTertiary)
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 16)
-
                 Spacer()
 
                 VStack(alignment: .leading, spacing: 16) {
@@ -117,24 +107,24 @@ private struct WelcomeStep: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("The reply is")
                             .font(ReplrTheme.Font.serif(34, weight: .bold))
-                            .foregroundColor(ReplrTheme.Color.textPrimary)
+                            .foregroundStyle(ReplrTheme.Color.textPrimary)
                         Text("already written.")
                             .font(ReplrTheme.Font.serif(34, weight: .bold))
-                            .foregroundColor(ReplrTheme.Color.textSecondary)
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
                     }
 
                     Text("Screenshot any chat. Replr reads it, drafts the reply, you tap to send.")
                         .font(ReplrTheme.Font.callout)
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
                         .lineSpacing(4)
 
                     Text("Free to try — no credit card.")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(ReplrTheme.Color.accent)
+                        .foregroundStyle(ReplrTheme.Color.accent)
 
                     Text("Your conversations are sent to generate replies, then discarded — nothing stored on any server. See Privacy in Settings.")
                         .font(.system(size: 12))
-                        .foregroundColor(ReplrTheme.Color.textTertiary)
+                        .foregroundStyle(ReplrTheme.Color.textTertiary)
                         .lineSpacing(3)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -142,12 +132,9 @@ private struct WelcomeStep: View {
 
                 Spacer()
 
-                VStack(spacing: 12) {
-                    PrimaryButton(label: "Set it up →", action: onNext)
-                    TertiaryButton(label: "I have an account", action: onSignIn)
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 40)
+                PrimaryButton(label: "Set it up →", action: onNext)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 40)
             }
         }
     }
@@ -571,7 +558,7 @@ struct OnboardingView: View {
         Group {
             switch step {
             case 0:
-                WelcomeStep(onNext: { step = 1 }, onSignIn: onSignIn)
+                WelcomeStep(onNext: { step = 1 })
             case 1:
                 IntroCarouselStep(onDone: { step = 2 })
             case 2:
@@ -590,7 +577,7 @@ struct OnboardingView: View {
             case 7:
                 SampleDemoStep(onFinish: { step = 0; onComplete() })
             default:
-                WelcomeStep(onNext: { step = 1 }, onSignIn: onSignIn)
+                WelcomeStep(onNext: { step = 1 })
             }
         }
         .onAppear {
