@@ -8,7 +8,6 @@ struct SignInView: View {
     @State private var errorMessage: String?
     @State private var signInTask: Task<Void, Never>? = nil
 
-    /// Called by the parent (ReplrApp) when sign-in succeeds.
     var onSuccess: () -> Void
 
     var body: some View {
@@ -18,33 +17,38 @@ struct SignInView: View {
             VStack(spacing: 0) {
                 Spacer()
 
-                // Branding
+                // App icon + wordmark
                 VStack(spacing: ReplrTheme.Spacing.lg) {
-                    Image(systemName: "bubble.left.and.bubble.right.fill")
-                        .font(.system(size: 60))
-                        .foregroundStyle(ReplrTheme.Color.brandGradient)
+                    // Actual app icon in a rounded rect (matches home screen appearance)
+                    Image("AppIcon")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 96, height: 96)
+                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        .shadow(color: ReplrTheme.Color.accentGlow, radius: 16, y: 6)
 
-                    Text("Replr")
-                        .font(ReplrTheme.Font.serif(38, weight: .bold))
-                        .foregroundColor(ReplrTheme.Color.textPrimary)
+                    VStack(spacing: ReplrTheme.Spacing.sm) {
+                        Text("Replr")
+                            .font(ReplrTheme.Font.serif(36, weight: .bold))
+                            .foregroundStyle(ReplrTheme.Color.textPrimary)
 
-                    Text("AI reply suggestions — for any conversation.")
-                        .font(ReplrTheme.Font.callout)
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
+                        Text("AI-powered replies, instantly.")
+                            .font(ReplrTheme.Font.callout)
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
+                            .multilineTextAlignment(.center)
+                    }
                 }
 
                 Spacer()
 
-                // Sign in area
-                VStack(spacing: ReplrTheme.Spacing.lg) {
+                // Sign-in controls
+                VStack(spacing: ReplrTheme.Spacing.md) {
                     if let error = errorMessage {
                         Text(error)
                             .font(ReplrTheme.Font.footnote)
-                            .foregroundColor(ReplrTheme.Color.danger)
+                            .foregroundStyle(ReplrTheme.Color.danger)
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal, 24)
+                            .padding(.horizontal, ReplrTheme.Spacing.s3xl)
                     }
 
                     SignInWithAppleButton(.continue) { request in
@@ -53,17 +57,17 @@ struct SignInView: View {
                         handleResult(result)
                     }
                     .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
-                    .frame(height: 50)
-                    .cornerRadius(10)
-                    .padding(.horizontal, 24)
+                    .frame(height: 52)
+                    .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.lg, style: .continuous))
+                    .padding(.horizontal, ReplrTheme.Spacing.xxl)
 
-                    Text("Your email is used only for account support. We don't send marketing emails.")
+                    Text("Your email is only used to help with account support.\nWe never send marketing emails.")
                         .font(ReplrTheme.Font.caption)
-                        .foregroundColor(ReplrTheme.Color.textTertiary)
+                        .foregroundStyle(ReplrTheme.Color.textTertiary)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
+                        .padding(.horizontal, ReplrTheme.Spacing.s3xl)
                 }
-                .padding(.bottom, 52)
+                .padding(.bottom, ReplrTheme.Spacing.s4xl + ReplrTheme.Spacing.lg)
             }
 
             if isLoading {
@@ -77,16 +81,18 @@ struct SignInView: View {
     }
 
     private func handleResult(_ result: Result<ASAuthorization, Error>) {
-        guard case .success(let auth) = result else {
-            // .failure — ignore user-cancel (code 1001), show message for real errors
-            if case .failure(let err) = result,
-               (err as? ASAuthorizationError)?.code != .canceled {
-                errorMessage = "Sign in failed. Please try again."
-            }
+        if case .failure(let err) = result {
+            if (err as? ASAuthorizationError)?.code == .canceled { return }
+            // Show the actual Apple error for easier debugging
+            let appleCode = (err as? ASAuthorizationError)?.code.rawValue
+            errorMessage = appleCode != nil
+                ? "Sign in failed (code \(appleCode!)). Make sure Sign in with Apple is enabled for this app in Settings."
+                : "Sign in failed. Please try again."
             return
         }
 
-        guard let credential = auth.credential as? ASAuthorizationAppleIDCredential,
+        guard case .success(let auth) = result,
+              let credential = auth.credential as? ASAuthorizationAppleIDCredential,
               let identityToken = credential.identityToken else {
             errorMessage = "Sign in failed. Please try again."
             return
