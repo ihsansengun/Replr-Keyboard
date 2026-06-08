@@ -24,4 +24,13 @@ struct ReplrTests {
         svc.lastConsumedScreenshotID = nil
         #expect(svc.lastConsumedScreenshotID == nil)
     }
+
+    @Test func keychainRoundTrip() throws {
+        let key = "test.keychain.key.\(Int.random(in: 1...999999))"
+        defer { Keychain.delete(forKey: key) }
+        try Keychain.save("hello-world", forKey: key)
+        #expect(Keychain.load(forKey: key) == "hello-world")
+        Keychain.delete(forKey: key)
+        #expect(Keychain.load(forKey: key) == nil)
+    }
 }
