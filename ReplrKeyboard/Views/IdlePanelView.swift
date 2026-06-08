@@ -309,7 +309,9 @@ struct IdlePanelView: View {
     // MARK: - Email idle
 
     private var emailContent: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 10) {
+            Spacer(minLength: 0)
+
             ZStack {
                 Circle()
                     .fill(ReplrTheme.Color.accent)
@@ -368,8 +370,9 @@ struct IdlePanelView: View {
                     .foregroundColor(hasClipboardText ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
             }
             .animation(.easeInOut(duration: 0.2), value: hasClipboardText)
+
+            Spacer(minLength: 0)
         }
-        .padding(.top, 4)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(brandedSurface)
         .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
