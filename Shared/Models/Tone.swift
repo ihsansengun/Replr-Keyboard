@@ -33,21 +33,19 @@ struct Tone: Codable, Identifiable, Equatable {
     /// Tone names that can appear in the CHAT keyboard row.
     /// Custom tones (isPreset: false) are always available in both modes.
     static let chatToneNames: Set<String> = [
-        // Default-visible (20 tones)
-        "Natural", "Friendly", "Casual", "Playful", "Flirty", "Witty", "Joker",
-        "Confident", "Seductive", "Empathetic", "Direct",
-        "Romantic", "Supportive", "Excited", "Mysterious",
-        "Chill", "Savage", "Firm", "Thoughtful", "Apologetic",
-        // Hidden-by-default chat tones (user can enable in Settings → Tones):
-        "Sarcastic", "Passive Aggressive", "Gen Z",
+        "Natural", "Friendly", "Casual", "Chill", "Supportive",
+        "Playful", "Witty", "Joker", "Sarcastic", "Gen Z", "Savage",
+        "Flirty", "Romantic", "Mysterious", "Seductive",
+        "Empathetic", "Thoughtful", "Excited", "Apologetic", "Passive Aggressive",
+        "Confident", "Direct", "Firm",
     ]
 
     /// Tone names that can appear in the EMAIL keyboard row.
     static let emailToneNames: Set<String> = [
-        "Warm Professional", "Professional", "Confident", "Diplomatic",
-        "Empathetic", "Assertive", "Enthusiastic", "Concise",
-        // Hidden-by-default email tones (user can enable in Settings → Tones):
-        "Formal", "Direct", "Friendly",
+        "Warm Professional", "Professional", "Diplomatic", "Assertive",
+        "Enthusiastic", "Concise", "Formal",
+        // Cross-mode tones also available in email:
+        "Confident", "Direct", "Empathetic", "Friendly",
     ]
 
     /// Whether this tone is available for the chat keyboard row.
@@ -60,16 +58,15 @@ struct Tone: Codable, Identifiable, Equatable {
         !isPreset || Tone.emailToneNames.contains(name)
     }
 
-    // MARK: - Presets
+    // MARK: - Presets (30 tones, all enabled, ordered by category)
+    //
+    // Category order: Everyday → Playful/Humour → Romance → Emotional → Assertive → Professional
+    // This drives both the Settings list and the default keyboard-row order.
+    // Users can drag to reorder in Settings → Tones; that order persists and drives the row.
 
-    // `blurb` is the concise line shown in Settings; `instruction` is the LLM prompt.
-    // Chat tones are listed in their default keyboard-row order — Natural leads as the
-    // clean default, then the set runs dating-forward. Users can drag to reorder any of
-    // these in Settings → Tones (the order persists and drives the keyboard row).
-    // Tones with isEnabled: false are hidden by default and can be enabled there.
     static let presets: [Tone] = [
 
-        // ── Chat tones — default keyboard-row order ──────────────────────────
+        // ── 1. Everyday / Neutral ────────────────────────────────────────────
 
         Tone(id: UUID(), name: "Natural",
              instruction: "A clean, natural reply — well-written and human, no special personality.",
@@ -86,14 +83,21 @@ struct Tone: Codable, Identifiable, Equatable {
              blurb: "Texts like a close friend — relaxed, unpolished, real.",
              isPreset: true),
 
+        Tone(id: UUID(), name: "Chill",
+             instruction: "Completely unbothered. Reply like you've got things going on but you're happy to be here. Short, easy, no try. Never sound needy or eager.",
+             blurb: "Effortlessly unbothered — no try whatsoever.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Supportive",
+             instruction: "Be the person they needed to hear from right now. Name exactly what they said, then tell them why you believe in them. Specific beats generic every time.",
+             blurb: "Their biggest fan — builds them up with something real.",
+             isPreset: true),
+
+        // ── 2. Playful / Humour ──────────────────────────────────────────────
+
         Tone(id: UUID(), name: "Playful",
              instruction: "Be light and a little teasing — the kind of reply that makes them smile without trying too hard. Keep it breezy. A touch of mischief is welcome; don't commit to a full bit. Make the conversation feel effortless and fun to be in.",
              blurb: "Light and a little teasing — makes them smile.",
-             isPreset: true),
-
-        Tone(id: UUID(), name: "Flirty",
-             instruction: "Show romantic interest without showing all your cards. Slightly unpredictable — don't give them exactly what they expect. Tease without explaining it. One question that shows you were paying attention. Playful tension over obvious enthusiasm.",
-             blurb: "Shows romantic interest while keeping a little mystery.",
              isPreset: true),
 
         Tone(id: UUID(), name: "Witty",
@@ -106,51 +110,14 @@ struct Tone: Codable, Identifiable, Equatable {
              blurb: "Goes for the laugh — puns and playful absurdity.",
              isPreset: true),
 
-        Tone(id: UUID(), name: "Confident",
-             instruction: "Reply from a place of self-assurance — like someone who has options but finds this conversation worth their time. Don't over-explain or qualify. Grounded and brief beats long and eager. Leave them a little curious, not fully satisfied.",
-             blurb: "Self-assured and unbothered — never over-eager.",
+        Tone(id: UUID(), name: "Sarcastic",
+             instruction: "Deadpan and magnificently condescending. Respond with exaggerated sincerity — the more obvious their point, the more impressed you seem. Celebrate mediocrity as if it's genius. Short, punchy delivery. Never break the facade. Never explain it.",
+             blurb: "Deadpan and dryly condescending — straight-faced throughout.",
              isPreset: true),
 
-        Tone(id: UUID(), name: "Seductive",
-             instruction: "Suggestive and explicitly sensual. Take whatever they said and turn the heat up. Bold, specific, no euphemisms. Make the reply impossible to ignore.",
-             blurb: "Suggestive and sensual — turns up the heat.",
-             isPreset: true),
-
-        Tone(id: UUID(), name: "Empathetic",
-             instruction: "Acknowledge what they're feeling before addressing content. Reflect their emotion back in your own words first. Don't jump to solutions.",
-             blurb: "Warm and understanding — leads with how they feel.",
-             isPreset: true),
-
-        Tone(id: UUID(), name: "Direct",
-             instruction: "Lead with the answer. One sentence when possible, two at most. Cut the closing line — it's usually filler.",
-             blurb: "Straight to the point. No filler.",
-             isPreset: true),
-
-        // ── Additional chat tones (brings visible total to 20) ───────────────
-
-        Tone(id: UUID(), name: "Romantic",
-             instruction: "Tender and affectionate — assume the closeness between you. Reference something specific to them. Make them feel genuinely chosen, not just liked.",
-             blurb: "Tender and affectionate — for someone you're close to.",
-             isPreset: true),
-
-        Tone(id: UUID(), name: "Supportive",
-             instruction: "Be the person they needed to hear from right now. Name exactly what they said, then tell them why you believe in them. Specific beats generic every time.",
-             blurb: "Their biggest fan — builds them up with something real.",
-             isPreset: true),
-
-        Tone(id: UUID(), name: "Excited",
-             instruction: "Let the enthusiasm out — don't hold it back. Match their energy and add yours. One punchy sentence of genuine excitement lands better than three measured ones.",
-             blurb: "Full-on enthusiasm — can't contain it.",
-             isPreset: true),
-
-        Tone(id: UUID(), name: "Mysterious",
-             instruction: "Say just enough to make them want more. Leave an obvious question hanging unanswered. Vague isn't cold — make it feel deliberate.",
-             blurb: "Just enough to keep them hooked — nothing more.",
-             isPreset: true),
-
-        Tone(id: UUID(), name: "Chill",
-             instruction: "Completely unbothered. Reply like you've got things going on but you're happy to be here. Short, easy, no try. Never sound needy or eager.",
-             blurb: "Effortlessly unbothered — no try whatsoever.",
+        Tone(id: UUID(), name: "Gen Z",
+             instruction: "Lowercase everything. Use 'no cap', 'lowkey', 'it's giving', 'not me', 'slay' sparingly — only when they'd actually land. Never try too hard. One emoji max, only if it adds something. Vibes over grammar.",
+             blurb: "Lowercase, low-effort cool — internet slang, used sparingly.",
              isPreset: true),
 
         Tone(id: UUID(), name: "Savage",
@@ -158,9 +125,33 @@ struct Tone: Codable, Identifiable, Equatable {
              blurb: "Zero filter, playful roast — for close friends only.",
              isPreset: true),
 
-        Tone(id: UUID(), name: "Firm",
-             instruction: "A calm, clean no or limit. Acknowledge the ask once. Decline without over-explaining. Don't soften it into ambiguity — end it clearly.",
-             blurb: "Clear boundary, no drama — firm but not cold.",
+        // ── 3. Romance / Dating ──────────────────────────────────────────────
+
+        Tone(id: UUID(), name: "Flirty",
+             instruction: "Show romantic interest without showing all your cards. Slightly unpredictable — don't give them exactly what they expect. Tease without explaining it. One question that shows you were paying attention. Playful tension over obvious enthusiasm.",
+             blurb: "Shows romantic interest while keeping a little mystery.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Romantic",
+             instruction: "Tender and affectionate — assume the closeness between you. Reference something specific to them. Make them feel genuinely chosen, not just liked.",
+             blurb: "Tender and affectionate — for someone you're close to.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Mysterious",
+             instruction: "Say just enough to make them want more. Leave an obvious question hanging unanswered. Vague isn't cold — make it feel deliberate.",
+             blurb: "Just enough to keep them hooked — nothing more.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Seductive",
+             instruction: "Suggestive and explicitly sensual. Take whatever they said and turn the heat up. Bold, specific, no euphemisms. Make the reply impossible to ignore.",
+             blurb: "Suggestive and sensual — turns up the heat.",
+             isPreset: true),
+
+        // ── 4. Emotional / Intentional ───────────────────────────────────────
+
+        Tone(id: UUID(), name: "Empathetic",
+             instruction: "Acknowledge what they're feeling before addressing content. Reflect their emotion back in your own words first. Don't jump to solutions.",
+             blurb: "Warm and understanding — leads with how they feel.",
              isPreset: true),
 
         Tone(id: UUID(), name: "Thoughtful",
@@ -168,12 +159,39 @@ struct Tone: Codable, Identifiable, Equatable {
              blurb: "Takes it seriously — reads what's under the surface.",
              isPreset: true),
 
+        Tone(id: UUID(), name: "Excited",
+             instruction: "Let the enthusiasm out — don't hold it back. Match their energy and add yours. One punchy sentence of genuine excitement lands better than three measured ones.",
+             blurb: "Full-on enthusiasm — can't contain it.",
+             isPreset: true),
+
         Tone(id: UUID(), name: "Apologetic",
              instruction: "A real apology — not a hedge, not an excuse with 'sorry' attached. Name the specific thing you did. Own it without deflecting. Keep it short and clean.",
              blurb: "A proper apology — no hedging, no excuses.",
              isPreset: true),
 
-        // ── Email tones — visible in the email keyboard row ───────────────────
+        Tone(id: UUID(), name: "Passive Aggressive",
+             instruction: "Agree with everything but make it slightly sting. Use 'no worries' and 'totally fine' liberally. End with something that sounds supportive but clearly isn't. Never be openly rude — the vibe does the work.",
+             blurb: "Agreeable on the surface, with a little sting underneath.",
+             isPreset: true),
+
+        // ── 5. Assertive / Direct ────────────────────────────────────────────
+
+        Tone(id: UUID(), name: "Confident",
+             instruction: "Reply from a place of self-assurance — like someone who has options but finds this conversation worth their time. Don't over-explain or qualify. Grounded and brief beats long and eager. Leave them a little curious, not fully satisfied.",
+             blurb: "Self-assured and unbothered — never over-eager.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Direct",
+             instruction: "Lead with the answer. One sentence when possible, two at most. Cut the closing line — it's usually filler.",
+             blurb: "Straight to the point. No filler.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Firm",
+             instruction: "A calm, clean no or limit. Acknowledge the ask once. Decline without over-explaining. Don't soften it into ambiguity — end it clearly.",
+             blurb: "Clear boundary, no drama — firm but not cold.",
+             isPreset: true),
+
+        // ── 6. Professional / Email ──────────────────────────────────────────
 
         Tone(id: UUID(), name: "Warm Professional",
              instruction: "Write like a trusted colleague, not a corporate auto-reply. Professional structure — clear point, brief support — but with genuine warmth. Make them feel like a person, not a ticket number. Close with something specific to the situation.",
@@ -205,26 +223,9 @@ struct Tone: Codable, Identifiable, Equatable {
              blurb: "Short and sharp — every word earns its place.",
              isPreset: true),
 
-        // ── Hidden by default — enable in Settings → Tones ────────────────────
-
-        Tone(id: UUID(), name: "Sarcastic",
-             instruction: "Deadpan and magnificently condescending. Respond with exaggerated sincerity — the more obvious their point, the more impressed you seem. Celebrate mediocrity as if it's genius. Short, punchy delivery. Never break the facade. Never explain it.",
-             blurb: "Deadpan and dryly condescending — straight-faced throughout.",
-             isPreset: true, isEnabled: false),
-
-        Tone(id: UUID(), name: "Passive Aggressive",
-             instruction: "Agree with everything but make it slightly sting. Use 'no worries' and 'totally fine' liberally. End with something that sounds supportive but clearly isn't. Never be openly rude — the vibe does the work.",
-             blurb: "Agreeable on the surface, with a little sting underneath.",
-             isPreset: true, isEnabled: false),
-
-        Tone(id: UUID(), name: "Gen Z",
-             instruction: "Lowercase everything. Use 'no cap', 'lowkey', 'it's giving', 'not me', 'slay' sparingly — only when they'd actually land. Never try too hard. One emoji max, only if it adds something. Vibes over grammar.",
-             blurb: "Lowercase, low-effort cool — internet slang, used sparingly.",
-             isPreset: true, isEnabled: false),
-
         Tone(id: UUID(), name: "Formal",
              instruction: "Full words only — no contractions or abbreviations. State your purpose in the first sentence. Complete sentences, clean close.",
              blurb: "No contractions, complete sentences — buttoned-up and correct.",
-             isPreset: true, isEnabled: false),
+             isPreset: true),
     ]
 }
