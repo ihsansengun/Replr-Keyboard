@@ -7,6 +7,7 @@ final class KeyboardViewController: UIInputViewController {
     private var capturePollingTask: Task<Void, Never>?
     private var heightConstraint: NSLayoutConstraint!
     private var lastRepliesContentHeight: CGFloat = 340  // last measured replies height (placeholder until measured)
+    private var isAnimatingHeight = false                // true while setHeight's UIView.animate is in flight
     private var autoSwitchTask: DispatchWorkItem?
     private var stateCancellable: AnyCancellable?
     private var collapseCancellable: AnyCancellable?
@@ -234,15 +235,21 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        // On some host apps (e.g. Instagram), the keyboard window imposes a required
-        // height constraint that beats our priority-999 request, leaving view.bounds.height
-        // smaller than heightConstraint.constant.  When that happens, snap our constraint
-        // down to the actual allocated height so SwiftUI sees a coherent frame.  The
-        // ScrollView in RepliesPanelView then handles any overflow gracefully.
+        // Skip while our own animation is in flight: mid-animation the view's bounds
+        // may still reflect the OLD height (e.g. 90 px while we're growing to 265 px).
+        // Snapping here would corrupt heightConstraint — and previously also
+        // lastRepliesContentHeight — causing the replies panel to render with no card space.
+        guard !isAnimatingHeight else { return }
+        // On some host apps (e.g. Instagram, WhatsApp) the keyboard window imposes a
+        // required height constraint that beats our priority-999 request, leaving
+        // view.bounds.height smaller than heightConstraint.constant. Snap our constraint
+        // down so SwiftUI sees a coherent frame; the ScrollView handles overflow.
         let actualH = view.bounds.height
         guard actualH > 44, actualH < heightConstraint.constant - 1 else { return }
         heightConstraint.constant = actualH
-        if lastRepliesContentHeight > actualH { lastRepliesContentHeight = actualH }
+        // NOTE: do NOT set lastRepliesContentHeight here. It is maintained exclusively
+        // by onContentHeightChanged (clamped to [280, 400]). Writing the system-constrained
+        // value (e.g. 90 or 132) here causes the keyboard to stay at that height forever.
     }
 
     // Replies height is driven by RepliesPanelView's content-height reporter (GeometryReader on the
@@ -380,6 +387,11 @@ final class KeyboardViewController: UIInputViewController {
     private func setHeight(_ height: CGFloat, duration: TimeInterval = 0.25) {
         guard heightConstraint.constant != height else { return }
         heightConstraint.constant = height
-        UIView.animate(withDuration: duration) { self.view.layoutIfNeeded() }
+        isAnimatingHeight = true
+        UIView.animate(withDuration: duration, animations: {
+            self.view.layoutIfNeeded()
+        }, completion: { _ in
+            self.isAnimatingHeight = false
+        })
     }
 }
