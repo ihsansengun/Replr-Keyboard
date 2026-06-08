@@ -179,19 +179,17 @@ struct SettingsView: View {
 
     private var identityCard: some View {
         HStack(spacing: 16) {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(ReplrTheme.Color.accent)
+            Image("ReplrLogo")
+                .resizable()
+                .scaledToFit()
                 .frame(width: 60, height: 60)
-                .overlay(
-                    ReplrBirdShape()
-                        .fill(Color.white, style: FillStyle(eoFill: true))
-                        .frame(width: 36, height: 24)
-                )
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.lg, style: .continuous))
             VStack(alignment: .leading, spacing: 4) {
                 Text("Replr")
                     .font(.system(size: 19, weight: .bold))
+                    .foregroundStyle(ReplrTheme.Color.textPrimary)
                 Text("Know what to say.")
-                    .font(.system(size: 14))
+                    .font(ReplrTheme.Font.callout)
                     .foregroundStyle(ReplrTheme.Color.textSecondary)
             }
             Spacer()

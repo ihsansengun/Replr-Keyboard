@@ -186,13 +186,13 @@ struct CaptureView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "photo.on.rectangle.angled")
                             .font(.system(size: 56))
-                            .foregroundColor(.white)
+                            .foregroundStyle(.white)
                         Text("Pick your screenshot")
-                            .font(.title2.bold())
-                            .foregroundColor(.white)
+                            .font(ReplrTheme.Font.title)
+                            .foregroundStyle(.white)
                         Text("Select the chat screenshot to\ngenerate replies in your keyboard.")
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.65))
+                            .font(ReplrTheme.Font.callout)
+                            .foregroundStyle(.white.opacity(0.65))
                             .multilineTextAlignment(.center)
                     }
 
@@ -204,12 +204,12 @@ struct CaptureView: View {
                         }()
                     ) {
                         Text("Choose Screenshot")
-                            .font(.title3.bold())
-                            .foregroundColor(ReplrTheme.Color.onAccent)
+                            .font(ReplrTheme.Font.callout.weight(.semibold))
+                            .foregroundStyle(ReplrTheme.Color.onAccent)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(ReplrTheme.Color.accent)
-                            .cornerRadius(14)
+                            .frame(height: 52)
+                            .background(ReplrTheme.Color.brandGradient)
+                            .clipShape(Capsule())
                     }
                     .padding(.horizontal, 32)
                     .onChange(of: pickerItem) { item in
@@ -224,15 +224,15 @@ struct CaptureView: View {
                         .tint(.white)
                         .scaleEffect(1.5)
                     Text("Processing…")
-                        .foregroundColor(.white.opacity(0.7))
+                        .foregroundStyle(.white.opacity(0.7))
 
                 case .done:
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 56))
-                        .foregroundColor(ReplrTheme.Color.accent)
+                        .foregroundStyle(ReplrTheme.Color.accent)
                     Text("Done! Switch back to your keyboard.")
-                        .font(.title3.bold())
-                        .foregroundColor(.white)
+                        .font(ReplrTheme.Font.headline)
+                        .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                 }
 
@@ -240,7 +240,7 @@ struct CaptureView: View {
 
                 if status != .processing {
                     Button(status == .done ? "Close" : "Cancel") { isPresented = false }
-                        .foregroundColor(.white.opacity(0.4))
+                        .foregroundStyle(.white.opacity(0.4))
                         .padding(.bottom, 32)
                 }
             }

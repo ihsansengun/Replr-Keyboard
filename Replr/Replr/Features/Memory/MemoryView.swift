@@ -125,13 +125,19 @@ struct MemoryView: View {
     private var emptyState: some View {
         VStack(spacing: 16) {
             Spacer()
-            Image(systemName: "brain")
-                .font(.system(size: 48))
-                .foregroundStyle(ReplrTheme.Color.textSecondary)
+            ZStack {
+                Circle()
+                    .fill(ReplrTheme.Color.accentSubtle)
+                    .frame(width: 72, height: 72)
+                Image(systemName: "brain")
+                    .font(.system(size: 30))
+                    .foregroundStyle(ReplrTheme.Color.accent)
+            }
             Text("No memory yet")
-                .font(.headline)
+                .font(ReplrTheme.Font.headline)
+                .foregroundStyle(ReplrTheme.Color.textPrimary)
             Text("Replr builds memory as you generate replies. Each contact gets a summary of your conversation history.")
-                .font(.subheadline)
+                .font(ReplrTheme.Font.callout)
                 .foregroundStyle(ReplrTheme.Color.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
