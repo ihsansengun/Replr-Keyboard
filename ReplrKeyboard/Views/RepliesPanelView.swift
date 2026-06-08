@@ -281,6 +281,9 @@ struct RepliesPanelView: View {
             .accessibilityLabel("Insert reply")
 
             // ── New (was "Regenerate") ─────────────────────────────────────
+            // accentSubtle fill + accent text + accent border — the same warm
+            // treatment used by selected reply cards and the Undo button.
+            // textPrimary-opacity grey was iOS-system looking; this stays on-brand.
             Button { model.regenerateReplies() } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "sparkles")
@@ -288,26 +291,29 @@ struct RepliesPanelView: View {
                     Text("New")
                         .font(.system(size: 14, weight: .semibold))
                 }
-                .foregroundColor(ReplrTheme.Color.textPrimary)
+                .foregroundColor(ReplrTheme.Color.accent)
                 .padding(.horizontal, 14)
                 .frame(height: 40)
-                .background(Capsule().fill(ReplrTheme.Color.textPrimary.opacity(0.06)))
+                .background(Capsule().fill(ReplrTheme.Color.accentSubtle))
                 .overlay(
-                    Capsule().strokeBorder(ReplrTheme.Color.textPrimary.opacity(0.18), lineWidth: 1)
+                    Capsule().strokeBorder(ReplrTheme.Color.accent.opacity(0.35), lineWidth: 1)
                 )
+                .shadow(color: ReplrTheme.Color.accentGlow, radius: 6, x: 0, y: 2)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Generate new replies")
 
             // ── Reset ──────────────────────────────────────────────────────
+            // surface fill + glassBorder — a clean floating-white pill.
+            // Deliberately quieter than "New" to signal "dismiss" not "action".
             Button { model.regenerate() } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(ReplrTheme.Color.textSecondary)
                     .frame(width: 40, height: 40)
-                    .background(Capsule().fill(ReplrTheme.Color.textPrimary.opacity(0.06)))
+                    .background(Capsule().fill(ReplrTheme.Color.surface))
                     .overlay(
-                        Capsule().strokeBorder(ReplrTheme.Color.textPrimary.opacity(0.18), lineWidth: 1)
+                        Capsule().strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
                     )
             }
             .buttonStyle(.plain)
