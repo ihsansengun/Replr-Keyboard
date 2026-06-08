@@ -131,13 +131,13 @@ struct RepliesPanelView: View {
         Button { selectedIndex = idx } label: {
             HStack(alignment: .top, spacing: 10) {
                 Text("\(idx + 1)")
-                    .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                    .font(.system(size: 10, weight: .semibold).monospacedDigit())
                     .foregroundStyle(
                         selectedIndex == idx ? ReplrTheme.Color.accent : ReplrTheme.Color.textTertiary
                     )
                     .frame(width: 18)
                 Text(reply)
-                    .font(.system(size: 14))
+                    .font(.system(size: 13))
                     .foregroundStyle(
                         selectedIndex == idx ? ReplrTheme.Color.accent : ReplrTheme.Color.textPrimary
                     )
@@ -145,7 +145,7 @@ struct RepliesPanelView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(12)
+            .padding(10)
             .background(
                 RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
                     .fill(selectedIndex == idx ? ReplrTheme.Color.accentSubtle : ReplrTheme.Color.surface)
