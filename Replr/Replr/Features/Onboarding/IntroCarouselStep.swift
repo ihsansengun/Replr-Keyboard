@@ -119,23 +119,95 @@ private struct CaptureReplyArt: View {
     }
 }
 
-/// Stacked tone chips with the top one active (brand gradient).
+/// Animated tone picker: chips cycle Flirty → Casual → Professional every ~2 s,
+/// with a live reply preview card that swaps to show what each tone produces.
 private struct ToneArt: View {
-    private let tones = ["Flirty", "Casual", "Professional"]
+    private struct Sample { let tone: String; let reply: String }
+    private let samples: [Sample] = [
+        Sample(tone: "Flirty",       reply: "Can't stop thinking about you 😏"),
+        Sample(tone: "Casual",       reply: "Yeah I'm in. What time? 👍"),
+        Sample(tone: "Professional", reply: "I'll have that ready by Friday."),
+    ]
+    @State private var active = 0
+
     var body: some View {
-        VStack(spacing: 12) {
-            ForEach(Array(tones.enumerated()), id: \.offset) { i, t in
-                Text(t)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(i == 0 ? ReplrTheme.Color.onAccent : ReplrTheme.Color.textSecondary)
-                    .padding(.horizontal, 22).frame(height: 44)
-                    .background(
-                        Capsule().fill(i == 0
-                            ? AnyShapeStyle(ReplrTheme.Color.brandGradient)
-                            : AnyShapeStyle(ReplrTheme.Color.surfaceRaised))
-                    )
+        VStack(spacing: 0) {
+            Spacer(minLength: 0)
+
+            // Horizontal chip row — active chip glows with brand gradient
+            HStack(spacing: 10) {
+                ForEach(samples.indices, id: \.self) { i in
+                    chipView(i)
+                }
+            }
+
+            Spacer(minLength: 0).frame(maxHeight: 18)
+
+            // Reply preview — all three stacked; only the active one is visible
+            ZStack {
+                ForEach(samples.indices, id: \.self) { i in
+                    bubbleView(i)
+                }
+            }
+            .frame(maxWidth: .infinity)
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 24)
+        .frame(maxWidth: .infinity)
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_900_000_000)
+                withAnimation(.spring(response: 0.42, dampingFraction: 0.82)) {
+                    active = (active + 1) % samples.count
+                }
             }
         }
+    }
+
+    private func chipView(_ i: Int) -> some View {
+        let on = i == active
+        return Text(samples[i].tone)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(on ? ReplrTheme.Color.onAccent : ReplrTheme.Color.textSecondary)
+            .padding(.horizontal, 14)
+            .frame(height: 36)
+            .background(
+                Capsule().fill(on
+                    ? AnyShapeStyle(ReplrTheme.Color.brandGradient)
+                    : AnyShapeStyle(ReplrTheme.Color.surfaceRaised))
+            )
+            .overlay(
+                Capsule().strokeBorder(on ? Color.clear : ReplrTheme.Color.glassBorder, lineWidth: 1)
+            )
+            .scaleEffect(on ? 1.05 : 1.0)
+            .animation(.spring(response: 0.35, dampingFraction: 0.75), value: active)
+    }
+
+    private func bubbleView(_ i: Int) -> some View {
+        let on = i == active
+        return HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(ReplrTheme.Color.accent)
+                .padding(.top, 2)
+            Text(samples[i].reply)
+                .font(.system(size: 14))
+                .foregroundStyle(ReplrTheme.Color.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ReplrTheme.Color.surfaceRaised)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
+        )
+        .opacity(on ? 1 : 0)
+        .offset(y: on ? 0 : 8)
+        .animation(.spring(response: 0.45, dampingFraction: 0.82), value: active)
     }
 }
 
