@@ -33,8 +33,11 @@ struct Tone: Codable, Identifiable, Equatable {
     /// Tone names that can appear in the CHAT keyboard row.
     /// Custom tones (isPreset: false) are always available in both modes.
     static let chatToneNames: Set<String> = [
-        "Friendly", "Casual", "Playful", "Witty", "Joker", "Flirty",
-        "Seductive", "Empathetic", "Confident", "Direct", "Natural",
+        // Default-visible (20 tones)
+        "Natural", "Friendly", "Casual", "Playful", "Flirty", "Witty", "Joker",
+        "Confident", "Seductive", "Empathetic", "Direct",
+        "Romantic", "Supportive", "Excited", "Mysterious",
+        "Chill", "Savage", "Firm", "Thoughtful", "Apologetic",
         // Hidden-by-default chat tones (user can enable in Settings → Tones):
         "Sarcastic", "Passive Aggressive", "Gen Z",
     ]
@@ -121,6 +124,53 @@ struct Tone: Codable, Identifiable, Equatable {
         Tone(id: UUID(), name: "Direct",
              instruction: "Lead with the answer. One sentence when possible, two at most. Cut the closing line — it's usually filler.",
              blurb: "Straight to the point. No filler.",
+             isPreset: true),
+
+        // ── Additional chat tones (brings visible total to 20) ───────────────
+
+        Tone(id: UUID(), name: "Romantic",
+             instruction: "Tender and affectionate — assume the closeness between you. Reference something specific to them. Make them feel genuinely chosen, not just liked.",
+             blurb: "Tender and affectionate — for someone you're close to.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Supportive",
+             instruction: "Be the person they needed to hear from right now. Name exactly what they said, then tell them why you believe in them. Specific beats generic every time.",
+             blurb: "Their biggest fan — builds them up with something real.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Excited",
+             instruction: "Let the enthusiasm out — don't hold it back. Match their energy and add yours. One punchy sentence of genuine excitement lands better than three measured ones.",
+             blurb: "Full-on enthusiasm — can't contain it.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Mysterious",
+             instruction: "Say just enough to make them want more. Leave an obvious question hanging unanswered. Vague isn't cold — make it feel deliberate.",
+             blurb: "Just enough to keep them hooked — nothing more.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Chill",
+             instruction: "Completely unbothered. Reply like you've got things going on but you're happy to be here. Short, easy, no try. Never sound needy or eager.",
+             blurb: "Effortlessly unbothered — no try whatsoever.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Savage",
+             instruction: "Light roast energy — say the thing only someone very comfortable with them would say. Short and cutting, never mean-spirited. The tone is the joke; don't explain it.",
+             blurb: "Zero filter, playful roast — for close friends only.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Firm",
+             instruction: "A calm, clean no or limit. Acknowledge the ask once. Decline without over-explaining. Don't soften it into ambiguity — end it clearly.",
+             blurb: "Clear boundary, no drama — firm but not cold.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Thoughtful",
+             instruction: "Slow down and give it weight. Notice something subtle in what they said that others might gloss over. Respond to the feeling underneath, not just the surface.",
+             blurb: "Takes it seriously — reads what's under the surface.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Apologetic",
+             instruction: "A real apology — not a hedge, not an excuse with 'sorry' attached. Name the specific thing you did. Own it without deflecting. Keep it short and clean.",
+             blurb: "A proper apology — no hedging, no excuses.",
              isPreset: true),
 
         // ── Email tones — visible in the email keyboard row ───────────────────

@@ -15,7 +15,9 @@ struct IdlePanelView: View {
                 teachingPage = 0
                 withAnimation(.easeInOut(duration: 0.18)) { showTeachingPanel = true }
             })
-            if model.detectedScreenshotID != nil {
+            // Screenshot chip only shows in chat mode — email tab has its own flow
+            // and should never be interrupted by a pending screenshot.
+            if model.detectedScreenshotID != nil && model.inputMode == .chat {
                 screenshotReadyContent
             } else if model.inputMode == .chat {
                 chatContent
@@ -307,21 +309,19 @@ struct IdlePanelView: View {
     // MARK: - Email idle
 
     private var emailContent: some View {
-        VStack(spacing: 12) {
-            Spacer(minLength: 0)
-
+        VStack(spacing: 8) {
             ZStack {
                 Circle()
                     .fill(ReplrTheme.Color.accent)
-                    .frame(width: 92, height: 92)
-                    .blur(radius: 30)
+                    .frame(width: 56, height: 56)
+                    .blur(radius: 18)
                     .opacity(colorScheme == .dark ? 0.28 : 0.14)
                 Image(systemName: "envelope.fill")
-                    .font(.system(size: 38, weight: .regular))
+                    .font(.system(size: 26, weight: .regular))
                     .foregroundColor(ReplrTheme.Color.accent)
             }
             Text("Reply to any email")
-                .font(ReplrTheme.Font.serif(20, weight: .bold))
+                .font(ReplrTheme.Font.serif(18, weight: .bold))
                 .foregroundColor(ReplrTheme.Color.textPrimary)
 
             Button { model.generateEmailReply() } label: {
@@ -333,13 +333,13 @@ struct IdlePanelView: View {
                 }
                 .foregroundColor(hasClipboardText ? ReplrTheme.Color.onAccent : ReplrTheme.Color.accent.opacity(0.40))
                 .padding(.horizontal, 24)
-                .frame(height: 42)
+                .frame(height: 40)
                 .background(
                     Capsule(style: .continuous)
                         .fill(hasClipboardText
                               ? AnyShapeStyle(ReplrTheme.Color.brandGradient)
                               : AnyShapeStyle(ReplrTheme.Color.surface))
-                        .overlay(hasClipboardText ? ShimmerOverlay(cornerRadius: 21) : nil)
+                        .overlay(hasClipboardText ? ShimmerOverlay(cornerRadius: 20) : nil)
                 )
                 .overlay(
                     Capsule(style: .continuous)
@@ -368,9 +368,8 @@ struct IdlePanelView: View {
                     .foregroundColor(hasClipboardText ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
             }
             .animation(.easeInOut(duration: 0.2), value: hasClipboardText)
-
-            Spacer(minLength: 0)
         }
+        .padding(.top, 4)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(brandedSurface)
         .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
