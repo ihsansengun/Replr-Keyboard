@@ -228,12 +228,7 @@ struct RepliesPanelView: View {
             }
             .animation(.easeInOut(duration: 0.2), value: model.lastInsertedReply)
         } else {
-            // Option A layout: Insert reply (labelled, full-width gradient) +
-            // Regenerate (icon-only circle) + Reset (icon-only circle).
-            // To revert to the previous labelled layout: git revert the commit tagged
-            // "ui: action row — icon-only secondaries (Option A)"
             HStack(spacing: 8) {
-                // Primary CTA — labelled, full-width gradient pill.
                 Button(action: { model.selectReply(currentReply) }) {
                     HStack(spacing: 6) {
                         Image(systemName: "arrow.up")
@@ -256,27 +251,31 @@ struct RepliesPanelView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Insert reply")
 
-                // Regenerate — icon-only circle. Label removed to reduce visual weight;
-                // accessibilityLabel keeps it fully accessible.
                 Button { model.regenerateReplies() } label: {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(ReplrTheme.Color.textPrimary)
-                        .frame(width: 40, height: 40)
-                        .background(Circle().fill(ReplrTheme.Color.textPrimary.opacity(0.06)))
-                        .overlay(Circle().strokeBorder(ReplrTheme.Color.textPrimary.opacity(0.18), lineWidth: 1))
+                    HStack(spacing: 5) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text("Regenerate")
+                            .font(.system(size: 14, weight: .semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
+                    }
+                    .foregroundColor(ReplrTheme.Color.textPrimary)
+                    .padding(.horizontal, 14)
+                    .frame(height: 40)
+                    .background(Capsule().fill(ReplrTheme.Color.textPrimary.opacity(0.06)))
+                    .overlay(Capsule().strokeBorder(ReplrTheme.Color.textPrimary.opacity(0.18), lineWidth: 1))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Regenerate replies")
 
-                // Reset — icon-only circle.
                 Button { model.regenerate() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(ReplrTheme.Color.textSecondary)
-                        .frame(width: 40, height: 40)
-                        .background(Circle().fill(ReplrTheme.Color.textPrimary.opacity(0.06)))
-                        .overlay(Circle().strokeBorder(ReplrTheme.Color.textPrimary.opacity(0.18), lineWidth: 1))
+                        .frame(width: 42, height: 40)
+                        .background(Capsule().fill(ReplrTheme.Color.textPrimary.opacity(0.06)))
+                        .overlay(Capsule().strokeBorder(ReplrTheme.Color.textPrimary.opacity(0.18), lineWidth: 1))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Reset")

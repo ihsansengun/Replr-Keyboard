@@ -693,31 +693,22 @@ struct ToneRow: View {
     }
 
     /// Badge shown on the right of ToneRow when the mode header is absent.
-    /// Always visible so users can track spend as they regenerate.
-    /// Revert: git revert the commit tagged "ux: always show credit count in ToneRow"
     @ViewBuilder
     private var creditsAccessory: some View {
         switch model.creditDisplay {
         case .unlimited:
-            // Dev mode: show "∞"
+            // Dev mode: show "∞" so the model switcher context isn't completely lost.
             Text("∞")
                 .font(.system(size: 13, weight: .bold))
                 .foregroundStyle(ReplrTheme.Color.accent)
                 .padding(.horizontal, 10)
         case .count(let n) where n <= 20:
-            // Low credits — warning badge.
+            // Low credits — show the warning badge so users aren't surprised mid-reply.
             CreditCounterBadge(count: n)
                 .padding(.horizontal, 8)
-        case .count(let n):
-            // Healthy balance — muted count so users can track spend without alarm.
-            HStack(spacing: 3) {
-                Image(systemName: "sparkle")
-                    .font(.system(size: 9, weight: .semibold))
-                Text("\(n)")
-                    .font(.system(size: 11, weight: .medium).monospacedDigit())
-            }
-            .foregroundStyle(ReplrTheme.Color.textTertiary)
-            .padding(.horizontal, 10)
+        case .count:
+            // Plenty of credits — no clutter needed.
+            EmptyView()
         }
     }
 }
