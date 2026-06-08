@@ -63,7 +63,7 @@ private struct CarouselSlide<Art: View>: View {
             illustration().frame(height: 200)
             VStack(spacing: 12) {
                 (Text(lead)
-                 + Text(highlight).foregroundStyle(ReplrTheme.Color.accent)
+                 + Text(highlight).foregroundColor(ReplrTheme.Color.accent)
                  + Text(trail))
                     .font(ReplrTheme.Font.serif(32, weight: .bold))
                     .foregroundStyle(ReplrTheme.Color.textPrimary)
