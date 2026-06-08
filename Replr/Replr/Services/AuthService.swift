@@ -71,12 +71,16 @@ final class AuthService: NSObject, ObservableObject {
         // (< 3ms) this is acceptable; move off-main if init latency ever shows in profiling.
         if let token = Keychain.load(forKey: Keys.sessionToken) {
             isSignedIn = true
-            ReplyService.authToken = token
+            ReplyService.setAuthToken(token)
         } else {
             isSignedIn = false
         }
         userEmail  = Keychain.load(forKey: Keys.userEmail)
         super.init()
+        // Wire 401 responses back to sign-out
+        ReplyService.onUnauthorized = { [weak self] in
+            self?.signOut()
+        }
     }
 
     var sessionToken: String? { Keychain.load(forKey: Keys.sessionToken) }
@@ -117,7 +121,7 @@ final class AuthService: NSObject, ObservableObject {
         if let email { try Keychain.save(email, forKey: Keys.userEmail) }
         if let name, !name.isEmpty { try Keychain.save(name, forKey: Keys.userName) }
 
-        ReplyService.authToken = decoded.token
+        ReplyService.setAuthToken(decoded.token)
         isSignedIn = true
         userEmail  = email ?? Keychain.load(forKey: Keys.userEmail)
     }
@@ -128,7 +132,7 @@ final class AuthService: NSObject, ObservableObject {
         Keychain.delete(forKey: Keys.sessionToken)
         Keychain.delete(forKey: Keys.userEmail)
         Keychain.delete(forKey: Keys.userName)
-        ReplyService.authToken = nil
+        ReplyService.setAuthToken(nil)
         isSignedIn = false
         userEmail  = nil
     }

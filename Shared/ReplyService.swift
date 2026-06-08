@@ -54,7 +54,11 @@ private struct ErrorDetailBody: Decodable { let error: String?; let detail: Stri
 
 final class ReplyService {
     static let shared = ReplyService()
-    static var authToken: String?
+    nonisolated(unsafe) private(set) static var authToken: String?
+
+    /// Called when the backend returns 401. Set by AuthService on the Replr target.
+    /// Other targets (keyboard, broadcast) leave this nil.
+    static var onUnauthorized: (@MainActor () -> Void)? = nil
 
     private let session: URLSession
     private let backendURL: URL
@@ -62,6 +66,11 @@ final class ReplyService {
     init(session: URLSession = .shared) {
         self.session = session
         self.backendURL = URL(string: Constants.backendURL + "/reply")!
+    }
+
+    /// Sets the authentication token. Called only from AuthService on the main thread.
+    static func setAuthToken(_ token: String?) {
+        authToken = token
     }
 
     func generateReplies(
@@ -94,6 +103,10 @@ final class ReplyService {
 
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw ReplyError.invalidResponse }
+        if http.statusCode == 401 {
+            Task { @MainActor in ReplyService.onUnauthorized?() }
+            throw ReplyError.serverError(401)
+        }
         if http.statusCode == 429 { throw ReplyError.rateLimitReached }
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
@@ -127,6 +140,10 @@ final class ReplyService {
 
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw ReplyError.invalidResponse }
+        if http.statusCode == 401 {
+            Task { @MainActor in ReplyService.onUnauthorized?() }
+            throw ReplyError.serverError(401)
+        }
         if http.statusCode == 429 { throw ReplyError.rateLimitReached }
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
@@ -156,6 +173,10 @@ final class ReplyService {
             let (data, response) = try await session.data(for: request)
             guard let http = response as? HTTPURLResponse else {
                 return ModelTestResult(modelID: modelID, ok: false, latencyMs: ms(), message: "No HTTP response")
+            }
+            if http.statusCode == 401 {
+                Task { @MainActor in ReplyService.onUnauthorized?() }
+                return ModelTestResult(modelID: modelID, ok: false, latencyMs: ms(), message: "HTTP 401: Unauthorized")
             }
             if http.statusCode == 200 {
                 return ModelTestResult(modelID: modelID, ok: true, latencyMs: ms(), message: "OK")
@@ -209,6 +230,10 @@ final class ReplyService {
 
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw ReplyError.invalidResponse }
+        if http.statusCode == 401 {
+            Task { @MainActor in ReplyService.onUnauthorized?() }
+            throw ReplyError.serverError(401)
+        }
         if http.statusCode == 429 { throw ReplyError.rateLimitReached }
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
