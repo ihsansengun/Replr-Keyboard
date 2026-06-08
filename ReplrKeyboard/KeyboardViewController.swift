@@ -6,7 +6,7 @@ final class KeyboardViewController: UIInputViewController {
     private var model: KeyboardModel!
     private var capturePollingTask: Task<Void, Never>?
     private var heightConstraint: NSLayoutConstraint!
-    private var lastRepliesContentHeight: CGFloat = 500  // last measured replies height (placeholder until measured)
+    private var lastRepliesContentHeight: CGFloat = 340  // last measured replies height (placeholder until measured)
     private var autoSwitchTask: DispatchWorkItem?
     private var stateCancellable: AnyCancellable?
     private var collapseCancellable: AnyCancellable?
@@ -64,7 +64,7 @@ final class KeyboardViewController: UIInputViewController {
             // it (so a state re-publish can't snap the keyboard back to the placeholder) and set the
             // keyboard to exactly that, clamped.
             guard let self else { return }
-            let clamped = min(600, max(300, height))
+            let clamped = min(400, max(280, height))
             self.lastRepliesContentHeight = clamped
             self.setHeight(clamped, duration: 0.15)
         }
@@ -232,10 +232,23 @@ final class KeyboardViewController: UIInputViewController {
         }
     }
 
-    // Replies height is driven by RepliesPanelView's single content-height GeometryReader →
-    // onContentHeightChanged (wired in setupModel). Because that panel is a plain, self-sizing
-    // stack (no ScrollView), the reported height is the true natural content height, so the keyboard
-    // fits the replies exactly — no clip, no gap. No sizeThatFits needed.
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // On some host apps (e.g. Instagram), the keyboard window imposes a required
+        // height constraint that beats our priority-999 request, leaving view.bounds.height
+        // smaller than heightConstraint.constant.  When that happens, snap our constraint
+        // down to the actual allocated height so SwiftUI sees a coherent frame.  The
+        // ScrollView in RepliesPanelView then handles any overflow gracefully.
+        let actualH = view.bounds.height
+        guard actualH > 44, actualH < heightConstraint.constant - 1 else { return }
+        heightConstraint.constant = actualH
+        if lastRepliesContentHeight > actualH { lastRepliesContentHeight = actualH }
+    }
+
+    // Replies height is driven by RepliesPanelView's content-height reporter (GeometryReader on the
+    // VStack *inside* the ScrollView) → onContentHeightChanged. The keyboard grows to the measured
+    // natural height, clamped to [280, 400]. If the system allocates less than requested (some apps
+    // constrain the keyboard area), the ScrollView in RepliesPanelView adapts gracefully — no clip.
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)

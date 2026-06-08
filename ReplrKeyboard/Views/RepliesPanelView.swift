@@ -1,10 +1,12 @@
 import SwiftUI
 
 // Sums the natural heights of the panel's three pieces (header + cards + action row). Each piece
-// reports its OWN height via .background, so the total is the true CONTENT height, independent of the
-// keyboard frame. (Measuring the OUTER view instead reads the frame height back — which locks the
-// keyboard at its placeholder size and leaves a gap below the action row.) The pieces are plain
-// stacks — no ScrollView to hide their height — so each measurement is exact on the first layout.
+// reports its OWN height via .background(heightReporter), so the total is the true CONTENT height,
+// independent of the keyboard frame. The cards section lives inside a ScrollView: the GeometryReader
+// is placed on the inner VStack (not the ScrollView itself), so it still measures the full natural
+// cards height, not the clipped viewport height. This lets the keyboard grow to fit short replies
+// while also adapting gracefully when the system gives us less space than requested (e.g. Instagram
+// constrains the keyboard area) — the ScrollView scrolls rather than overflowing/clipping.
 private struct ContentHeightKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value += nextValue() }
@@ -44,17 +46,22 @@ struct RepliesPanelView: View {
             }
             .background(heightReporter)
 
-            // Reply cards — a plain stack (NO ScrollView), so the panel self-sizes to fit every
-            // reply exactly. Whatever each reply's line count, the keyboard grows to match: no
-            // clipping, no empty gap.
-            VStack(spacing: 8) {
-                ForEach(Array(replies.enumerated()), id: \.offset) { idx, reply in
-                    replyCard(idx: idx, reply: reply)
+            // Reply cards — in a ScrollView so the section fills whatever vertical space remains
+            // between the header and action row. The inner VStack still measures its NATURAL height
+            // via heightReporter, which drives the keyboard height (keyboard grows to fit short
+            // replies). When the system allocates less than we asked for (e.g. Instagram has an
+            // input-accessory bar that eats into the keyboard area), the ScrollView adapts instead
+            // of overflowing — no top/bottom clipping.
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: 8) {
+                    ForEach(Array(replies.enumerated()), id: \.offset) { idx, reply in
+                        replyCard(idx: idx, reply: reply)
+                    }
                 }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(heightReporter)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(heightReporter)
 
             actionRow
                 .padding(.horizontal, 16)
