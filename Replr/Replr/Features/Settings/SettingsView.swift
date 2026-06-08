@@ -513,6 +513,38 @@ struct SettingsView: View {
 
     private var accountSection: some View {
         settingsSection("Account") {
+            // Signed-in identity
+            if let email = AuthService.shared.userEmail {
+                settingsRow {
+                    Image(systemName: "person.crop.circle")
+                        .foregroundColor(ReplrTheme.Color.accent)
+                        .frame(width: 28)
+                    Text(email)
+                        .font(.system(size: 15))
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                cardDivider
+            }
+
+            // Sign out
+            Button {
+                AuthService.shared.signOut()
+            } label: {
+                settingsRow {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .foregroundColor(ReplrTheme.Color.danger)
+                        .frame(width: 28)
+                    Text("Sign out")
+                        .font(.system(size: 17))
+                        .foregroundColor(ReplrTheme.Color.danger)
+                }
+            }
+            .buttonStyle(.plain)
+            cardDivider
+
+            // Existing credits row
             NavigationLink(destination: CreditPacksView()) {
                 settingsRow {
                     Text("Credits")
