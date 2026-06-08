@@ -733,15 +733,6 @@ struct UsageTutorialView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.easeInOut(duration: 0.25), value: page)
 
-                HStack(spacing: 8) {
-                    ForEach(steps.indices, id: \.self) { i in
-                        Circle()
-                            .fill(i == page ? ReplrTheme.Color.accent : ReplrTheme.Color.textTertiary.opacity(0.35))
-                            .frame(width: i == page ? 8 : 6, height: i == page ? 8 : 6)
-                    }
-                }
-                .padding(.vertical, 18)
-
                 PrimaryButton(label: page == steps.count - 1 ? "Start using Replr →" : "Next") {
                     if page == steps.count - 1 {
                         onDone()
@@ -749,6 +740,7 @@ struct UsageTutorialView: View {
                         withAnimation { page += 1 }
                     }
                 }
+                .padding(.top, 16)
                 .padding(.horizontal, 24)
                 .padding(.bottom, 40)
             }
