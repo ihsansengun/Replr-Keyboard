@@ -14,7 +14,7 @@ struct PersonalizationSurveyStep: View {
             step: step, totalSteps: totalSteps,
             sectionLabel: "Personalize",
             headline: "Where do you need better replies?",
-            bodyText: "Pick what fits — we'll set your starting tone. You can change it anytime.",
+            bodyText: "Pick what fits. We'll set your starting tone. You can change it anytime.",
             onBack: onBack
         ) {
             VStack(spacing: 10) {

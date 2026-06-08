@@ -118,11 +118,11 @@ private struct WelcomeStep: View {
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
                         .lineSpacing(4)
 
-                    Text("Free to try — no credit card.")
+                    Text("Free to try. No credit card.")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(ReplrTheme.Color.accent)
 
-                    Text("Your conversations are sent to generate replies, then discarded — nothing stored on any server. See Privacy in Settings.")
+                    Text("Your conversations are sent to generate replies, then discarded. Nothing stored on any server. See Privacy in Settings.")
                         .font(.system(size: 12))
                         .foregroundStyle(ReplrTheme.Color.textTertiary)
                         .lineSpacing(3)
@@ -299,13 +299,13 @@ private struct KeyboardSetupStep: View {
                     lead: "Your data is ",
                     highlight: "safe",
                     trail: ".",
-                    detail: "Full Access just lets Replr work across your apps — nothing you type is stored."
+                    detail: "Full Access lets Replr work across your apps. Nothing you type is stored."
                 )
                 KeyboardSettingsPreview()
             }
         } cta: {
             if detected {
-                PrimaryButton(label: "All set ✓ — Continue →", action: onNext)
+                PrimaryButton(label: "All set. Continue →", action: onNext)
             } else if settingsOpened {
                 VStack(spacing: 12) {
                     PrimaryButton(label: "I've enabled it →", action: onNext)
@@ -376,7 +376,7 @@ private struct PhotosPermissionStep: View {
             }
         } cta: {
             if granted {
-                PrimaryButton(label: "Photos allowed ✓ — Continue →", action: onNext)
+                PrimaryButton(label: "Photos allowed. Continue →", action: onNext)
             } else {
                 VStack(spacing: 12) {
                     PrimaryButton(label: denied ? "Open Settings →" : "Allow Photos →") { handleTap() }
@@ -674,7 +674,7 @@ struct UsageTutorialView: View {
     private let steps: [TutStep] = [
         TutStep(animation: parseLottie(tutSwitchJSON), icon: "globe",
                 title: "Switch to Replr",
-                body: "Replr writes your replies — it isn't for typing. Keep using your normal keyboard to type; press and hold the 🌐 key to bring up Replr whenever you want a reply."),
+                body: "Replr writes your replies. It isn't for typing. Keep using your normal keyboard; press and hold 🌐 to bring up Replr whenever you want a reply."),
         TutStep(animation: parseLottie(tutPickJSON), icon: "keyboard",
                 title: "Pick Replr",
                 body: "Tap Replr in the list to switch to it."),
@@ -683,17 +683,17 @@ struct UsageTutorialView: View {
                 body: "Tap Start so the keyboard shrinks and you can see the whole chat."),
         TutStep(animation: parseLottie(tutScreenshotJSON), icon: "camera.viewfinder",
                 title: "Screenshot the chat",
-                body: "Take a screenshot — Replr reads it and drafts your replies."),
+                body: "Take a screenshot. Replr reads it and drafts your replies."),
         TutStep(animation: parseLottie(tutSendJSON), icon: "sparkles",
                 title: "Tap to send",
                 body: "Your replies appear right in the keyboard. Tap one to drop it into the chat."),
         TutStep(animation: nil, icon: "text.cursor",
                 title: "Steer the reply",
-                body: "Optional: type what you want to say first — like \"ask her to dinner\" — then switch to Replr and tap Start. Your replies come back built around it.",
+                body: "Optional: type what you want to say first, like \"ask her to dinner\", then switch to Replr and tap Start. Your replies come back built around it.",
                 heroFlow: true),
         TutStep(animation: nil, icon: "hand.tap",
                 title: "Reply anywhere with Back Tap",
-                body: "Optional: set up a triple-tap on the back of your phone to capture any screen — even dating profiles, where the keyboard can't open. Turn it on in Settings → Keyboard → Back Tap capture."),
+                body: "Optional: set up a triple-tap on the back of your phone to capture any screen, even dating profiles, where the keyboard can't open. Turn it on in Settings → Keyboard → Back Tap capture."),
     ]
 
     @State private var page: Int
@@ -818,7 +818,7 @@ struct BackTapSetupFullView: View {
                             .font(.system(size: 24, weight: .bold))
                             .tracking(-0.3)
                             .foregroundColor(ReplrTheme.Color.textPrimary)
-                        Text("Works anywhere — even on dating profiles, where the keyboard can't open. Triple-tap the back of your phone: Replr screenshots what's on screen and drafts replies. Nothing is saved to your Photos. Two-minute, one-time setup.")
+                        Text("Works anywhere, even on dating profiles, where the keyboard can't open. Triple-tap the back of your phone: Replr screenshots what's on screen and drafts replies. Nothing is saved to your Photos. Two-minute, one-time setup.")
                             .font(ReplrTheme.Font.callout)
                             .foregroundColor(ReplrTheme.Color.textSecondary)
                             .lineSpacing(3)
@@ -836,7 +836,7 @@ struct BackTapSetupFullView: View {
                                 .font(.system(size: 16, weight: .semibold))
                                 .foregroundColor(ReplrTheme.Color.textPrimary)
                         }
-                        Text("Opens the Shortcuts app — tap \"Add Shortcut\" to confirm.")
+                        Text("Opens the Shortcuts app. Tap \"Add Shortcut\" to confirm.")
                             .font(ReplrTheme.Font.footnote)
                             .foregroundColor(ReplrTheme.Color.textSecondary)
                             .lineSpacing(2)
@@ -895,7 +895,7 @@ struct BackTapSetupFullView: View {
                             .stroke(ReplrTheme.Color.glassBorder, lineWidth: 1)
                     )
 
-                    Text("First triple-tap, iOS asks to allow Replr to receive the screenshot — tap \"Allow Always.\"")
+                    Text("First triple-tap, iOS asks to allow Replr to receive the screenshot. Tap \"Allow Always.\"")
                         .font(ReplrTheme.Font.footnote)
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .lineSpacing(3)

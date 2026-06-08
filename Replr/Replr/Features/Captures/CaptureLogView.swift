@@ -232,7 +232,7 @@ struct RepliesView: View {
             VStack(alignment: .leading, spacing: 14) {
                 emptyHowToRow("1", "Open a chat and switch to the Replr keyboard (🌐).")
                 emptyHowToRow("2", "Tap \u{201C}Start\u{201D}, then screenshot the chat.")
-                emptyHowToRow("3", "Your replies show up here — and in the keyboard to tap in.")
+                emptyHowToRow("3", "Your replies show up here, and in the keyboard to tap in.")
             }
             .padding(.horizontal, 28)
             Spacer()

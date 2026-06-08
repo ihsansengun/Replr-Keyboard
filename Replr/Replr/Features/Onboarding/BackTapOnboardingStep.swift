@@ -14,8 +14,8 @@ struct BackTapOnboardingStep: View {
         OnboardingStep(
             step: step, totalSteps: totalSteps,
             sectionLabel: "Back Tap · Optional",
-            headline: "Reply anywhere — even on profiles.",
-            bodyText: "Where the keyboard can't open — dating profiles, other apps — triple-tap the back of your phone to capture the screen and get replies.",
+            headline: "Reply anywhere, even on profiles.",
+            bodyText: "Where the keyboard can't open (dating profiles, other apps), triple-tap the back of your phone to capture the screen and get replies.",
             onBack: onBack
         ) {
             BackTapArt()

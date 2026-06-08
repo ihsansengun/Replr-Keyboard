@@ -135,11 +135,11 @@ struct SampleDemoStep: View {
                 .font(.system(size: 14))
                 .foregroundColor(ReplrTheme.Color.amber)
             VStack(alignment: .leading, spacing: 2) {
-                Text(didScreenshot ? "Screenshot taken — open Replr and tap a reply." : "Reply with Replr")
+                Text(didScreenshot ? "Screenshot taken. Open Replr and tap a reply." : "Reply with Replr")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(ReplrTheme.Color.textPrimary)
                 Text(didScreenshot
-                     ? "Tap a reply in Replr — it drops into the box below."
+                     ? "Tap a reply in Replr. It drops into the box below."
                      : "Long-press 🌐 → pick Replr → tap Start → screenshot this chat. Your reply lands below.")
                     .font(.system(size: 12))
                     .foregroundColor(ReplrTheme.Color.textSecondary)
@@ -156,7 +156,7 @@ struct SampleDemoStep: View {
     private var successCard: some View {
         HStack(spacing: 10) {
             Image(systemName: "checkmark.circle.fill").font(.system(size: 16)).foregroundColor(ReplrTheme.Color.accent)
-            Text("That's a Replr reply — you've got it.")
+            Text("That's a Replr reply. You've got it.")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(ReplrTheme.Color.textPrimary)
             Spacer(minLength: 8)

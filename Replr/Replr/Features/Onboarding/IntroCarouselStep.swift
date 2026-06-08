@@ -98,7 +98,7 @@ private struct CaptureReplyArt: View {
 
             HStack(spacing: 6) {
                 Image(systemName: "sparkles").font(.system(size: 12, weight: .semibold))
-                Text("Wouldn't miss it — 7pm?").font(.system(size: 14, weight: .medium))
+                Text("Wouldn't miss it. 7pm?").font(.system(size: 14, weight: .medium))
             }
             .foregroundStyle(ReplrTheme.Color.onAccent)
             .padding(.horizontal, 14).padding(.vertical, 10)

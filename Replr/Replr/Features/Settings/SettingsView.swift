@@ -47,7 +47,7 @@ struct SetupStatusView: View {
                         .font(.system(size: 24, weight: .bold))
                         .foregroundStyle(ReplrTheme.Color.textPrimary)
                     Text(allSet
-                         ? "Everything Replr needs is enabled — you're good to go."
+                         ? "Everything Replr needs is enabled. You're good to go."
                          : "A couple of things still need turning on.")
                         .font(.system(size: 15))
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
@@ -230,7 +230,7 @@ struct SettingsView: View {
                     .foregroundStyle(ReplrTheme.Color.textTertiary)
                     .padding(.top, 2)
 
-                Text("Stays on your device — sent only to draft your replies.")
+                Text("Stays on your device. Sent only to draft your replies.")
                     .font(.system(size: 12))
                     .foregroundStyle(ReplrTheme.Color.textSecondary)
             }
@@ -265,7 +265,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Back Tap capture")
                             .font(.system(size: 17))
-                        Text("Optional — screenshot anywhere, no keyboard needed")
+                        Text("Optional: screenshot anywhere, no keyboard needed")
                             .font(.system(size: 12))
                             .foregroundStyle(ReplrTheme.Color.textSecondary)
                     }
@@ -294,7 +294,7 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.segmented)
                 Text(preferredCapture == "backtap"
-                     ? "Tips point to Back Tap — works anywhere, even on profiles."
+                     ? "Tips point to Back Tap: works anywhere, even on profiles."
                      : "Tips point to the keyboard: tap Start, then screenshot.")
                     .font(.system(size: 12))
                     .foregroundStyle(ReplrTheme.Color.textSecondary)
@@ -362,7 +362,7 @@ struct SettingsView: View {
                     modelOption("gemini-3.1-pro-preview", label: "Gemini Pro", sublabel: "Best quality")
                 }
                 .padding(6)
-                Text("Flash is quick and natural — great for most replies. Pro thinks a little longer for extra-sharp ones. Switch anytime.")
+                Text("Flash is quick and natural, great for most replies. Pro takes a little longer for extra-sharp ones. Switch anytime.")
                     .font(.system(size: 12))
                     .foregroundStyle(ReplrTheme.Color.textTertiary)
                     .padding(.horizontal, 10)
@@ -485,7 +485,7 @@ struct SettingsView: View {
                 .buttonStyle(.plain)
             }
             cardDivider
-            Text("Only deletes screenshots Replr captured for replies — never your other photos. Cleanup runs the next time you open Replr (iOS can't let the keyboard delete photos on its own), and iOS asks you to confirm.")
+            Text("Only deletes screenshots Replr captured for replies, never your other photos. Cleanup runs the next time you open Replr (iOS can't let the keyboard delete photos on its own), and iOS asks you to confirm.")
                 .font(.system(size: 12))
                 .foregroundStyle(ReplrTheme.Color.textSecondary)
                 .padding(.horizontal, 16)
@@ -497,7 +497,7 @@ struct SettingsView: View {
                     Text("Faster capture on iOS 26")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(ReplrTheme.Color.textPrimary)
-                    Text("Screenshots open a full editor instead of saving on their own. For one-tap capture, open the Settings app → Screen Capture and turn off Full-Screen Previews. Optional — capture still works; you'll just tap Save first.")
+                    Text("Screenshots open a full editor instead of saving on their own. For one-tap capture, open the Settings app → Screen Capture and turn off Full-Screen Previews. Optional: capture still works, you'll just tap Save first.")
                         .font(.system(size: 12))
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)

@@ -195,7 +195,7 @@ struct ModelPickerView: View {
                 }
 
                 if modelStats.isEmpty {
-                    Text("No cost data yet — make a capture first.")
+                    Text("No cost data yet. Make a capture first.")
                         .font(.system(size: 13))
                         .foregroundStyle(ReplrTheme.Color.textTertiary)
                 }

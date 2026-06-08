@@ -21,7 +21,7 @@ struct PrivacyView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("What stays on your device")
                         .font(.headline)
-                    Text("After each capture, a one-line summary of the conversation is saved on your device — in the app's private storage — for the memory feature. This summary is never sent to any server. It is only used as context for future replies with the same contact.")
+                    Text("After each capture, a one-line summary of the conversation is saved on your device (in the app's private storage) for the memory feature. This summary is never sent to any server. It is only used as context for future replies with the same contact.")
                         .font(.callout)
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
                         .lineSpacing(3)
