@@ -17,6 +17,7 @@ enum Keychain {
         let data = Data(value.utf8)
         let query: [String: Any] = [
             kSecClass as String:            kSecClassGenericPassword,
+            kSecAttrService as String:      Bundle.main.bundleIdentifier ?? "com.ihsan.replr",
             kSecAttrAccount as String:      key,
             kSecAttrAccessible as String:   kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
             kSecValueData as String:        data,
@@ -29,6 +30,7 @@ enum Keychain {
     static func load(forKey key: String) -> String? {
         let query: [String: Any] = [
             kSecClass as String:       kSecClassGenericPassword,
+            kSecAttrService as String: Bundle.main.bundleIdentifier ?? "com.ihsan.replr",
             kSecAttrAccount as String: key,
             kSecReturnData as String:  true,
             kSecMatchLimit as String:  kSecMatchLimitOne,
@@ -42,6 +44,7 @@ enum Keychain {
     static func delete(forKey key: String) {
         let query: [String: Any] = [
             kSecClass as String:       kSecClassGenericPassword,
+            kSecAttrService as String: Bundle.main.bundleIdentifier ?? "com.ihsan.replr",
             kSecAttrAccount as String: key,
         ]
         SecItemDelete(query as CFDictionary)
@@ -64,6 +67,8 @@ final class AuthService: NSObject, ObservableObject {
     }
 
     private override init() {
+        // Keychain reads are synchronous and run on the main actor. At app scale
+        // (< 3ms) this is acceptable; move off-main if init latency ever shows in profiling.
         isSignedIn = Keychain.load(forKey: Keys.sessionToken) != nil
         userEmail  = Keychain.load(forKey: Keys.userEmail)
         super.init()
@@ -93,8 +98,11 @@ final class AuthService: NSObject, ObservableObject {
         request.httpBody = try JSONSerialization.data(withJSONObject: bodyDict)
 
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+        guard let http = response as? HTTPURLResponse else {
             throw AuthError.serverError
+        }
+        guard http.statusCode == 200 else {
+            throw http.statusCode == 401 ? AuthError.invalidIdentityToken : AuthError.serverError
         }
 
         struct AuthResponse: Decodable { let token: String }
