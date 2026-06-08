@@ -635,6 +635,11 @@ struct ModeSegmentedControl: View {
 struct ToneRow: View {
     @ObservedObject var model: KeyboardModel
     var isDimmed: Bool = false
+    /// Show the credits badge on the right side of the row. Pass true when the mode
+    /// header row is hidden (replies / loading state) so credits remain visible without
+    /// adding height back. In idle state the credits badge lives in the mode header row
+    /// and this should be false to avoid duplication.
+    var showCredits: Bool = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -666,6 +671,12 @@ struct ToneRow: View {
                 )
             )
 
+            // Credits accessory — visible only when the mode header row is hidden so users
+            // always know their balance.
+            if showCredits {
+                creditsAccessory
+            }
+
             if model.needsGlobeKey {
                 ReplrTheme.Color.glassBorder.frame(width: 0.5, height: 16)
                 Button { model.onSwitchKeyboard?() } label: {
@@ -679,6 +690,26 @@ struct ToneRow: View {
         }
         .frame(height: 44)
         .opacity(isDimmed ? 0.35 : 1.0)
+    }
+
+    /// Badge shown on the right of ToneRow when the mode header is absent.
+    @ViewBuilder
+    private var creditsAccessory: some View {
+        switch model.creditDisplay {
+        case .unlimited:
+            // Dev mode: show "∞" so the model switcher context isn't completely lost.
+            Text("∞")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(ReplrTheme.Color.accent)
+                .padding(.horizontal, 10)
+        case .count(let n) where n <= 20:
+            // Low credits — show the warning badge so users aren't surprised mid-reply.
+            CreditCounterBadge(count: n)
+                .padding(.horizontal, 8)
+        case .count:
+            // Plenty of credits — no clutter needed.
+            EmptyView()
+        }
     }
 }
 
@@ -757,7 +788,9 @@ struct KeyboardHeader: View {
             .padding(.bottom, 8)
             } // end if !isModeHidden
             if !isToneHidden {
-                ToneRow(model: model, isDimmed: isToneDimmed)
+                // showCredits: when mode row is hidden the credits badge lives here instead,
+                // so it stays visible across all keyboard states without adding height.
+                ToneRow(model: model, isDimmed: isToneDimmed, showCredits: isModeHidden)
             }
         }
         .background(ReplrTheme.Color.bg)
