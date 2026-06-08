@@ -1,7 +1,7 @@
 import Foundation
 
-/// The onboarding personalization survey: a pure mapping from the user's pick to a seeded
-/// starting tone + About You hint, plus a side-effecting `apply` that persists it.
+/// The onboarding personalization survey: maps the user's communication-style pick to a
+/// seeded tone + a concise About You hint that ships with every LLM call.
 /// `seed(for:)` is pure and unit-tested; `apply` wraps it with persistence.
 enum OnboardingSurvey {
     struct Option: Identifiable, Equatable {
@@ -9,16 +9,32 @@ enum OnboardingSurvey {
         let label: String
         let icon: String       // SF Symbol
         let toneName: String   // must match a Tone.presets name (verified by tests)
-        let aboutHint: String  // appended to About You; "" = none
+        let aboutHint: String  // written to About You when user hasn't typed their own
     }
 
+    /// Four style-based options (replaces the old platform-based list).
+    /// These describe *how the user communicates*, not which app they use.
     static let options: [Option] = [
-        Option(id: "dating",  label: "Dating apps",         icon: "heart.fill",     toneName: "Flirty",       aboutHint: "I'm replying on dating apps."),
-        Option(id: "friends", label: "Texting friends",     icon: "message.fill",   toneName: "Casual",       aboutHint: "I'm texting friends."),
-        Option(id: "work",    label: "Work & Slack",        icon: "briefcase.fill", toneName: "Professional", aboutHint: "I'm messaging coworkers."),
-        Option(id: "family",  label: "Family",              icon: "house.fill",     toneName: "Friendly",     aboutHint: "I'm messaging family."),
-        Option(id: "email",   label: "Email",               icon: "envelope.fill",  toneName: "Professional", aboutHint: "I'm drafting emails."),
-        Option(id: "other",   label: "A bit of everything", icon: "sparkles",       toneName: "Natural",      aboutHint: ""),
+        Option(id: "direct",
+               label: "Confident & direct",
+               icon: "bolt.fill",
+               toneName: "Confident",
+               aboutHint: "I tend to be confident and direct."),
+        Option(id: "warm",
+               label: "Warm & friendly",
+               icon: "sun.max.fill",
+               toneName: "Friendly",
+               aboutHint: "I come across as warm and friendly."),
+        Option(id: "witty",
+               label: "Witty & playful",
+               icon: "face.smiling.fill",
+               toneName: "Witty",
+               aboutHint: "I tend to be witty and playful."),
+        Option(id: "thoughtful",
+               label: "Thoughtful & measured",
+               icon: "sparkles",
+               toneName: "Natural",
+               aboutHint: "I tend to be thoughtful and measured."),
     ]
 
     struct Seed: Equatable {
@@ -36,8 +52,8 @@ enum OnboardingSurvey {
         return Seed(toneName: opt.toneName, aboutHint: opt.aboutHint)
     }
 
-    /// Persists the seed: selects the matching tone and appends the hint to About You
-    /// (never overwrites an existing About You).
+    /// Persists the seed: selects the matching tone and writes the hint to About You
+    /// only when About You is currently empty (never overwrites user-typed text).
     static func apply(_ selectedIDs: [String], service: AppGroupService = .shared) {
         let s = seed(for: selectedIDs)
         if let tone = service.readTones().first(where: { $0.name == s.toneName }) {
@@ -47,8 +63,6 @@ enum OnboardingSurvey {
         let existing = service.aboutUser.trimmingCharacters(in: .whitespacesAndNewlines)
         if existing.isEmpty {
             service.aboutUser = s.aboutHint
-        } else if !existing.localizedCaseInsensitiveContains(s.aboutHint) {
-            service.aboutUser = existing + " " + s.aboutHint
         }
     }
 }

@@ -27,15 +27,15 @@ struct OnboardingSurveyTests {
         #expect(s.aboutHint.isEmpty)
     }
 
-    @Test func datingPrimarySeedsFlirty() {
-        let s = OnboardingSurvey.seed(for: ["dating", "friends"])
-        #expect(s.toneName == "Flirty")
-        #expect(s.aboutHint == "I'm replying on dating apps.")
+    @Test func wittyPrimarySeedsWitty() {
+        let s = OnboardingSurvey.seed(for: ["witty", "warm"])
+        #expect(s.toneName == "Witty")
+        #expect(s.aboutHint == "I tend to be witty and playful.")
     }
 
     @Test func primaryPickWinsOverLater() {
-        let s = OnboardingSurvey.seed(for: ["work", "dating"])
-        #expect(s.toneName == "Professional")
+        let s = OnboardingSurvey.seed(for: ["direct", "witty"])
+        #expect(s.toneName == "Confident")
     }
 
     @Test func unknownIDFallsBackToNatural() {
