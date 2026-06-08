@@ -553,7 +553,7 @@ final class AppGroupService {
     }
 
     var memoryEnabled: Bool {
-        get { defaults.object(forKey: Constants.memoryEnabledKey) as? Bool ?? true }
+        get { defaults.object(forKey: Constants.memoryEnabledKey) as? Bool ?? false }
         set { defaults.set(newValue, forKey: Constants.memoryEnabledKey); defaults.synchronize() }
     }
 

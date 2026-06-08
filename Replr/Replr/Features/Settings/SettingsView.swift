@@ -282,29 +282,6 @@ struct SettingsView: View {
 
             cardDivider
 
-            // Preferred capture — tailors in-app guidance (both methods always work)
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Preferred capture")
-                    .font(.system(size: 17))
-                    .foregroundStyle(ReplrTheme.Color.textPrimary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Picker("", selection: $preferredCapture) {
-                    Text("Keyboard").tag("keyboard")
-                    Text("Back Tap").tag("backtap")
-                }
-                .pickerStyle(.segmented)
-                Text(preferredCapture == "backtap"
-                     ? "Tips point to Back Tap: works anywhere, even on profiles."
-                     : "Tips point to the keyboard: tap Start, then screenshot.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(ReplrTheme.Color.textSecondary)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .onChange(of: preferredCapture) { AppGroupService.shared.preferredCapture = $0 }
-
-            cardDivider
-
             Button { showTutorial = true } label: {
                 settingsRow {
                     Text("How to use Replr")

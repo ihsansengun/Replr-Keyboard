@@ -46,7 +46,7 @@ struct TonesView: View {
             List {
                 Section {
                     ForEach(vm.presets) { tone in
-                        PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) })
+                        PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) }, showDragHandle: true)
                             .listRowBackground(ReplrTheme.Color.surface)
                             .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                     }
@@ -61,7 +61,7 @@ struct TonesView: View {
                             .foregroundStyle(ReplrTheme.Color.accent)
                     }
                 } footer: {
-                    Text("Default tones are on by default. Tap the toggle to add or remove any tone from your keyboard.")
+                    Text("Tap the toggle to add or remove a tone from your keyboard. Drag the ≡ handle to reorder.")
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
 
@@ -102,6 +102,7 @@ struct TonesView: View {
 struct PresetToneRow: View {
     let tone: Tone
     let onToggle: () -> Void
+    var showDragHandle: Bool = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -130,6 +131,12 @@ struct PresetToneRow: View {
             Toggle("", isOn: Binding(get: { tone.isEnabled }, set: { _ in onToggle() }))
                 .labelsHidden()
                 .tint(ReplrTheme.Color.accent)
+            if showDragHandle {
+                Image(systemName: "line.3.horizontal")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(ReplrTheme.Color.textTertiary)
+                    .padding(.leading, 4)
+            }
         }
         .padding(.vertical, 2)
     }
