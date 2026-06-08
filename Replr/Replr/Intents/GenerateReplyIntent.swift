@@ -15,6 +15,7 @@ struct GenerateReplyIntent: AppIntent {
     var screenshot: IntentFile
 
     func perform() async throws -> some IntentResult {
+        ReplyService.bootstrapAuthIfNeeded()
         NSLog("[Replr][Intent] GenerateReplyIntent fired")
         AppGroupService.shared.lastIntentFiredAt = Date()
 

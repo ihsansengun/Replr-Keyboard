@@ -9,6 +9,7 @@ struct QuickReplyIntent: AppIntent {
     static var openAppWhenRun: Bool = false
 
     func perform() async throws -> some IntentResult {
+        ReplyService.bootstrapAuthIfNeeded()
         NSLog("[Replr][QuickReply] fired")
 
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)

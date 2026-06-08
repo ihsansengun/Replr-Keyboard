@@ -1,4 +1,5 @@
 import Foundation
+import Security
 import UIKit
 
 struct ReplyRequest: Codable {
@@ -71,6 +72,24 @@ final class ReplyService {
     /// Sets the authentication token. Called only from AuthService on the main thread.
     static func setAuthToken(_ token: String?) {
         authToken = token
+    }
+
+    /// Bootstraps the session token from Keychain when the app process hasn't initialized
+    /// AuthService (e.g. AppIntents running in a separate process). No-op if token already set.
+    static func bootstrapAuthIfNeeded() {
+        guard authToken == nil else { return }
+        let query: [String: Any] = [
+            kSecClass as String:       kSecClassGenericPassword,
+            kSecAttrService as String: Bundle.main.bundleIdentifier ?? "com.ihsan.replr",
+            kSecAttrAccount as String: "replr.auth.sessionToken",
+            kSecReturnData as String:  true,
+            kSecMatchLimit as String:  kSecMatchLimitOne,
+        ]
+        var result: AnyObject?
+        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+              let data = result as? Data,
+              let token = String(data: data, encoding: .utf8) else { return }
+        setAuthToken(token)
     }
 
     func generateReplies(
