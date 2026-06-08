@@ -287,7 +287,7 @@ private struct KeyboardSetupStep: View {
 
     var body: some View {
         OnboardingStep(
-            step: 2, totalSteps: 4,
+            step: 2, totalSteps: 3,
             sectionLabel: "Keyboard",
             headline: "Add Replr & allow Full Access.",
             bodyText: "Add the Replr keyboard, then turn on Full Access so it can draft your replies.",
@@ -327,10 +327,9 @@ private struct KeyboardSetupStep: View {
                 }
             }
         }
-        .onAppear { settingsOpened = false }
         .onDisappear { settingsOpened = false }
-        // Poll for the keyboard writing the fullAccessGranted flag (works for re-installs /
-        // returning users where the keyboard has previously run with Full Access).
+        // Poll for the keyboard writing the fullAccessGranted flag (works for returning users
+        // where the keyboard has previously run with Full Access).
         .onReceive(
             Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
         ) { _ in
@@ -338,18 +337,6 @@ private struct KeyboardSetupStep: View {
                 detected = AppGroupService.shared.fullAccessGranted
                 if detected { onNext() }
             }
-        }
-        // Auto-advance when the user returns from Settings.
-        // The keyboard extension can only confirm Full Access once it runs, so we can't
-        // verify it here. Trust that the user completed the step in Settings and advance.
-        // If they skipped it the keyboard won't work and they can revisit via Settings.
-        .onReceive(
-            NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
-        ) { _ in
-            guard settingsOpened else { return }
-            // Update detected in case it's a re-install and the App Group flag is set
-            detected = AppGroupService.shared.fullAccessGranted
-            onNext()
         }
     }
 }
@@ -366,7 +353,7 @@ private struct PhotosPermissionStep: View {
 
     var body: some View {
         OnboardingStep(
-            step: 3, totalSteps: 4,
+            step: 3, totalSteps: 3,
             sectionLabel: "Permissions",
             headline: "Allow Photos.",
             bodyText: "Replr drafts replies from the screenshot you take of a chat. Your photo library stays private:",
@@ -559,7 +546,7 @@ struct OnboardingView: View {
         }
     }
 
-    /// First permission step (3...4) at or after `from` that still needs action; 5 (Back Tap) if all met.
+    /// First permission step (3...4) at or after `from` that still needs action; 5 (ReadyStep) if all met.
     private func nextPermission(from: Int) -> Int {
         var s = max(from, 3)
         while s <= 4 {
@@ -577,7 +564,7 @@ struct OnboardingView: View {
             case 1:
                 IntroCarouselStep(onDone: { step = 2 })
             case 2:
-                PersonalizationSurveyStep(step: 1, totalSteps: 4,
+                PersonalizationSurveyStep(step: 1, totalSteps: 3,
                                           onNext: { step = nextPermission(from: 3) },
                                           onBack: { step = 1 })
             case 3:
@@ -585,18 +572,15 @@ struct OnboardingView: View {
             case 4:
                 PhotosPermissionStep(onNext: { step = 5 }, onBack: { step = 3 })
             case 5:
-                BackTapOnboardingStep(step: 4, totalSteps: 4,
-                                      onNext: { step = 6 }, onBack: { step = 4 })
+                ReadyStep(onDone: { step = 6 })
             case 6:
-                ReadyStep(onDone: { step = 7 })
-            case 7:
                 SampleDemoStep(onFinish: { step = 0; onComplete() })
             default:
                 WelcomeStep(onNext: { step = 1 })
             }
         }
         .onAppear {
-            if step > 7 { step = 0 }
+            if step > 6 { step = 0 }
             // Revisit from Settings: skip the intro + survey, jump to the first unmet permission.
             if startAtSetup && step == 0 {
                 step = nextPermission(from: 3)
