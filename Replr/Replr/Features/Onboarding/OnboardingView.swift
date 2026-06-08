@@ -295,7 +295,7 @@ private struct KeyboardSetupStep: View {
         ) {
             VStack(spacing: 14) {
                 PrimingCard(
-                    icon: "lock.shield",
+                    icon: "lock.shield.fill",
                     lead: "Your data is ",
                     highlight: "safe",
                     trail: ".",
@@ -327,7 +327,10 @@ private struct KeyboardSetupStep: View {
                 }
             }
         }
+        .onAppear { settingsOpened = false }
         .onDisappear { settingsOpened = false }
+        // Poll for the keyboard writing the fullAccessGranted flag (works for re-installs /
+        // returning users where the keyboard has previously run with Full Access).
         .onReceive(
             Timer.publish(every: 1.5, on: .main, in: .common).autoconnect()
         ) { _ in
@@ -335,6 +338,18 @@ private struct KeyboardSetupStep: View {
                 detected = AppGroupService.shared.fullAccessGranted
                 if detected { onNext() }
             }
+        }
+        // Auto-advance when the user returns from Settings.
+        // The keyboard extension can only confirm Full Access once it runs, so we can't
+        // verify it here. Trust that the user completed the step in Settings and advance.
+        // If they skipped it the keyboard won't work and they can revisit via Settings.
+        .onReceive(
+            NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
+        ) { _ in
+            guard settingsOpened else { return }
+            // Update detected in case it's a re-install and the App Group flag is set
+            detected = AppGroupService.shared.fullAccessGranted
+            onNext()
         }
     }
 }
@@ -499,7 +514,7 @@ private struct PrimingCard: View {
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
-                .font(.system(size: 18, weight: .semibold))
+                .font(.system(size: 24, weight: .semibold))
                 .foregroundColor(ReplrTheme.Color.accent)
             (Text(lead)
              + Text(highlight).foregroundColor(ReplrTheme.Color.accent)
