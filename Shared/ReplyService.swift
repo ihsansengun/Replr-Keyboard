@@ -54,6 +54,7 @@ private struct ErrorDetailBody: Decodable { let error: String?; let detail: Stri
 
 final class ReplyService {
     static let shared = ReplyService()
+    static var authToken: String?
 
     private let session: URLSession
     private let backendURL: URL
@@ -87,6 +88,7 @@ final class ReplyService {
         var request = URLRequest(url: backendURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAuthHeader(to: &request)
         request.httpBody = try JSONEncoder().encode(body)
         request.timeoutInterval = 30
 
@@ -119,6 +121,7 @@ final class ReplyService {
         var request = URLRequest(url: backendURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAuthHeader(to: &request)
         request.httpBody = try JSONEncoder().encode(body)
         request.timeoutInterval = 30
 
@@ -146,6 +149,7 @@ final class ReplyService {
         var request = URLRequest(url: backendURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAuthHeader(to: &request)
         request.timeoutInterval = 45
         do {
             request.httpBody = try JSONEncoder().encode(body)
@@ -199,6 +203,7 @@ final class ReplyService {
         var request = URLRequest(url: scrollURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAuthHeader(to: &request)
         request.timeoutInterval = 45
         request.httpBody = try JSONEncoder().encode(scrollBody)
 
@@ -224,6 +229,16 @@ enum ReplyError: LocalizedError {
         case .invalidResponse:     return "Something went wrong. Tap Try again."
         case .rateLimitReached:    return "Daily limit reached. Upgrade to premium for unlimited replies."
         case .serverError:         return "Something went wrong. Tap Try again."
+        }
+    }
+}
+
+// MARK: - Helpers
+
+private extension ReplyService {
+    func addAuthHeader(to request: inout URLRequest) {
+        if let token = ReplyService.authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
     }
 }
