@@ -43,3 +43,4 @@ Thumbs.db
 Replr/build/
 .playwright-mcp/
 Replr/Replr.storekit
+.claude/worktrees/
