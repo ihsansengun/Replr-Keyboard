@@ -6,6 +6,7 @@ import AppIntents
 @main
 struct ReplrApp: App {
     @AppStorage("onboardingComplete") var onboardingComplete = false
+    @AppStorage("colorSchemeAppearance") private var colorSchemeAppearance = "system"
     @StateObject private var authService = AuthService.shared
     @State private var signedIn: Bool = AuthService.shared.isSignedIn
     @State private var showCapture = false
@@ -54,65 +55,76 @@ struct ReplrApp: App {
         UINavigationBar.appearance().tintColor = accentColor
     }
 
+    private var resolvedScheme: ColorScheme? {
+        switch colorSchemeAppearance {
+        case "light": return .light
+        case "dark":  return .dark
+        default:      return nil   // nil = follow iOS system setting (the default)
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
-            if !signedIn {
-                SignInView(onSuccess: { signedIn = true })
-                    .environmentObject(authService)
-            } else if !onboardingComplete {
-                OnboardingView(onComplete: { onboardingComplete = true })
-            } else {
-                ContentView()
-                    .fullScreenCover(isPresented: $showCapture) {
-                        CaptureView(isPresented: $showCapture)
-                    }
-                    .sheet(isPresented: $showSetup) {
-                        BackTapSetupFullView(isPresented: $showSetup)
-                    }
-                    .sheet(isPresented: $showTutorial) {
-                        UsageTutorialView(startTopic: tutorialTopic, onDone: { showTutorial = false })
-                    }
-                    .onOpenURL { url in
-                        guard url.scheme == "replr" else { return }
-                        switch url.host {
-                        case "capture":
-                            showCapture = true
-                        case "setup":
-                            showSetup = true
-                        case "tutorial":
-                            // e.g. replr://tutorial/steer opens directly at the Steer step.
-                            tutorialTopic = url.path.isEmpty ? nil : url.lastPathComponent
-                            showTutorial = true
-                        case "paywall":
-                            showPaywall = true
-                        default:
-                            break
+            Group {
+                if !signedIn {
+                    SignInView(onSuccess: { signedIn = true })
+                        .environmentObject(authService)
+                } else if !onboardingComplete {
+                    OnboardingView(onComplete: { onboardingComplete = true })
+                } else {
+                    ContentView()
+                        .fullScreenCover(isPresented: $showCapture) {
+                            CaptureView(isPresented: $showCapture)
                         }
-                    }
-                    .onChange(of: scenePhase) { phase in
-                        guard phase == .active else { return }
-                        AppGroupService.shared.synchronize()
-                        CreditsManager.shared.refreshBalance()
-                        if AppGroupService.shared.effectiveCreditBalance == 0 {
-                            showPaywall = true
+                        .sheet(isPresented: $showSetup) {
+                            BackTapSetupFullView(isPresented: $showSetup)
                         }
-                        if AppGroupService.shared.autoClearScreenshots {
-                            // "After each reply" → clean any single pending shot; otherwise batch at 5.
-                            let threshold = AppGroupService.shared.deleteScreenshotAfterEach ? 1 : 5
-                            if ScreenshotCleaner.pendingCount() >= threshold {
-                                ScreenshotCleaner.clean()
+                        .sheet(isPresented: $showTutorial) {
+                            UsageTutorialView(startTopic: tutorialTopic, onDone: { showTutorial = false })
+                        }
+                        .onOpenURL { url in
+                            guard url.scheme == "replr" else { return }
+                            switch url.host {
+                            case "capture":
+                                showCapture = true
+                            case "setup":
+                                showSetup = true
+                            case "tutorial":
+                                // e.g. replr://tutorial/steer opens directly at the Steer step.
+                                tutorialTopic = url.path.isEmpty ? nil : url.lastPathComponent
+                                showTutorial = true
+                            case "paywall":
+                                showPaywall = true
+                            default:
+                                break
                             }
                         }
-                    }
-                    .fullScreenCover(isPresented: $showPaywall) {
-                        NavigationStack {
-                            CreditPacksView(showCloseButton: true)
+                        .onChange(of: scenePhase) { phase in
+                            guard phase == .active else { return }
+                            AppGroupService.shared.synchronize()
+                            CreditsManager.shared.refreshBalance()
+                            if AppGroupService.shared.effectiveCreditBalance == 0 {
+                                showPaywall = true
+                            }
+                            if AppGroupService.shared.autoClearScreenshots {
+                                // "After each reply" → clean any single pending shot; otherwise batch at 5.
+                                let threshold = AppGroupService.shared.deleteScreenshotAfterEach ? 1 : 5
+                                if ScreenshotCleaner.pendingCount() >= threshold {
+                                    ScreenshotCleaner.clean()
+                                }
+                            }
                         }
-                    }
-                    .onChange(of: authService.isSignedIn) { newValue in
-                        if !newValue { signedIn = false }
-                    }
+                        .fullScreenCover(isPresented: $showPaywall) {
+                            NavigationStack {
+                                CreditPacksView(showCloseButton: true)
+                            }
+                        }
+                        .onChange(of: authService.isSignedIn) { newValue in
+                            if !newValue { signedIn = false }
+                        }
+                }
             }
+            .preferredColorScheme(resolvedScheme)
         }
     }
 }
