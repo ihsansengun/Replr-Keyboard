@@ -6,7 +6,9 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 FREE_DAILY_LIMIT = "200"
 # Anonymous (no session token) requests are rate-limited per IP at this daily cap.
-ANON_DAILY_LIMIT = "50"
+# 120 (not lower) because carrier NAT pools many phones behind one IP — old-build
+# TestFlight testers (pre-sign-in) share this quota with whoever shares their IP.
+ANON_DAILY_LIMIT = "120"
 # Server-managed users are metered by their credit balance (every request costs
 # purchased credits), so this is only a runaway-loop circuit breaker.
 MANAGED_DAILY_LIMIT = "1000"
