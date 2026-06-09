@@ -55,6 +55,9 @@ enum Constants {
     static let devModelKey           = "replr.dev.model"          // dev override (only used when devMode=true)
     static let devModeKey            = "replr.dev.mode"
     static let creditsMigratedKey    = "replr.credits.migrated"
+    static let serverCreditsMigratedKey = "replr.credits.serverMigrated"  // local balance adopted into the server ledger
+    static let grantedTxIDsKey       = "replr.credits.grantedTxIDs"       // locally-granted StoreKit tx ids (offline fallback dedup)
+    static let remoteModelCatalogKey = "remote_model_catalog"             // JSON [RemoteModelInfo] fetched from /config
     static let colorSchemeAppearanceKey = "replr.appearance.colorScheme"
 
     // File-based keys (broadcast/scroll capture only)

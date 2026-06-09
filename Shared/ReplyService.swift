@@ -31,6 +31,9 @@ struct ReplyResponse: Codable {
     let inputTokens: Int?
     let outputTokens: Int?
     let costUsd: Double?
+    /// Authoritative balance after a server-side charge. Present only for
+    /// server-managed users (signed in + migrated); nil → legacy local deduction.
+    let creditsRemaining: Int?
 }
 
 struct ReplyResult {
@@ -40,6 +43,7 @@ struct ReplyResult {
     let inputTokens: Int?
     let outputTokens: Int?
     let costUsd: Double?
+    let creditsRemaining: Int?
 }
 
 /// Result of a dev model-tester ping (ModelPickerView → "Test all models").
@@ -126,11 +130,12 @@ final class ReplyService {
             Task { @MainActor in ReplyService.onUnauthorized?() }
             throw ReplyError.serverError(401)
         }
+        if http.statusCode == 402 { throw ReplyError.insufficientCredits }
         if http.statusCode == 429 { throw ReplyError.rateLimitReached }
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
         let decoded = try JSONDecoder().decode(ReplyResponse.self, from: data)
-        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd)
+        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd, creditsRemaining: decoded.creditsRemaining)
     }
 
     func generateRepliesFromEmail(
@@ -163,11 +168,12 @@ final class ReplyService {
             Task { @MainActor in ReplyService.onUnauthorized?() }
             throw ReplyError.serverError(401)
         }
+        if http.statusCode == 402 { throw ReplyError.insufficientCredits }
         if http.statusCode == 429 { throw ReplyError.rateLimitReached }
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
         let decoded = try JSONDecoder().decode(ReplyResponse.self, from: data)
-        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd)
+        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd, creditsRemaining: decoded.creditsRemaining)
     }
 
     /// Dev model-tester (ModelPickerView): pings the backend with a fixed sample using an EXPLICIT
@@ -253,11 +259,12 @@ final class ReplyService {
             Task { @MainActor in ReplyService.onUnauthorized?() }
             throw ReplyError.serverError(401)
         }
+        if http.statusCode == 402 { throw ReplyError.insufficientCredits }
         if http.statusCode == 429 { throw ReplyError.rateLimitReached }
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
         let decoded = try JSONDecoder().decode(ReplyResponse.self, from: data)
-        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd)
+        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd, creditsRemaining: decoded.creditsRemaining)
     }
 }
 
@@ -265,13 +272,17 @@ enum ReplyError: LocalizedError {
     case encodingFailed
     case invalidResponse
     case rateLimitReached
+    case insufficientCredits
     case serverError(Int)
 
     var errorDescription: String? {
         switch self {
         case .encodingFailed:      return "Couldn't process the screenshot."
         case .invalidResponse:     return "Something went wrong. Tap Try again."
-        case .rateLimitReached:    return "Daily limit reached. Upgrade to premium for unlimited replies."
+        case .rateLimitReached:    return "Daily limit reached. Try again tomorrow."
+        // "out of credits" is the sentinel ErrorPanelView maps to its credits
+        // category (top-up CTA) — keep that phrase if rewording.
+        case .insufficientCredits: return "You're out of credits. Top up in the Replr app."
         case .serverError:         return "Something went wrong. Tap Try again."
         }
     }

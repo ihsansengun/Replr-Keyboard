@@ -124,6 +124,14 @@ final class AuthService: NSObject, ObservableObject {
         ReplyService.setAuthToken(decoded.token)
         isSignedIn = true
         userEmail  = email ?? Keychain.load(forKey: Keys.userEmail)
+
+        // Adopt the local credit balance into this account's server ledger and
+        // pull back the authoritative value. Safe to fire-and-forget — both are
+        // retried on every app foreground.
+        Task {
+            await CreditsManager.shared.serverMigrateIfNeeded()
+            await CreditsManager.shared.syncServerBalance()
+        }
     }
 
     // MARK: - Sign Out
@@ -133,6 +141,9 @@ final class AuthService: NSObject, ObservableObject {
         Keychain.delete(forKey: Keys.userEmail)
         Keychain.delete(forKey: Keys.userName)
         ReplyService.setAuthToken(nil)
+        // A different Apple ID signing in later gets its own one-time server
+        // credit migration.
+        AppGroupService.shared.serverCreditsMigrated = false
         isSignedIn = false
         userEmail  = nil
     }

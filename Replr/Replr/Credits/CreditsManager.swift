@@ -16,9 +16,12 @@ final class CreditsManager: ObservableObject {
         "com.ihsan.replr.credits.2500",
     ]
 
+    private var transactionListener: Task<Void, Never>?
+
     private init() {
         migrateIfNeeded()
         balance = AppGroupService.shared.effectiveCreditBalance
+        startTransactionListener()
     }
 
     // MARK: - StoreKit
@@ -41,11 +44,9 @@ final class CreditsManager: ObservableObject {
         switch result {
         case .success(let verification):
             guard case .verified(let transaction) = verification else { return }
-            let credits = creditsForProductID(transaction.productID)
-            AppGroupService.shared.creditBalance += credits
-            balance = AppGroupService.shared.effectiveCreditBalance
-            await transaction.finish()
+            await applyGrant(for: transaction, jws: verification.jwsRepresentation)
         case .userCancelled, .pending:
+            // .pending (Ask to Buy, SCA) completes later via Transaction.updates.
             break
         @unknown default:
             break
@@ -57,6 +58,91 @@ final class CreditsManager: ObservableObject {
         isPurchasing = true
         defer { isPurchasing = false }
         try? await AppStore.sync()
+    }
+
+    // MARK: - Transaction safety net
+
+    /// Replays unfinished transactions, then listens for updates for the app's
+    /// lifetime. Catches everything `purchase()` can miss: Ask to Buy approvals,
+    /// network drops mid-purchase, the app being killed before `finish()`, and
+    /// failed server redeems (left unfinished on purpose so they're redelivered).
+    private func startTransactionListener() {
+        transactionListener = Task.detached(priority: .background) { [weak self] in
+            for await pending in Transaction.unfinished {
+                await self?.handle(pending)
+            }
+            for await update in Transaction.updates {
+                await self?.handle(update)
+            }
+        }
+    }
+
+    @MainActor
+    private func handle(_ result: VerificationResult<Transaction>) async {
+        guard case .verified(let transaction) = result else { return }
+        guard productIDs.contains(transaction.productID) else {
+            await transaction.finish()
+            return
+        }
+        await applyGrant(for: transaction, jws: result.jwsRepresentation)
+    }
+
+    /// Grants a purchase. Signed in → server redeem (authoritative, deduped by
+    /// transactionId in the ledger, so re-sending the same transaction is safe).
+    /// Not signed in → local fallback grant, deduped via grantedTransactionIDs.
+    /// Server unreachable → leave the transaction UNFINISHED so StoreKit
+    /// redelivers it and the listener retries later.
+    @MainActor
+    private func applyGrant(for transaction: Transaction, jws: String) async {
+        do {
+            let serverBalance = try await CreditsService.redeem(jws: jws)
+            AppGroupService.shared.creditBalance = serverBalance
+            balance = AppGroupService.shared.effectiveCreditBalance
+            await transaction.finish()
+        } catch CreditsService.CreditsError.notSignedIn {
+            let txID = String(transaction.id)
+            guard !AppGroupService.shared.grantedTransactionIDs.contains(txID) else {
+                await transaction.finish()
+                return
+            }
+            AppGroupService.shared.creditBalance += creditsForProductID(transaction.productID)
+            AppGroupService.shared.recordGrantedTransactionID(txID)
+            balance = AppGroupService.shared.effectiveCreditBalance
+            await transaction.finish()
+        } catch {
+            NSLog("[Credits] redeem failed (will retry via Transaction.updates): %@",
+                  String(describing: error))
+        }
+    }
+
+    // MARK: - Server sync
+
+    /// One-time adoption of the local balance into the server ledger. Idempotent
+    /// server-side; the flag only avoids redundant calls. Reset on sign-out.
+    @MainActor
+    func serverMigrateIfNeeded() async {
+        guard !AppGroupService.shared.serverCreditsMigrated else { return }
+        do {
+            let serverBalance = try await CreditsService.migrate(
+                claimedBalance: AppGroupService.shared.creditBalance)
+            AppGroupService.shared.creditBalance = serverBalance
+            AppGroupService.shared.serverCreditsMigrated = true
+            balance = AppGroupService.shared.effectiveCreditBalance
+            NSLog("[Credits] server migration complete. Balance: %d", serverBalance)
+        } catch {
+            NSLog("[Credits] server migration deferred: %@", String(describing: error))
+        }
+    }
+
+    /// Mirrors the authoritative server balance into the App Group (where the
+    /// keyboard reads it). No-op for legacy users the server doesn't manage.
+    @MainActor
+    func syncServerBalance() async {
+        // try? flattens fetchBalance's Int? — request failures and "not server-managed"
+        // both land here as nil, and both mean: leave the local balance alone.
+        guard let serverBalance = try? await CreditsService.fetchBalance() else { return }
+        AppGroupService.shared.creditBalance = serverBalance
+        balance = AppGroupService.shared.effectiveCreditBalance
     }
 
     // MARK: - Balance

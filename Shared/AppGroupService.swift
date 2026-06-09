@@ -464,6 +464,19 @@ final class AppGroupService {
         return image
     }
 
+    /// Deletes the shared screenshot file once it's older than `maxAge` (default 1 h),
+    /// so a chat screenshot doesn't sit in the container indefinitely. Regenerate
+    /// within an active session is unaffected; after expiry it shows the existing
+    /// "No screenshot saved. Capture again." error.
+    func deleteStaleScreenshot(maxAge: TimeInterval = 3600) {
+        let url = container.appendingPathComponent(Constants.screenshotFilename)
+        guard let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let modified = attrs[.modificationDate] as? Date,
+              Date().timeIntervalSince(modified) > maxAge else { return }
+        try? FileManager.default.removeItem(at: url)
+        NSLog("[Replr][AppGroup] deleted stale screenshot (age > %.0fs)", maxAge)
+    }
+
     // MARK: - Capture ready flag (broadcast flow only)
 
     var isCaptureReady: Bool {
@@ -675,15 +688,65 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.devModeKey); defaults.synchronize() }
     }
 
+    /// Whether the legacy local balance has been adopted into the server ledger
+    /// (POST /credits/migrate succeeded for the signed-in account). Reset on sign-out
+    /// so a different Apple ID gets its own one-time migration.
+    var serverCreditsMigrated: Bool {
+        get { defaults.bool(forKey: Constants.serverCreditsMigratedKey) }
+        set { defaults.set(newValue, forKey: Constants.serverCreditsMigratedKey); defaults.synchronize() }
+    }
+
+    /// StoreKit transaction ids granted LOCALLY (offline fallback when not signed in).
+    /// Server-side grants are deduped by the ledger; this guards only the local path.
+    var grantedTransactionIDs: [String] {
+        defaults.synchronize()
+        guard let data = defaults.data(forKey: Constants.grantedTxIDsKey),
+              let ids = try? JSONDecoder().decode([String].self, from: data) else { return [] }
+        return ids
+    }
+
+    func recordGrantedTransactionID(_ id: String) {
+        var ids = grantedTransactionIDs
+        guard !ids.contains(id) else { return }
+        ids.append(id)
+        if ids.count > 50 { ids.removeFirst(ids.count - 50) }
+        if let data = try? JSONEncoder().encode(ids) {
+            defaults.set(data, forKey: Constants.grantedTxIDsKey)
+            defaults.synchronize()
+        }
+    }
+
     /// Returns 9_999 in dev mode so the keyboard never shows a paywall during testing.
     var effectiveCreditBalance: Int {
         devMode ? 9_999 : creditBalance
     }
 
+    /// Models fetched from GET /config (cached in the App Group). Lets the backend
+    /// reprice or relabel models without an App Store release. Empty until the
+    /// app's first successful config fetch.
+    var remoteModelCatalog: [RemoteModelInfo] {
+        get {
+            defaults.synchronize()
+            guard let data = defaults.data(forKey: Constants.remoteModelCatalogKey),
+                  let models = try? JSONDecoder().decode([RemoteModelInfo].self, from: data) else { return [] }
+            return models
+        }
+        set {
+            guard let data = try? JSONEncoder().encode(newValue) else { return }
+            defaults.set(data, forKey: Constants.remoteModelCatalogKey)
+            defaults.synchronize()
+        }
+    }
+
     /// Credits required for the currently selected model. Returns 0 in dev mode.
-    /// Defined here (in Shared) so keyboard extension can use it without importing ReplrModel.
+    /// The remote catalog (from /config) wins when present; the baked-in table
+    /// below is the offline/first-launch fallback. Defined here (in Shared) so
+    /// the keyboard extension can use it without importing ReplrModel.
     var creditsRequired: Int {
         if devMode { return 0 }
+        if let remote = remoteModelCatalog.first(where: { $0.id == selectedModel }) {
+            return remote.creditCost
+        }
         switch selectedModel {
         case "claude-sonnet-4-6":        return 8
         case "gpt-5.4":                  return 7
@@ -731,6 +794,16 @@ final class AppGroupService {
 enum AppGroupError: Error {
     case encodingFailed
     case decodingFailed
+}
+
+/// One model entry from the backend's /config catalog. Mirrors the backend's
+/// CatalogModel (services/models.ts). Lives in this file (compiled into every
+/// target) so the keyboard can read cached costs without importing ReplrModel.
+struct RemoteModelInfo: Codable, Equatable {
+    let id: String
+    let label: String
+    let creditCost: Int
+    let production: Bool
 }
 
 // MARK: - Keyboard tip discovery

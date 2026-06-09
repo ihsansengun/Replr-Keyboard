@@ -103,6 +103,13 @@ struct ReplrApp: App {
                             guard phase == .active else { return }
                             AppGroupService.shared.synchronize()
                             CreditsManager.shared.refreshBalance()
+                            Task {
+                                // Adopt the legacy local balance into the server ledger once,
+                                // then mirror the authoritative server balance into the App Group.
+                                await CreditsManager.shared.serverMigrateIfNeeded()
+                                await CreditsManager.shared.syncServerBalance()
+                            }
+                            AppGroupService.shared.deleteStaleScreenshot()
                             if AppGroupService.shared.effectiveCreditBalance == 0 {
                                 showPaywall = true
                             }
@@ -152,28 +159,35 @@ struct ContentView: View {
             await CreditsManager.shared.load()
         }
         .task {
-            await RemoteConfig.refreshShortcutURL()
+            await RemoteConfig.refresh()
         }
     }
 }
 
 // MARK: - Remote config (backend values swappable without an App Store release)
 
-/// Best-effort fetch of runtime config from the backend. Currently just the Back Tap
-/// shortcut install link — so it can be swapped if the iCloud link ever breaks. Failures
-/// are silent; the app falls back to the baked-in `Constants.shortcutInstallURL`.
+/// Best-effort fetch of runtime config from the backend: the Back Tap shortcut
+/// install link and the model catalog (ids/labels/credit costs). Both are cached
+/// in the App Group; failures are silent and the app falls back to baked-in values.
 enum RemoteConfig {
-    private struct Response: Decodable { let shortcutInstallURL: String? }
+    private struct Response: Decodable {
+        let shortcutInstallURL: String?
+        let models: [RemoteModelInfo]?
+    }
 
-    static func refreshShortcutURL() async {
+    static func refresh() async {
         guard let url = URL(string: Constants.backendURL + "/config") else { return }
         var request = URLRequest(url: url)
         request.timeoutInterval = 8
         guard let (data, response) = try? await URLSession.shared.data(for: request),
               let http = response as? HTTPURLResponse, http.statusCode == 200,
-              let decoded = try? JSONDecoder().decode(Response.self, from: data),
-              let link = decoded.shortcutInstallURL, !link.isEmpty else { return }
-        AppGroupService.shared.remoteShortcutInstallURL = link
+              let decoded = try? JSONDecoder().decode(Response.self, from: data) else { return }
+        if let link = decoded.shortcutInstallURL, !link.isEmpty {
+            AppGroupService.shared.remoteShortcutInstallURL = link
+        }
+        if let models = decoded.models, !models.isEmpty {
+            AppGroupService.shared.remoteModelCatalog = models
+        }
     }
 }
 
