@@ -4,12 +4,11 @@ import { generateReplies, generateRepliesFromEmail, generateRepliesFromMultiple 
 import type { Env, Model } from '../types'
 import { sessionMiddleware, SESSION_USER_ID_KEY, SessionVariables } from '../middleware/session'
 import { checkRateLimit } from '../services/rateLimit'
+import { VALID_MODELS } from '../services/models'
 
 export const replyRoute = new Hono<{ Bindings: Env; Variables: SessionVariables }>()
 
 replyRoute.use('*', sessionMiddleware)
-
-const VALID_MODELS: Model[] = ["gpt-5.4", "gpt-5.4-mini", "gpt-5.5", "claude-sonnet-4-6", "claude-opus-4-6", "grok-4", "grok-4.3", "gemini-3.1-pro-preview", "gemini-3.1-pro-low", "gemini-3-flash-preview", "gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-pro", "claude-opus-4-7", "claude-haiku-4-5"]
 
 type ReplyContext = Context<{ Bindings: Env; Variables: SessionVariables }>
 
