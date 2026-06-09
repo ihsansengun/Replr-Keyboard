@@ -221,10 +221,9 @@ struct SettingsView: View {
         }
     }
 
-    @ViewBuilder
     private func appearanceOption(_ value: String, icon: String, label: String) -> some View {
         let isSelected = colorSchemeAppearance == value
-        Button {
+        return Button {
             colorSchemeAppearance = value
         } label: {
             VStack(spacing: 4) {
