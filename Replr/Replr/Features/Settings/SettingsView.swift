@@ -126,6 +126,7 @@ struct SetupStatusView: View {
 }
 
 struct SettingsView: View {
+    @AppStorage(Constants.colorSchemeAppearanceKey) private var colorSchemeAppearance = "system"
     @State private var persistReplies = AppGroupService.shared.persistReplies
     @State private var memoryWindowDays = AppGroupService.shared.memoryWindowDays
     @State private var memoryDepth = AppGroupService.shared.memoryDepth
@@ -152,6 +153,7 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     identityCard
+                    appearanceSection
                     aboutYouSection
                     keyboardSection
                     aiModelSection
@@ -196,6 +198,57 @@ struct SettingsView: View {
         }
         .padding(16)
         .brandCard()
+    }
+
+    // MARK: - Appearance
+
+    private var appearanceSection: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            settingsSection("Appearance") {
+                HStack(spacing: 0) {
+                    appearanceOption("system", icon: "iphone",  label: "System")
+                    ReplrTheme.Color.glassBorder.frame(width: 1, height: 58)
+                    appearanceOption("light",  icon: "sun.max", label: "Light")
+                    ReplrTheme.Color.glassBorder.frame(width: 1, height: 58)
+                    appearanceOption("dark",   icon: "moon",    label: "Dark")
+                }
+                .padding(6)
+            }
+            Text("Overrides the system setting for Replr only.")
+                .font(.system(size: 12))
+                .foregroundStyle(ReplrTheme.Color.textSecondary)
+                .padding(.horizontal, 4)
+        }
+    }
+
+    @ViewBuilder
+    private func appearanceOption(_ value: String, icon: String, label: String) -> some View {
+        let isSelected = colorSchemeAppearance == value
+        Button {
+            colorSchemeAppearance = value
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 15, weight: isSelected ? .semibold : .regular))
+                    .foregroundStyle(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textPrimary)
+                Text(label)
+                    .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
+                    .foregroundStyle(isSelected ? ReplrTheme.Color.accent : ReplrTheme.Color.textPrimary)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 58)
+            .background(isSelected ? ReplrTheme.Color.accentSubtle : Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                    .strokeBorder(
+                        isSelected ? ReplrTheme.Color.accent.opacity(0.55) : Color.clear,
+                        lineWidth: 1
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .animation(ReplrTheme.Motion.quick, value: isSelected)
     }
 
     // MARK: - About You

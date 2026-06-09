@@ -55,6 +55,7 @@ enum Constants {
     static let devModelKey           = "replr.dev.model"          // dev override (only used when devMode=true)
     static let devModeKey            = "replr.dev.mode"
     static let creditsMigratedKey    = "replr.credits.migrated"
+    static let colorSchemeAppearanceKey = "colorSchemeAppearance"
 
     // File-based keys (broadcast/scroll capture only)
     static let screenshotFilename     = "screenshot.png"
