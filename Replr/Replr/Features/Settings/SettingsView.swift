@@ -126,7 +126,7 @@ struct SetupStatusView: View {
 }
 
 struct SettingsView: View {
-    @AppStorage(Constants.colorSchemeAppearanceKey) private var colorSchemeAppearance = "system"
+    @AppStorage(Constants.colorSchemeAppearanceKey, store: UserDefaults(suiteName: Constants.appGroupID)) private var colorSchemeAppearance = "system"
     @State private var persistReplies = AppGroupService.shared.persistReplies
     @State private var memoryWindowDays = AppGroupService.shared.memoryWindowDays
     @State private var memoryDepth = AppGroupService.shared.memoryDepth

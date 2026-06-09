@@ -79,9 +79,9 @@ final class KeyboardViewController: UIInputViewController {
         hostingVC = UIHostingController(rootView: KeyboardRootView(model: model))
         hostingVC.view.backgroundColor = .clear
         hostingVC.view.insetsLayoutMarginsFromSafeArea = false
-        // Mirror the input controller's style so SwiftUI always gets the right color scheme —
-        // keyboard extensions sometimes inherit a stale dark trait from the host app.
-        hostingVC.overrideUserInterfaceStyle = traitCollection.userInterfaceStyle
+        // Apply the user's appearance preference (System/Light/Dark) from the companion app.
+        // Falls back to the system trait if no override is set.
+        hostingVC.overrideUserInterfaceStyle = resolvedInterfaceStyle()
         addChild(hostingVC)
         hostingVC.view.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(hostingVC.view)
@@ -155,6 +155,9 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        // Re-apply appearance preference each time the keyboard surfaces — the user may have
+        // changed it in the companion app while this keyboard instance was hidden.
+        hostingVC?.overrideUserInterfaceStyle = resolvedInterfaceStyle()
         model.isCaptureMode = false   // safety reset — ensures 0px collapse never gets stuck
         model.isCollapsed = false
         // Arm the screenshot watcher from the moment the keyboard opens, so a screenshot taken
@@ -221,7 +224,21 @@ final class KeyboardViewController: UIInputViewController {
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-            hostingVC?.overrideUserInterfaceStyle = traitCollection.userInterfaceStyle
+            // Re-resolve: if user has a preference, honour it; otherwise track the new system style.
+            hostingVC?.overrideUserInterfaceStyle = resolvedInterfaceStyle()
+        }
+    }
+
+    /// Returns the UIUserInterfaceStyle to apply to the hosting controller.
+    /// Reads the companion app's preference from the shared App Group. If the preference
+    /// is "system" (or unset), falls back to the current system trait collection so the
+    /// keyboard continues to match the device's own light/dark setting.
+    private func resolvedInterfaceStyle() -> UIUserInterfaceStyle {
+        AppGroupService.shared.synchronize()
+        switch AppGroupService.shared.colorSchemeAppearance {
+        case "light": return .light
+        case "dark":  return .dark
+        default:      return traitCollection.userInterfaceStyle
         }
     }
 

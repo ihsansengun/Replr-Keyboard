@@ -138,6 +138,14 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.preferredCaptureKey); defaults.synchronize() }
     }
 
+    /// User's chosen appearance override: "system" | "light" | "dark".
+    /// Written by the companion app's Settings picker; read by the keyboard extension
+    /// to apply overrideUserInterfaceStyle so the preference propagates across processes.
+    var colorSchemeAppearance: String {
+        get { defaults.string(forKey: Constants.colorSchemeAppearanceKey) ?? "system" }
+        set { defaults.set(newValue, forKey: Constants.colorSchemeAppearanceKey); defaults.synchronize() }
+    }
+
     /// Remote-config override for the Back Tap shortcut link, fetched from /config at
     /// launch. Lets the link be swapped without an App Store release. Nil/empty → use baked-in.
     var remoteShortcutInstallURL: String? {
