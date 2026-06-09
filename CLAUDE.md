@@ -162,8 +162,10 @@ backend/migrations/   # D1 schema (users/sessions, credits/credit_ledger)
 ```
 
 Rollout flags in `wrangler.toml`: `REQUIRE_AUTH` (flip to "true" to reject
-anonymous clients), `ANON_DAILY_LIMIT` (per-IP), `ALLOW_SANDBOX_TRANSACTIONS`
-(set "false" at public launch). See `docs/HANDOFF.md` for the deploy-day runbook.
+anonymous clients), `ANON_DAILY_LIMIT` (per-IP), `MANAGED_DAILY_LIMIT` (circuit
+breaker for credit-metered users — credits are their real meter),
+`ALLOW_SANDBOX_TRANSACTIONS` (set "false" at public launch). See
+`docs/HANDOFF.md` for the deploy-day runbook.
 
 The LLM prompt always outputs: `CONTACT: …`, `SUMMARY: …`, then numbered replies.
 `parseLlmOutput()` in `llm.ts` parses this format — keep it in sync if you change

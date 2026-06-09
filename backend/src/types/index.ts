@@ -24,6 +24,7 @@ export interface Env {
   GOOGLE_API_KEY: string
   FREE_DAILY_LIMIT: string
   ANON_DAILY_LIMIT?: string            // anonymous (per-IP) daily cap; default '50' in code
+  MANAGED_DAILY_LIMIT?: string         // circuit breaker for credit-metered users; default '1000' in code
   REQUIRE_AUTH?: string                // 'true' → /reply rejects requests without a valid session
   ALLOW_SANDBOX_TRANSACTIONS?: string  // 'true' while TestFlight is the audience; flip off at launch
   RATE_LIMIT_KV: KVNamespace

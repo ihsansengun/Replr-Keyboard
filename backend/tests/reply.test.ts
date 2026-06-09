@@ -11,7 +11,7 @@ vi.mock('../src/services/llm', () => ({
 // Import app and the mocked modules AFTER vi.mock calls.
 import { app } from '../src/index'
 import { generateReplies } from '../src/services/llm'
-import { makeTestEnv, jsonRequest, todayKey } from './helpers'
+import { makeTestEnv, jsonRequest, todayKey, TEST_USER_ID } from './helpers'
 
 const mockGenerateReplies = vi.mocked(generateReplies)
 
@@ -114,6 +114,36 @@ describe('POST /reply', () => {
     const { env } = makeTestEnv({}, { kv: new Map([[todayKey('ip:9.9.9.9'), '50']]) })
     const res = await app.request('/reply', jsonRequest(validBody, { auth: true, ip: '9.9.9.9' }), env)
     expect(res.status).toBe(200)
+  })
+
+  it('gives server-managed users the higher circuit-breaker limit', async () => {
+    // User counter is past FREE_DAILY_LIMIT (200) but the user has a credit
+    // ledger — credits meter them, so the 1000 circuit breaker applies.
+    const { env } = makeTestEnv({}, {
+      balance: 100,
+      kv: new Map([[todayKey(`user:${TEST_USER_ID}`), '200']]),
+    })
+    const res = await app.request('/reply', jsonRequest(validBody, { auth: true }), env)
+    expect(res.status).toBe(200)
+  })
+
+  it('still rate-limits legacy authenticated users at FREE_DAILY_LIMIT', async () => {
+    const { env } = makeTestEnv({}, {
+      balance: null,
+      kv: new Map([[todayKey(`user:${TEST_USER_ID}`), '200']]),
+    })
+    const res = await app.request('/reply', jsonRequest(validBody, { auth: true }), env)
+    expect(res.status).toBe(429)
+  })
+
+  it('rate-limits server-managed users at the circuit-breaker ceiling', async () => {
+    const { env, state } = makeTestEnv({}, {
+      balance: 100,
+      kv: new Map([[todayKey(`user:${TEST_USER_ID}`), '1000']]),
+    })
+    const res = await app.request('/reply', jsonRequest(validBody, { auth: true }), env)
+    expect(res.status).toBe(429)
+    expect(state.balance).toBe(100)   // denied before any charge
   })
 
   it('returns 401 for anonymous traffic when REQUIRE_AUTH is on', async () => {

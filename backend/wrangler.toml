@@ -7,6 +7,9 @@ compatibility_flags = ["nodejs_compat"]
 FREE_DAILY_LIMIT = "200"
 # Anonymous (no session token) requests are rate-limited per IP at this daily cap.
 ANON_DAILY_LIMIT = "50"
+# Server-managed users are metered by their credit balance (every request costs
+# purchased credits), so this is only a runaway-loop circuit breaker.
+MANAGED_DAILY_LIMIT = "1000"
 # Flip to "true" once old un-authenticated clients are negligible — /reply then 401s anonymous traffic.
 REQUIRE_AUTH = "false"
 # StoreKit sandbox transactions are accepted while TestFlight is the audience. Set "false" at public launch.
