@@ -4,7 +4,8 @@ import { generateReplies, generateRepliesFromEmail, generateRepliesFromMultiple 
 import type { Env, Model } from '../types'
 import { sessionMiddleware, SESSION_USER_ID_KEY, SessionVariables } from '../middleware/session'
 import { checkRateLimit } from '../services/rateLimit'
-import { VALID_MODELS } from '../services/models'
+import { VALID_MODELS, creditCostFor } from '../services/models'
+import { getBalance, trySpend, grant } from '../services/credits'
 
 export const replyRoute = new Hono<{ Bindings: Env; Variables: SessionVariables }>()
 
@@ -40,6 +41,43 @@ function llmErrorResponse(c: ReplyContext, err: unknown): Response {
   return c.json(body, 500)
 }
 
+interface SpendResult {
+  denied?: Response
+  /** Credits charged (0 when the user isn't server-managed). */
+  charged: number
+  /** Balance after the charge; undefined when not server-managed. */
+  creditsRemaining?: number
+}
+
+/** Charges the model's credit cost up-front for server-managed users (those with
+ *  a credits row — created by the app via /credits/migrate or /redeem). Legacy
+ *  and anonymous traffic passes through unchanged; rate limiting still applies.
+ *  Callers MUST refund via `refundIfCharged` on any failure after this. */
+async function chargeCredits(c: ReplyContext, model: string): Promise<SpendResult> {
+  const authedUserID = c.get(SESSION_USER_ID_KEY)
+  if (!authedUserID) return { charged: 0 }
+  const existing = await getBalance(c.env.DB, authedUserID)
+  if (existing === null) return { charged: 0 }
+
+  const cost = creditCostFor(model)
+  const newBalance = await trySpend(c.env.DB, authedUserID, cost)
+  if (newBalance === null) {
+    return { denied: c.json({ error: 'insufficient_credits' }, 402), charged: 0 }
+  }
+  return { charged: cost, creditsRemaining: newBalance }
+}
+
+/** Compensating refund for a charge whose generation failed. */
+async function refundIfCharged(c: ReplyContext, charged: number): Promise<void> {
+  const authedUserID = c.get(SESSION_USER_ID_KEY)
+  if (!charged || !authedUserID) return
+  try {
+    await grant(c.env.DB, authedUserID, charged, 'refund', null)
+  } catch (err) {
+    console.error('Refund failed:', err)
+  }
+}
+
 replyRoute.post('/', async (c) => {
   const denied = await enforceAccess(c)
   if (denied) return denied
@@ -62,6 +100,9 @@ replyRoute.post('/', async (c) => {
     return c.json({ error: `Invalid model. Must be one of: ${VALID_MODELS.join(', ')}` }, 400)
   }
 
+  const spend = await chargeCredits(c, model)
+  if (spend.denied) return spend.denied
+
   try {
     const result = emailText
       ? await generateRepliesFromEmail({
@@ -78,11 +119,17 @@ replyRoute.post('/', async (c) => {
           openaiKey: c.env.OPENAI_API_KEY,
         })
     if (result.replies.length === 0) {
+      await refundIfCharged(c, spend.charged)
       return c.json({ error: 'Could not parse replies. Please try again.' }, 502)
     }
-    return c.json({ replies: result.replies, summary: result.summary, contactName: result.contactName, inputTokens: result.inputTokens, outputTokens: result.outputTokens, costUsd: result.costUsd })
+    return c.json({
+      replies: result.replies, summary: result.summary, contactName: result.contactName,
+      inputTokens: result.inputTokens, outputTokens: result.outputTokens, costUsd: result.costUsd,
+      ...(spend.creditsRemaining !== undefined ? { creditsRemaining: spend.creditsRemaining } : {}),
+    })
   } catch (err) {
     console.error('LLM error:', err)
+    await refundIfCharged(c, spend.charged)
     return llmErrorResponse(c, err)
   }
 })
@@ -113,6 +160,9 @@ replyRoute.post('/scroll', async (c) => {
     return c.json({ error: 'Too many screenshots. Maximum 6 allowed.' }, 400)
   }
 
+  const spend = await chargeCredits(c, model)
+  if (spend.denied) return spend.denied
+
   try {
     const result = await generateRepliesFromMultiple({
       screenshots, tone, toneName, summary, previousContext, aboutUser,
@@ -121,11 +171,17 @@ replyRoute.post('/scroll', async (c) => {
       openaiKey: c.env.OPENAI_API_KEY,
     })
     if (result.replies.length === 0) {
+      await refundIfCharged(c, spend.charged)
       return c.json({ error: 'Could not parse replies. Please try again.' }, 502)
     }
-    return c.json({ replies: result.replies, summary: result.summary, contactName: result.contactName, inputTokens: result.inputTokens, outputTokens: result.outputTokens, costUsd: result.costUsd })
+    return c.json({
+      replies: result.replies, summary: result.summary, contactName: result.contactName,
+      inputTokens: result.inputTokens, outputTokens: result.outputTokens, costUsd: result.costUsd,
+      ...(spend.creditsRemaining !== undefined ? { creditsRemaining: spend.creditsRemaining } : {}),
+    })
   } catch (err) {
     console.error('Scroll LLM error:', err)
+    await refundIfCharged(c, spend.charged)
     return llmErrorResponse(c, err)
   }
 })

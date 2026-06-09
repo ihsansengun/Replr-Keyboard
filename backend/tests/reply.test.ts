@@ -128,6 +128,59 @@ describe('POST /reply', () => {
     expect(res.status).toBe(200)
   })
 
+  // ── Server-side credit enforcement ─────────────────────────────────────────
+
+  it('charges server-managed users and returns creditsRemaining', async () => {
+    const { env, state } = makeTestEnv({}, { balance: 100 })
+    const res = await app.request('/reply', jsonRequest(validBody, { auth: true }), env)
+    expect(res.status).toBe(200)
+    const json = await res.json() as { creditsRemaining?: number }
+    expect(json.creditsRemaining).toBe(92)   // claude-sonnet-4-6 costs 8
+    expect(state.balance).toBe(92)
+  })
+
+  it('returns 402 insufficient_credits when the balance cannot cover the model', async () => {
+    const { env, state } = makeTestEnv({}, { balance: 3 })
+    const res = await app.request('/reply', jsonRequest(validBody, { auth: true }), env)
+    expect(res.status).toBe(402)
+    const json = await res.json() as { error: string }
+    expect(json.error).toBe('insufficient_credits')
+    expect(state.balance).toBe(3)   // nothing charged
+  })
+
+  it('refunds the charge when the LLM call fails', async () => {
+    const { env, state } = makeTestEnv({}, { balance: 100 })
+    mockGenerateReplies.mockRejectedValueOnce(new Error('API down'))
+    const res = await app.request('/reply', jsonRequest(validBody, { auth: true }), env)
+    expect(res.status).toBe(500)
+    expect(state.balance).toBe(100)   // 8 charged, 8 refunded
+  })
+
+  it('refunds the charge when the LLM returns no parseable replies', async () => {
+    const { env, state } = makeTestEnv({}, { balance: 100 })
+    mockGenerateReplies.mockResolvedValueOnce({ replies: [], summary: '', contactName: '', inputTokens: 0, outputTokens: 0, costUsd: 0 })
+    const res = await app.request('/reply', jsonRequest(validBody, { auth: true }), env)
+    expect(res.status).toBe(502)
+    expect(state.balance).toBe(100)
+  })
+
+  it('does not charge anonymous or non-managed users', async () => {
+    const { env: anonEnv, state: anonState } = makeTestEnv()
+    const anonRes = await app.request('/reply', jsonRequest(validBody), anonEnv)
+    expect(anonRes.status).toBe(200)
+    const anonJson = await anonRes.json() as { creditsRemaining?: number }
+    expect(anonJson.creditsRemaining).toBeUndefined()
+    expect(anonState.balance).toBeNull()
+
+    // Authenticated but no credits row yet (legacy client) → no enforcement.
+    const { env: legacyEnv, state: legacyState } = makeTestEnv({}, { balance: null })
+    const legacyRes = await app.request('/reply', jsonRequest(validBody, { auth: true }), legacyEnv)
+    expect(legacyRes.status).toBe(200)
+    const legacyJson = await legacyRes.json() as { creditsRemaining?: number }
+    expect(legacyJson.creditsRemaining).toBeUndefined()
+    expect(legacyState.balance).toBeNull()
+  })
+
   it('omits the error detail for anonymous callers, includes it for authenticated ones', async () => {
     const { env } = makeTestEnv()
     mockGenerateReplies.mockRejectedValueOnce(new Error('provider exploded'))
