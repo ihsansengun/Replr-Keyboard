@@ -193,7 +193,7 @@ npx wrangler tail --format pretty   # raw server errors
 ```
 
 ### Architecture quick map
-- iOS app + 3 extensions (keyboard, broadcast, broadcast-setup) share `Shared/` via App
+- iOS app + the keyboard extension share `Shared/` via App
   Group `group.com.ihsan.replr` through `AppGroupService.shared`. **`Shared/` files have
   per-target membership — a helper used by multiple targets must live in a file compiled
   into all of them** (e.g. `AppGroupService.swift`), not one some targets exclude.

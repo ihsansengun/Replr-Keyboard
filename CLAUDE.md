@@ -13,7 +13,7 @@ always use `ReplrTheme.*`. Design and verify both dark **and** light.
 
 Replr is an iOS app that generates AI-powered reply suggestions from chat screenshots. It has two main components:
 
-- **iOS app + extensions** (`Replr/`) — Xcode project with companion app, custom keyboard extension, and screen broadcast extension
+- **iOS app + keyboard extension** (`Replr/`) — Xcode project with companion app and custom keyboard extension
 - **Backend** (`backend/`) — Cloudflare Worker (Hono + TypeScript) that calls Gemini/Claude/GPT/Grok and returns reply suggestions
 
 ## Backend commands
@@ -37,14 +37,12 @@ step, never done unprompted.
 
 ## iOS build
 
-Open `Replr/Replr.xcodeproj` in Xcode. The project has four targets:
+Open `Replr/Replr.xcodeproj` in Xcode. The project has two app targets (+ test targets):
 
 | Target | Role |
 |---|---|
 | `Replr` | Companion app (SwiftUI, onboarding, tones, memory, settings, credits) |
 | `ReplrKeyboard` | Custom keyboard extension (UIInputViewController + SwiftUI) |
-| `ReplrBroadcast` | ReplayKit broadcast extension (screen capture) |
-| `ReplrBroadcastSetupUI` | Setup UI for broadcast extension |
 
 All targets share `Shared/` via the App Group `group.com.ihsan.replr`.
 The app folder (`Replr/Replr/`) is a synchronized group — new files are picked up
@@ -65,7 +63,7 @@ is the source of truth.
 
 ### Cross-process communication
 
-All data between the companion app, keyboard extension, intents, and broadcast extension flows through the App Group via `AppGroupService.shared` (`Shared/AppGroupService.swift`). It uses:
+All data between the companion app, keyboard extension, and intents flows through the App Group via `AppGroupService.shared` (`Shared/AppGroupService.swift`). It uses:
 - **UserDefaults** (fast) for replies, errors, flags, tones, contacts, sessions, credits
 - **Files** in the container for screenshots (`screenshot.png`, deleted after ~1 h by the app) and cross-process flags that must not cache stalely (`full_access_granted`)
 
@@ -144,7 +142,7 @@ backend/src/
   middleware/
     session.ts        # Bearer token → authenticatedUserID (non-blocking)
   routes/
-    reply.ts          # POST /reply, /reply/scroll — gate, charge, generate, refund
+    reply.ts          # POST /reply — gate, charge, generate, refund
     auth.ts           # POST /auth/apple — Sign in with Apple → session token (D1)
     credits.ts        # GET /, POST /migrate, POST /redeem (all require session)
     config.ts         # GET /config — shortcut URL + model catalog
