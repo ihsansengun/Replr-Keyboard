@@ -6,7 +6,7 @@ import AppIntents
 @main
 struct ReplrApp: App {
     @AppStorage("onboardingComplete") var onboardingComplete = false
-    @AppStorage(Constants.colorSchemeAppearanceKey, store: UserDefaults(suiteName: Constants.appGroupID)) private var colorSchemeAppearance = "system"
+    @AppStorage(Constants.colorSchemeAppearanceKey) private var colorSchemeAppearance = "system"
     @StateObject private var authService = AuthService.shared
     @State private var signedIn: Bool = AuthService.shared.isSignedIn
     @State private var showCapture = false

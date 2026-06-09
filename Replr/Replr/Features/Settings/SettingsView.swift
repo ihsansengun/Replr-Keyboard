@@ -126,7 +126,7 @@ struct SetupStatusView: View {
 }
 
 struct SettingsView: View {
-    @AppStorage(Constants.colorSchemeAppearanceKey, store: UserDefaults(suiteName: Constants.appGroupID)) private var colorSchemeAppearance = "system"
+    @AppStorage(Constants.colorSchemeAppearanceKey) private var colorSchemeAppearance = "system"
     @State private var persistReplies = AppGroupService.shared.persistReplies
     @State private var memoryWindowDays = AppGroupService.shared.memoryWindowDays
     @State private var memoryDepth = AppGroupService.shared.memoryDepth
@@ -224,7 +224,8 @@ struct SettingsView: View {
     private func appearanceOption(_ value: String, icon: String, label: String) -> some View {
         let isSelected = colorSchemeAppearance == value
         return Button {
-            colorSchemeAppearance = value
+            colorSchemeAppearance = value                        // standard UserDefaults → drives ReplrApp reactivity
+            AppGroupService.shared.colorSchemeAppearance = value // App Group → keyboard reads this
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: icon)
