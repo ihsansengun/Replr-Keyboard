@@ -73,6 +73,29 @@ deferred "Phase 3" onboarding restructure (formally demote Back Tap). Task #88; 
 
 ---
 
+## 1C. Deploy day — enforcement rollout (branch `feat/architecture-fixes`, 2026-06-09)
+
+The architecture fixes (rate limiting, server credit ledger, StoreKit JWS redeem,
+model catalog, contamination fix, purchase-safety listener) are committed on
+`feat/architecture-fixes` — backend tests + iOS build green. Nothing is deployed.
+When explicitly asked to ship:
+
+1. Merge `feat/architecture-fixes` → `main` (user decision).
+2. `cd backend && npx wrangler d1 migrations apply replr-db --remote`
+   (adds `credits` + `credit_ledger`; 0001 already applied).
+3. `npm run deploy`. Backward-compatible immediately: old clients are only
+   rate-limited (anon 50/day per IP); credit enforcement starts per-user after
+   the updated app calls `/credits/migrate` or `/redeem`.
+4. Ship the app update (server credits, transaction listener, catalog cache).
+5. Later, flip `wrangler.toml` flags + redeploy:
+   - `REQUIRE_AUTH = "true"` once un-signed-in clients are negligible.
+   - `ALLOW_SANDBOX_TRANSACTIONS = "false"` at public App Store launch
+     (keep "true" while TestFlight is the audience).
+
+Detail: `docs/superpowers/plans/2026-06-09-architecture-fixes.md`.
+
+---
+
 ## 2. Standing constraints (from the user — keep following)
 
 - **Never push / merge / deploy without an explicit ask.** (The 2026-06-07 merge+push of
