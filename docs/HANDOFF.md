@@ -89,16 +89,23 @@ their real meter) and the `users.is_dev` exemption (dev mode is test-only;
 dev accounts are never charged server credits). `is_dev=1` is SET for the
 dev account (ihsansengun@me.com). Prod re-probed green.
 
+**Third deploy (2026-06-10):** `ANON_DAILY_LIMIT` 50 → 120 (carrier-NAT IP
+pooling — old-build TestFlight testers share per-IP quota). All work pushed
+to origin/main.
+
 Remaining (user-triggered):
 
-4. Ship the app update (server credits, transaction listener, catalog cache) —
-   next TestFlight/App Store build from Xcode.
+4. Ship the app update (server credits + purchase-safety listener, 100-credit
+   trial, catalog cache, contamination fix) — next TestFlight/App Store build
+   from Xcode.
 5. Later, flip `wrangler.toml` flags + redeploy:
-   - `REQUIRE_AUTH = "true"` once un-signed-in clients are negligible.
+   - `REQUIRE_AUTH = "true"` once un-signed-in clients are negligible (check
+     anonymous traffic via `npx wrangler tail` first — public TestFlight link).
    - `ALLOW_SANDBOX_TRANSACTIONS = "false"` at public App Store launch
      (keep "true" while TestFlight is the audience).
-6. `git push` when ready — local `main` is ahead of origin (this work + one
-   earlier appearance-picker commit).
+6. Optional: gift existing testers ~100 credits once they've migrated
+   (`UPDATE credits SET balance = balance + 100 WHERE user_id='<id>'`) — the
+   bigger starting grant only applies to fresh installs.
 
 Detail: `docs/superpowers/plans/2026-06-09-architecture-fixes.md`.
 
