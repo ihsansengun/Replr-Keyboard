@@ -194,6 +194,25 @@ describe('POST /reply', () => {
     expect(state.balance).toBe(100)
   })
 
+  it('never charges dev-flagged accounts (dev mode is test-only)', async () => {
+    const { env, state } = makeTestEnv({}, { balance: 100, isDev: true })
+    const res = await app.request('/reply', jsonRequest(validBody, { auth: true }), env)
+    expect(res.status).toBe(200)
+    const json = await res.json() as { creditsRemaining?: number }
+    expect(json.creditsRemaining).toBeUndefined()
+    expect(state.balance).toBe(100)   // untouched
+  })
+
+  it('gives dev accounts the circuit-breaker limit even without a credits row', async () => {
+    const { env } = makeTestEnv({}, {
+      balance: null,
+      isDev: true,
+      kv: new Map([[todayKey(`user:${TEST_USER_ID}`), '200']]),
+    })
+    const res = await app.request('/reply', jsonRequest(validBody, { auth: true }), env)
+    expect(res.status).toBe(200)
+  })
+
   it('does not charge anonymous or non-managed users', async () => {
     const { env: anonEnv, state: anonState } = makeTestEnv()
     const anonRes = await app.request('/reply', jsonRequest(validBody), anonEnv)

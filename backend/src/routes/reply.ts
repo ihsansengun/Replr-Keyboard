@@ -5,7 +5,7 @@ import type { Env, Model } from '../types'
 import { sessionMiddleware, SESSION_USER_ID_KEY, SessionVariables } from '../middleware/session'
 import { checkRateLimit } from '../services/rateLimit'
 import { VALID_MODELS, creditCostFor } from '../services/models'
-import { getBalance, trySpend, grant } from '../services/credits'
+import { getAccessProfile, trySpend, grant } from '../services/credits'
 
 export const replyRoute = new Hono<{ Bindings: Env; Variables: SessionVariables }>()
 
@@ -18,6 +18,8 @@ interface AccessResult {
   /** Credit balance when the user is server-managed; null otherwise. Fetched
    *  here once and reused by chargeCredits (saves a D1 read per request). */
   managedBalance: number | null
+  /** Server-side test exemption (users.is_dev) — dev accounts are never charged. */
+  isDev: boolean
 }
 
 /** Auth + abuse gate shared by both reply endpoints. Anonymous traffic is keyed
@@ -25,24 +27,26 @@ interface AccessResult {
  *  userId. Three tiers:
  *    anonymous            → ANON_DAILY_LIMIT/IP   (their LLM calls are uncosted)
  *    signed-in, no ledger → FREE_DAILY_LIMIT/user (uncosted legacy clients)
- *    server-managed       → MANAGED_DAILY_LIMIT/user — every request costs
- *      purchased credits, so this is only a runaway-loop circuit breaker. */
+ *    server-managed / dev → MANAGED_DAILY_LIMIT/user — credits (or the dev
+ *      exemption) meter them, so this is only a runaway-loop circuit breaker. */
 async function enforceAccess(c: ReplyContext): Promise<AccessResult> {
   const authedUserID = c.get(SESSION_USER_ID_KEY)
   if (!authedUserID && c.env.REQUIRE_AUTH === 'true') {
-    return { denied: c.json({ error: 'Sign in required. Update the Replr app and sign in.' }, 401), managedBalance: null }
+    return { denied: c.json({ error: 'Sign in required. Update the Replr app and sign in.' }, 401), managedBalance: null, isDev: false }
   }
-  const managedBalance = authedUserID ? await getBalance(c.env.DB, authedUserID) : null
+  const profile = authedUserID ? await getAccessProfile(c.env.DB, authedUserID) : null
+  const managedBalance = profile?.balance ?? null
+  const isDev = profile?.isDev ?? false
   const key = authedUserID ? `user:${authedUserID}` : `ip:${c.req.header('CF-Connecting-IP') ?? 'unknown'}`
-  const limit = managedBalance !== null
+  const limit = managedBalance !== null || isDev
     ? parseInt(c.env.MANAGED_DAILY_LIMIT ?? '1000', 10)
     : authedUserID
       ? parseInt(c.env.FREE_DAILY_LIMIT, 10)
       : parseInt(c.env.ANON_DAILY_LIMIT ?? '50', 10)
   if (!(await checkRateLimit(c.env.RATE_LIMIT_KV, key, limit))) {
-    return { denied: c.json({ error: 'Daily limit reached. Try again tomorrow.' }, 429), managedBalance }
+    return { denied: c.json({ error: 'Daily limit reached. Try again tomorrow.' }, 429), managedBalance, isDev }
   }
-  return { managedBalance }
+  return { managedBalance, isDev }
 }
 
 /** 500 envelope: the raw provider error (`detail`) is only exposed to signed-in
@@ -64,13 +68,14 @@ interface SpendResult {
 }
 
 /** Charges the model's credit cost up-front for server-managed users (those with
- *  a credits row — created by the app via /credits/migrate or /redeem). Legacy
- *  and anonymous traffic passes through unchanged; rate limiting still applies.
- *  `managedBalance` comes from enforceAccess's lookup.
+ *  a credits row — created by the app via /credits/migrate or /redeem). Dev
+ *  accounts (users.is_dev) are exempt — dev mode is test-only and must never
+ *  spend real credits. Legacy and anonymous traffic passes through unchanged;
+ *  rate limiting still applies. `access` comes from enforceAccess's lookup.
  *  Callers MUST refund via `refundIfCharged` on any failure after this. */
-async function chargeCredits(c: ReplyContext, model: string, managedBalance: number | null): Promise<SpendResult> {
+async function chargeCredits(c: ReplyContext, model: string, access: AccessResult): Promise<SpendResult> {
   const authedUserID = c.get(SESSION_USER_ID_KEY)
-  if (!authedUserID || managedBalance === null) return { charged: 0 }
+  if (!authedUserID || access.isDev || access.managedBalance === null) return { charged: 0 }
 
   const cost = creditCostFor(model)
   const newBalance = await trySpend(c.env.DB, authedUserID, cost)
@@ -113,7 +118,7 @@ replyRoute.post('/', async (c) => {
     return c.json({ error: `Invalid model. Must be one of: ${VALID_MODELS.join(', ')}` }, 400)
   }
 
-  const spend = await chargeCredits(c, model, access.managedBalance)
+  const spend = await chargeCredits(c, model, access)
   if (spend.denied) return spend.denied
 
   try {
@@ -173,7 +178,7 @@ replyRoute.post('/scroll', async (c) => {
     return c.json({ error: 'Too many screenshots. Maximum 6 allowed.' }, 400)
   }
 
-  const spend = await chargeCredits(c, model, access.managedBalance)
+  const spend = await chargeCredits(c, model, access)
   if (spend.denied) return spend.denied
 
   try {

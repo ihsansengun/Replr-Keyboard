@@ -12,6 +12,24 @@ export async function getBalance(db: D1Database, userId: string): Promise<number
   return row ? row.balance : null
 }
 
+export interface AccessProfile {
+  /** Credit balance; null when the user has no credits row (not server-managed). */
+  balance: number | null
+  /** users.is_dev — server-side test exemption: dev accounts are never charged. */
+  isDev: boolean
+}
+
+/** Balance + dev flag in one read (the /reply gate runs this on every
+ *  authenticated request). Null only if the user row is gone. */
+export async function getAccessProfile(db: D1Database, userId: string): Promise<AccessProfile | null> {
+  const row = await db
+    .prepare('SELECT u.is_dev AS is_dev, c.balance AS balance FROM users u LEFT JOIN credits c ON c.user_id = u.id WHERE u.id = ?')
+    .bind(userId)
+    .first<{ is_dev: number; balance: number | null }>()
+  if (!row) return null
+  return { balance: row.balance, isDev: row.is_dev === 1 }
+}
+
 /** Grants credits atomically: ledger INSERT + balance upsert in one D1 batch
  *  (implicit transaction). When `ref` is set and a ledger row with that ref
  *  already exists, the UNIQUE constraint rejects the whole batch → returns the

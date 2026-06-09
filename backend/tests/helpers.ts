@@ -12,6 +12,8 @@ export interface FakeState {
   balance: number | null
   /** credit_ledger.ref values already present (StoreKit dedup). */
   ledgerRefs: Set<string>
+  /** users.is_dev for TEST_USER_ID (server-side test exemption). */
+  isDev: boolean
 }
 
 export function todayKey(key: string): string {
@@ -26,6 +28,7 @@ export function makeTestEnv(overrides: Partial<Env> = {}, init?: Partial<FakeSta
     kv: new Map(Object.entries(init?.kv ?? {})),
     balance: init?.balance ?? null,
     ledgerRefs: new Set(init?.ledgerRefs ?? []),
+    isDev: init?.isDev ?? false,
   }
   if (init?.kv instanceof Map) state.kv = init.kv
 
@@ -44,6 +47,12 @@ export function makeTestEnv(overrides: Partial<Env> = {}, init?: Partial<FakeSta
       async first() {
         if (sql.includes('FROM sessions')) {
           return args[0] === TEST_SESSION_TOKEN ? { user_id: TEST_USER_ID } : null
+        }
+        if (sql.includes('FROM users u LEFT JOIN credits')) {
+          // getAccessProfile: one row per existing user; balance NULL without a credits row.
+          return args[0] === TEST_USER_ID
+            ? { balance: state.balance, is_dev: state.isDev ? 1 : 0 }
+            : null
         }
         if (sql.includes('SELECT balance FROM credits')) {
           return state.balance === null ? null : { balance: state.balance }
