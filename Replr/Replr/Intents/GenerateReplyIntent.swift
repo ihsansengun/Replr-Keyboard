@@ -49,26 +49,13 @@ struct GenerateReplyIntent: AppIntent {
         let effectiveTone = AppGroupService.shared.readSelectedTone()
         NSLog("[Replr][Intent] Calling API: tone=%@ (keyboard selection), hasContext=%d", effectiveTone.name, context != nil ? 1 : 0)
 
-        // Fetch memories for the current confirmed contact
-        let previousContext: String?
-        if AppGroupService.shared.memoryEnabled,
-           let contactID = AppGroupService.shared.currentContactID {
-            let summaries = AppGroupService.shared.recentSummaries(
-                forContactID: contactID,
-                limit: AppGroupService.shared.memoryDepth
-            )
-            previousContext = summaries.isEmpty ? nil : summaries.joined(separator: "\n")
-        } else {
-            previousContext = nil
-        }
-
-        if previousContext != nil,
-           let contactID = AppGroupService.shared.currentContactID,
-           let contact = AppGroupService.shared.loadContacts().first(where: { $0.id == contactID }) {
-            AppGroupService.shared.memoryUsedContactName = contact.displayName
-        } else {
-            AppGroupService.shared.memoryUsedContactName = nil
-        }
+        // Fresh capture: drop any prior contact so this capture isn't seasoned with
+        // another person's memory before THIS screenshot's contact is identified
+        // (resolveContact re-sets it after). Matches the keyboard capture paths —
+        // memory re-enters via Regenerate once the contact is known.
+        AppGroupService.shared.currentContactID = nil
+        let previousContext: String? = nil
+        AppGroupService.shared.memoryUsedContactName = nil
 
         do {
             let result = try await ReplyService.shared.generateReplies(
@@ -101,10 +88,18 @@ struct GenerateReplyIntent: AppIntent {
             session.inputTokens = result.inputTokens
             session.outputTokens = result.outputTokens
             session.costUsd = result.costUsd
-            CreditsManager.shared.deduct(required)
+            if let remaining = result.creditsRemaining {
+                AppGroupService.shared.creditBalance = remaining   // server-authoritative
+            } else {
+                CreditsManager.shared.deduct(required)             // legacy local fallback
+            }
             AppGroupService.shared.isGenerating = false
             AppGroupService.shared.appendCaptureSession(session)
             AppGroupService.shared.saveReplies(result.replies)
+        } catch ReplyError.insufficientCredits {
+            NSLog("[Replr][Intent] server declined: insufficient credits")
+            AppGroupService.shared.isGenerating = false
+            AppGroupService.shared.saveError("insufficient_credits")
         } catch {
             NSLog("[Replr][Intent] API error: %@", error.localizedDescription)
             AppGroupService.shared.isGenerating = false

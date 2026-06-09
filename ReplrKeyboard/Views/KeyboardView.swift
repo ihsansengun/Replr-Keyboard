@@ -121,15 +121,15 @@ final class KeyboardModel: ObservableObject {
                     contactID: resolved.id,
                     contactName: resolved.name
                 )
-                if !AppGroupService.shared.devMode {
-                    AppGroupService.shared.creditBalance -= required
-                }
+                applyCreditCharge(result.creditsRemaining, required: required)
                 AppGroupService.shared.appendCaptureSession(session)
                 AppGroupService.shared.saveReplies(result.replies)
                 currentReplies = result.replies
                 repliesGeneratedInMode = .email
                 hasAnySessions = true
                 withAnimation(.easeInOut(duration: 0.2)) { state = .replies(result.replies) }
+            } catch ReplyError.insufficientCredits {
+                withAnimation(.easeInOut(duration: 0.2)) { state = .paywall }
             } catch {
                 withAnimation { state = .error(error.localizedDescription) }
             }
@@ -143,6 +143,17 @@ final class KeyboardModel: ObservableObject {
     /// True when the panel is in its idle (capture-ready) state — used to arm the screenshot
     /// watcher whenever the keyboard is open, not only after the user taps Start.
     var isIdleState: Bool { if case .idle = state { return true } else { return false } }
+
+    /// Applies a generation's credit charge. The server's `creditsRemaining` is
+    /// authoritative when present (signed-in, server-managed account); otherwise
+    /// fall back to the legacy local deduction.
+    private func applyCreditCharge(_ creditsRemaining: Int?, required: Int) {
+        if let remaining = creditsRemaining {
+            AppGroupService.shared.creditBalance = remaining
+        } else if !AppGroupService.shared.devMode {
+            AppGroupService.shared.creditBalance = max(0, AppGroupService.shared.creditBalance - required)
+        }
+    }
 
     /// User declined the auto-caught screenshot — clear it and mark it consumed so it won't
     /// resurface via activateScreenshotChip on the next keyboard open.
@@ -224,7 +235,7 @@ final class KeyboardModel: ObservableObject {
                 session.inputTokens = result.inputTokens
                 session.outputTokens = result.outputTokens
                 session.costUsd = result.costUsd
-                if !AppGroupService.shared.devMode { AppGroupService.shared.creditBalance -= required }
+                self.applyCreditCharge(result.creditsRemaining, required: required)
                 AppGroupService.shared.appendCaptureSession(session)
                 AppGroupService.shared.saveReplies(result.replies)
                 self.currentReplies = result.replies
@@ -234,6 +245,9 @@ final class KeyboardModel: ObservableObject {
                 AppGroupService.shared.recordCapturedScreenshotID(assetID)
                 self.detectedScreenshotID = nil
                 withAnimation(.easeInOut(duration: 0.2)) { self.state = .replies(result.replies) }
+            } catch ReplyError.insufficientCredits {
+                self.detectedScreenshotID = nil
+                withAnimation(.easeInOut(duration: 0.2)) { self.state = .paywall }
             } catch {
                 self.detectedScreenshotID = nil
                 withAnimation { self.state = .error(error.localizedDescription) }
@@ -299,7 +313,7 @@ final class KeyboardModel: ObservableObject {
                         screenshot: image!, tone: self.selectedTone,
                         summary: summary, previousContext: previousContext)
                 }
-                if !AppGroupService.shared.devMode { AppGroupService.shared.creditBalance -= required }
+                self.applyCreditCharge(result.creditsRemaining, required: required)
                 // Accumulate: prepend new replies so the freshest results are always at the top.
                 // The X button (regenerate()) still clears everything; this sparkles button adds more
                 // so the user can scroll through all options and pick.
@@ -308,6 +322,8 @@ final class KeyboardModel: ObservableObject {
                 self.repliesGeneratedInMode = isEmail ? .email : .chat
                 AppGroupService.shared.saveReplies(accumulated)
                 withAnimation(.easeInOut(duration: 0.2)) { self.state = .replies(accumulated) }
+            } catch ReplyError.insufficientCredits {
+                withAnimation(.easeInOut(duration: 0.2)) { self.state = .paywall }
             } catch {
                 withAnimation { self.state = .error(error.localizedDescription) }
             }

@@ -12,6 +12,17 @@ struct QuickReplyIntent: AppIntent {
         ReplyService.bootstrapAuthIfNeeded()
         NSLog("[Replr][QuickReply] fired")
 
+        // Credit gate — mirrors GenerateReplyIntent (the server enforces too once
+        // the account is server-managed; this avoids a doomed round-trip).
+        let balance = AppGroupService.shared.effectiveCreditBalance
+        let required = AppGroupService.shared.devMode ? 0
+            : CreditsManager.shared.creditsRequired(for: AppGroupService.shared.selectedModel)
+        guard balance >= required else {
+            NSLog("[Replr][QuickReply] insufficient credits (%d required, %d available)", required, balance)
+            AppGroupService.shared.saveError("insufficient_credits")
+            return .result()
+        }
+
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         guard status == .authorized || status == .limited else {
             NSLog("[Replr][QuickReply] No Photos access")
@@ -60,14 +71,14 @@ struct QuickReplyIntent: AppIntent {
         let tone = AppGroupService.shared.readSelectedTone()
         NSLog("[Replr][QuickReply] Calling API: tone=%@", tone.name)
 
-        // Fetch memories for the current confirmed contact
-        let previousContext: String?
-        if AppGroupService.shared.memoryEnabled, let contactID = AppGroupService.shared.currentContactID {
-            let summaries = AppGroupService.shared.recentSummaries(forContactID: contactID, limit: AppGroupService.shared.memoryDepth)
-            previousContext = summaries.isEmpty ? nil : summaries.joined(separator: "\n")
-        } else {
-            previousContext = nil
-        }
+        // Fresh capture: drop any prior contact so this capture isn't seasoned with
+        // another person's memory before THIS screenshot's contact is identified
+        // (resolveContact re-sets it after). Matches the keyboard capture paths.
+        AppGroupService.shared.currentContactID = nil
+        let previousContext: String? = nil
+        AppGroupService.shared.memoryUsedContactName = nil
+
+        AppGroupService.shared.isGenerating = true
 
         do {
             let result = try await ReplyService.shared.generateReplies(
@@ -100,10 +111,21 @@ struct QuickReplyIntent: AppIntent {
             session.inputTokens = result.inputTokens
             session.outputTokens = result.outputTokens
             session.costUsd = result.costUsd
+            if let remaining = result.creditsRemaining {
+                AppGroupService.shared.creditBalance = remaining   // server-authoritative
+            } else {
+                CreditsManager.shared.deduct(required)             // legacy local fallback
+            }
+            AppGroupService.shared.isGenerating = false
             AppGroupService.shared.appendCaptureSession(session)
             AppGroupService.shared.saveReplies(result.replies)
+        } catch ReplyError.insufficientCredits {
+            NSLog("[Replr][QuickReply] server declined: insufficient credits")
+            AppGroupService.shared.isGenerating = false
+            AppGroupService.shared.saveError("insufficient_credits")
         } catch {
             NSLog("[Replr][QuickReply] API error: %@", error.localizedDescription)
+            AppGroupService.shared.isGenerating = false
             AppGroupService.shared.saveError(error.localizedDescription)
         }
 
