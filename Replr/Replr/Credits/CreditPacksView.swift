@@ -124,10 +124,11 @@ private struct PackCard: View {
 
     /// Honest per-pack estimate: each generation costs creditsRequired for the
     /// user's current model (2–15), so "1 credit = 1 reply" was simply false.
+    /// "replies" counts generations (what a buyer sends), not the 3 options shown.
     private var subtitle: String {
         let credits = CreditsManager.shared.credits(for: product)
         let cost = max(1, AppGroupService.shared.creditsRequired)
-        return "≈\(credits / cost) replies with your current model"
+        return "≈\(credits / cost) replies · 3 options each"
     }
 
     var body: some View {
