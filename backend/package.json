@@ -10,9 +10,11 @@
   "type": "module",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.2",
+    "@peculiar/x509": "^2.0.0",
     "hono": "^4.12.18",
     "jose": "^6.2.3",
-    "openai": "^6.37.0"
+    "openai": "^6.37.0",
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260511.1",
