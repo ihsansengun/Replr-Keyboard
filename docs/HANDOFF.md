@@ -83,12 +83,11 @@ anonymous /reply generates with per-IP limiting). Backward-compatible: old clien
 are only rate-limited (anon 50/day per IP); credit enforcement starts per-user
 after the updated app calls `/credits/migrate` or `/redeem`.
 
-**Committed since the deploy (needs a redeploy + remote migration 0003 to go live):**
-tiered rate limits (credit-metered users get a 1000/day circuit breaker —
-credits are their real meter) and the `users.is_dev` exemption (dev mode is
-test-only; dev accounts are never charged server credits). After deploying,
-flag the dev account once:
-`npx wrangler d1 execute replr-db --remote --command "UPDATE users SET is_dev=1 WHERE email='<dev email>'"`
+**Second deploy (worker `a16a9ad5`, migration 0003 remote):** tiered rate
+limits (credit-metered users get a 1000/day circuit breaker — credits are
+their real meter) and the `users.is_dev` exemption (dev mode is test-only;
+dev accounts are never charged server credits). `is_dev=1` is SET for the
+dev account (ihsansengun@me.com). Prod re-probed green.
 
 Remaining (user-triggered):
 
