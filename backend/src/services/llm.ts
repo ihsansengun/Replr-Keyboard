@@ -361,20 +361,6 @@ export interface GenerateParams {
   googleKey?: string
 }
 
-export interface GenerateMultipleParams {
-  screenshots: string[]
-  tone: string
-  toneName?: string
-  summary?: string
-  previousContext?: string
-  aboutUser?: string
-  model: Model
-  anthropicKey: string
-  openaiKey: string
-  xaiKey?: string
-  googleKey?: string
-}
-
 function buildContextBlock(summary?: string, previousContext?: string): string {
   const parts: string[] = []
   if (previousContext) {
@@ -414,28 +400,6 @@ ${DECISIONS}
 ${buildReplyFormat(REPLY_COUNT)}`
 
   return callLlm({ system, user, images: [screenshotBase64], model, temperature: spec.temperature, anthropicKey, openaiKey, xaiKey, googleKey })
-}
-
-export async function generateRepliesFromMultiple(params: GenerateMultipleParams): Promise<LlmResult> {
-  const { screenshots, tone, toneName, summary, previousContext, aboutUser, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
-  const count = REPLY_COUNT
-
-  const spec = toneSpecFor(toneName, tone)
-  const system = buildSystemPrompt(spec, aboutUser)
-
-  const user = `${buildContextBlock(summary, previousContext)}The following screenshots show a conversation scrolled through from bottom to top. Read all of them together to understand the full context.
-
-Reading guide — CRITICAL:
-- RIGHT-side bubbles = YOUR USER (the person you are writing FOR — do not reply to these)
-- LEFT-side bubbles = the other person (the person you are writing TO)
-- Identify the most recent LEFT-side message — that is what you are replying to
-- Never write a reply to a right-side message
-
-${DECISIONS}
-
-${buildReplyFormat(count)}`
-
-  return callLlm({ system, user, images: screenshots, model, temperature: spec.temperature, anthropicKey, openaiKey, xaiKey, googleKey })
 }
 
 export async function generateRepliesFromEmail(params: GenerateEmailParams): Promise<LlmResult> {
