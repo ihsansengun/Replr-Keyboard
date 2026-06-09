@@ -214,58 +214,6 @@ final class ReplyService {
         }
     }
 
-    func generateRepliesFromScroll(
-        screenshots: [UIImage],
-        tone: Tone,
-        summary: String?,
-        previousContext: String?
-    ) async throws -> ReplyResult {
-        let frames = screenshots.prefix(6).map { compressForUpload($0).base64EncodedString() }
-        guard !frames.isEmpty else { throw ReplyError.encodingFailed }
-
-        struct ScrollRequest: Encodable {
-            let screenshots: [String]
-            let tone: String
-            let toneName: String
-            let summary: String?
-            let previousContext: String?
-            let model: String
-            let userId: String
-            let aboutUser: String?
-        }
-
-        let scrollBody = ScrollRequest(
-            screenshots: frames,
-            tone: tone.instruction,
-            toneName: tone.name,
-            summary: summary,
-            previousContext: previousContext,
-            model: AppGroupService.shared.selectedModel,
-            userId: AppGroupService.shared.userID(),
-            aboutUser: AppGroupService.shared.aboutUser.isEmpty ? nil : AppGroupService.shared.aboutUser
-        )
-
-        let scrollURL = URL(string: Constants.backendURL + "/reply/scroll")!
-        var request = URLRequest(url: scrollURL)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        addAuthHeader(to: &request)
-        request.timeoutInterval = 45
-        request.httpBody = try JSONEncoder().encode(scrollBody)
-
-        let (data, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse else { throw ReplyError.invalidResponse }
-        if http.statusCode == 401 {
-            Task { @MainActor in ReplyService.onUnauthorized?() }
-            throw ReplyError.serverError(401)
-        }
-        if http.statusCode == 402 { throw ReplyError.insufficientCredits }
-        if http.statusCode == 429 { throw ReplyError.rateLimitReached }
-        guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
-
-        let decoded = try JSONDecoder().decode(ReplyResponse.self, from: data)
-        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd, creditsRemaining: decoded.creditsRemaining)
-    }
 }
 
 enum ReplyError: LocalizedError {

@@ -447,7 +447,7 @@ final class AppGroupService {
         return text
     }
 
-    // MARK: - Screenshot file (broadcast/scroll capture only)
+    // MARK: - Screenshot file (written at capture, read by Regenerate)
 
     func writeScreenshot(_ image: UIImage) throws {
         guard let data = image.pngData() else { throw AppGroupError.encodingFailed }
@@ -475,26 +475,6 @@ final class AppGroupService {
               Date().timeIntervalSince(modified) > maxAge else { return }
         try? FileManager.default.removeItem(at: url)
         NSLog("[Replr][AppGroup] deleted stale screenshot (age > %.0fs)", maxAge)
-    }
-
-    // MARK: - Capture ready flag (broadcast flow only)
-
-    var isCaptureReady: Bool {
-        get { FileManager.default.fileExists(atPath: container.appendingPathComponent(Constants.captureReadyKey).path) }
-        set {
-            let url = container.appendingPathComponent(Constants.captureReadyKey)
-            if newValue { FileManager.default.createFile(atPath: url.path, contents: nil) }
-            else { try? FileManager.default.removeItem(at: url) }
-        }
-    }
-
-    var isBroadcastActive: Bool {
-        get { FileManager.default.fileExists(atPath: container.appendingPathComponent(Constants.broadcastActiveKey).path) }
-        set {
-            let url = container.appendingPathComponent(Constants.broadcastActiveKey)
-            if newValue { FileManager.default.createFile(atPath: url.path, contents: nil) }
-            else { try? FileManager.default.removeItem(at: url) }
-        }
     }
 
     // MARK: - Contacts

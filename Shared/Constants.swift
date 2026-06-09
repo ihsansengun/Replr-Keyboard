@@ -1,7 +1,6 @@
 enum Constants {
     static let appGroupID             = "group.com.ihsan.replr"
     static let backendURL             = "https://api.replr.app"
-    static let broadcastExtensionID   = "Theory-of-Web.Replr.ReplrBroadcast"
 
     // UserDefaults keys (App Group)
     static let pendingRepliesKey      = "pending_replies"
@@ -60,11 +59,6 @@ enum Constants {
     static let remoteModelCatalogKey = "remote_model_catalog"             // JSON [RemoteModelInfo] fetched from /config
     static let colorSchemeAppearanceKey = "replr.appearance.colorScheme"
 
-    // File-based keys (broadcast/scroll capture only)
+    // Shared screenshot file (written at capture, read by Regenerate)
     static let screenshotFilename     = "screenshot.png"
-    static let captureReadyKey        = "capture_ready"
-    static let scrollModeKey          = "scroll_mode"
-    static let scrollFrameCountKey    = "scroll_frame_count"
-    static let scrollCaptureReadyKey  = "scroll_capture_ready"
-    static let broadcastActiveKey     = "broadcast_active"
 }

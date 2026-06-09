@@ -8,14 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		0F2B8C3E40C34EC4989481FC /* LoadingPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973E39972E254D88BA792D61 /* LoadingPanelView.swift */; };
-		1F38788925D348DB949BC2ED /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */; };
 		222DD21CD51742898D801450 /* DisambiguatePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848A8855CDE649AC9324B89F /* DisambiguatePanelView.swift */; };
 		429678B08FF5456FACB1B781 /* RepliesPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D479986D87FD41BAA0E7D9AB /* RepliesPanelView.swift */; };
 		485BF568190040E6894A4AEC /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */; };
-		543F9DDB49F94FF79619573B /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
 		577C1C882FCEF7B300168228 /* Replr.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 577C1C872FCEF7B300168228 /* Replr.storekit */; };
-		57BB31B72FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
-		57BB31B82FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
 		57BB31B92FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
 		57BB31BA2FB5414D00CE9E4D /* ReplyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BB31B62FB5414D00CE9E4D /* ReplyService.swift */; };
 		57BB31C72FB6112700CE9E4D /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 57BB31C62FB6112700CE9E4D /* AppIntents.framework */; };
@@ -25,27 +21,11 @@
 		57CF47D32FB38B860034657F /* Tone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CB2FB38B860034657F /* Tone.swift */; };
 		57CF47E02FB38DD70034657F /* ReplrKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 57CF47D82FB38DD70034657F /* ReplrKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		57CF47FB2FB390BF0034657F /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47FA2FB38FA40034657F /* KeyboardViewController.swift */; };
-		57CF47FC2FB390BF0034657F /* CaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F02FB38FA40034657F /* CaptureService.swift */; };
-		57CF47FE2FB390BF0034657F /* ScrollCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F22FB38FA40034657F /* ScrollCaptureService.swift */; };
 		57CF48002FB390BF0034657F /* KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47F52FB38FA40034657F /* KeyboardView.swift */; };
 		57CF48042FB390BF0034657F /* ConversationSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CA2FB38B860034657F /* ConversationSummary.swift */; };
 		57CF48052FB390BF0034657F /* Tone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CB2FB38B860034657F /* Tone.swift */; };
 		57CF48062FB390BF0034657F /* AppGroupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CD2FB38B860034657F /* AppGroupService.swift */; };
 		57CF48072FB390BF0034657F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CE2FB38B860034657F /* Constants.swift */; };
-		57CF480F2FB390E50034657F /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 57CF480E2FB390E50034657F /* ReplayKit.framework */; };
-		57CF48192FB390E50034657F /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 57CF480E2FB390E50034657F /* ReplayKit.framework */; };
-		57CF481B2FB390E50034657F /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 57CF481A2FB390E50034657F /* UIKit.framework */; };
-		57CF48222FB390E50034657F /* ReplrBroadcastSetupUI.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 57CF48182FB390E50034657F /* ReplrBroadcastSetupUI.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		57CF48252FB390E50034657F /* ReplrBroadcast.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 57CF480C2FB390E50034657F /* ReplrBroadcast.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		57CF482E2FB3913E0034657F /* ConversationSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CA2FB38B860034657F /* ConversationSummary.swift */; };
-		57CF482F2FB3913E0034657F /* Tone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CB2FB38B860034657F /* Tone.swift */; };
-		57CF48302FB3913E0034657F /* AppGroupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CD2FB38B860034657F /* AppGroupService.swift */; };
-		57CF48312FB3913E0034657F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CE2FB38B860034657F /* Constants.swift */; };
-		57CF48352FB394B40034657F /* ConversationSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CA2FB38B860034657F /* ConversationSummary.swift */; };
-		57CF48362FB394B40034657F /* Tone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CB2FB38B860034657F /* Tone.swift */; };
-		57CF48372FB394B40034657F /* AppGroupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CD2FB38B860034657F /* AppGroupService.swift */; };
-		57CF48382FB394B40034657F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CF47CE2FB38B860034657F /* Constants.swift */; };
-		86D9D25E85BA4CEB8F652700 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
 		9239BA911EE141E6ABB05CFE /* ErrorPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42D2C67B4BFD4668A093B8BF /* ErrorPanelView.swift */; };
 		9716598EFAAC4EDEB2269AA3 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
 		97NFFLHM7VMCKWGF5XR93Z6Y /* ReplyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9UQQVONMO98OVYUWSM6VSM /* ReplyListView.swift */; };
@@ -56,7 +36,6 @@
 		AA00002200AA0000002200BB /* ReplrComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002200AA0000002200AA /* ReplrComponents.swift */; };
 		AA00002200AA0000002200CC /* ReplrComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00002200AA0000002200AA /* ReplrComponents.swift */; };
 		B6C4868C80B147D5B844BA70 /* CaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 901023AA25EF4F65B91E4A72 /* CaptureSession.swift */; };
-		BA77ACE356C940B2ACEF3AD8 /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */; };
 		BB3396FD4C094C68848A5DFB /* IdlePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9D9AE8AD804A3FAF344942 /* IdlePanelView.swift */; };
 		CC00000000CC0000000000A2 /* ContactResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00000000CC0000000000A1 /* ContactResolver.swift */; };
 		CC00000000CC0000000000A3 /* ContactResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00000000CC0000000000A1 /* ContactResolver.swift */; };
@@ -85,20 +64,6 @@
 			remoteGlobalIDString = 57CF47D72FB38DD70034657F;
 			remoteInfo = ReplrKeyboard;
 		};
-		57CF48202FB390E50034657F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 57CF476F2FB384F10034657F /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 57CF48172FB390E50034657F;
-			remoteInfo = ReplrBroadcastSetupUI;
-		};
-		57CF48232FB390E50034657F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 57CF476F2FB384F10034657F /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 57CF480B2FB390E50034657F;
-			remoteInfo = ReplrBroadcast;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -108,8 +73,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				57CF48222FB390E50034657F /* ReplrBroadcastSetupUI.appex in Embed Foundation Extensions */,
-				57CF48252FB390E50034657F /* ReplrBroadcast.appex in Embed Foundation Extensions */,
 				57CF47E02FB38DD70034657F /* ReplrKeyboard.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
@@ -138,13 +101,9 @@
 		57CF47CD2FB38B860034657F /* AppGroupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupService.swift; sourceTree = "<group>"; };
 		57CF47CE2FB38B860034657F /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		57CF47D82FB38DD70034657F /* ReplrKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ReplrKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		57CF47F02FB38FA40034657F /* CaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureService.swift; sourceTree = "<group>"; };
-		57CF47F22FB38FA40034657F /* ScrollCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollCaptureService.swift; sourceTree = "<group>"; };
 		57CF47F52FB38FA40034657F /* KeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardView.swift; sourceTree = "<group>"; };
 		57CF47FA2FB38FA40034657F /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KeyboardViewController.swift; path = ../ReplrKeyboard/KeyboardViewController.swift; sourceTree = "<group>"; };
-		57CF480C2FB390E50034657F /* ReplrBroadcast.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ReplrBroadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		57CF480E2FB390E50034657F /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
-		57CF48182FB390E50034657F /* ReplrBroadcastSetupUI.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ReplrBroadcastSetupUI.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		57CF481A2FB390E50034657F /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		7D9D9AE8AD804A3FAF344942 /* IdlePanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdlePanelView.swift; sourceTree = "<group>"; };
 		7E456A2C26BA4FD6BAE17EC2 /* Contact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contact.swift; sourceTree = "<group>"; };
@@ -159,20 +118,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		57CF48262FB390E50034657F /* Exceptions for "ReplrBroadcast" folder in "ReplrBroadcast" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 57CF480B2FB390E50034657F /* ReplrBroadcast */;
-		};
-		57CF482A2FB390E50034657F /* Exceptions for "ReplrBroadcastSetupUI" folder in "ReplrBroadcastSetupUI" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 57CF48172FB390E50034657F /* ReplrBroadcastSetupUI */;
-		};
 		57CF483A2FB3A0D00034657F /* Exceptions for "Replr" folder in "Replr" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -200,11 +145,15 @@
 		};
 		57CF47872FB384F20034657F /* ReplrTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = ReplrTests;
 			sourceTree = "<group>";
 		};
 		57CF47912FB384F20034657F /* ReplrUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = ReplrUITests;
 			sourceTree = "<group>";
 		};
@@ -214,22 +163,6 @@
 				97754ED54CE54775AB0CF885 /* Exceptions for "ReplrKeyboard" folder in "ReplrKeyboard" target */,
 			);
 			path = ReplrKeyboard;
-			sourceTree = "<group>";
-		};
-		57CF48102FB390E50034657F /* ReplrBroadcast */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				57CF48262FB390E50034657F /* Exceptions for "ReplrBroadcast" folder in "ReplrBroadcast" target */,
-			);
-			path = ReplrBroadcast;
-			sourceTree = "<group>";
-		};
-		57CF481C2FB390E50034657F /* ReplrBroadcastSetupUI */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				57CF482A2FB390E50034657F /* Exceptions for "ReplrBroadcastSetupUI" folder in "ReplrBroadcastSetupUI" target */,
-			);
-			path = ReplrBroadcastSetupUI;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -266,23 +199,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		57CF48092FB390E50034657F /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				57CF480F2FB390E50034657F /* ReplayKit.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		57CF48152FB390E50034657F /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				57CF48192FB390E50034657F /* ReplayKit.framework in Frameworks */,
-				57CF481B2FB390E50034657F /* UIKit.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -291,7 +207,6 @@
 			children = (
 				577C1C872FCEF7B300168228 /* Replr.storekit */,
 				57CF47FA2FB38FA40034657F /* KeyboardViewController.swift */,
-				57CF47F32FB38FA40034657F /* Services */,
 				57CF47F92FB38FA40034657F /* Views */,
 				57CF47BB2FB3895F0034657F /* App */,
 				57CF47C62FB3895F0034657F /* Features */,
@@ -300,8 +215,6 @@
 				57CF47872FB384F20034657F /* ReplrTests */,
 				57CF47912FB384F20034657F /* ReplrUITests */,
 				57CF47D92FB38DD70034657F /* ReplrKeyboard */,
-				57CF48102FB390E50034657F /* ReplrBroadcast */,
-				57CF481C2FB390E50034657F /* ReplrBroadcastSetupUI */,
 				57CF480D2FB390E50034657F /* Frameworks */,
 				57CF47782FB384F10034657F /* Products */,
 				57CF47CF2FB38B860034657F /* Shared */,
@@ -315,8 +228,6 @@
 				57CF47842FB384F20034657F /* ReplrTests.xctest */,
 				57CF478E2FB384F20034657F /* ReplrUITests.xctest */,
 				57CF47D82FB38DD70034657F /* ReplrKeyboard.appex */,
-				57CF480C2FB390E50034657F /* ReplrBroadcast.appex */,
-				57CF48182FB390E50034657F /* ReplrBroadcastSetupUI.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -411,16 +322,6 @@
 			path = ../Shared;
 			sourceTree = SOURCE_ROOT;
 		};
-		57CF47F32FB38FA40034657F /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				57CF47F02FB38FA40034657F /* CaptureService.swift */,
-				57CF47F22FB38FA40034657F /* ScrollCaptureService.swift */,
-			);
-			name = Services;
-			path = ../ReplrKeyboard/Services;
-			sourceTree = "<group>";
-		};
 		57CF47F92FB38FA40034657F /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -462,8 +363,6 @@
 			);
 			dependencies = (
 				57CF47DE2FB38DD70034657F /* PBXTargetDependency */,
-				57CF48212FB390E50034657F /* PBXTargetDependency */,
-				57CF48242FB390E50034657F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				57CF47792FB384F10034657F /* Replr */,
@@ -493,8 +392,6 @@
 				57CF47872FB384F20034657F /* ReplrTests */,
 			);
 			name = ReplrTests;
-			packageProductDependencies = (
-			);
 			productName = ReplrTests;
 			productReference = 57CF47842FB384F20034657F /* ReplrTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -516,8 +413,6 @@
 				57CF47912FB384F20034657F /* ReplrUITests */,
 			);
 			name = ReplrUITests;
-			packageProductDependencies = (
-			);
 			productName = ReplrUITests;
 			productReference = 57CF478E2FB384F20034657F /* ReplrUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -543,50 +438,6 @@
 			);
 			productName = ReplrKeyboard;
 			productReference = 57CF47D82FB38DD70034657F /* ReplrKeyboard.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
-		57CF480B2FB390E50034657F /* ReplrBroadcast */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 57CF48272FB390E50034657F /* Build configuration list for PBXNativeTarget "ReplrBroadcast" */;
-			buildPhases = (
-				57CF48082FB390E50034657F /* Sources */,
-				57CF48092FB390E50034657F /* Frameworks */,
-				57CF480A2FB390E50034657F /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				57CF48102FB390E50034657F /* ReplrBroadcast */,
-			);
-			name = ReplrBroadcast;
-			packageProductDependencies = (
-			);
-			productName = ReplrBroadcast;
-			productReference = 57CF480C2FB390E50034657F /* ReplrBroadcast.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
-		57CF48172FB390E50034657F /* ReplrBroadcastSetupUI */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 57CF482B2FB390E50034657F /* Build configuration list for PBXNativeTarget "ReplrBroadcastSetupUI" */;
-			buildPhases = (
-				57CF48142FB390E50034657F /* Sources */,
-				57CF48152FB390E50034657F /* Frameworks */,
-				57CF48162FB390E50034657F /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				57CF481C2FB390E50034657F /* ReplrBroadcastSetupUI */,
-			);
-			name = ReplrBroadcastSetupUI;
-			packageProductDependencies = (
-			);
-			productName = ReplrBroadcastSetupUI;
-			productReference = 57CF48182FB390E50034657F /* ReplrBroadcastSetupUI.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -642,8 +493,6 @@
 				57CF47832FB384F20034657F /* ReplrTests */,
 				57CF478D2FB384F20034657F /* ReplrUITests */,
 				57CF47D72FB38DD70034657F /* ReplrKeyboard */,
-				57CF480B2FB390E50034657F /* ReplrBroadcast */,
-				57CF48172FB390E50034657F /* ReplrBroadcastSetupUI */,
 			);
 		};
 /* End PBXProject section */
@@ -675,20 +524,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				577C1C882FCEF7B300168228 /* Replr.storekit in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		57CF480A2FB390E50034657F /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		57CF48162FB390E50034657F /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -731,8 +566,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				57CF47FB2FB390BF0034657F /* KeyboardViewController.swift in Sources */,
-				57CF47FC2FB390BF0034657F /* CaptureService.swift in Sources */,
-				57CF47FE2FB390BF0034657F /* ScrollCaptureService.swift in Sources */,
 				57CF48002FB390BF0034657F /* KeyboardView.swift in Sources */,
 				BB3396FD4C094C68848A5DFB /* IdlePanelView.swift in Sources */,
 				97NFFLHM7VMCKWGF5XR93Z6Y /* ReplyListView.swift in Sources */,
@@ -753,34 +586,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		57CF48082FB390E50034657F /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				57BB31B82FB5414D00CE9E4D /* ReplyService.swift in Sources */,
-				57CF48352FB394B40034657F /* ConversationSummary.swift in Sources */,
-				57CF48362FB394B40034657F /* Tone.swift in Sources */,
-				57CF48372FB394B40034657F /* AppGroupService.swift in Sources */,
-				57CF48382FB394B40034657F /* Constants.swift in Sources */,
-				543F9DDB49F94FF79619573B /* CaptureSession.swift in Sources */,
-				BA77ACE356C940B2ACEF3AD8 /* Contact.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		57CF48142FB390E50034657F /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				57BB31B72FB5414D00CE9E4D /* ReplyService.swift in Sources */,
-				57CF482E2FB3913E0034657F /* ConversationSummary.swift in Sources */,
-				57CF482F2FB3913E0034657F /* Tone.swift in Sources */,
-				57CF48302FB3913E0034657F /* AppGroupService.swift in Sources */,
-				57CF48312FB3913E0034657F /* Constants.swift in Sources */,
-				86D9D25E85BA4CEB8F652700 /* CaptureSession.swift in Sources */,
-				1F38788925D348DB949BC2ED /* Contact.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -798,16 +603,6 @@
 			isa = PBXTargetDependency;
 			target = 57CF47D72FB38DD70034657F /* ReplrKeyboard */;
 			targetProxy = 57CF47DD2FB38DD70034657F /* PBXContainerItemProxy */;
-		};
-		57CF48212FB390E50034657F /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 57CF48172FB390E50034657F /* ReplrBroadcastSetupUI */;
-			targetProxy = 57CF48202FB390E50034657F /* PBXContainerItemProxy */;
-		};
-		57CF48242FB390E50034657F /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 57CF480B2FB390E50034657F /* ReplrBroadcast */;
-			targetProxy = 57CF48232FB390E50034657F /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1159,124 +954,6 @@
 			};
 			name = Release;
 		};
-		57CF48282FB390E50034657F /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = ReplrBroadcast/ReplrBroadcast.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
-				DEVELOPMENT_TEAM = 7R8XD8NCB2;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = ReplrBroadcast/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = ReplrBroadcast;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Theory-of-Web.Replr.ReplrBroadcast";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		57CF48292FB390E50034657F /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = ReplrBroadcast/ReplrBroadcast.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
-				DEVELOPMENT_TEAM = 7R8XD8NCB2;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = ReplrBroadcast/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = ReplrBroadcast;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Theory-of-Web.Replr.ReplrBroadcast";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		57CF482C2FB390E50034657F /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
-				DEVELOPMENT_TEAM = 7R8XD8NCB2;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = ReplrBroadcastSetupUI/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = ReplrBroadcastSetupUI;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Theory-of-Web.Replr.ReplrBroadcastSetupUI";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		57CF482D2FB390E50034657F /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
-				DEVELOPMENT_TEAM = 7R8XD8NCB2;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = ReplrBroadcastSetupUI/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = ReplrBroadcastSetupUI;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "Theory-of-Web.Replr.ReplrBroadcastSetupUI";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1321,24 +998,6 @@
 			buildConfigurations = (
 				57CF47E32FB38DD70034657F /* Debug */,
 				57CF47E42FB38DD70034657F /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		57CF48272FB390E50034657F /* Build configuration list for PBXNativeTarget "ReplrBroadcast" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				57CF48282FB390E50034657F /* Debug */,
-				57CF48292FB390E50034657F /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		57CF482B2FB390E50034657F /* Build configuration list for PBXNativeTarget "ReplrBroadcastSetupUI" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				57CF482C2FB390E50034657F /* Debug */,
-				57CF482D2FB390E50034657F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
