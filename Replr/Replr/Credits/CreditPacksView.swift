@@ -122,13 +122,21 @@ private struct PackCard: View {
     let product: Product
     let onBuy: () -> Void
 
+    /// Honest per-pack estimate: each generation costs creditsRequired for the
+    /// user's current model (2–15), so "1 credit = 1 reply" was simply false.
+    private var subtitle: String {
+        let credits = CreditsManager.shared.credits(for: product)
+        let cost = max(1, AppGroupService.shared.creditsRequired)
+        return "≈\(credits / cost) replies with your current model"
+    }
+
     var body: some View {
         HStack(spacing: 14) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(product.displayName)
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(ReplrTheme.Color.textPrimary)
-                Text("1 credit = 1 reply suggestion")
+                Text(subtitle)
                     .font(.system(size: 12))
                     .foregroundStyle(ReplrTheme.Color.textSecondary)
             }

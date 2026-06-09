@@ -167,8 +167,10 @@ final class CreditsManager: ObservableObject {
         let defaults = UserDefaults(suiteName: Constants.appGroupID)!
         guard !defaults.bool(forKey: Constants.creditsMigratedKey) else { return }
 
-        // Free tier: enough for at least 5 generations on the default model (was a flat 10 → only 1 Sonnet capture).
-        let freeStartingCredits = 5 * ReplrModel.defaultModel.creditsPerRequest
+        // Free tier: 10 generations on the default model — matches the keyboard
+        // paywall's "Your 10 free replies are up." copy. (History: flat 10 → only
+        // 1 Sonnet capture; then 5× ≈ 5 generations; now 10×.)
+        let freeStartingCredits = 10 * ReplrModel.defaultModel.creditsPerRequest
         let trialUsed = defaults.integer(forKey: Constants.trialUsedCountKey)
         let remaining = max(0, freeStartingCredits - trialUsed)
         if remaining > 0 {
@@ -186,6 +188,11 @@ final class CreditsManager: ObservableObject {
     }
 
     // MARK: - Helpers
+
+    /// Credits a pack grants — for UI copy (PackCard subtitle).
+    func credits(for product: Product) -> Int {
+        creditsForProductID(product.id)
+    }
 
     private func creditsForProductID(_ productID: String) -> Int {
         switch productID {
