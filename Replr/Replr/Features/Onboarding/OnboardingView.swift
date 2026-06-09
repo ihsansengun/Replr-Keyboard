@@ -348,7 +348,9 @@ private struct PhotosPermissionStep: View {
     let onBack: () -> Void
     @State private var status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
     @Environment(\.scenePhase) private var scenePhase
-    private var granted: Bool { status == .authorized || status == .limited }
+    // Only .authorized means Full Access — .limited is a static snapshot and won't
+    // detect new screenshots, so we must NOT treat it as sufficient.
+    private var granted: Bool { status == .authorized }
     private var denied: Bool { status == .denied || status == .restricted }
 
     var body: some View {
@@ -379,6 +381,36 @@ private struct PhotosPermissionStep: View {
         } cta: {
             if granted {
                 PrimaryButton(label: "Photos allowed. Continue →", action: onNext)
+            } else if status == .limited {
+                // Limited = static snapshot only — new screenshots won't be detected.
+                // Guide the user to Settings to upgrade to Full Access.
+                VStack(spacing: 14) {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.orange)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Limited Access won't work")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(ReplrTheme.Color.textPrimary)
+                            Text("Replr needs Full Access to read new screenshots as you take them. Tap below to switch in Settings.")
+                                .font(.system(size: 13))
+                                .foregroundColor(ReplrTheme.Color.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.orange.opacity(0.10))
+                    .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                            .strokeBorder(Color.orange.opacity(0.25), lineWidth: 1)
+                    )
+
+                    PrimaryButton(label: "Allow Full Access →") { handleTap() }
+                    TertiaryButton(label: "Skip (detection won't work)", action: onNext)
+                }
             } else {
                 VStack(spacing: 12) {
                     PrimaryButton(label: denied ? "Open Settings →" : "Allow Photos →") { handleTap() }
@@ -388,10 +420,11 @@ private struct PhotosPermissionStep: View {
         }
         .onChange(of: scenePhase) { phase in
             // Re-check on return — catches a grant made in Settings, and refreshes stale state.
+            // Only advance on .authorized; .limited still means the user needs to upgrade.
             guard phase == .active else { return }
             let fresh = PHPhotoLibrary.authorizationStatus(for: .readWrite)
             status = fresh
-            if fresh == .authorized || fresh == .limited { onNext() }
+            if fresh == .authorized { onNext() }
         }
     }
 
@@ -404,13 +437,20 @@ private struct PhotosPermissionStep: View {
             PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
                 DispatchQueue.main.async {
                     status = newStatus
-                    if newStatus == .authorized || newStatus == .limited {
+                    // Only advance on .authorized — .limited won't detect new screenshots.
+                    if newStatus == .authorized {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { onNext() }
                     }
+                    // .limited: state updates so the UI shows the "Limited Access" warning card.
                 }
             }
         case .denied, .restricted:
-            // iOS never re-prompts once denied — Photos lives on the app's own Settings page, so this works.
+            // iOS never re-prompts once denied — open Settings so the user can change the grant.
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        case .limited:
+            // User previously picked "Select Photos" — send them to Settings to upgrade to Full Access.
             if let url = URL(string: UIApplication.openSettingsURLString) {
                 UIApplication.shared.open(url)
             }
@@ -540,8 +580,9 @@ struct OnboardingView: View {
         switch s {
         case 3: return AppGroupService.shared.fullAccessGranted   // keyboard + Full Access are one signal
         case 4:
+            // .limited is NOT sufficient — users see the Photos step so they can upgrade to Full Access.
             let st = PHPhotoLibrary.authorizationStatus(for: .readWrite)
-            return st == .authorized || st == .limited
+            return st == .authorized
         default: return false
         }
     }

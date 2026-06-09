@@ -1,5 +1,6 @@
 import SwiftUI
 import Lottie
+import Photos
 
 struct IdlePanelView: View {
     @ObservedObject var model: KeyboardModel
@@ -7,6 +8,8 @@ struct IdlePanelView: View {
     /// Teaching overlay (how-to for steer + Back Tap) behind the sliders button.
     @State private var showTeachingPanel = false
     @State private var teachingPage = 0
+    /// Photos auth status — re-checked on appear so the prompt clears after the user grants Full Access in Settings.
+    @State private var photosStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -28,6 +31,11 @@ struct IdlePanelView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ReplrTheme.Color.bg)
         .overlay { if showTeachingPanel { teachingPanel } }
+        .onAppear {
+            // Re-read on every appearance — user may have returned from Settings
+            // after granting Full Access, which clears the limited-access prompt.
+            photosStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        }
     }
 
     // MARK: - Teaching overlay + cards
@@ -286,24 +294,97 @@ struct IdlePanelView: View {
     // MARK: - Chat idle
 
     private var chatContent: some View {
-        captureSlide
-            .background(brandedSurface)
-            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                    .strokeBorder(
+        Group {
+            // PHAuthorizationStatus.limited = static snapshot only — PHAsset.fetchAssets
+            // cannot see screenshots taken AFTER the user made their selection. Full Access
+            // (.authorized) is required for screenshot detection to work.
+            if photosStatus == .limited {
+                limitedAccessContent
+            } else {
+                captureSlide
+            }
+        }
+        .background(brandedSurface)
+        .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [ReplrTheme.Color.accent.opacity(0.45), ReplrTheme.Color.glassBorder],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .elevatedSurface(.level1)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// Shown instead of the normal capture card when the user has granted Limited Photos access.
+    /// Limited Access gives Replr a static snapshot of selected photos only — new screenshots
+    /// taken after the selection are invisible to PHAsset.fetchAssets, so detection is broken.
+    /// The user must grant Full Access (Allow Access to All Photos) in Settings to fix this.
+    private var limitedAccessContent: some View {
+        VStack(spacing: 10) {
+            Spacer(minLength: 0)
+
+            ZStack {
+                Circle()
+                    .fill(Color.orange)
+                    .frame(width: 56, height: 56)
+                    .blur(radius: 18)
+                    .opacity(colorScheme == .dark ? 0.28 : 0.14)
+                Image(systemName: "photo.badge.exclamationmark.fill")
+                    .font(.system(size: 30, weight: .medium))
+                    .foregroundStyle(
                         LinearGradient(
-                            colors: [ReplrTheme.Color.accent.opacity(0.45), ReplrTheme.Color.glassBorder],
+                            colors: [Color.orange, ReplrTheme.Color.accent],
                             startPoint: .topLeading, endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
+                        )
                     )
-            )
-            .elevatedSurface(.level1)
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-            .padding(.bottom, 8)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+
+            VStack(spacing: 5) {
+                Text("Full Photos Access needed")
+                    .font(ReplrTheme.Font.serif(17, weight: .bold))
+                    .foregroundColor(ReplrTheme.Color.textPrimary)
+                Text("You selected Limited Access. Replr needs Full Access to read new screenshots as you take them.")
+                    .font(.system(size: 12.5))
+                    .foregroundColor(ReplrTheme.Color.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 8)
+
+            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                Link(destination: settingsURL) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "gear").font(.system(size: 13, weight: .semibold))
+                        Text("Open Settings →").font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(ReplrTheme.Color.onAccent)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(
+                        Capsule(style: .continuous)
+                            .fill(ReplrTheme.Color.brandGradient)
+                            .overlay(ShimmerOverlay(cornerRadius: 22))
+                    )
+                    .shadow(
+                        color: colorScheme == .dark ? ReplrTheme.Color.accent.opacity(0.45) : .black.opacity(0.10),
+                        radius: colorScheme == .dark ? 14 : 6, x: 0, y: colorScheme == .dark ? 5 : 3
+                    )
+                }
+                .padding(.horizontal, 18)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.top, 12)
+        .padding(.bottom, 8)
     }
 
     // MARK: - Email idle
