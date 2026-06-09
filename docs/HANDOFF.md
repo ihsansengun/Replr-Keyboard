@@ -73,24 +73,26 @@ deferred "Phase 3" onboarding restructure (formally demote Back Tap). Task #88; 
 
 ---
 
-## 1C. Deploy day — enforcement rollout (branch `feat/architecture-fixes`, 2026-06-09)
+## 1C. Enforcement rollout — DEPLOYED 2026-06-09 (steps 1–3 done, 4–5 remaining)
 
 The architecture fixes (rate limiting, server credit ledger, StoreKit JWS redeem,
-model catalog, contamination fix, purchase-safety listener) are committed on
-`feat/architecture-fixes` — backend tests + iOS build green. Nothing is deployed.
-When explicitly asked to ship:
+model catalog, contamination fix, purchase-safety listener) are **merged to `main`
+and the backend is LIVE** (worker version `58c1b640`, D1 migration 0002 applied
+remotely, verified: /health ok, /config serves 15 models, /credits 401s unauth,
+anonymous /reply generates with per-IP limiting). Backward-compatible: old clients
+are only rate-limited (anon 50/day per IP); credit enforcement starts per-user
+after the updated app calls `/credits/migrate` or `/redeem`.
 
-1. Merge `feat/architecture-fixes` → `main` (user decision).
-2. `cd backend && npx wrangler d1 migrations apply replr-db --remote`
-   (adds `credits` + `credit_ledger`; 0001 already applied).
-3. `npm run deploy`. Backward-compatible immediately: old clients are only
-   rate-limited (anon 50/day per IP); credit enforcement starts per-user after
-   the updated app calls `/credits/migrate` or `/redeem`.
-4. Ship the app update (server credits, transaction listener, catalog cache).
+Remaining (user-triggered):
+
+4. Ship the app update (server credits, transaction listener, catalog cache) —
+   next TestFlight/App Store build from Xcode.
 5. Later, flip `wrangler.toml` flags + redeploy:
    - `REQUIRE_AUTH = "true"` once un-signed-in clients are negligible.
    - `ALLOW_SANDBOX_TRANSACTIONS = "false"` at public App Store launch
      (keep "true" while TestFlight is the audience).
+6. `git push` when ready — local `main` is ahead of origin (this work + one
+   earlier appearance-picker commit).
 
 Detail: `docs/superpowers/plans/2026-06-09-architecture-fixes.md`.
 
