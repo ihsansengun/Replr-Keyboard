@@ -17,10 +17,9 @@ vi.mock('openai', () => ({
   }
 }))
 
-const fakeEnv = {
-  ANTHROPIC_API_KEY: 'test-key',
-  OPENAI_API_KEY: 'test-key',
-}
+import { makeTestEnv } from './helpers'
+
+const fakeEnv = makeTestEnv().env
 
 const validScrollBody = {
   screenshots: ['aGVsbG8=', 'd29ybGQ='],

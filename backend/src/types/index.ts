@@ -23,6 +23,9 @@ export interface Env {
   XAI_API_KEY: string
   GOOGLE_API_KEY: string
   FREE_DAILY_LIMIT: string
+  ANON_DAILY_LIMIT?: string            // anonymous (per-IP) daily cap; default '50' in code
+  REQUIRE_AUTH?: string                // 'true' → /reply rejects requests without a valid session
+  ALLOW_SANDBOX_TRANSACTIONS?: string  // 'true' while TestFlight is the audience; flip off at launch
   RATE_LIMIT_KV: KVNamespace
   DB: D1Database
   SHORTCUT_INSTALL_URL?: string

@@ -5,6 +5,12 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 FREE_DAILY_LIMIT = "200"
+# Anonymous (no session token) requests are rate-limited per IP at this daily cap.
+ANON_DAILY_LIMIT = "50"
+# Flip to "true" once old un-authenticated clients are negligible — /reply then 401s anonymous traffic.
+REQUIRE_AUTH = "false"
+# StoreKit sandbox transactions are accepted while TestFlight is the audience. Set "false" at public launch.
+ALLOW_SANDBOX_TRANSACTIONS = "true"
 # Back Tap shortcut iCloud link. Change here + `npm run deploy` to update every
 # user's "Add shortcut" button — no App Store release needed.
 SHORTCUT_INSTALL_URL = "https://www.icloud.com/shortcuts/73472454024d4a48b1d2a9108fec4bc8"

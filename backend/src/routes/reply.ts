@@ -1,7 +1,9 @@
 import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { generateReplies, generateRepliesFromEmail, generateRepliesFromMultiple } from '../services/llm'
 import type { Env, Model } from '../types'
-import { sessionMiddleware, SessionVariables } from '../middleware/session'
+import { sessionMiddleware, SESSION_USER_ID_KEY, SessionVariables } from '../middleware/session'
+import { checkRateLimit } from '../services/rateLimit'
 
 export const replyRoute = new Hono<{ Bindings: Env; Variables: SessionVariables }>()
 
@@ -9,7 +11,40 @@ replyRoute.use('*', sessionMiddleware)
 
 const VALID_MODELS: Model[] = ["gpt-5.4", "gpt-5.4-mini", "gpt-5.5", "claude-sonnet-4-6", "claude-opus-4-6", "grok-4", "grok-4.3", "gemini-3.1-pro-preview", "gemini-3.1-pro-low", "gemini-3-flash-preview", "gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-pro", "claude-opus-4-7", "claude-haiku-4-5"]
 
+type ReplyContext = Context<{ Bindings: Env; Variables: SessionVariables }>
+
+/** Auth + abuse gate shared by both reply endpoints. Returns an error Response,
+ *  or null when the request may proceed. Anonymous traffic is keyed by IP so a
+ *  caller can't reset their quota by rotating the client-invented userId. */
+async function enforceAccess(c: ReplyContext): Promise<Response | null> {
+  const authedUserID = c.get(SESSION_USER_ID_KEY)
+  if (!authedUserID && c.env.REQUIRE_AUTH === 'true') {
+    return c.json({ error: 'Sign in required. Update the Replr app and sign in.' }, 401)
+  }
+  const key = authedUserID ? `user:${authedUserID}` : `ip:${c.req.header('CF-Connecting-IP') ?? 'unknown'}`
+  const limit = authedUserID
+    ? parseInt(c.env.FREE_DAILY_LIMIT, 10)
+    : parseInt(c.env.ANON_DAILY_LIMIT ?? '50', 10)
+  if (!(await checkRateLimit(c.env.RATE_LIMIT_KV, key, limit))) {
+    return c.json({ error: 'Daily limit reached. Try again tomorrow.' }, 429)
+  }
+  return null
+}
+
+/** 500 envelope: the raw provider error (`detail`) is only exposed to signed-in
+ *  callers — the app's dev model-tester needs it; the open internet doesn't. */
+function llmErrorResponse(c: ReplyContext, err: unknown): Response {
+  const body: Record<string, string> = { error: 'Failed to generate replies. Please try again.' }
+  if (c.get(SESSION_USER_ID_KEY)) {
+    body.detail = String((err as { message?: string })?.message ?? err)
+  }
+  return c.json(body, 500)
+}
+
 replyRoute.post('/', async (c) => {
+  const denied = await enforceAccess(c)
+  if (denied) return denied
+
   let body: Record<string, unknown>
   try {
     body = await c.req.json()
@@ -49,13 +84,14 @@ replyRoute.post('/', async (c) => {
     return c.json({ replies: result.replies, summary: result.summary, contactName: result.contactName, inputTokens: result.inputTokens, outputTokens: result.outputTokens, costUsd: result.costUsd })
   } catch (err) {
     console.error('LLM error:', err)
-    // detail carries the raw provider error (e.g. "max_tokens not supported") so the app's dev
-    // model-tester can surface WHY a model failed. The user-facing `error` stays friendly.
-    return c.json({ error: 'Failed to generate replies. Please try again.', detail: String((err as { message?: string })?.message ?? err) }, 500)
+    return llmErrorResponse(c, err)
   }
 })
 
 replyRoute.post('/scroll', async (c) => {
+  const denied = await enforceAccess(c)
+  if (denied) return denied
+
   let body: Record<string, unknown>
   try {
     body = await c.req.json()
@@ -91,8 +127,6 @@ replyRoute.post('/scroll', async (c) => {
     return c.json({ replies: result.replies, summary: result.summary, contactName: result.contactName, inputTokens: result.inputTokens, outputTokens: result.outputTokens, costUsd: result.costUsd })
   } catch (err) {
     console.error('Scroll LLM error:', err)
-    // detail carries the raw provider error (e.g. "max_tokens not supported") so the app's dev
-    // model-tester can surface WHY a model failed. The user-facing `error` stays friendly.
-    return c.json({ error: 'Failed to generate replies. Please try again.', detail: String((err as { message?: string })?.message ?? err) }, 500)
+    return llmErrorResponse(c, err)
   }
 })
