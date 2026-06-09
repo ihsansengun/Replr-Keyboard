@@ -167,10 +167,12 @@ final class CreditsManager: ObservableObject {
         let defaults = UserDefaults(suiteName: Constants.appGroupID)!
         guard !defaults.bool(forKey: Constants.creditsMigratedKey) else { return }
 
-        // Free tier: 10 generations on the default model — matches the keyboard
-        // paywall's "Your 10 free replies are up." copy. (History: flat 10 → only
-        // 1 Sonnet capture; then 5× ≈ 5 generations; now 10×.)
-        let freeStartingCredits = 10 * ReplrModel.defaultModel.creditsPerRequest
+        // Free tier: 25 generations on the default model (≈ a week of real use).
+        // The trial must outlast the first repeat-contact capture so memory — the
+        // differentiator — gets to demonstrate itself before the paywall. Kept
+        // equal to the smallest pack (100) so the ladder isn't undercut.
+        // (History: flat 10 → 5× → 10× → 25×.)
+        let freeStartingCredits = 25 * ReplrModel.defaultModel.creditsPerRequest
         let trialUsed = defaults.integer(forKey: Constants.trialUsedCountKey)
         let remaining = max(0, freeStartingCredits - trialUsed)
         if remaining > 0 {

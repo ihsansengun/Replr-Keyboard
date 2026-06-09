@@ -856,10 +856,12 @@ struct PaywallCardView: View {
             Spacer()
             VStack(spacing: 12) {
                 VStack(spacing: 4) {
-                    Text("Your 10 free replies are up.")
+                    // Count-free on purpose: the free grant is set in CreditsManager
+                    // (and may change server-side later) — don't hardcode it here.
+                    Text("You're out of credits.")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(ReplrTheme.Color.textPrimary)
-                    Text("Unlock Pro to keep going.")
+                    Text("Top up to keep going.")
                         .font(.system(size: 13))
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
@@ -883,7 +885,7 @@ struct PaywallCardView: View {
                     }
                 }
 
-                Text("Switch to the Replr app to finish — your upgrade is waiting there.")
+                Text("Switch to the Replr app to top up — it takes a few seconds.")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(ReplrTheme.Color.accent)
                     .multilineTextAlignment(.center)
