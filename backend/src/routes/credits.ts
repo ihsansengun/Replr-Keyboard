@@ -4,6 +4,7 @@ import { sessionMiddleware, SESSION_USER_ID_KEY, type SessionVariables } from '.
 import { getBalance, grant } from '../services/credits'
 import { verifyTransactionJWS } from '../services/appstore'
 import { CREDIT_PACKS } from '../services/models'
+import { ACTIVE_PAYWALL_EXPERIMENT, assignVariant } from '../services/paywall'
 
 // Matches the Sign in with Apple audience in routes/auth.ts (the app's bundle ID).
 const APPLE_BUNDLE_ID = 'Theory-of-Web.Replr'
@@ -85,5 +86,22 @@ creditsRoute.post('/redeem', async (c) => {
   if (!payload.transactionId) return c.json({ error: 'Missing transactionId' }, 400)
 
   const { balance, granted } = await grant(c.env.DB, userId, credits, 'purchase', payload.transactionId)
+
+  // A/B telemetry: attribute the purchase to the variant this user is bucketed
+  // into (recomputed server-side — same function the paywall served). Only on
+  // first grant (StoreKit retries of the same transaction are not new sales),
+  // and best-effort: a logging failure must never fail a paid redeem.
+  if (granted) {
+    try {
+      const variant = await assignVariant(ACTIVE_PAYWALL_EXPERIMENT, userId)
+      await c.env.DB
+        .prepare('INSERT INTO paywall_events (id, user_id, experiment, variant, event, product_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        .bind(crypto.randomUUID(), userId, ACTIVE_PAYWALL_EXPERIMENT.key, variant.name, 'purchase', payload.productId, Math.floor(Date.now() / 1000))
+        .run()
+    } catch (err) {
+      console.error('paywall purchase event failed:', err)
+    }
+  }
+
   return c.json({ balance, granted })
 })

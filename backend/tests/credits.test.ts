@@ -72,6 +72,18 @@ describe('/credits', () => {
     expect(state.ledgerRefs.has('tx-1')).toBe(true)
   })
 
+  it('redeem logs a purchase paywall event on first grant only', async () => {
+    const { env, state } = makeTestEnv()
+    await app.request('/credits/redeem', jsonRequest({ jws: 'signed' }, { auth: true }), env)
+    expect(state.paywallEvents).toHaveLength(1)
+    expect(state.paywallEvents[0].event).toBe('purchase')
+    expect(state.paywallEvents[0].productId).toBe('com.ihsan.replr.credits.300')
+
+    // StoreKit retry of the same transaction → no second sale event.
+    await app.request('/credits/redeem', jsonRequest({ jws: 'signed' }, { auth: true }), env)
+    expect(state.paywallEvents).toHaveLength(1)
+  })
+
   it('redeem is idempotent per transactionId (StoreKit retry safety)', async () => {
     const { env, state } = makeTestEnv()
     await app.request('/credits/redeem', jsonRequest({ jws: 'signed' }, { auth: true }), env)

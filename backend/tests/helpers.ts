@@ -14,6 +14,8 @@ export interface FakeState {
   ledgerRefs: Set<string>
   /** users.is_dev for TEST_USER_ID (server-side test exemption). */
   isDev: boolean
+  /** paywall_events rows captured by the fake DB. */
+  paywallEvents: Array<{ userId: string; experiment: string; variant: string; event: string; productId: string | null }>
 }
 
 export function todayKey(key: string): string {
@@ -29,6 +31,7 @@ export function makeTestEnv(overrides: Partial<Env> = {}, init?: Partial<FakeSta
     balance: init?.balance ?? null,
     ledgerRefs: new Set(init?.ledgerRefs ?? []),
     isDev: init?.isDev ?? false,
+    paywallEvents: init?.paywallEvents ?? [],
   }
   if (init?.kv instanceof Map) state.kv = init.kv
 
@@ -65,7 +68,18 @@ export function makeTestEnv(overrides: Partial<Env> = {}, init?: Partial<FakeSta
         }
         return null
       },
-      async run() { return { success: true, meta: { changes: 1 } } },
+      async run() {
+        if (sql.includes('INSERT INTO paywall_events')) {
+          state.paywallEvents.push({
+            userId: args[1] as string,
+            experiment: args[2] as string,
+            variant: args[3] as string,
+            event: args[4] as string,
+            productId: (args.length > 6 ? args[5] : null) as string | null,
+          })
+        }
+        return { success: true, meta: { changes: 1 } }
+      },
     }),
   })
 
