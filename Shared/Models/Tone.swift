@@ -58,6 +58,23 @@ struct Tone: Codable, Identifiable, Equatable {
         !isPreset || Tone.emailToneNames.contains(name)
     }
 
+    /// Tone names that can appear in the DATING keyboard row.
+    /// 11 dating-specific presets + 4 everyday tones shared from chat.
+    static let datingToneNames: Set<String> = [
+        "Tease", "Smooth", "Bold", "Banter", "Intrigue", "Challenge",
+        "Closer", "Revive", "Recovery", "Slow Burn", "Spice",
+        // Shared everyday tones:
+        "Natural", "Casual", "Chill", "Confident",
+    ]
+
+    /// Names that ONLY exist in dating mode — drives the Settings "Dating" section.
+    static let datingOnlyToneNames: Set<String> = datingToneNames.subtracting(chatToneNames)
+
+    /// Whether this tone is available for the dating keyboard row.
+    var availableInDating: Bool {
+        !isPreset || Tone.datingToneNames.contains(name)
+    }
+
     // MARK: - Presets (30 tones, all enabled, ordered by category)
     //
     // Category order: Everyday → Playful/Humour → Romance → Emotional → Assertive → Professional
@@ -226,6 +243,65 @@ struct Tone: Codable, Identifiable, Equatable {
         Tone(id: UUID(), name: "Formal",
              instruction: "Full words only — no contractions or abbreviations. State your purpose in the first sentence. Complete sentences, clean close.",
              blurb: "No contractions, complete sentences — buttoned-up and correct.",
+             isPreset: true),
+
+        // ── 7. Dating mode (hidden from chat/email — see datingToneNames) ───
+        // Style tones: how you sound. Scenario tones: the moments that happen.
+        // Backend pairs each name with temperature + examples in TONE_LIBRARY.
+
+        Tone(id: UUID(), name: "Tease",
+             instruction: "Playful challenge and push-pull. Find the one detail in their profile or messages that's gently mockable and build the bit around it. Mock-accuse, never insult. Compliments arrive disguised as complaints. End somewhere they have to defend themselves — playfully.",
+             blurb: "Playful push-pull — turns their profile into a bit.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Smooth",
+             instruction: "Charm that looks effortless. Compliments must be specific and earned from their profile — never about generic beauty. Interest should read as good taste, not eagerness. Unhurried sentences; let one line do the work of three.",
+             blurb: "Effortless charm — compliments with craft.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Bold",
+             instruction: "Direct intent. Say what you want — the match, the drink, the date — without hedging or apology. Concrete plans beat abstract interest: name a day and a place when the conversation allows. Short. Confidence is the content.",
+             blurb: "States intent, makes the plan.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Banter",
+             instruction: "Go for the laugh, anchored to THEIR specifics — their photos, bio lines, contradictions. Absurd scenarios, rankings, mock-petitions, callbacks. Commit fully to the bit. If the joke could be sent to anyone, start over.",
+             blurb: "Committed humor built on their details.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Intrigue",
+             instruction: "Curiosity gaps. Refer to a thought you don't finish, an observation you withhold, a theory about them you won't explain yet. Shorter than expected. They should have to ask. Deliberate, never cold.",
+             blurb: "Says less — opens loops they must close.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Challenge",
+             instruction: "Qualification energy: playful skepticism about compatibility — make them earn the next step. Challenge the claims in their profile. High standards worn lightly. Challenge the situation or the claim, never their worth or looks.",
+             blurb: "Flips the frame — they convince you.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Closer",
+             instruction: "The close. Assume the yes; propose a concrete time and place drawn from the conversation or their profile. Move off-app naturally. One clean ask — no double-asking, no 'maybe sometime'.",
+             blurb: "Locks in the number or the date.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Revive",
+             instruction: "The conversation died — restart it with zero guilt and zero reference to the silence being anyone's fault. Call back to an earlier thread or open a fresh specific angle. Make replying effortless. Never 'hey stranger', never ask why they vanished.",
+             blurb: "Resurrects a dead conversation.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Recovery",
+             instruction: "Your last message didn't land or got left on read. Reset with self-aware humor — acknowledge lightly, never grovel or over-apologize. Pivot to a new specific topic. Unbothered is the whole game.",
+             blurb: "Left on read? Reset the frame, unbothered.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Slow Burn",
+             instruction: "For matches worth investing in. Trade one layer of banter for one layer of genuine curiosity about their life. Specific questions over flirty volleys — but keep one ember of spark so it never reads platonic. Patience as confidence.",
+             blurb: "The long game — depth with a spark.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Spice",
+             instruction: "Escalation when the energy is already mutual. Forward and suggestive — tension over explicitness; say less, imply more. Read the room hard: if their energy is not clearly matching, dial back to charm. Never crude openers to a cold profile.",
+             blurb: "Turns up the heat — for mutual energy.",
              isPreset: true),
     ]
 }
