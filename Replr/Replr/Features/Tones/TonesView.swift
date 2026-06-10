@@ -8,6 +8,11 @@ final class TonesViewModel: ObservableObject {
     var custom: [Tone]  { tones.filter { !$0.isPreset } }
     var enabledCount: Int { tones.filter(\.isEnabled).count }
 
+    /// Chat/email presets — everything except the dating-only set.
+    var generalPresets: [Tone] { tones.filter { $0.isPreset && !Tone.datingOnlyToneNames.contains($0.name) } }
+    /// Dating-only presets (the Settings "Dating" section).
+    var datingPresets: [Tone]  { tones.filter { $0.isPreset && Tone.datingOnlyToneNames.contains($0.name) } }
+
     func load() { tones = AppGroupService.shared.readTones() }
 
     func save() { try? AppGroupService.shared.writeTones(tones) }
@@ -20,13 +25,24 @@ final class TonesViewModel: ObservableObject {
 
     func add(_ tone: Tone) { tones.append(tone); save() }
 
-    /// Reorder preset tones (drag-to-reorder in Settings). The new order persists and
-    /// drives the keyboard row order. Presets always precede custom tones in storage.
-    func movePresets(from source: IndexSet, to destination: Int) {
-        var reordered = presets
-        reordered.move(fromOffsets: source, toOffset: destination)
-        tones = reordered + custom
+    /// Reorder presets within a section (drag-to-reorder in Settings). Order persists
+    /// and drives the keyboard row order. Storage layout: general presets, then
+    /// dating presets, then custom tones.
+    private func stitch(general: [Tone], dating: [Tone]) {
+        tones = general + dating + custom
         save()
+    }
+
+    func moveGeneralPresets(from source: IndexSet, to destination: Int) {
+        var g = generalPresets
+        g.move(fromOffsets: source, toOffset: destination)
+        stitch(general: g, dating: datingPresets)
+    }
+
+    func moveDatingPresets(from source: IndexSet, to destination: Int) {
+        var d = datingPresets
+        d.move(fromOffsets: source, toOffset: destination)
+        stitch(general: generalPresets, dating: d)
     }
 
     func delete(at offsets: IndexSet) {
@@ -45,12 +61,12 @@ struct TonesView: View {
         NavigationStack {
             List {
                 Section {
-                    ForEach(vm.presets) { tone in
+                    ForEach(vm.generalPresets) { tone in
                         PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) }, showDragHandle: true)
                             .listRowBackground(ReplrTheme.Color.surface)
                             .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                     }
-                    .onMove { vm.movePresets(from: $0, to: $1) }
+                    .onMove { vm.moveGeneralPresets(from: $0, to: $1) }
                 } header: {
                     HStack {
                         Text("Presets")
@@ -62,6 +78,21 @@ struct TonesView: View {
                     }
                 } footer: {
                     Text("Tap the toggle to add or remove a tone from your keyboard. Drag the ≡ handle to reorder.")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                }
+
+                Section {
+                    ForEach(vm.datingPresets) { tone in
+                        PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) }, showDragHandle: true)
+                            .listRowBackground(ReplrTheme.Color.surface)
+                            .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
+                    }
+                    .onMove { vm.moveDatingPresets(from: $0, to: $1) }
+                } header: {
+                    Text("Dating")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                } footer: {
+                    Text("Only shown in the keyboard's Dating mode.")
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
 
@@ -142,6 +173,7 @@ struct PresetToneRow: View {
     }
 
     private func isDefaultPreset(_ tone: Tone) -> Bool {
-        tone.name == "Natural"   // the default-selected tone (see AppGroupService.defaultTone)
+        // Natural = chat/email default; Tease = dating default (ModeSegmentedControl fallback).
+        tone.name == "Natural" || tone.name == "Tease"
     }
 }
