@@ -10,10 +10,10 @@ A third keyboard mode (`Chat | Email | Dating`) that turns Replr into a dating w
 | The screenshot shows | The AI returns |
 |---|---|
 | A **profile** (no chat bubbles) | 3 openers / like-comments built from that profile's specifics (Hinge comment-with-like, Bumble first move, Tinder opener) — **the hero path** |
-| An **empty/near-empty chat** (match header, no real exchange) | 3 tone-flavored **pick-up lines**, personalized with whatever is visible (her name, the app, any prompt) — plus the keyboard shows a nudge chip: "Want openers about her? Open her profile, screenshot it, come back." The profile is one tap away from any empty chat, so the loop is seconds. |
+| An **empty/near-empty chat** (match header, no real exchange) | 3 tone-flavored **pick-up lines**, personalized with whatever is visible (her name, the app, any prompt). |
 | An **ongoing conversation** | 3 replies that carry it forward — build attraction, keep momentum, move toward the number/date |
 
-The AI reports which branch it took via a new `CONTEXT:` output line (`profile` / `empty` / `chat`) parsed alongside `CONTACT:`/`SUMMARY:`. The keyboard uses it for the empty-chat nudge chip (and it doubles as branch-distribution analytics later). Rationale: an empty chat is an input problem, not a generation problem — generic icebreakers are exactly what the conversion research says to avoid, so the system gives quality pick-up lines now and funnels the user to the profile path for the real thing.
+The AI reports which branch it took via a new `CONTEXT:` output line (`profile` / `empty` / `chat`) parsed alongside `CONTACT:`/`SUMMARY:` and returned in the API response. **No client UI consumes it in v1** (the keyboard canvas has no spare vertical space — the "screenshot her profile for personalised openers" nudge chip is deferred to the post-feature UX pass); it ships for branch-distribution analytics and to enable the nudge later without prompt-format churn.
 
 No pre-analysis step, no background AI, no new capture mechanics: the existing screenshot-watcher kernel + tap-to-generate is unchanged, so the privacy posture ("nothing is sent anywhere until you tap") is unchanged. The delayed-match case is covered by behavior, not engineering: every dating app lets you open the match's profile from the chat — screenshot it there, return to the chat, the keyboard offers it within the existing freshness window.
 
@@ -25,8 +25,7 @@ No pre-analysis step, no background AI, no new capture mechanics: the existing s
 - **Mode persistence (new — today's chat/email mode is keyboard-session-local):** the selected mode is persisted to the App Group (`selected_mode` key). The keyboard restores it on open, and the intent paths (Back Tap, QuickReply) read it so a capture fired with dating mode selected uses the dating prompt family.
 - **Tone fallback on mode switch** mirrors the existing email-mode pattern: entering dating mode with a non-dating tone selected switches the selection to Tease (or the first enabled dating tone).
 - Idle copy (dating): "Screenshot a profile or a chat — Replr does the rest." Collapsed-strip copy unchanged.
-- Tone row in dating mode shows **dating tones only** (see §4). Replies panel, regenerate, steer hints, undo: all unchanged.
-- **Empty-chat nudge chip:** when a dating generation returns `CONTEXT: empty`, the replies panel shows a dismissible hint above the replies — "Want openers about her? Open her profile, screenshot it, come back." (ReplrTheme Badge/tip styling; shown per generation, not persisted.)
+- Tone row in dating mode shows **dating tones only** (see §4). Replies panel, regenerate, steer hints, undo: all unchanged. No new chips or panels in v1 (keyboard canvas is exactly fitted; UX additions come after the feature pass).
 - Capture flows that work in chat mode (screenshot chip, Back Tap intent, QuickReply) work identically; the intent path reads the persisted mode and passes it through.
 
 ## 3. Backend — separate prompt family
@@ -88,7 +87,7 @@ A profile capture's `CONTACT:` + `SUMMARY:` create/attach to the contact via the
 
 ## 6. Out of scope (v1.1 candidates)
 
-App-side Dating console (full analysis cards), multi-profile tray, pre-analysis, extended freshness window, per-tone model routing (Grok-for-dating hypothesis), per-mode custom-tone availability.
+App-side Dating console (full analysis cards), multi-profile tray, pre-analysis, extended freshness window, per-tone model routing (Grok-for-dating hypothesis), per-mode custom-tone availability, **empty-chat profile-nudge chip** (CONTEXT plumbing ships in v1; the chip waits for the UX pass).
 
 ## 7. Edge cases & errors
 
