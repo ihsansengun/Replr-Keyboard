@@ -95,6 +95,9 @@ to origin/main.
 
 ### Paywall A/B experiments (added 2026-06-10)
 
+**Full owner's guide: `docs/PAYWALL_EXPERIMENTS.md`** (step-by-step incl. the
+App Store Connect work). Quick reference below.
+
 - **Launch a test:** edit `ACTIVE_PAYWALL_EXPERIMENT` in
   `backend/src/services/paywall.ts` (bump `key` to re-bucket, add weighted
   variants), `npm run deploy`. Assignment is a pure hash — no storage, the
