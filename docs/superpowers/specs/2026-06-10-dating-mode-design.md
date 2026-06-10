@@ -9,9 +9,11 @@ A third keyboard mode (`Chat | Email | Dating`) that turns Replr into a dating w
 
 | The screenshot shows | The AI returns |
 |---|---|
-| A **profile** (no chat bubbles) | 3 openers / like-comments built from that profile's specifics (Hinge comment-with-like, Bumble first move, Tinder opener) |
-| An **empty/near-empty chat** (match header, no real exchange) | 3 icebreakers |
+| A **profile** (no chat bubbles) | 3 openers / like-comments built from that profile's specifics (Hinge comment-with-like, Bumble first move, Tinder opener) — **the hero path** |
+| An **empty/near-empty chat** (match header, no real exchange) | 3 tone-flavored **pick-up lines**, personalized with whatever is visible (her name, the app, any prompt) — plus the keyboard shows a nudge chip: "Want openers about her? Open her profile, screenshot it, come back." The profile is one tap away from any empty chat, so the loop is seconds. |
 | An **ongoing conversation** | 3 replies that carry it forward — build attraction, keep momentum, move toward the number/date |
+
+The AI reports which branch it took via a new `CONTEXT:` output line (`profile` / `empty` / `chat`) parsed alongside `CONTACT:`/`SUMMARY:`. The keyboard uses it for the empty-chat nudge chip (and it doubles as branch-distribution analytics later). Rationale: an empty chat is an input problem, not a generation problem — generic icebreakers are exactly what the conversion research says to avoid, so the system gives quality pick-up lines now and funnels the user to the profile path for the real thing.
 
 No pre-analysis step, no background AI, no new capture mechanics: the existing screenshot-watcher kernel + tap-to-generate is unchanged, so the privacy posture ("nothing is sent anywhere until you tap") is unchanged. The delayed-match case is covered by behavior, not engineering: every dating app lets you open the match's profile from the chat — screenshot it there, return to the chat, the keyboard offers it within the existing freshness window.
 
@@ -24,6 +26,7 @@ No pre-analysis step, no background AI, no new capture mechanics: the existing s
 - **Tone fallback on mode switch** mirrors the existing email-mode pattern: entering dating mode with a non-dating tone selected switches the selection to Tease (or the first enabled dating tone).
 - Idle copy (dating): "Screenshot a profile or a chat — Replr does the rest." Collapsed-strip copy unchanged.
 - Tone row in dating mode shows **dating tones only** (see §4). Replies panel, regenerate, steer hints, undo: all unchanged.
+- **Empty-chat nudge chip:** when a dating generation returns `CONTEXT: empty`, the replies panel shows a dismissible hint above the replies — "Want openers about her? Open her profile, screenshot it, come back." (ReplrTheme Badge/tip styling; shown per generation, not persisted.)
 - Capture flows that work in chat mode (screenshot chip, Back Tap intent, QuickReply) work identically; the intent path reads the persisted mode and passes it through.
 
 ## 3. Backend — separate prompt family
@@ -32,8 +35,8 @@ Hard separation per requirement: dating prompts share NOTHING textual with chat/
 
 - `ReplyRequest` gains optional `mode: 'chat' | 'email' | 'dating'` (absent → 'chat'; old clients unaffected).
 - New `DATING_IDENTITY` (in `services/llm.ts` beside `IDENTITY`): the confident wingman. Core rules: write FOR the user TO the person in the screenshot; always anchor to ≥1 specific detail from the profile/conversation; never needy, never generic ("hey", "you're gorgeous" banned); assertive plan-making encouraged once rapport exists; mirror the platform's register (Hinge comment ≠ Tinder opener); same language-native and seriousness-override rules as chat. **Boundary: confident and forward, never manipulative — no negging, no degrading her worth; challenge the situation, not the person.** (App Review + brand shield.)
-- New `DATING_DECISIONS`: classify the screenshot — profile vs empty chat vs ongoing conversation — then branch per §1 table. For profiles: extract name, read bio AND photos for hooks, pick the 1–2 strongest. For conversations: assess stage (banter / rapport / ready-to-close) and escalate appropriately.
-- Output format unchanged (`CONTACT:` = profile/match name, `SUMMARY:`, numbered replies) — `parseLlmOutput` untouched. For profile captures the SUMMARY doubles as the profile essence ("Maya, 28 — climbs, golden retriever, dry humor about her pasta obsession") which becomes match memory (§5).
+- New `DATING_DECISIONS`: classify the screenshot — profile vs empty chat vs ongoing conversation — then branch per §1 table. For profiles: extract name, read bio AND photos for hooks, pick the 1–2 strongest. For empty chats: pick-up lines — modern, self-aware delivery, personalized with anything visible (name, app, visible prompt); never the dusty classics played straight. For conversations: assess stage (banter / rapport / ready-to-close) and escalate appropriately.
+- Output format gains one optional line in dating mode: `CONTEXT: profile|empty|chat` (first line, before `CONTACT:`). `parseLlmOutput` parses it into an optional `contextType`; absent (all chat/email traffic) ⇒ unchanged behavior. Response JSON carries `contextType`; the keyboard relays it through the App Group for the nudge chip. For profile captures the SUMMARY doubles as the profile essence ("Maya, 28 — climbs, golden retriever, dry humor about her pasta obsession") which becomes match memory (§5).
 - `toneSpecFor` resolution unchanged; dating tones are new TONE_LIBRARY keys (§4).
 
 ## 4. Dating tones — 11 new + 4 shared
