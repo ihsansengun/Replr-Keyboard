@@ -145,15 +145,11 @@
 		};
 		57CF47872FB384F20034657F /* ReplrTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = ReplrTests;
 			sourceTree = "<group>";
 		};
 		57CF47912FB384F20034657F /* ReplrUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = ReplrUITests;
 			sourceTree = "<group>";
 		};
@@ -462,12 +458,6 @@
 						TestTargetID = 57CF47762FB384F10034657F;
 					};
 					57CF47D72FB38DD70034657F = {
-						CreatedOnToolsVersion = 26.2;
-					};
-					57CF480B2FB390E50034657F = {
-						CreatedOnToolsVersion = 26.2;
-					};
-					57CF48172FB390E50034657F = {
 						CreatedOnToolsVersion = 26.2;
 					};
 				};

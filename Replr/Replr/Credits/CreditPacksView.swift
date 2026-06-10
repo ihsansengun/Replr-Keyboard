@@ -39,9 +39,12 @@ struct CreditPacksView: View {
                                     .font(.system(size: 26, weight: .bold))
                                     .foregroundStyle(ReplrTheme.Color.textPrimary)
                             }
-                            Text("Credits never expire. Use whenever you need.")
+                            // heroCopy: optional A/B headline override served by /paywall.
+                            Text(AppGroupService.shared.remotePaywallConfig?.heroCopy
+                                 ?? "Credits never expire. Use whenever you need.")
                                 .font(.system(size: 14))
                                 .foregroundStyle(ReplrTheme.Color.textSecondary)
+                                .multilineTextAlignment(.center)
                         }
                         .padding(.top, showCloseButton ? 8 : 40)
 
@@ -66,9 +69,12 @@ struct CreditPacksView: View {
                                 .tint(ReplrTheme.Color.accent)
                                 .padding(.vertical, 40)
                         } else {
-                            VStack(spacing: 10) {
+                            VStack(spacing: 12) {
                                 ForEach(manager.products, id: \.id) { product in
-                                    PackCard(product: product) {
+                                    PackCard(
+                                        product: product,
+                                        isFeatured: product.id == AppGroupService.shared.remotePaywallConfig?.badgeProductID
+                                    ) {
                                         Task {
                                             do {
                                                 try await manager.purchase(product)
@@ -114,12 +120,19 @@ struct CreditPacksView: View {
         }
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
-        .task { await manager.load() }
+        .task {
+            // Freshest variant at the moment it matters, then the impression —
+            // the server attributes it to the variant it computes server-side.
+            await PaywallService.refresh()
+            await manager.load()
+            PaywallService.logImpression()
+        }
     }
 }
 
 private struct PackCard: View {
     let product: Product
+    var isFeatured: Bool = false
     let onBuy: () -> Void
 
     /// Honest per-pack estimate: each generation costs creditsRequired for the
@@ -160,7 +173,17 @@ private struct PackCard: View {
         .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                .strokeBorder(
+                    isFeatured ? ReplrTheme.Color.accent.opacity(0.55) : ReplrTheme.Color.glassBorder,
+                    lineWidth: 1
+                )
         )
+        // "Most popular" — which card (if any) is server-controlled per A/B variant.
+        .overlay(alignment: .topTrailing) {
+            if isFeatured {
+                Badge("MOST POPULAR")
+                    .offset(x: -12, y: -9)
+            }
+        }
     }
 }

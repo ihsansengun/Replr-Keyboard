@@ -9,12 +9,18 @@ final class CreditsManager: ObservableObject {
     @Published var products: [Product] = []
     @Published var isPurchasing = false
 
-    private let productIDs = [
+    private let defaultProductIDs = [
         "com.ihsan.replr.credits.100",
         "com.ihsan.replr.credits.300",
         "com.ihsan.replr.credits.750",
         "com.ihsan.replr.credits.2500",
     ]
+
+    /// Packs to display/purchase — the server experiment's list (and order)
+    /// when a variant is cached, else the baked-in four.
+    var activeProductIDs: [String] {
+        AppGroupService.shared.remotePaywallConfig?.productIDs ?? defaultProductIDs
+    }
 
     private var transactionListener: Task<Void, Never>?
 
@@ -29,8 +35,10 @@ final class CreditsManager: ObservableObject {
     @MainActor
     func load() async {
         do {
-            products = try await Product.products(for: productIDs)
-                .sorted { $0.price < $1.price }
+            // Preserve the experiment's serving order, not price order.
+            let ids = activeProductIDs
+            products = try await Product.products(for: ids)
+                .sorted { (ids.firstIndex(of: $0.id) ?? .max) < (ids.firstIndex(of: $1.id) ?? .max) }
         } catch {
             NSLog("[Credits] StoreKit load error: %@", error.localizedDescription)
         }
@@ -80,7 +88,9 @@ final class CreditsManager: ObservableObject {
     @MainActor
     private func handle(_ result: VerificationResult<Transaction>) async {
         guard case .verified(let transaction) = result else { return }
-        guard productIDs.contains(transaction.productID) else {
+        // Any credits.* pack counts — including A/B variant products that
+        // aren't in the baked-in list.
+        guard creditsForProductID(transaction.productID) > 0 else {
             await transaction.finish()
             return
         }
@@ -196,14 +206,15 @@ final class CreditsManager: ObservableObject {
         creditsForProductID(product.id)
     }
 
+    /// Credits a product grants, parsed from its id — the number right after
+    /// ".credits." (works for the baked-in packs AND A/B price-test variants
+    /// like com.ihsan.replr.credits.300.p299). Server-side CREDIT_PACKS stays
+    /// authoritative for signed-in redeems; this covers UI copy and the
+    /// signed-out local fallback.
     private func creditsForProductID(_ productID: String) -> Int {
-        switch productID {
-        case "com.ihsan.replr.credits.100":  return 100
-        case "com.ihsan.replr.credits.300":  return 300
-        case "com.ihsan.replr.credits.750":  return 750
-        case "com.ihsan.replr.credits.2500": return 2_500
-        default: return 0
-        }
+        guard let range = productID.range(of: ".credits.") else { return 0 }
+        let digits = productID[range.upperBound...].prefix(while: { $0.isNumber })
+        return Int(digits) ?? 0
     }
 
     func creditsRequired(for modelID: String) -> Int {

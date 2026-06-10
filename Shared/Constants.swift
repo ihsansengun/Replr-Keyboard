@@ -57,6 +57,7 @@ enum Constants {
     static let serverCreditsMigratedKey = "replr.credits.serverMigrated"  // local balance adopted into the server ledger
     static let grantedTxIDsKey       = "replr.credits.grantedTxIDs"       // locally-granted StoreKit tx ids (offline fallback dedup)
     static let remoteModelCatalogKey = "remote_model_catalog"             // JSON [RemoteModelInfo] fetched from /config
+    static let remotePaywallConfigKey = "remote_paywall_config"           // JSON RemotePaywallConfig fetched from /paywall
     static let colorSchemeAppearanceKey = "replr.appearance.colorScheme"
 
     // Shared screenshot file (written at capture, read by Regenerate)

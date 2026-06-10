@@ -149,6 +149,8 @@ struct ContentView: View {
                 .ignoresSafeArea(.keyboard) // pin tab bar to screen bottom — keyboard must not push it up
         }
         .task {
+            // Variant first so the product list loads in the served order.
+            await PaywallService.refresh()
             await CreditsManager.shared.load()
         }
         .task {

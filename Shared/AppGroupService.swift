@@ -718,6 +718,25 @@ final class AppGroupService {
         }
     }
 
+    /// The paywall variant the server assigned this user (A/B experiments).
+    /// Nil until the app's first successful /paywall fetch → baked-in packs.
+    var remotePaywallConfig: RemotePaywallConfig? {
+        get {
+            defaults.synchronize()
+            guard let data = defaults.data(forKey: Constants.remotePaywallConfigKey),
+                  let config = try? JSONDecoder().decode(RemotePaywallConfig.self, from: data) else { return nil }
+            return config
+        }
+        set {
+            if let newValue, let data = try? JSONEncoder().encode(newValue) {
+                defaults.set(data, forKey: Constants.remotePaywallConfigKey)
+            } else {
+                defaults.removeObject(forKey: Constants.remotePaywallConfigKey)
+            }
+            defaults.synchronize()
+        }
+    }
+
     /// Credits required for the currently selected model. Returns 0 in dev mode.
     /// The remote catalog (from /config) wins when present; the baked-in table
     /// below is the offline/first-launch fallback. Defined here (in Shared) so
@@ -784,6 +803,17 @@ struct RemoteModelInfo: Codable, Equatable {
     let label: String
     let creditCost: Int
     let production: Bool
+}
+
+/// The server-assigned paywall variant (GET /paywall). Mirrors the backend's
+/// PaywallVariant payload (services/paywall.ts): which packs to show, in what
+/// order, which gets the "Most popular" badge, and an optional headline.
+struct RemotePaywallConfig: Codable, Equatable {
+    let experiment: String
+    let variant: String
+    let productIDs: [String]
+    let badgeProductID: String?
+    let heroCopy: String?
 }
 
 // MARK: - Keyboard tip discovery
