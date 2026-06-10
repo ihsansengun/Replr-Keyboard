@@ -93,11 +93,33 @@ dev account (ihsansengun@me.com). Prod re-probed green.
 pooling — old-build TestFlight testers share per-IP quota). All work pushed
 to origin/main.
 
+### Paywall A/B experiments (added 2026-06-10)
+
+- **Launch a test:** edit `ACTIVE_PAYWALL_EXPERIMENT` in
+  `backend/src/services/paywall.ts` (bump `key` to re-bucket, add weighted
+  variants), `npm run deploy`. Assignment is a pure hash — no storage, the
+  same user always sees the same variant for a given key, and purchases are
+  attributed server-side so clients can't lie.
+- **Price tests:** create alternate products in App Store Connect as SEPARATE
+  product ids (e.g. `com.ihsan.replr.credits.300.p299` = 300 credits at £2.99)
+  — they must be added to `CREDIT_PACKS` in `services/models.ts` and referenced
+  in a variant's `productIDs`. The iOS side needs no release: it renders
+  whatever list `/paywall` serves and parses credit counts from the id.
+- **Read results:**
+  `npx wrangler d1 execute replr-db --remote --command "SELECT experiment, variant, event, COUNT(DISTINCT user_id) users, COUNT(*) n FROM paywall_events GROUP BY 1,2,3"`
+  (impressions vs purchases per variant; conversion = purchase users / impression users).
+- **ASC prerequisite (also blocks ALL revenue):** the four baseline IAPs must
+  be created in App Store Connect with the CODE's ids (`com.ihsan.replr.credits.*`
+  — NOT the `Theory-of-Web.*` ids in the old monetisation spec).
+- Caveat: TestFlight cohorts are too small for significance — this infra is
+  for post-launch traffic. Don't read noise as signal.
+- Remote D1 migration 0004 (paywall_events) pending next deploy.
+
 Remaining (user-triggered):
 
 4. Ship the app update (server credits + purchase-safety listener, 100-credit
-   trial, catalog cache, contamination fix) — next TestFlight/App Store build
-   from Xcode.
+   trial, catalog cache, contamination fix, paywall variants) — next
+   TestFlight/App Store build from Xcode.
 5. Later, flip `wrangler.toml` flags + redeploy:
    - `REQUIRE_AUTH = "true"` once un-signed-in clients are negligible (check
      anonymous traffic via `npx wrangler tail` first — public TestFlight link).

@@ -132,7 +132,14 @@ and cached in the App Group (`remoteModelCatalog`) with a baked-in fallback in
   client-side. `CreditsManager` replays `Transaction.unfinished` and listens to
   `Transaction.updates` so interrupted purchases always grant.
 - **Dev mode** (`devMode`): ∞ credits, no deduction, model switcher in the
-  keyboard header.
+  keyboard header. Server-side `users.is_dev` additionally exempts the dev
+  account from ledger charges.
+- **Paywall A/B**: `GET /paywall` (authed) returns the user's variant —
+  products/order/badge/headline — from `ACTIVE_PAYWALL_EXPERIMENT`
+  (`backend/src/services/paywall.ts`; deterministic hash, no storage).
+  The app caches it (`remotePaywallConfig`) and `CreditPacksView` renders it;
+  impressions and purchases land in D1 `paywall_events` with the variant
+  recomputed server-side. Runbook: `docs/HANDOFF.md`.
 
 ### Backend structure
 
