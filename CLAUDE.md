@@ -69,6 +69,20 @@ All data between the companion app, keyboard extension, and intents flows throug
 
 `Constants.swift` has all App Group keys and the backend URL.
 
+### Modes
+
+The keyboard has three modes (`KeyboardInputMode`): **Chat**, **Dating**, **Email**.
+The selection persists to the App Group (`selected_mode`) so intents use the
+matching prompt family. Dating reuses the chat capture flow but sends
+`mode: "dating"`, which selects a fully separate backend prompt family
+(`DATING_IDENTITY`/`DATING_DECISIONS` in `llm.ts`): the AI classifies the
+screenshot (profile → openers / empty chat → pick-up lines / ongoing → escalating
+replies) and reports the branch via a `CONTEXT:` output line (`contextType` in
+the response — no client UI in v1). Dating has its own tone set
+(`Tone.datingToneNames`, 11 dating-only + 4 shared; default **Tease**) and
+**always** uses match memory, regardless of the global Memory toggle.
+Spec: `docs/superpowers/specs/2026-06-10-dating-mode-design.md`.
+
 ### Reply generation — two paths
 
 **Intent path (Back Tap / Shortcuts):** `GenerateReplyIntent` or `QuickReplyIntent`

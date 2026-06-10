@@ -118,11 +118,23 @@ App Store Connect work). Quick reference below.
   for post-launch traffic. Don't read noise as signal.
 - Remote D1 migration 0004 (paywall_events) pending next deploy.
 
+### Dating mode (built 2026-06-10 — LAUNCH BLOCKER per user decision)
+
+Full dating mode shipped in code: third keyboard mode, separate prompt family,
+11 dating tones + 4 shared (default Tease), always-on match memory, Settings
+Dating section. Spec: `docs/superpowers/specs/2026-06-10-dating-mode-design.md`;
+plan: `docs/superpowers/plans/2026-06-10-dating-mode.md`. Backend deployed?
+Check `git log` vs deploy history — the dating prompt family must be deployed
+before the new app build ships (old backend ignores `mode` → chat prompts).
+Manual device pass before TestFlight: profile screenshot → openers; empty
+chat → pick-up lines; ongoing chat → continuation; tone row per mode;
+Settings Dating section; Back Tap with dating mode persisted.
+
 Remaining (user-triggered):
 
 4. Ship the app update (server credits + purchase-safety listener, 100-credit
-   trial, catalog cache, contamination fix, paywall variants) — next
-   TestFlight/App Store build from Xcode.
+   trial, catalog cache, contamination fix, paywall variants, DATING MODE) —
+   next TestFlight/App Store build from Xcode.
 5. Later, flip `wrangler.toml` flags + redeploy:
    - `REQUIRE_AUTH = "true"` once un-signed-in clients are negligible (check
      anonymous traffic via `npx wrangler tail` first — public TestFlight link).
