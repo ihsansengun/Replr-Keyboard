@@ -49,6 +49,9 @@ struct GenerateReplyIntent: AppIntent {
         let effectiveTone = AppGroupService.shared.readSelectedTone()
         NSLog("[Replr][Intent] Calling API: tone=%@ (keyboard selection), hasContext=%d", effectiveTone.name, context != nil ? 1 : 0)
 
+        // Use the dating prompt family when the keyboard's persisted mode is dating.
+        let generationMode = AppGroupService.shared.selectedInputMode == "dating" ? "dating" : "chat"
+
         // Fresh capture: drop any prior contact so this capture isn't seasoned with
         // another person's memory before THIS screenshot's contact is identified
         // (resolveContact re-sets it after). Matches the keyboard capture paths —
@@ -62,7 +65,8 @@ struct GenerateReplyIntent: AppIntent {
                 screenshot: image,
                 tone: effectiveTone,
                 summary: context,
-                previousContext: previousContext
+                previousContext: previousContext,
+                mode: generationMode
             )
             NSLog("[Replr][Intent] Got %d replies — saving to App Group", result.replies.count)
 

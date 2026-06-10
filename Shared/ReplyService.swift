@@ -11,6 +11,8 @@ struct ReplyRequest: Codable {
     let model: String
     let userId: String
     let aboutUser: String?
+    /// "chat" | "dating" — selects the backend prompt family. Email uses its own request type.
+    let mode: String
 }
 
 struct ReplyEmailRequest: Codable {
@@ -34,6 +36,9 @@ struct ReplyResponse: Codable {
     /// Authoritative balance after a server-side charge. Present only for
     /// server-managed users (signed in + migrated); nil → legacy local deduction.
     let creditsRemaining: Int?
+    /// Dating-mode classification ("profile" | "empty" | "chat"). Nil otherwise.
+    /// No UI consumes it in v1 — reserved for the profile-nudge UX pass.
+    let contextType: String?
 }
 
 struct ReplyResult {
@@ -44,6 +49,7 @@ struct ReplyResult {
     let outputTokens: Int?
     let costUsd: Double?
     let creditsRemaining: Int?
+    let contextType: String?
 }
 
 /// Result of a dev model-tester ping (ModelPickerView → "Test all models").
@@ -100,7 +106,8 @@ final class ReplyService {
         screenshot: UIImage,
         tone: Tone,
         summary: String?,
-        previousContext: String?
+        previousContext: String?,
+        mode: String = "chat"
     ) async throws -> ReplyResult {
         let imageData = compressForUpload(screenshot)
         guard !imageData.isEmpty else { throw ReplyError.encodingFailed }
@@ -114,7 +121,8 @@ final class ReplyService {
             previousContext: previousContext,
             model: AppGroupService.shared.selectedModel,
             userId: AppGroupService.shared.userID(),
-            aboutUser: AppGroupService.shared.aboutUser.isEmpty ? nil : AppGroupService.shared.aboutUser
+            aboutUser: AppGroupService.shared.aboutUser.isEmpty ? nil : AppGroupService.shared.aboutUser,
+            mode: mode
         )
 
         var request = URLRequest(url: backendURL)
@@ -135,7 +143,7 @@ final class ReplyService {
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
         let decoded = try JSONDecoder().decode(ReplyResponse.self, from: data)
-        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd, creditsRemaining: decoded.creditsRemaining)
+        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd, creditsRemaining: decoded.creditsRemaining, contextType: decoded.contextType)
     }
 
     func generateRepliesFromEmail(
@@ -173,7 +181,7 @@ final class ReplyService {
         guard http.statusCode == 200 else { throw ReplyError.serverError(http.statusCode) }
 
         let decoded = try JSONDecoder().decode(ReplyResponse.self, from: data)
-        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd, creditsRemaining: decoded.creditsRemaining)
+        return ReplyResult(replies: decoded.replies, summary: decoded.summary, contactName: decoded.contactName, inputTokens: decoded.inputTokens, outputTokens: decoded.outputTokens, costUsd: decoded.costUsd, creditsRemaining: decoded.creditsRemaining, contextType: decoded.contextType)
     }
 
     /// Dev model-tester (ModelPickerView): pings the backend with a fixed sample using an EXPLICIT

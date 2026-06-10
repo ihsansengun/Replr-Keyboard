@@ -37,6 +37,7 @@ enum Constants {
     static let lastIntentFiredAtKey        = "last_intent_fired_at"
     static let shortcutInstallURL         = "https://www.icloud.com/shortcuts/73472454024d4a48b1d2a9108fec4bc8"
     static let preferredCaptureKey        = "preferred_capture"   // "keyboard" | "backtap"
+    static let selectedModeKey            = "selected_mode"       // "chat" | "email" | "dating" — keyboard writes, intents read
     static let remoteShortcutInstallURLKey = "remote_shortcut_install_url"  // overrides shortcutInstallURL, fetched from /config
     static let sessionRegenerateCountKey  = "session_regenerate_count"      // regenerates since last capture
     static let lastConsumedScreenshotIDKey  = "last_consumed_screenshot_id"

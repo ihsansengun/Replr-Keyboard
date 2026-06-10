@@ -138,6 +138,14 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.preferredCaptureKey); defaults.synchronize() }
     }
 
+    /// The keyboard's selected input mode: "chat" | "email" | "dating".
+    /// Keyboard writes on every switch; intents read it so a Back Tap capture
+    /// fired while dating mode is active uses the dating prompt family.
+    var selectedInputMode: String {
+        get { defaults.string(forKey: Constants.selectedModeKey) ?? "chat" }
+        set { defaults.set(newValue, forKey: Constants.selectedModeKey); defaults.synchronize() }
+    }
+
     /// User's chosen appearance override: "system" | "light" | "dark".
     /// Written by the companion app's Settings picker; read by the keyboard extension
     /// to apply overrideUserInterfaceStyle so the preference propagates across processes.

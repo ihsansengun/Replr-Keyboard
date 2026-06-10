@@ -71,6 +71,9 @@ struct QuickReplyIntent: AppIntent {
         let tone = AppGroupService.shared.readSelectedTone()
         NSLog("[Replr][QuickReply] Calling API: tone=%@", tone.name)
 
+        // Use the dating prompt family when the keyboard's persisted mode is dating.
+        let generationMode = AppGroupService.shared.selectedInputMode == "dating" ? "dating" : "chat"
+
         // Fresh capture: drop any prior contact so this capture isn't seasoned with
         // another person's memory before THIS screenshot's contact is identified
         // (resolveContact re-sets it after). Matches the keyboard capture paths.
@@ -85,7 +88,8 @@ struct QuickReplyIntent: AppIntent {
                 screenshot: image,
                 tone: tone,
                 summary: nil,
-                previousContext: previousContext
+                previousContext: previousContext,
+                mode: generationMode
             )
             NSLog("[Replr][QuickReply] Got %d replies — saving to App Group", result.replies.count)
 

@@ -176,6 +176,9 @@ final class KeyboardViewController: UIInputViewController {
         }
         model.hasAnySessions = !AppGroupService.shared.loadCaptureSessions().isEmpty
         model.selectedDevModel = AppGroupService.shared.selectedModel   // keep dev switcher in sync
+        // Restore the last selected mode (chat/email/dating) — persisted so the
+        // intent paths use the matching prompt family.
+        model.inputMode = KeyboardInputMode(storageValue: AppGroupService.shared.selectedInputMode)
 
         if AppGroupService.shared.isGenerating {
             model.state = .loading

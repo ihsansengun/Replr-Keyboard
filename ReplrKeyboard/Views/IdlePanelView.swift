@@ -20,9 +20,9 @@ struct IdlePanelView: View {
             })
             // Screenshot chip only shows in chat mode — email tab has its own flow
             // and should never be interrupted by a pending screenshot.
-            if model.detectedScreenshotID != nil && model.inputMode == .chat {
+            if model.detectedScreenshotID != nil && model.inputMode != .email {
                 screenshotReadyContent
-            } else if model.inputMode == .chat {
+            } else if model.inputMode != .email {
                 chatContent
             } else {
                 emailContent
@@ -165,6 +165,16 @@ struct IdlePanelView: View {
         .padding(.bottom, 8)
     }
 
+    /// Mode-aware subline for the capture slide (dating reuses the chat flow).
+    private var idleSubline: String {
+        if AppGroupService.shared.preferredCapture == "backtap" {
+            return "Triple-tap the back of your phone — replies appear right here."
+        }
+        return model.inputMode == .dating
+            ? "Tap Start, then screenshot a profile or a chat — Replr writes the openers."
+            : "Tap Start, then screenshot the chat — Replr drafts the replies."
+    }
+
     /// Slide 1 — the capture flow + the Start CTA (the default landing slide).
     private var captureSlide: some View {
         VStack(spacing: 12) {
@@ -180,12 +190,10 @@ struct IdlePanelView: View {
                         .frame(width: 92, height: 78)
                 }
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Drop in your chat")
+                    Text(model.inputMode == .dating ? "Drop in their profile" : "Drop in your chat")
                         .font(ReplrTheme.Font.serif(18, weight: .bold))
                         .foregroundColor(ReplrTheme.Color.textPrimary)
-                    Text(AppGroupService.shared.preferredCapture == "backtap"
-                         ? "Triple-tap the back of your phone — replies appear right here."
-                         : "Tap Start, then screenshot the chat — Replr drafts the replies.")
+                    Text(idleSubline)
                         .font(.system(size: 13))
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)

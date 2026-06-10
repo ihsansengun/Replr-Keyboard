@@ -14,7 +14,21 @@ enum KeyboardState: Equatable {
     case paywall
 }
 
-enum KeyboardInputMode: Equatable, Hashable { case chat, email }
+enum KeyboardInputMode: Equatable, Hashable {
+    case chat, email, dating
+
+    var storageValue: String {
+        switch self { case .chat: return "chat"; case .email: return "email"; case .dating: return "dating" }
+    }
+
+    init(storageValue: String) {
+        switch storageValue {
+        case "email":  self = .email
+        case "dating": self = .dating
+        default:       self = .chat
+        }
+    }
+}
 
 // MARK: - Model
 
@@ -191,7 +205,8 @@ final class KeyboardModel: ObservableObject {
         // This also prevents the "Screenshot captured" panel from resurfacing on keyboard reopen.
         AppGroupService.shared.lastConsumedScreenshotID = assetID
         let context = pendingContext.trimmingCharacters(in: .whitespacesAndNewlines)
-        repliesGeneratedInMode = .chat   // a retry-after-error must target this screenshot, not stale email text
+        let captureMode = inputMode == .dating ? KeyboardInputMode.dating : .chat
+        repliesGeneratedInMode = captureMode   // a retry-after-error must target this screenshot, not stale email text
         // Fresh capture: drop any prior contact so this reply isn't seasoned with another person's
         // memory before THIS screenshot's contact is identified (resolveContact re-sets it after).
         AppGroupService.shared.currentContactID = nil
@@ -207,7 +222,8 @@ final class KeyboardModel: ObservableObject {
             // Persist so Regenerate (which reads the App Group screenshot) re-runs THIS screenshot, not a stale one.
             try? AppGroupService.shared.writeScreenshot(image)
             let previousContext: String?
-            if AppGroupService.shared.memoryEnabled, let contactID = AppGroupService.shared.currentContactID {
+            // Dating mode always uses match memory — it's the differentiator there.
+            if (captureMode == .dating || AppGroupService.shared.memoryEnabled), let contactID = AppGroupService.shared.currentContactID {
                 let summaries = AppGroupService.shared.recentSummaries(
                     forContactID: contactID, limit: AppGroupService.shared.memoryDepth)
                 previousContext = summaries.isEmpty ? nil : summaries.joined(separator: "\n")
@@ -219,7 +235,8 @@ final class KeyboardModel: ObservableObject {
                     screenshot: image,
                     tone: self.selectedTone,
                     summary: context.isEmpty ? nil : context,
-                    previousContext: previousContext
+                    previousContext: previousContext,
+                    mode: captureMode == .dating ? "dating" : "chat"
                 )
                 let resolved = resolveContact(from: result)
                 self.contactName = resolved.name
@@ -239,7 +256,7 @@ final class KeyboardModel: ObservableObject {
                 AppGroupService.shared.appendCaptureSession(session)
                 AppGroupService.shared.saveReplies(result.replies)
                 self.currentReplies = result.replies
-                self.repliesGeneratedInMode = .chat
+                self.repliesGeneratedInMode = captureMode
                 self.hasAnySessions = true
                 self.captureBaselineScreenshotID = assetID   // dedup: never reprocess this one
                 AppGroupService.shared.recordCapturedScreenshotID(assetID)
@@ -275,6 +292,7 @@ final class KeyboardModel: ObservableObject {
         let steer = liveHint.isEmpty ? savedHint : liveHint
         let summary = steer.isEmpty ? nil : steer
         let isEmail = (repliesGeneratedInMode == .email)
+        let sourceMode = repliesGeneratedInMode   // dating regenerates stay dating
 
         // Resolve the source up front so we can bail before showing loading.
         let emailText = lastEmailText ?? UIPasteboard.general.string
@@ -295,7 +313,7 @@ final class KeyboardModel: ObservableObject {
         Task { @MainActor [weak self] in
             guard let self else { return }
             let previousContext: String?
-            if AppGroupService.shared.memoryEnabled, let contactID = AppGroupService.shared.currentContactID {
+            if (sourceMode == .dating || AppGroupService.shared.memoryEnabled), let contactID = AppGroupService.shared.currentContactID {
                 let summaries = AppGroupService.shared.recentSummaries(
                     forContactID: contactID, limit: AppGroupService.shared.memoryDepth)
                 previousContext = summaries.isEmpty ? nil : summaries.joined(separator: "\n")
@@ -311,7 +329,8 @@ final class KeyboardModel: ObservableObject {
                 } else {
                     result = try await ReplyService.shared.generateReplies(
                         screenshot: image!, tone: self.selectedTone,
-                        summary: summary, previousContext: previousContext)
+                        summary: summary, previousContext: previousContext,
+                        mode: sourceMode == .dating ? "dating" : "chat")
                 }
                 self.applyCreditCharge(result.creditsRemaining, required: required)
                 // Accumulate: prepend new replies so the freshest results are always at the top.
@@ -612,11 +631,22 @@ struct ModeSegmentedControl: View {
         HStack(spacing: 0) {
             modeButton(.chat, label: "Chat", icon: "bubble.left.fill")
             ReplrTheme.Color.glassBorder.frame(width: 1, height: 18)
+            modeButton(.dating, label: "Dating", icon: "heart.fill")
+            ReplrTheme.Color.glassBorder.frame(width: 1, height: 18)
             modeButton(.email, label: "Email", icon: "envelope.fill")
         }
         .background(ReplrTheme.Color.surface)
         .clipShape(Capsule())
         .overlay(Capsule().strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1))
+    }
+
+    /// Whether a tone may appear in the given mode's row.
+    static func toneAvailable(_ tone: Tone, in mode: KeyboardInputMode) -> Bool {
+        switch mode {
+        case .chat:   return tone.availableInChat
+        case .email:  return tone.availableInEmail
+        case .dating: return tone.availableInDating
+        }
     }
 
     @ViewBuilder
@@ -625,8 +655,12 @@ struct ModeSegmentedControl: View {
         Button {
             withAnimation(ReplrTheme.Motion.quick) {
                 model.inputMode = mode
-                if mode == .email, !model.selectedTone.availableInEmail {
-                    model.selectedTone = model.tones.first { $0.isEnabled && $0.availableInEmail } ?? model.selectedTone
+                AppGroupService.shared.selectedInputMode = mode.storageValue
+                if !Self.toneAvailable(model.selectedTone, in: mode) {
+                    // Dating prefers its flagship default; other modes take the first fit.
+                    let fallback = (mode == .dating ? model.tones.first { $0.isEnabled && $0.name == "Tease" } : nil)
+                        ?? model.tones.first { $0.isEnabled && Self.toneAvailable($0, in: mode) }
+                    if let fallback { model.selectTone(fallback) }
                 }
             }
         } label: {
@@ -663,7 +697,7 @@ struct ToneRow: View {
                 HStack(spacing: 6) {
                     ForEach(model.tones.filter { tone in
                         guard tone.isEnabled else { return false }
-                        return model.inputMode == .email ? tone.availableInEmail : tone.availableInChat
+                        return ModeSegmentedControl.toneAvailable(tone, in: model.inputMode)
                     }) { tone in
                         Chip(
                             label: tone.name,
