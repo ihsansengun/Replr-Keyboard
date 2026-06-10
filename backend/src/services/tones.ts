@@ -157,6 +157,77 @@ export const TONE_LIBRARY: Record<string, ToneSpec> = {
     "Understood — I appreciate you letting me know in advance.",
   ] },
 
+  // ── Dating mode (separate family — never shown in chat/email) ─────────────
+  // Voice instructions live in the iOS presets (Tone.swift §7. Dating); these
+  // entries add temperature + flavor examples, exactly like the chat tones.
+  // Style tones: how you sound. Scenario tones: the moments that happen.
+
+  'Tease':     { temperature: 0.90, examples: [
+    "a golden retriever AND an oat milk order in the same profile… dangerously close to a walking cliché. lucky for you it's working",
+    "we'd argue about the aux cord within a week and you know it",
+    "i was going to open with something nice but your taste in pizza toppings needs addressing first",
+  ] },
+
+  'Smooth':    { temperature: 0.85, examples: [
+    "okay the hiking photo sold me — anyone who climbs that far for a view has taste. dinner views are easier though",
+    "you have the kind of smile that makes someone forget their opener. i had one. it's gone",
+    "see, now you're just showing off. keep going",
+  ] },
+
+  'Bold':      { temperature: 0.80, examples: [
+    "you seem like trouble in the best way. drinks thursday — i know a place that matches your tattoo energy",
+    "i don't do small-talk marathons. you're interesting, i'm interested. that taco place in your third photo, this week?",
+    "matching with you was the easy part. now i'm pretending i haven't already planned where we're going",
+  ] },
+
+  'Banter':    { temperature: 0.95, examples: [
+    "ranking your photos: 1) the dog 2) the pasta 3) you. it's a competitive lineup, don't take it personally",
+    "your bio says 'fluent in sarcasm' — finally someone i can marry for tax purposes AND emotional damage",
+    "petition to hear the full karaoke-photo story. i've already taken a side and need to know if i'm right",
+  ] },
+
+  'Intrigue':  { temperature: 0.90, examples: [
+    "i have a theory about you based entirely on your second photo. it's flattering. mostly",
+    "there's something in your bio most people scroll right past. i didn't",
+    "you remind me of someone i almost didn't recover from. anyway — coffee?",
+  ] },
+
+  'Challenge': { temperature: 0.85, examples: [
+    "cute profile. but everyone's adventurous on here — what's the last thing you did that actually scared you?",
+    "i'm 70% convinced. the other 30% depends on your taco order",
+    "you say you're competitive — name the game. loser plans the first date",
+  ] },
+
+  'Closer':    { temperature: 0.80, examples: [
+    "we've established you have good taste and i'm a great time. thursday, that wine bar — i'll book it",
+    "this is officially too fun for an app. number, before hinge starts charging us rent",
+    "you free saturday or do i have to keep being charming until you are?",
+  ] },
+
+  'Revive':    { temperature: 0.90, examples: [
+    "so anyway, back to what's important: did the pasta place live up to the hype or not",
+    "i'm choosing to believe you got lost in ikea and only just found wifi. welcome back",
+    "resurfacing like that voice memo you never sent. how was the trip?",
+  ] },
+
+  'Recovery':  { temperature: 0.90, examples: [
+    "i see my last message is doing community service in your read pile. it deserves a second chance",
+    "in my defense, that joke was funnier in my head. let's pretend i said something charming about your dog instead",
+    "new topic: what's a hill you'd actually die on? mine is that read receipts build character",
+  ] },
+
+  'Slow Burn': { temperature: 0.80, examples: [
+    "i was going to ask something flirty but honestly i'm more curious what made you move cities",
+    "you said that like someone with a story. i've got time",
+    "okay we'll get back to the banter — first, the bookshop photo. explain",
+  ] },
+
+  'Spice':     { temperature: 0.95, examples: [
+    "keep texting me like that and you're going to have to follow through in person",
+    "i'd tell you what i thought when i saw your last photo, but you haven't earned it yet",
+    "careful. i'm exactly the kind of trouble your bio says you're looking for",
+  ] },
+
   // ── Backward-compat alias ─────────────────────────────────────────────────
   // "Dating" was renamed to "Flirty" in the iOS app. Older clients still send
   // toneName: "Dating" — this keeps them working identically.

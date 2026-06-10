@@ -1,6 +1,29 @@
 import { describe, it, expect } from 'vitest'
 import { toneSpecFor, TONE_LIBRARY } from '../src/services/tones'
 
+describe('dating tones', () => {
+  const DATING = ['Tease', 'Smooth', 'Bold', 'Banter', 'Intrigue', 'Challenge',
+                  'Closer', 'Revive', 'Recovery', 'Slow Burn', 'Spice']
+
+  it('resolves every dating tone with examples and a temperature', () => {
+    for (const name of DATING) {
+      const spec = toneSpecFor(name, 'sent instruction')
+      expect(spec.examples.length, name).toBeGreaterThanOrEqual(3)
+      expect(spec.temperature, name).toBeGreaterThan(0)
+      expect(spec.baseOnly, name).toBe(false)
+      // Voice comes from the iOS preset instruction, same as chat tones.
+      expect(spec.voice, name).toBe('sent instruction')
+    }
+  })
+
+  it('keeps dating tone names distinct from every chat/email library key', () => {
+    for (const name of DATING) {
+      // Each dating name must be ITS OWN library entry, not a collision we inherited.
+      expect(TONE_LIBRARY[name], name).toBeDefined()
+    }
+  })
+})
+
 describe('toneSpecFor', () => {
   it('returns the library spec for a known tone (with examples + temperature)', () => {
     const r = toneSpecFor('Joker', 'the sent instruction')
