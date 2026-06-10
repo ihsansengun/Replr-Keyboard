@@ -48,14 +48,52 @@ const DECISIONS = `Before generating replies, assess:
 6. Gender → infer the LEFT-side person's likely gender from their name, how the user addresses them, and the content; take the user's own gender from the ABOUT THE USER block (if provided). In grammatically-gendered languages get the gendered forms right for BOTH people; when a person's gender is genuinely unclear, prefer neutral phrasing over guessing. Reflect the real dynamic between the two (the flirt reads differently depending on who is writing to whom)
 7. For dating contexts: where are they in the relationship?`
 
+// ── Dating mode — a fully separate prompt family (never blended with chat) ──
+
+const DATING_IDENTITY = `You are Replr's dating wingman. You write FOR the person using the app, TO the person shown in the screenshot — a dating-app profile or conversation (Tinder, Hinge, Bumble, and similar).
+
+Mission: get responses, matches, numbers, dates. Every line must move toward one of those.
+
+Non-negotiable rules:
+- Anchor every line to at least one SPECIFIC detail from their profile or messages — a photo, a bio line, a prompt answer, an interest. If nothing is visible, use their name and the visible context. A line that could be sent to anyone is a failure.
+- Never needy, never over-eager. Banned: "hey", "hi there", bare compliments about looks, exclamation-mark enthusiasm.
+- Confidence is the register: assume value, never beg, never over-explain, leave room for them to chase.
+- Once any rapport exists, assertive plan-making beats abstract interest: "thursday, that wine bar" not "we should hang out sometime".
+- Bold and forward is good; manipulative is banned. Never neg, never degrade, never target insecurities. Challenge claims and situations, never the person's worth.
+- Match the platform's register: a Hinge comment responds to a specific prompt; a Tinder opener can be bolder; mirror what the screenshot shows.
+- Always write in the conversation's language, natively — never compose in English and translate. Use what a local person would actually say.
+- Each of the 3 options must take a distinct angle or energy.
+- Plain text only. No markdown. Emoji only if their messages already use them.
+- If the moment turns genuinely serious, drop the game and be human first.`
+
+const DATING_DECISIONS = `First, classify what the screenshot shows, then follow that branch:
+1. PROFILE — a dating profile (photos, bio, prompt answers; no message bubbles): write 3 openers / like-comments built on the profile's strongest one or two specifics. On Hinge, respond to a specific prompt or photo the way a comment-with-like would.
+2. EMPTY — a matched chat with no real exchange yet (match banner, empty or near-empty thread): write 3 pick-up lines — modern, self-aware, knowingly delivered; personalize with whatever IS visible (their name, the app, any visible prompt). Never dusty classics played straight.
+3. CHAT — an ongoing conversation (RIGHT side = your user, LEFT side = the match, same as any chat): read the stage — banter, rapport, or ready-to-close — and write 3 replies that advance it. Build attraction and momentum; when rapport is clearly established, exactly one option should move toward the number or a concrete date.
+Also: identify the match's first name; get gendered language right for both people in gendered languages; mirror their message length and energy, then lead slightly.`
+
+function buildDatingReplyFormat(count: number): string {
+  return `Output EXACTLY ${count} replies — never fewer.
+Plain text only — no markdown, no commentary.
+Start with CONTEXT: on the very first line. Nothing before it.
+
+CONTEXT: [profile | empty | chat — the case you classified]
+CONTACT: [their first name exactly as shown. "Unknown" if not visible.]
+SUMMARY: [one sentence — for profile: their essence (name, standout interests, hooks); for chats: topic and what was last said]
+${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
+}
+
 /** Hard cap on the user-supplied profile text — keeps the system prompt bounded
  *  even if a client bypasses the app's 300-char field and posts a huge value. */
 const ABOUT_USER_MAX_CHARS = 300
 
-/** Build the system prompt: BASE identity + an additive TONE OVERLAY (voice + examples),
- *  plus an optional user-profile block. The overlay is omitted for base-only tones. */
-export function buildSystemPrompt(tone: ResolvedTone, aboutUser?: string): string {
-  const parts = [IDENTITY]
+export type GenerationMode = 'chat' | 'email' | 'dating'
+
+/** Build the system prompt for a mode: that mode's identity + an additive TONE
+ *  OVERLAY (voice + examples), plus an optional user-profile block. Dating uses
+ *  its own identity; chat and email share the base IDENTITY. */
+export function buildSystemPromptForMode(mode: GenerationMode, tone: ResolvedTone, aboutUser?: string): string {
+  const parts = [mode === 'dating' ? DATING_IDENTITY : IDENTITY]
 
   if (!tone.baseOnly && tone.voice) {
     let overlay = `VOICE — this is how you sound, layered on top of the rules above. Let the tone lead; read the room.\n${tone.voice}`
@@ -68,9 +106,19 @@ export function buildSystemPrompt(tone: ResolvedTone, aboutUser?: string): strin
 
   const about = aboutUser?.trim().slice(0, ABOUT_USER_MAX_CHARS)
   if (about) {
-    parts.push(`ABOUT THE USER YOU'RE WRITING FOR (the right-side person — write in their voice):\n${about}`)
+    // Chat keeps its long-standing right-side framing (byte-identical prompt);
+    // dating has no right-side bubbles on the profile branch.
+    const frame = mode === 'dating'
+      ? "ABOUT THE USER YOU'RE WRITING FOR (the person sending these lines — write in their voice)"
+      : "ABOUT THE USER YOU'RE WRITING FOR (the right-side person — write in their voice)"
+    parts.push(`${frame}:\n${about}`)
   }
   return parts.join('\n\n')
+}
+
+/** Back-compat: the chat/email system prompt builder. */
+export function buildSystemPrompt(tone: ResolvedTone, aboutUser?: string): string {
+  return buildSystemPromptForMode('chat', tone, aboutUser)
 }
 
 const REPLY_COUNT = 3
@@ -106,6 +154,8 @@ interface ParsedOutput {
   replies: string[]
   summary: string
   contactName: string
+  /** Dating-mode classification (CONTEXT: line). Undefined for chat/email. */
+  contextType?: 'profile' | 'empty' | 'chat'
 }
 
 export interface LlmResult extends ParsedOutput {
@@ -150,6 +200,7 @@ export function parseLlmOutput(text: string): ParsedOutput {
   const lines = text.split('\n')
   let summary = ''
   let contactName = ''
+  let contextRaw = ''
   const replies: string[] = []
 
   // Strip markdown bold/italic from a line before pattern matching.
@@ -159,14 +210,16 @@ export function parseLlmOutput(text: string): ParsedOutput {
   const isNumberedReply = (s: string) => /^\d+[.)]\s*\S/.test(s)
   // Also detect them in continuation-break logic
   const isBreak = (s: string) =>
-    /^contact:/i.test(s) || /^summary:/i.test(s) || isNumberedReply(s)
+    /^contact:/i.test(s) || /^summary:/i.test(s) || /^context:/i.test(s) || isNumberedReply(s)
 
   for (let i = 0; i < lines.length; i++) {
     const rawLine = lines[i].trim()
     const line = stripMarkdown(rawLine)
     if (!line) continue
 
-    if (!contactName && /^contact:/i.test(line)) {
+    if (!contextRaw && /^context:/i.test(line)) {
+      contextRaw = line.replace(/^context:\s*/i, '').trim().toLowerCase()
+    } else if (!contactName && /^contact:/i.test(line)) {
       contactName = line.replace(/^contact:\s*/i, '').trim()
     } else if (!summary && /^summary:/i.test(line)) {
       summary = line.replace(/^summary:\s*/i, '').trim()
@@ -185,7 +238,8 @@ export function parseLlmOutput(text: string): ParsedOutput {
     }
   }
 
-  return { replies, summary, contactName }
+  const contextType = (['profile', 'empty', 'chat'] as const).find(v => v === contextRaw)
+  return { replies, summary, contactName, ...(contextType ? { contextType } : {}) }
 }
 
 interface LlmCallParams {
@@ -354,6 +408,8 @@ export interface GenerateParams {
   summary?: string
   previousContext?: string
   aboutUser?: string
+  /** 'dating' selects the dating prompt family. Absent/chat → the classic chat prompts. */
+  mode?: GenerationMode
   model: Model
   anthropicKey: string
   openaiKey: string
@@ -384,9 +440,18 @@ ${Array.from({ length: count }, (_, i) => `${i + 1}. [reply]`).join('\n')}`
 }
 
 export async function generateReplies(params: GenerateParams): Promise<LlmResult> {
-  const { screenshotBase64, tone, toneName, summary, previousContext, aboutUser, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
+  const { screenshotBase64, tone, toneName, summary, previousContext, aboutUser, mode, model, anthropicKey, openaiKey, xaiKey, googleKey } = params
 
   const spec = toneSpecFor(toneName, tone)
+
+  if (mode === 'dating') {
+    const system = buildSystemPromptForMode('dating', spec, aboutUser)
+    const user = `${buildContextBlock(summary, previousContext)}${DATING_DECISIONS}
+
+${buildDatingReplyFormat(REPLY_COUNT)}`
+    return callLlm({ system, user, images: [screenshotBase64], model, temperature: spec.temperature, anthropicKey, openaiKey, xaiKey, googleKey })
+  }
+
   const system = buildSystemPrompt(spec, aboutUser)
 
   const user = `${buildContextBlock(summary, previousContext)}Reading guide — CRITICAL:

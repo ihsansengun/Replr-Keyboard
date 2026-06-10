@@ -1,5 +1,45 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { parseReplies, parseLlmOutput, generateReplies, buildSystemPrompt } from '../src/services/llm'
+import { parseReplies, parseLlmOutput, generateReplies, buildSystemPrompt, buildSystemPromptForMode } from '../src/services/llm'
+import { toneSpecFor } from '../src/services/tones'
+
+describe('parseLlmOutput CONTEXT line (dating mode)', () => {
+  it('parses an optional CONTEXT line alongside CONTACT/SUMMARY', () => {
+    const out = parseLlmOutput('CONTEXT: profile\nCONTACT: Maya\nSUMMARY: Maya, 28 — climbs, golden retriever\n1. opener one\n2. opener two\n3. opener three')
+    expect(out.contextType).toBe('profile')
+    expect(out.contactName).toBe('Maya')
+    expect(out.summary).toContain('climbs')
+    expect(out.replies).toHaveLength(3)
+  })
+
+  it('accepts empty and chat classifications', () => {
+    expect(parseLlmOutput('CONTEXT: empty\n1. line').contextType).toBe('empty')
+    expect(parseLlmOutput('CONTEXT: chat\n1. line').contextType).toBe('chat')
+  })
+
+  it('leaves contextType undefined when absent or invalid', () => {
+    expect(parseLlmOutput('CONTACT: X\nSUMMARY: y\n1. a').contextType).toBeUndefined()
+    expect(parseLlmOutput('CONTEXT: banana\n1. a').contextType).toBeUndefined()
+  })
+
+  it('does not swallow a CONTEXT line into a multi-line reply', () => {
+    const out = parseLlmOutput('1. first line\nstill first\nCONTEXT: chat\n2. second')
+    expect(out.replies[0]).toBe('first line\nstill first')
+    expect(out.contextType).toBe('chat')
+  })
+})
+
+describe('dating prompt family', () => {
+  it('uses the dating identity for mode dating and the chat identity otherwise', () => {
+    const dating = buildSystemPromptForMode('dating', toneSpecFor('Tease', 'tease voice'), undefined)
+    expect(dating).toContain('dating wingman')
+    expect(dating).not.toContain('You are Replr. You generate human-like replies')
+    expect(dating).toContain('tease voice')   // tone overlay still applies
+
+    const chat = buildSystemPromptForMode('chat', toneSpecFor('Friendly', 'friendly voice'), undefined)
+    expect(chat).toContain('You are Replr. You generate human-like replies')
+    expect(chat).not.toContain('dating wingman')
+  })
+})
 
 const anthropicMessagesCreate = vi.fn()
 const openaiChatCreate = vi.fn()

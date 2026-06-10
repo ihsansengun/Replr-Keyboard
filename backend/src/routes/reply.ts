@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import type { Context } from 'hono'
-import { generateReplies, generateRepliesFromEmail } from '../services/llm'
+import { generateReplies, generateRepliesFromEmail, type GenerationMode } from '../services/llm'
 import type { Env, Model } from '../types'
 import { sessionMiddleware, SESSION_USER_ID_KEY, SessionVariables } from '../middleware/session'
 import { checkRateLimit } from '../services/rateLimit'
@@ -107,7 +107,7 @@ replyRoute.post('/', async (c) => {
     return c.json({ error: 'Invalid JSON body' }, 400)
   }
 
-  const { screenshotBase64, emailText, tone, toneName, summary, previousContext, aboutUser, model, userId } =
+  const { screenshotBase64, emailText, tone, toneName, summary, previousContext, aboutUser, model, userId, mode } =
     body as Record<string, string | undefined>
 
   if ((!screenshotBase64 && !emailText) || !tone || !model || !userId) {
@@ -116,6 +116,10 @@ replyRoute.post('/', async (c) => {
 
   if (!VALID_MODELS.includes(model as Model)) {
     return c.json({ error: `Invalid model. Must be one of: ${VALID_MODELS.join(', ')}` }, 400)
+  }
+
+  if (mode !== undefined && !['chat', 'email', 'dating'].includes(mode)) {
+    return c.json({ error: 'Invalid mode. Must be one of: chat, email, dating' }, 400)
   }
 
   const spend = await chargeCredits(c, model, access)
@@ -132,6 +136,7 @@ replyRoute.post('/', async (c) => {
       : await generateReplies({
           screenshotBase64: screenshotBase64!,
           tone, toneName, summary, previousContext, aboutUser,
+          mode: mode as GenerationMode | undefined,
           model: model as Model,
           anthropicKey: c.env.ANTHROPIC_API_KEY, xaiKey: c.env.XAI_API_KEY, googleKey: c.env.GOOGLE_API_KEY,
           openaiKey: c.env.OPENAI_API_KEY,
@@ -144,6 +149,7 @@ replyRoute.post('/', async (c) => {
       replies: result.replies, summary: result.summary, contactName: result.contactName,
       inputTokens: result.inputTokens, outputTokens: result.outputTokens, costUsd: result.costUsd,
       ...(spend.creditsRemaining !== undefined ? { creditsRemaining: spend.creditsRemaining } : {}),
+      ...(result.contextType ? { contextType: result.contextType } : {}),
     })
   } catch (err) {
     console.error('LLM error:', err)

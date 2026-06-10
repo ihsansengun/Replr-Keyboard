@@ -101,6 +101,33 @@ describe('POST /reply', () => {
     }
   })
 
+  // ── Dating mode ────────────────────────────────────────────────────────────
+
+  it('rejects an invalid mode', async () => {
+    const { env } = makeTestEnv()
+    const res = await app.request('/reply', jsonRequest({ ...validBody, mode: 'wizard' }), env)
+    expect(res.status).toBe(400)
+    const json = await res.json() as { error: string }
+    expect(json.error).toContain('Invalid mode')
+  })
+
+  it('passes mode through to generation and returns contextType when present', async () => {
+    const { env } = makeTestEnv()
+    mockGenerateReplies.mockResolvedValueOnce({ replies: ['a', 'b', 'c'], summary: 's', contactName: 'Maya', contextType: 'profile', inputTokens: 1, outputTokens: 1, costUsd: 0 })
+    const res = await app.request('/reply', jsonRequest({ ...validBody, mode: 'dating' }), env)
+    expect(res.status).toBe(200)
+    const json = await res.json() as { contextType?: string }
+    expect(json.contextType).toBe('profile')
+    expect(mockGenerateReplies.mock.calls[0][0].mode).toBe('dating')
+  })
+
+  it('omits contextType for ordinary chat generations', async () => {
+    const { env } = makeTestEnv()
+    const res = await app.request('/reply', jsonRequest(validBody), env)
+    const json = await res.json() as Record<string, unknown>
+    expect('contextType' in json).toBe(false)
+  })
+
   // ── Access gate ────────────────────────────────────────────────────────────
 
   it('returns 429 for anonymous traffic past the per-IP daily limit', async () => {
