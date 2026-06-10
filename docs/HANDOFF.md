@@ -123,12 +123,15 @@ App Store Connect work). Quick reference below.
 Full dating mode shipped in code: third keyboard mode, separate prompt family,
 11 dating tones + 4 shared (default Tease), always-on match memory, Settings
 Dating section. Spec: `docs/superpowers/specs/2026-06-10-dating-mode-design.md`;
-plan: `docs/superpowers/plans/2026-06-10-dating-mode.md`. Backend deployed?
-Check `git log` vs deploy history — the dating prompt family must be deployed
-before the new app build ships (old backend ignores `mode` → chat prompts).
-Manual device pass before TestFlight: profile screenshot → openers; empty
-chat → pick-up lines; ongoing chat → continuation; tone row per mode;
-Settings Dating section; Back Tap with dating mode persisted.
+plan: `docs/superpowers/plans/2026-06-10-dating-mode.md`. **Backend DEPLOYED**
+(worker `2c4946d3` dating family → `a7b8e042` + the "sound like a person"
+humanizer). Production probes verified: profile → lowercase thumb-typed
+openers anchored to profile details (CONTEXT=profile), ongoing chat → Closer
+closing with day+number (CONTEXT=chat). Remaining: USER DEVICE PASS (run app
+from Xcode — TestFlight build predates dating mode): profile → openers; empty
+chat → pick-up lines; ongoing → continuation; tone row per mode; Settings
+Dating section; Back Tap with dating persisted. Tone voices are server-side —
+quality tweaks are edit+deploy, no rebuild.
 
 Remaining (user-triggered):
 
