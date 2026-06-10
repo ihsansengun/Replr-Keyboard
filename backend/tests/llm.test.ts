@@ -32,6 +32,7 @@ describe('dating prompt family', () => {
   it('uses the dating identity for mode dating and the chat identity otherwise', () => {
     const dating = buildSystemPromptForMode('dating', toneSpecFor('Tease', 'tease voice'), undefined)
     expect(dating).toContain('dating wingman')
+    expect(dating).toContain('Sound like a person, never like AI')   // humanizer block
     expect(dating).not.toContain('You are Replr. You generate human-like replies')
     expect(dating).toContain('tease voice')   // tone overlay still applies
 
