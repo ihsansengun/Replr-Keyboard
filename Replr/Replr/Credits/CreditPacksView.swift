@@ -46,7 +46,7 @@ struct CreditPacksView: View {
                                 .foregroundStyle(ReplrTheme.Color.textSecondary)
                                 .multilineTextAlignment(.center)
                         }
-                        .padding(.top, showCloseButton ? 8 : 40)
+                        .padding(.top, showCloseButton ? 8 : 16)
 
                         // Balance chip
                         if manager.balance > 0 || AppGroupService.shared.devMode {
@@ -69,24 +69,33 @@ struct CreditPacksView: View {
                                 .tint(ReplrTheme.Color.accent)
                                 .padding(.vertical, 40)
                         } else {
-                            VStack(spacing: 12) {
-                                ForEach(manager.products, id: \.id) { product in
-                                    PackCard(
-                                        product: product,
-                                        isFeatured: product.id == AppGroupService.shared.remotePaywallConfig?.badgeProductID
-                                    ) {
-                                        Task {
-                                            do {
-                                                try await manager.purchase(product)
-                                                errorMessage = nil
-                                                if showCloseButton { dismiss() }
-                                            } catch {
-                                                errorMessage = error.localizedDescription
+                            VStack(spacing: 14) {
+                                // 16pt gap leaves room for the featured card's badge straddle.
+                                VStack(spacing: 16) {
+                                    ForEach(manager.products, id: \.id) { product in
+                                        PackCard(
+                                            product: product,
+                                            isFeatured: product.id == AppGroupService.shared.remotePaywallConfig?.badgeProductID
+                                        ) {
+                                            Task {
+                                                do {
+                                                    try await manager.purchase(product)
+                                                    errorMessage = nil
+                                                    if showCloseButton { dismiss() }
+                                                } catch {
+                                                    errorMessage = error.localizedDescription
+                                                }
                                             }
                                         }
+                                        .disabled(manager.isPurchasing)
                                     }
-                                    .disabled(manager.isPurchasing)
                                 }
+
+                                // Trust wedge — packs are consumable, never a subscription.
+                                Text("One-time purchase — no subscription, nothing renews.")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(ReplrTheme.Color.textTertiary)
+                                    .multilineTextAlignment(.center)
                             }
                             .padding(.horizontal, 20)
                         }
@@ -145,17 +154,20 @@ private struct PackCard: View {
     }
 
     var body: some View {
-        HStack(spacing: 14) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(product.displayName)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(ReplrTheme.Color.textPrimary)
-                Text(subtitle)
-                    .font(.system(size: 12))
-                    .foregroundStyle(ReplrTheme.Color.textSecondary)
-            }
-            Spacer()
-            Button(action: onBuy) {
+        // The whole card buys — the price pill alone was a fiddly target. The pill
+        // stays as the visual price tag; the featured pack's pill carries the brand
+        // gradient (this screen's one primary CTA) over a faint accent wash.
+        Button(action: onBuy) {
+            HStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(product.displayName)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.textPrimary)
+                    Text(subtitle)
+                        .font(.system(size: 12))
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                }
+                Spacer()
                 Text(product.displayPrice)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(ReplrTheme.Color.onAccent)
@@ -163,27 +175,47 @@ private struct PackCard: View {
                     .padding(.vertical, 8)
                     .background(
                         RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
-                            .fill(ReplrTheme.Color.accent)
+                            .fill(isFeatured ? AnyShapeStyle(ReplrTheme.Color.brandGradient)
+                                             : AnyShapeStyle(ReplrTheme.Color.accent))
                     )
             }
-            .buttonStyle(.plain)
-        }
-        .padding(14)
-        .background(ReplrTheme.Color.surface)
-        .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
-                .strokeBorder(
-                    isFeatured ? ReplrTheme.Color.accent.opacity(0.55) : ReplrTheme.Color.glassBorder,
-                    lineWidth: 1
-                )
-        )
-        // "Most popular" — which card (if any) is server-controlled per A/B variant.
-        .overlay(alignment: .topTrailing) {
-            if isFeatured {
-                Badge("MOST POPULAR")
-                    .offset(x: -12, y: -9)
+            .padding(14)
+            .background(
+                ZStack {
+                    ReplrTheme.Color.surface
+                    if isFeatured { ReplrTheme.Color.accent.opacity(0.06) }
+                }
+            )
+            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                    .strokeBorder(
+                        isFeatured ? ReplrTheme.Color.accent.opacity(0.55) : ReplrTheme.Color.glassBorder,
+                        lineWidth: 1
+                    )
+            )
+            // "Most popular" — which card (if any) is server-controlled per A/B
+            // variant. Top-LEADING straddle: the trailing edge is the price pill's
+            // home and the two collided. Solid bg backing so the card border can't
+            // show through the badge's translucent fill.
+            .overlay(alignment: .topLeading) {
+                if isFeatured {
+                    Badge("MOST POPULAR")
+                        .background(Capsule().fill(ReplrTheme.Color.bg))
+                        .padding(.leading, 12)
+                        .offset(y: -13)
+                }
             }
         }
+        .buttonStyle(PackCardPressStyle())
+    }
+}
+
+/// Whole-card press feedback — mirrors PrimaryButton's squeeze.
+private struct PackCardPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .animation(ReplrTheme.Motion.quick, value: configuration.isPressed)
     }
 }
