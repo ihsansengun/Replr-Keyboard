@@ -159,6 +159,7 @@ struct SettingsView: View {
         aboutUser = AppGroupService.shared.aboutUser
         memoryEnabled = AppGroupService.shared.memoryEnabled
         autoClear = AppGroupService.shared.autoClearScreenshots
+        selectedModel = AppGroupService.shared.userModel
         fullAccess = AppGroupService.shared.fullAccessGranted
         photosStatus = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         CreditsManager.shared.refreshBalance()
@@ -315,17 +316,17 @@ struct SettingsView: View {
             .buttonStyle(.plain)
             CardDivider()
             SettingsRow {
-                if let email = auth.userEmail {
-                    Text(email)
-                        .font(.system(size: 15))
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
+                Text(auth.userEmail ?? "Signed in with Apple")
+                    .font(.system(size: 15))
+                    .foregroundStyle(ReplrTheme.Color.textSecondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
                 Spacer()
                 Button("Sign out") { showSignOutConfirm = true }
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(ReplrTheme.Color.danger)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                     .buttonStyle(.plain)
             }
             if auth.isSignedIn {
