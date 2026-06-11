@@ -121,8 +121,9 @@ App Store Connect work). Quick reference below.
 ### Dating mode (built 2026-06-10 — LAUNCH BLOCKER per user decision)
 
 Full dating mode shipped in code: third keyboard mode, separate prompt family,
-11 dating tones + 4 shared (default Tease), always-on match memory, Settings
-Dating section. Spec: `docs/superpowers/specs/2026-06-10-dating-mode-design.md`;
+13 dating tones + 4 shared (default Tease; Sincere/Curious added 2026-06-11,
+same day email gained Follow-Up/Grateful → 9 email-only), always-on match
+memory, Settings Dating section. Spec: `docs/superpowers/specs/2026-06-10-dating-mode-design.md`;
 plan: `docs/superpowers/plans/2026-06-10-dating-mode.md`. **Backend DEPLOYED**
 (worker `2c4946d3` dating family → `a7b8e042` + the "sound like a person"
 humanizer). Production probes verified: profile → lowercase thumb-typed
