@@ -271,6 +271,10 @@ gained an optional exclusive `onLongPress` — tap and hold never both fire.
 
 ## 4. Pending / next tasks
 
+0. **Settings UX pass** — user's chosen next phase (2026-06-11). Settings is one
+   long scroll; rethink grouping/hierarchy. Same-day context: tones are now
+   mode-separated (Chat/Dating/Email sections + custom-tone mode picker +
+   Natural always-on), Reply Quality replaced AI Model, Delete Account added.
 1. **Verify the replies-height fix on device** (section 1) — highest priority.
 2. **Memory wedge part 2** (approved, not built): proactive "I remember [Name] — tap to
    use" chip + auto-disambiguate when >1 contact matches a name.
