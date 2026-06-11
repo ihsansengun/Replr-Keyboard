@@ -384,18 +384,18 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - AI Model
+    // MARK: - Reply Quality (tiers — vendor models stay hidden; backend resolves)
 
     private var aiModelSection: some View {
-        settingsSection("AI Model") {
+        settingsSection("Reply Quality") {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 0) {
-                    modelOption("gemini-3.5-flash", label: "Gemini Flash", sublabel: "Recommended")
+                    modelOption("balanced", label: "Balanced", sublabel: "Recommended")
                     ReplrTheme.Color.glassBorder.frame(width: 1, height: 38)
-                    modelOption("gemini-3.1-pro-preview", label: "Gemini Pro", sublabel: "Best quality")
+                    modelOption("max", label: "Max", sublabel: "Best quality")
                 }
                 .padding(6)
-                Text("Flash is quick and natural, great for most replies. Pro takes a little longer for extra-sharp ones. Switch anytime.")
+                Text("Balanced is quick and natural, great for most replies — 4 credits each. Max takes a little longer for extra-sharp ones — 6 credits each. Switch anytime.")
                     .font(.system(size: 12))
                     .foregroundStyle(ReplrTheme.Color.textTertiary)
                     .padding(.horizontal, 10)

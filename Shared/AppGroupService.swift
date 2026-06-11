@@ -649,9 +649,19 @@ final class AppGroupService {
         set { defaults.set(newValue, forKey: Constants.creditBalanceKey); defaults.synchronize() }
     }
 
-    /// User's production model choice (shown in Settings → AI Model). Default: Gemini 3.1 Pro (High).
+    /// User's quality-tier choice (Settings → Reply Quality): "balanced" or "max".
+    /// The backend maps the tier to today's vendor model, so this id is stable.
+    /// Devices that picked a raw vendor model before tiers existed migrate on
+    /// read; any other legacy value falls back to "balanced".
     var userModel: String {
-        get { defaults.string(forKey: Constants.selectedModelKey) ?? "gemini-3.5-flash" }
+        get {
+            let stored = defaults.string(forKey: Constants.selectedModelKey) ?? "balanced"
+            switch stored {
+            case "balanced", "max":        return stored
+            case "gemini-3.1-pro-preview": return "max"
+            default:                       return "balanced"
+            }
+        }
         set { defaults.set(newValue, forKey: Constants.selectedModelKey); defaults.synchronize() }
     }
 
@@ -755,6 +765,8 @@ final class AppGroupService {
             return remote.creditCost
         }
         switch selectedModel {
+        case "balanced":                 return 4
+        case "max":                      return 6
         case "claude-sonnet-4-6":        return 8
         case "gpt-5.4":                  return 7
         case "claude-opus-4-6":          return 15
@@ -777,6 +789,8 @@ final class AppGroupService {
     /// Short label for the active model — shown in keyboard header during dev mode.
     var selectedModelShortLabel: String {
         switch selectedModel {
+        case "balanced":               return "Balanced"
+        case "max":                    return "Max"
         case "claude-sonnet-4-6":      return "Sonnet 4.6"
         case "gpt-5.4":               return "GPT-5.4"
         case "claude-opus-4-6":        return "Opus 4.6"

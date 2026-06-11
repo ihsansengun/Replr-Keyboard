@@ -7,7 +7,7 @@ struct PrivacyView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("What happens when you capture a chat")
                         .font(.headline)
-                    Text("When you trigger a capture, the screenshot is sent from your device to Replr's server. The server calls an AI provider (Claude or GPT-4o) to write the replies. The screenshot is not stored on any server after the replies are returned.")
+                    Text("When you trigger a capture, the screenshot is sent from your device to Replr's server. The server calls a leading AI model to write the replies. The screenshot is not stored on any server after the replies are returned.")
                         .font(.callout)
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
                         .lineSpacing(3)

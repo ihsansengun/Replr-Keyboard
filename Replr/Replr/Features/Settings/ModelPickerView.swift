@@ -124,7 +124,7 @@ struct ModelPickerView: View {
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(ReplrTheme.Color.textTertiary)
             } footer: {
-                Text("★ = top-3 Arena Elo. Production users see only Sonnet & GPT-5.4.")
+                Text("★ = top-3 Arena Elo. Production users see only the Balanced/Max tiers; the backend maps tiers to vendor models (services/models.ts TIERS).")
                     .font(.caption)
             }
 

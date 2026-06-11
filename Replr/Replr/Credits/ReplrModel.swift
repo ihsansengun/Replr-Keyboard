@@ -2,7 +2,14 @@ import Foundation
 import SwiftUI
 
 enum ReplrModel: String, CaseIterable, Identifiable {
-    // Production models (Settings → AI Model)
+    // User-facing quality tiers — the only ids non-dev builds send. The backend
+    // resolves which vendor model each tier means today (services/models.ts
+    // TIERS), so repointing a tier never needs an app release and users never
+    // see vendor names.
+    case balanced       = "balanced"
+    case max            = "max"
+
+    // Raw vendor models — dev-only
     case claudeSonnet   = "claude-sonnet-4-6"
     case gpt5_4         = "gpt-5.4"
 
@@ -25,13 +32,15 @@ enum ReplrModel: String, CaseIterable, Identifiable {
 
     var isProductionModel: Bool {
         switch self {
-        case .gemini, .gemini35Flash: return true   // user-facing: Gemini 3.5 Flash (default) + Pro (quality)
+        case .balanced, .max: return true   // user-facing tiers; vendor models are dev-only
         default: return false
         }
     }
 
     var shortLabel: String {
         switch self {
+        case .balanced:     return "Balanced"
+        case .max:          return "Max"
         case .claudeSonnet: return "Sonnet"
         case .gpt5_4:       return "GPT-5.4"
         case .claudeOpus:   return "Opus"
@@ -52,6 +61,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
+        case .balanced:     return "Balanced · tier"
+        case .max:          return "Max · tier"
         case .claudeSonnet: return "Claude Sonnet 4.6"
         case .gpt5_4:       return "GPT-5.4"
         case .claudeOpus:   return "Claude Opus 4.6 ★"
@@ -72,6 +83,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
 
     var creditsPerRequest: Int {
         switch self {
+        case .balanced:     return 4
+        case .max:          return 6
         case .claudeSonnet: return 8
         case .gpt5_4:       return 7
         case .claudeOpus:   return 15
@@ -91,11 +104,12 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     }
 
     var apiModelID: String { rawValue }
-    static let defaultModel: ReplrModel = .gemini35Flash
+    static let defaultModel: ReplrModel = .balanced
 
     /// Approximate Arena Elo (human preference leaderboard) for display in dev picker.
     var arenaElo: String {
         switch self {
+        case .balanced, .max: return "—"
         case .gpt5_5:       return "1506"
         case .gemini:       return "1505"
         case .geminiProLow: return "—"
@@ -127,6 +141,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     /// Approximate cost per Replr request (~2100 input + 450 output tokens, PNG screenshot).
     var costPerRequest: String {
         switch self {
+        case .balanced:     return "$0.007"   // today's underlying: gemini-3.5-flash
+        case .max:          return "$0.015"   // today's underlying: gemini-3.1-pro-preview
         case .claudeSonnet: return "$0.013"
         case .gpt5_4:       return "$0.011"
         case .claudeOpus:   return "$0.022"
@@ -149,8 +165,8 @@ enum ReplrModel: String, CaseIterable, Identifiable {
     var costColor: Color {
         switch self {
         case .grok4_3, .gpt5_4mini, .geminiFlash, .geminiFlashLite, .claudeHaiku45: return Color.green.opacity(0.85)
-        case .claudeSonnet, .gpt5_4, .grok4, .gemini35Flash, .gemini25Pro: return Color.orange.opacity(0.85)
-        case .claudeOpus, .claudeOpus47, .gpt5_5, .gemini, .geminiProLow: return Color.red.opacity(0.75)
+        case .claudeSonnet, .gpt5_4, .grok4, .gemini35Flash, .gemini25Pro, .balanced: return Color.orange.opacity(0.85)
+        case .claudeOpus, .claudeOpus47, .gpt5_5, .gemini, .geminiProLow, .max: return Color.red.opacity(0.75)
         }
     }
 
