@@ -459,6 +459,17 @@ final class AppGroupService {
         return text
     }
 
+    /// One-shot read for generation: returns the pending steer and clears it, so a
+    /// steer typed for one capture can never season a later one (same pattern as
+    /// `consumeReplies()`/`consumeError()`). Regenerate is unaffected — it re-reads
+    /// the steer from the saved session's `contextHint`, not from this key.
+    func consumePendingContext() -> String? {
+        guard let text = readPendingContext() else { return nil }
+        defaults.removeObject(forKey: Constants.pendingContextKey)
+        defaults.synchronize()
+        return text
+    }
+
     // MARK: - Screenshot file (written at capture, read by Regenerate)
 
     func writeScreenshot(_ image: UIImage) throws {

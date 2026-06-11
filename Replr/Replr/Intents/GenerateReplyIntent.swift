@@ -42,7 +42,11 @@ struct GenerateReplyIntent: AppIntent {
 
         AppGroupService.shared.isGenerating = true
 
-        let context = AppGroupService.shared.readPendingContext()
+        // One-shot: the steer applies to THIS capture only. Without the consume,
+        // a Back Tap flow that never reopens the keyboard (e.g. replies viewed in
+        // the app) left the steer in the App Group, seasoning every later capture.
+        // It stays available to Regenerate via this session's contextHint.
+        let context = AppGroupService.shared.consumePendingContext()
 
         // Tone always comes from the keyboard selection (never the Shortcut), so a
         // Back Tap capture respects whatever tone the user last picked.
