@@ -5,7 +5,7 @@ import Photos
 struct IdlePanelView: View {
     @ObservedObject var model: KeyboardModel
     @State private var hasClipboardText: Bool = false
-    /// Teaching overlay (how-to for steer + Back Tap) behind the sliders button.
+    /// Teaching overlay (how-to for tones, steer + Back Tap) behind the info button.
     @State private var showTeachingPanel = false
     @State private var teachingPage = 0
     /// Photos auth status — re-checked on appear so the prompt clears after the user grants Full Access in Settings.
@@ -67,7 +67,7 @@ struct IdlePanelView: View {
                     backTapSlide.tag(2)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 160)
+                .frame(height: 170)
 
                 pageDots
             }
@@ -81,7 +81,7 @@ struct IdlePanelView: View {
                             .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
                     )
             )
-            .overlay(alignment: .topLeading) {
+            .overlay(alignment: .topTrailing) {
                 Button {
                     withAnimation(.easeInOut(duration: 0.15)) { showTeachingPanel = false }
                 } label: {
@@ -237,7 +237,7 @@ struct IdlePanelView: View {
     private var tonesSlide: some View {
         infoSlide(icon: "theatermasks.fill",
                   title: "Pick a tone",
-                  body: "Same chat, different voice — the tone rewrites Replr's replies, not your message. Hold any tone chip to see what it's for.",
+                  body: "Same chat, different voice — hold any tone chip to see what it's for.",
                   cta: "Browse all tones →",
                   url: "replr://tones")
     }

@@ -798,7 +798,7 @@ struct KeyboardHeader: View {
     /// Hide the Chat/Email segmented control row entirely. Used in replies state to reclaim
     /// ~44 px of vertical space — the mode is already locked once replies are showing.
     var isModeHidden: Bool = false
-    /// When provided (idle state only), shows a sliders button that opens the how-to overlay.
+    /// When provided (idle state only), shows an info button that opens the how-to overlay.
     var onOpenSettings: (() -> Void)? = nil
 
     var body: some View {
@@ -806,8 +806,9 @@ struct KeyboardHeader: View {
             if !isModeHidden {
                 HStack(spacing: 0) {
                 if let onOpenSettings {
+                    // Opens the how-to popup (tones/steer/Back Tap) — info, not settings.
                     Button(action: onOpenSettings) {
-                        Image(systemName: "slider.horizontal.3")
+                        Image(systemName: "info.circle")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(ReplrTheme.Color.accent)
                             .frame(width: 30, height: 30)
