@@ -6,7 +6,6 @@ final class TonesViewModel: ObservableObject {
 
     var presets: [Tone] { tones.filter(\.isPreset) }
     var custom: [Tone]  { tones.filter { !$0.isPreset } }
-    var enabledCount: Int { tones.filter(\.isEnabled).count }
 
     /// Chat presets — the everyday set. Some also appear in Dating/Email (tagged in the row).
     var chatPresets: [Tone]   { tones.filter { $0.isPreset && Tone.chatToneNames.contains($0.name) } }
@@ -71,36 +70,28 @@ struct TonesView: View {
                 Section {
                     ForEach(vm.chatPresets) { tone in
                         PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) },
-                                      showDragHandle: true, modeTags: sharedTags(for: tone),
+                                      modeTags: sharedTags(for: tone),
                                       lockedOn: tone.name == "Natural")
                             .listRowBackground(ReplrTheme.Color.surface)
                             .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                     }
                     .onMove { vm.moveChatPresets(from: $0, to: $1) }
                 } header: {
-                    HStack {
-                        Text("Chat")
-                            .foregroundStyle(ReplrTheme.Color.textSecondary)
-                        Spacer()
-                        Text("\(vm.enabledCount) on keyboard")
-                            .font(.caption)
-                            .foregroundStyle(ReplrTheme.Color.accent)
-                    }
+                    sectionHeader("Chat", enabled: vm.chatPresets.filter(\.isEnabled).count)
                 } footer: {
-                    Text("Tap the toggle to add or remove a tone from your keyboard. Drag the ≡ handle to reorder. Tones tagged Dating or Email also appear in those modes.")
+                    Text("Tap the toggle to add or remove a tone from your keyboard. Tap Edit to reorder. Tones tagged Dating or Email also appear in those modes.")
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
 
                 Section {
                     ForEach(vm.datingPresets) { tone in
-                        PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) }, showDragHandle: true)
+                        PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) })
                             .listRowBackground(ReplrTheme.Color.surface)
                             .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                     }
                     .onMove { vm.moveDatingPresets(from: $0, to: $1) }
                 } header: {
-                    Text("Dating")
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                    sectionHeader("Dating", enabled: vm.datingPresets.filter(\.isEnabled).count)
                 } footer: {
                     Text("Only shown in the keyboard's Dating mode.")
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
@@ -108,14 +99,13 @@ struct TonesView: View {
 
                 Section {
                     ForEach(vm.emailPresets) { tone in
-                        PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) }, showDragHandle: true)
+                        PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) })
                             .listRowBackground(ReplrTheme.Color.surface)
                             .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                     }
                     .onMove { vm.moveEmailPresets(from: $0, to: $1) }
                 } header: {
-                    Text("Email")
-                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                    sectionHeader("Email", enabled: vm.emailPresets.filter(\.isEnabled).count)
                 } footer: {
                     Text("Only shown in the keyboard's Email mode — the professional register.")
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
@@ -140,7 +130,7 @@ struct TonesView: View {
                 }
             }
             .scrollContentBackground(.hidden)
-            .background(ReplrTheme.Color.bg.ignoresSafeArea())
+            .brandScreenBackground()
             .tint(ReplrTheme.Color.accent)
             .navigationTitle("Tones")
             .toolbar {
@@ -155,6 +145,18 @@ struct TonesView: View {
                 ToneBuilderView(onSave: { vm.add($0); showBuilder = false })
             }
             .onAppear { vm.load() }
+        }
+    }
+
+    @ViewBuilder
+    private func sectionHeader(_ title: String, enabled: Int) -> some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(ReplrTheme.Color.textSecondary)
+            Spacer()
+            Text("\(enabled) on keyboard")
+                .font(.caption)
+                .foregroundStyle(ReplrTheme.Color.accent)
         }
     }
 
@@ -177,37 +179,31 @@ struct TonesView: View {
 struct PresetToneRow: View {
     let tone: Tone
     let onToggle: () -> Void
-    var showDragHandle: Bool = false
     /// Extra modes this tone appears in (capsule tags after the name).
     var modeTags: [String] = []
     /// Natural: the always-on baseline — no toggle, can't be disabled.
     var lockedOn: Bool = false
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             RoundedRectangle(cornerRadius: 2, style: .continuous)
                 .fill(ReplrTheme.Color.accent.opacity(tone.isEnabled ? 0.85 : 0.2))
                 .frame(width: 3, height: 34)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(tone.name).font(.headline)
-                    if tone.isPreset && tone.isEnabled && isDefaultPreset(tone) {
-                        Text("default")
-                            .font(.caption2.weight(.medium))
-                            .foregroundStyle(ReplrTheme.Color.accent)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 2)
-                            .background(ReplrTheme.Color.accentSubtle)
-                            .clipShape(Capsule())
-                    }
-                    ForEach(modeTags, id: \.self) { tag in
-                        Text(tag)
-                            .font(.caption2.weight(.medium))
-                            .foregroundStyle(ReplrTheme.Color.textSecondary)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 2)
-                            .background(ReplrTheme.Color.surfaceRaised)
-                            .clipShape(Capsule())
+            VStack(alignment: .leading, spacing: 3) {
+                // Name owns its line — tags live below, so it can never squeeze
+                // into a hyphenated wrap no matter how many tags a tone carries.
+                Text(tone.name)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .layoutPriority(1)
+                if lockedOn || showsDefaultTag || !modeTags.isEmpty {
+                    HStack(spacing: 4) {
+                        if lockedOn {
+                            tagCapsule("Always on", prominent: true)
+                        } else if showsDefaultTag {
+                            tagCapsule("default", prominent: true)
+                        }
+                        ForEach(modeTags, id: \.self) { tagCapsule($0, prominent: false) }
                     }
                 }
                 Text(tone.blurb.isEmpty ? tone.instruction : tone.blurb)
@@ -216,27 +212,27 @@ struct PresetToneRow: View {
                     .lineLimit(2)
             }
             Spacer()
-            if lockedOn {
-                Text("Always on")
-                    .font(.caption)
-                    .foregroundStyle(ReplrTheme.Color.textTertiary)
-            } else {
+            if !lockedOn {
                 Toggle("", isOn: Binding(get: { tone.isEnabled }, set: { _ in onToggle() }))
                     .labelsHidden()
                     .tint(ReplrTheme.Color.accent)
-            }
-            if showDragHandle {
-                Image(systemName: "line.3.horizontal")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(ReplrTheme.Color.textTertiary)
-                    .padding(.leading, 4)
             }
         }
         .padding(.vertical, 2)
     }
 
-    private func isDefaultPreset(_ tone: Tone) -> Bool {
+    private var showsDefaultTag: Bool {
         // Natural = chat/email default; Tease = dating default (ModeSegmentedControl fallback).
-        tone.name == "Natural" || tone.name == "Tease"
+        tone.isPreset && tone.isEnabled && (tone.name == "Natural" || tone.name == "Tease")
+    }
+
+    private func tagCapsule(_ label: String, prominent: Bool) -> some View {
+        Text(label)
+            .font(.caption2.weight(.medium))
+            .foregroundStyle(prominent ? ReplrTheme.Color.accent : ReplrTheme.Color.textSecondary)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .background(prominent ? ReplrTheme.Color.accentSubtle : ReplrTheme.Color.surfaceRaised)
+            .clipShape(Capsule())
     }
 }
