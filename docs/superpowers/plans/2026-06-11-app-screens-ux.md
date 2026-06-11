@@ -660,6 +660,7 @@ struct ScreenshotSettingsView: View {
     @State private var autoClear = AppGroupService.shared.autoClearScreenshots
     @State private var deleteAfterEach = AppGroupService.shared.deleteScreenshotAfterEach
     @State private var pendingShots = ScreenshotCleaner.pendingCount()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         ScrollView {
@@ -700,6 +701,8 @@ struct ScreenshotSettingsView: View {
                         .buttonStyle(.plain)
                     }
                 }
+                .animation(ReplrTheme.Motion.quick, value: autoClear)
+                .animation(ReplrTheme.Motion.quick, value: pendingShots)
 
                 Text("Only deletes screenshots Replr captured for replies, never your other photos. Cleanup runs the next time you open Replr (iOS can't let the keyboard delete photos on its own), and iOS asks you to confirm.")
                     .font(.system(size: 12))
@@ -726,6 +729,9 @@ struct ScreenshotSettingsView: View {
         .navigationTitle("Screenshots")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { pendingShots = ScreenshotCleaner.pendingCount() }
+        .onChange(of: scenePhase) { phase in
+            if phase == .active { pendingShots = ScreenshotCleaner.pendingCount() }
+        }
     }
 }
 ```
