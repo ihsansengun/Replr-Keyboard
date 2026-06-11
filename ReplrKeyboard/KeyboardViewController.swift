@@ -149,11 +149,26 @@ final class KeyboardViewController: UIInputViewController {
                 self.model.captureBaselineScreenshotID = PhotosCapture.latestScreenshotID()
                 self.model.collapseStartedAt = Date()
                 self.model.showFullScreenPreviewHint = false
-                let ctx = self.model.pendingContext
+                // Read the field FRESH at save time, both sides of the cursor —
+                // trusting the cached model value (or before-cursor text alone)
+                // is how intents got saved half-typed. Fall back to the model
+                // value only if the proxy momentarily returns nothing.
+                let before = self.textDocumentProxy.documentContextBeforeInput ?? ""
+                let after  = self.textDocumentProxy.documentContextAfterInput ?? ""
+                let ctx = (before + after).isEmpty ? self.model.pendingContext : before + after
                 AppGroupService.shared.savePendingContext(ctx)
-                let fieldText = self.textDocumentProxy.documentContextBeforeInput ?? ""
-                for _ in fieldText.unicodeScalars { self.textDocumentProxy.deleteBackward() }
-                self.model.clearRepliesForCapture()
+                // Clear the WHOLE field: deleteBackward can't reach text after
+                // the cursor, so jump past the tail first, give the proxy a beat
+                // to apply the move, then delete everything.
+                if !after.isEmpty {
+                    self.textDocumentProxy.adjustTextPosition(byCharacterOffset: (after as NSString).length)
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) { [weak self] in
+                    guard let self else { return }
+                    let all = self.textDocumentProxy.documentContextBeforeInput ?? ""
+                    for _ in all.unicodeScalars { self.textDocumentProxy.deleteBackward() }
+                    self.model.clearRepliesForCapture()
+                }
             }
     }
 
@@ -227,14 +242,23 @@ final class KeyboardViewController: UIInputViewController {
         Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: 80_000_000) // 0.08 s
             guard let self else { return }
-            let draft = self.textDocumentProxy.documentContextBeforeInput ?? ""
-            self.model.pendingContext = draft
+            self.model.pendingContext = self.fullFieldText()
         }
     }
 
     override func textDidChange(_ textInput: UITextInput?) {
-        let draft = textDocumentProxy.documentContextBeforeInput ?? ""
-        model.pendingContext = draft   // display only — not saved to App Group
+        model.pendingContext = fullFieldText()   // display only — not saved to App Group
+    }
+
+    /// The field's text as completely as a keyboard can see it: BOTH sides of the
+    /// cursor. `documentContextBeforeInput` alone loses everything after the cursor
+    /// (mid-text edits, autocorrect taps) — the "only caught part of my intent" bug.
+    /// Some hosts additionally window the before-side to the current sentence; both
+    /// sides is the best read available without paging the cursor through the text.
+    private func fullFieldText() -> String {
+        let before = textDocumentProxy.documentContextBeforeInput ?? ""
+        let after  = textDocumentProxy.documentContextAfterInput ?? ""
+        return before + after
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
