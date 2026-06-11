@@ -38,6 +38,11 @@ final class KeyboardModel: ObservableObject {
     @Published var tones: [Tone] = []
     @Published var selectedTone: Tone
     @Published var needsGlobeKey: Bool = false
+    /// True when the keyboard runs without Full Access. Set in viewDidAppear (the
+    /// first point hasFullAccess is reliable). While true, FullAccessSetupView
+    /// replaces every state — without Full Access the keyboard can't reach the
+    /// network or the App Group, so anything else it could show is broken.
+    @Published var needsFullAccessSetup: Bool = false
     @Published var pendingContext: String = ""
     @Published var currentReplies: [String] = []
     @Published var contactName: String? = nil
@@ -400,7 +405,11 @@ struct KeyboardRootView: View {
         ZStack(alignment: .top) {
             // Background is handled by view.backgroundColor in KeyboardViewController (UIKit layer).
             // Do NOT put a greedy SwiftUI Color here — it defeats sizeThatFits measurement.
-            if model.isCollapsed {
+            if model.needsFullAccessSetup {
+                // 4.4.1: degrade to clear setup guidance, never to broken buttons or
+                // a bogus paywall (the App Group is unreadable here, so balance reads 0).
+                FullAccessSetupView(model: model).transition(.opacity)
+            } else if model.isCollapsed {
                 CollapsedStripView(model: model).transition(.opacity)
             } else {
                 switch model.state {
@@ -900,6 +909,89 @@ struct GlobeKeyButton: View {
                 .frame(width: 36, height: 30)
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Full Access Setup Card
+
+/// Shown instead of every other state while Full Access is off (App Review 4.4.1:
+/// the keyboard must stay presentable without it). Mirrors the limited-Photos card:
+/// what Replr needs, the exact Settings path, and a Settings link — the one
+/// destination keyboards are allowed to open. The globe stays reachable throughout.
+struct FullAccessSetupView: View {
+    @ObservedObject var model: KeyboardModel
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                ReplrMark(size: 16)
+                Spacer()
+                if model.needsGlobeKey {
+                    GlobeKeyButton(model: model)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+
+            Spacer(minLength: 0)
+
+            VStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(ReplrTheme.Color.accent)
+                        .frame(width: 52, height: 52)
+                        .blur(radius: 18)
+                        .opacity(colorScheme == .dark ? 0.28 : 0.14)
+                    Image(systemName: "keyboard.badge.ellipsis")
+                        .font(.system(size: 26, weight: .medium))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                }
+
+                VStack(spacing: 5) {
+                    Text("Allow Full Access to use Replr")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(ReplrTheme.Color.textPrimary)
+                    Text("Replr sends your screenshot to draft replies — iOS only allows that with Full Access on.")
+                        .font(.system(size: 12.5))
+                        .foregroundColor(ReplrTheme.Color.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("Settings → Replr → Keyboards → Allow Full Access")
+                        .font(.system(size: 11.5, weight: .medium))
+                        .foregroundColor(ReplrTheme.Color.textTertiary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.horizontal, 8)
+
+                if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                    Link(destination: settingsURL) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "gear").font(.system(size: 13, weight: .semibold))
+                            Text("Open Settings →").font(.system(size: 14, weight: .semibold))
+                        }
+                        .foregroundColor(ReplrTheme.Color.onAccent)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .background(
+                            Capsule(style: .continuous)
+                                .fill(ReplrTheme.Color.brandGradient)
+                                .overlay(ShimmerOverlay(cornerRadius: 22))
+                        )
+                        .shadow(
+                            color: colorScheme == .dark ? ReplrTheme.Color.accent.opacity(0.45) : .black.opacity(0.10),
+                            radius: colorScheme == .dark ? 14 : 6, x: 0, y: colorScheme == .dark ? 5 : 3
+                        )
+                    }
+                    .padding(.horizontal, 18)
+                }
+            }
+            .padding(.horizontal, 20)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(ReplrTheme.Color.bg)
     }
 }
 

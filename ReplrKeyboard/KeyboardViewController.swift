@@ -101,6 +101,12 @@ final class KeyboardViewController: UIInputViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] combined, detectedID in
                 guard let self else { return }
+                // Setup card owns the keyboard while Full Access is off — pin its
+                // height so the (invisible) state churn below can't resize it.
+                if self.model.needsFullAccessSetup {
+                    self.setHeight(260)
+                    return
+                }
                 let (((state, isCaptureMode), inputMode), isCollapsed) = combined
                 if isCaptureMode {
                     self.setHeight(0, duration: 0.15)
@@ -190,7 +196,10 @@ final class KeyboardViewController: UIInputViewController {
             model.repliesGeneratedInMode = .chat
             model.state = .replies(cached)
         }
-        if AppGroupService.shared.effectiveCreditBalance == 0 {
+        // Skip while Full Access is off: the App Group is unreadable then, so the
+        // balance reads 0 and this would paint a bogus paywall. The setup card owns
+        // that case (flag set in viewDidAppear, where hasFullAccess is reliable).
+        if AppGroupService.shared.effectiveCreditBalance == 0, !model.needsFullAccessSetup {
             model.state = .paywall
         }
         startCapturePoll()
@@ -204,6 +213,12 @@ final class KeyboardViewController: UIInputViewController {
             AppGroupService.shared.keyboardInstalled = true
             AppGroupService.shared.fullAccessGranted = true
         }
+        // 4.4.1: without Full Access nothing below can work (no network, no App Group —
+        // the balance even reads 0 and would front a bogus paywall). Swap the whole
+        // keyboard for the setup card instead. Granting access in Settings restarts
+        // the extension process, so the next appearance re-evaluates cleanly.
+        model.needsFullAccessSetup = !hasFullAccess
+        if model.needsFullAccessSetup { setHeight(260) }
         // Connection to host app is established by now — safe to read needsInputModeSwitchKey.
         model.needsGlobeKey = needsInputModeSwitchKey
         // Check for a screenshot taken before the keyboard opened (within 5-minute window).
@@ -290,6 +305,13 @@ final class KeyboardViewController: UIInputViewController {
         capturePollingTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
+                // Without Full Access every read below returns empty/0 — mirroring
+                // them would only paint wrong states behind the setup card. Idle until
+                // access is granted (which restarts the extension process anyway).
+                if await MainActor.run(body: { self.model.needsFullAccessSetup }) {
+                    try? await Task.sleep(nanoseconds: 250_000_000)
+                    continue
+                }
                 if AppGroupService.shared.effectiveCreditBalance == 0 {
                     await MainActor.run {
                         withAnimation(.easeInOut(duration: 0.2)) { self.model.state = .paywall }
