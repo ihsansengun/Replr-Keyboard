@@ -1263,7 +1263,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Files:**
 - Modify: `Replr/Replr/Features/Captures/HistoryView.swift`
 
-- [ ] **Step 1: Person header replaces the memory banner**
+- [x] **Step 1: Person header replaces the memory banner**
 
 In `HistoryView.swift`, replace the whole "Memory shortcut banner" block
 (`if let id = vm.selectedContactID, memoryEnabled, … ReplrTheme.Color.glassBorder.frame(height: 0.5)`)
@@ -1352,7 +1352,7 @@ Add state and the sheet (next to the existing `memoryContact` sheet):
         }
 ```
 
-- [ ] **Step 2: Card cleanup**
+- [x] **Step 2: Card cleanup**
 
 In `CaptureRowView` (same file):
 
@@ -1401,7 +1401,7 @@ d) At the call site in `HistoryView`, pass the flag:
                                                        showsContactName: vm.selectedContactID == nil)
 ```
 
-- [ ] **Step 3: Dev-gate the internals chips in CaptureDetailView**
+- [x] **Step 3: Dev-gate the internals chips in CaptureDetailView**
 
 Wrap both metric rows ("Capture intelligence" `HStack` and the tokens `if let input …`
 block) in:
@@ -1412,14 +1412,32 @@ block) in:
                 }
 ```
 
-- [ ] **Step 4: Build gate**
+- [x] **Step 4: Review follow-ups folded in (not in original plan)**
 
-Run the build command. Expected: `** BUILD SUCCEEDED **`.
+Two polish items from the Task 6 review were merged into this task:
 
-- [ ] **Step 5: Commit**
+  a) Alert copy: `"Clear all captures?"` → `"Clear all history?"` and message
+  `"This deletes all captured replies and conversation history. Memory paragraphs are kept."` →
+  `"This deletes your reply history. Memory is kept."`
+
+  b) Empty state button: replaced `TertiaryButton(label: "See how it works")` with an
+  accent `.foregroundStyle` text button (`font .semibold 15, minHeight 44, .buttonStyle(.plain)`)
+  so it reads as tappable without an implicit button style.
+
+- [x] **Step 4 (original): `formattedTimestamp` simplification** (not listed in original plan)
+
+  `CaptureRowView.formattedTimestamp` was simplified to `date.formatted(.dateTime.hour().minute())`
+  — day context is now carried by the section header (day-group label), so the row only needs
+  the time. The old multi-branch `Today · HH:mm` / `Yesterday · HH:mm` / full-date format is gone.
+
+- [x] **Step 5: Build gate**
+
+Run the build command. Expected: `** BUILD SUCCEEDED **`. ✓ Confirmed.
+
+- [x] **Step 6: Commit**
 
 ```bash
-git add Replr/Replr/Features/Captures/HistoryView.swift
+git add Replr/Replr/Features/Captures/HistoryView.swift docs/superpowers/plans/2026-06-11-app-screens-ux.md
 git commit -m "feat(ios): person header with memory entry; clearer cards; dev-only metric chips
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"

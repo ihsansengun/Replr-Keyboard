@@ -48,6 +48,7 @@ struct HistoryView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var showClearConfirm = false
     @State private var showTutorial = false
+    @State private var showMemorySettings = false
 
     var body: some View {
         NavigationStack {
@@ -75,26 +76,12 @@ struct HistoryView: View {
                         ReplrTheme.Color.glassBorder.frame(height: 0.5)
                     }
 
-                    // Memory shortcut banner
+                    // Person header — the contact's identity + memory entry point
                     if let id = vm.selectedContactID,
-                       memoryEnabled,
-                       let contact = vm.allContacts.first(where: { $0.id == id }),
-                       contactHasMemory(id: id) {
-                        Button { memoryContact = contact } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "sparkles").font(.system(size: 12))
-                                Text("View Memory for \(contact.displayName)")
-                                    .font(.system(size: 13, weight: .semibold))
-                                Spacer()
-                                Image(systemName: "chevron.right").font(.system(size: 11))
-                            }
-                            .foregroundStyle(ReplrTheme.Color.accent)
+                       let contact = vm.allContacts.first(where: { $0.id == id }) {
+                        personHeader(contact)
                             .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .background(ReplrTheme.Color.accentSubtle)
-                        }
-                        .buttonStyle(.plain)
-                        ReplrTheme.Color.glassBorder.frame(height: 0.5)
+                            .padding(.top, 10)
                     }
 
                     // Session cards, grouped by day
@@ -110,7 +97,8 @@ struct HistoryView: View {
                                     .padding(.top, 6)
                                 ForEach(group.items) { session in
                                     NavigationLink(destination: CaptureDetailView(session: session)) {
-                                        CaptureRowView(session: session)
+                                        CaptureRowView(session: session,
+                                                       showsContactName: vm.selectedContactID == nil)
                                     }
                                     .buttonStyle(.plain)
                                     .brandCard()
@@ -144,11 +132,11 @@ struct HistoryView: View {
                     }
                 }
             }
-            .alert("Clear all captures?", isPresented: $showClearConfirm) {
+            .alert("Clear all history?", isPresented: $showClearConfirm) {
                 Button("Cancel", role: .cancel) {}
                 Button("Clear", role: .destructive) { vm.clearAll() }
             } message: {
-                Text("This deletes all captured replies and conversation history. Memory paragraphs are kept.")
+                Text("This deletes your reply history. Memory is kept.")
             }
         }
         .onAppear {
@@ -171,6 +159,9 @@ struct HistoryView: View {
                 })
             }
         }
+        .sheet(isPresented: $showMemorySettings) {
+            NavigationStack { MemorySettingsView() }
+        }
         .fullScreenCover(isPresented: $showTutorial) {
             UsageTutorialView(onDone: { showTutorial = false })
         }
@@ -192,7 +183,13 @@ struct HistoryView: View {
             Text("Replies you generate show up here")
                 .font(ReplrTheme.Font.headline)
                 .foregroundStyle(ReplrTheme.Color.textPrimary)
-            TertiaryButton(label: "See how it works") { showTutorial = true }
+            Button { showTutorial = true } label: {
+                Text("See how it works")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(ReplrTheme.Color.accent)
+                    .frame(minHeight: 44)
+            }
+            .buttonStyle(.plain)
             Spacer()
             Spacer()
         }
@@ -217,12 +214,71 @@ struct HistoryView: View {
     private func contactHasMemory(id: UUID) -> Bool {
         AppGroupService.shared.sessions(forContactID: id).contains { $0.llmSummary != nil }
     }
+
+    private func rememberedCount(id: UUID) -> Int {
+        AppGroupService.shared.sessions(forContactID: id).filter { $0.llmSummary != nil }.count
+    }
+
+    @ViewBuilder
+    private func personHeader(_ contact: Contact) -> some View {
+        let replies = vm.filteredSessions.count
+        let remembered = rememberedCount(id: contact.id)
+        HStack(spacing: 12) {
+            Circle()
+                .fill(ReplrTheme.Color.accentSubtle)
+                .frame(width: 36, height: 36)
+                .overlay(
+                    Text(String(contact.displayName.prefix(1)).uppercased())
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(ReplrTheme.Color.accent)
+                )
+            VStack(alignment: .leading, spacing: 2) {
+                Text(contact.displayName)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(ReplrTheme.Color.textPrimary)
+                Text(memoryEnabled
+                     ? HistoryLogic.personSubtitle(replies: replies, remembered: remembered)
+                     : "Memory is off — turn on in Settings")
+                    .font(.system(size: 12))
+                    .foregroundStyle(ReplrTheme.Color.textSecondary)
+            }
+            Spacer()
+            if !memoryEnabled {
+                Button { showMemorySettings = true } label: {
+                    memoryPill(label: "Memory settings")
+                }
+                .buttonStyle(.plain)
+            } else if remembered > 0 {
+                Button { memoryContact = contact } label: {
+                    memoryPill(label: "Memory")
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(12)
+        .background(ReplrTheme.Color.accentSubtle.opacity(0.6))
+        .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                .strokeBorder(ReplrTheme.Color.accent.opacity(0.25), lineWidth: 1)
+        )
+    }
+
+    private func memoryPill(label: String) -> some View {
+        Text(label)
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(ReplrTheme.Color.accent)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(Capsule().strokeBorder(ReplrTheme.Color.accent.opacity(0.5), lineWidth: 1))
+    }
 }
 
 // MARK: - Session row card content
 
 struct CaptureRowView: View {
     let session: CaptureSession
+    var showsContactName: Bool = true
 
     var body: some View {
         HStack(spacing: 14) {
@@ -237,7 +293,7 @@ struct CaptureRowView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 } else {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(ReplrTheme.Color.surfaceRaised)
+                        .fill(ReplrTheme.Color.accentSubtle.opacity(0.5))
                         .frame(width: 48, height: 82)
                         .overlay(
                             Image(systemName: "text.bubble")
@@ -249,18 +305,11 @@ struct CaptureRowView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .center, spacing: 6) {
-                    if let name = session.contactName {
-                        HStack(spacing: 4) {
-                            Text(name)
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(ReplrTheme.Color.textPrimary)
-                                .lineLimit(1)
-                            if hasMemory {
-                                Image(systemName: "sparkles")
-                                    .font(.system(size: 9, weight: .semibold))
-                                    .foregroundStyle(ReplrTheme.Color.accent)
-                            }
-                        }
+                    if let name = session.contactName, showsContactName {
+                        Text(name)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(ReplrTheme.Color.textPrimary)
+                            .lineLimit(1)
                     }
                     Spacer()
                     Text(formattedTimestamp(session.timestamp))
@@ -295,7 +344,7 @@ struct CaptureRowView: View {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 10))
                                 .foregroundStyle(ReplrTheme.Color.accent)
-                            Text(selected)
+                            Text("Used: \u{201C}\(selected)\u{201D}")
                                 .font(.caption)
                                 .foregroundStyle(ReplrTheme.Color.textSecondary)
                                 .lineLimit(1)
@@ -311,17 +360,8 @@ struct CaptureRowView: View {
         .padding(14)
     }
 
-    private var hasMemory: Bool {
-        guard let id = session.contactID else { return false }
-        return AppGroupService.shared.sessions(forContactID: id).contains { $0.llmSummary != nil }
-    }
-
     private func formattedTimestamp(_ date: Date) -> String {
-        let cal = Calendar.current
-        let time = date.formatted(.dateTime.hour().minute())
-        if cal.isDateInToday(date) { return "Today · \(time)" }
-        if cal.isDateInYesterday(date) { return "Yesterday · \(time)" }
-        return date.formatted(.dateTime.month(.abbreviated).day().hour().minute())
+        date.formatted(.dateTime.hour().minute())
     }
 }
 
@@ -352,22 +392,24 @@ struct CaptureDetailView: View {
                     }
                 }
 
-                // Capture intelligence
-                HStack(spacing: 10) {
-                    if let tone = session.toneName {
-                        infoChip(icon: "waveform", label: tone)
-                    }
-                    if let model = session.modelUsed {
-                        infoChip(icon: "cpu", label: model)
-                    }
-                    if let cost = session.costUsd {
-                        infoChip(icon: "dollarsign.circle", label: String(format: "$%.4f", cost))
-                    }
-                }
-                if let input = session.inputTokens, let output = session.outputTokens {
+                if AppGroupService.shared.devMode {
+                    // Capture intelligence
                     HStack(spacing: 10) {
-                        infoChip(icon: "arrow.down.circle", label: "\(input) in")
-                        infoChip(icon: "arrow.up.circle", label: "\(output) out")
+                        if let tone = session.toneName {
+                            infoChip(icon: "waveform", label: tone)
+                        }
+                        if let model = session.modelUsed {
+                            infoChip(icon: "cpu", label: model)
+                        }
+                        if let cost = session.costUsd {
+                            infoChip(icon: "dollarsign.circle", label: String(format: "$%.4f", cost))
+                        }
+                    }
+                    if let input = session.inputTokens, let output = session.outputTokens {
+                        HStack(spacing: 10) {
+                            infoChip(icon: "arrow.down.circle", label: "\(input) in")
+                            infoChip(icon: "arrow.up.circle", label: "\(output) out")
+                        }
                     }
                 }
 
