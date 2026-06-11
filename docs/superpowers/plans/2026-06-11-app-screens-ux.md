@@ -82,6 +82,21 @@ struct HistoryLogicTests {
         #expect(groups.map(\.label) == ["Today", "Yesterday", "Jun 9"])
         #expect(groups[0].items == [date(2026, 6, 11, 15), date(2026, 6, 11, 9)])
         #expect(groups[1].items == [date(2026, 6, 10, 22)])
+        #expect(groups.map(\.day) == [cal.startOfDay(for: date(2026, 6, 11)),
+                                      cal.startOfDay(for: date(2026, 6, 10)),
+                                      cal.startOfDay(for: date(2026, 6, 9))])
+    }
+
+    @Test func dayLabelAppendsYearForOtherYears() {
+        let now = date(2026, 6, 11)
+        #expect(HistoryLogic.dayLabel(for: date(2025, 6, 9), now: now, calendar: cal, locale: en) == "Jun 9, 2025")
+        #expect(HistoryLogic.dayLabel(for: date(2026, 6, 9), now: now, calendar: cal, locale: en) == "Jun 9")
+    }
+
+    @Test func dayLabelAcrossDSTBoundary() {
+        // Europe/London springs forward on 29 Mar 2026.
+        let now = date(2026, 3, 29)
+        #expect(HistoryLogic.dayLabel(for: date(2026, 3, 28), now: now, calendar: cal, locale: en) == "Yesterday")
     }
 
     @Test func personSubtitles() {
@@ -127,17 +142,23 @@ enum HistoryLogic {
         if calendar.isDate(date, inSameDayAs: now) { return "Today" }
         if let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
            calendar.isDate(date, inSameDayAs: yesterday) { return "Yesterday" }
-        return date.formatted(.dateTime.month(.abbreviated).day().locale(locale))
+        var style = Date.FormatStyle(locale: locale, calendar: calendar, timeZone: calendar.timeZone)
+            .month(.abbreviated).day()
+        if !calendar.isDate(date, equalTo: now, toGranularity: .year) {
+            style = style.year()
+        }
+        return date.formatted(style)
     }
 
     /// Buckets newest-first items into day sections, newest day first.
     /// Order within a day is preserved from the input.
     static func dayGroups<T>(_ items: [T], date: (T) -> Date, now: Date = Date(),
                              calendar: Calendar = .current, locale: Locale = .current)
-        -> [(label: String, items: [T])] {
+        -> [(day: Date, label: String, items: [T])] {
         let byDay = Dictionary(grouping: items) { calendar.startOfDay(for: date($0)) }
         return byDay.keys.sorted(by: >).map { day in
-            (label: dayLabel(for: day, now: now, calendar: calendar, locale: locale),
+            (day: day,
+             label: dayLabel(for: day, now: now, calendar: calendar, locale: locale),
              items: byDay[day] ?? [])
         }
     }
@@ -1110,7 +1131,7 @@ with day sections:
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 10) {
                             ForEach(HistoryLogic.dayGroups(vm.filteredSessions, date: \.timestamp),
-                                    id: \.label) { group in
+                                    id: \.day) { group in
                                 Text(group.label.uppercased())
                                     .font(.system(size: 11, weight: .semibold))
                                     .tracking(1.0)

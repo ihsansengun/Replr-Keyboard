@@ -28,6 +28,21 @@ struct HistoryLogicTests {
         #expect(groups.map(\.label) == ["Today", "Yesterday", "Jun 9"])
         #expect(groups[0].items == [date(2026, 6, 11, 15), date(2026, 6, 11, 9)])
         #expect(groups[1].items == [date(2026, 6, 10, 22)])
+        #expect(groups.map(\.day) == [cal.startOfDay(for: date(2026, 6, 11)),
+                                      cal.startOfDay(for: date(2026, 6, 10)),
+                                      cal.startOfDay(for: date(2026, 6, 9))])
+    }
+
+    @Test func dayLabelAppendsYearForOtherYears() {
+        let now = date(2026, 6, 11)
+        #expect(HistoryLogic.dayLabel(for: date(2025, 6, 9), now: now, calendar: cal, locale: en) == "Jun 9, 2025")
+        #expect(HistoryLogic.dayLabel(for: date(2026, 6, 9), now: now, calendar: cal, locale: en) == "Jun 9")
+    }
+
+    @Test func dayLabelAcrossDSTBoundary() {
+        // Europe/London springs forward on 29 Mar 2026.
+        let now = date(2026, 3, 29)
+        #expect(HistoryLogic.dayLabel(for: date(2026, 3, 28), now: now, calendar: cal, locale: en) == "Yesterday")
     }
 
     @Test func personSubtitles() {
