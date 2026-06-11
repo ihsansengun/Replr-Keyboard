@@ -2,7 +2,7 @@ import Combine
 import SwiftUI
 import UIKit
 
-final class RepliesViewModel: ObservableObject {
+final class HistoryViewModel: ObservableObject {
     @Published var sessions: [CaptureSession] = []
     @Published var selectedContactID: UUID? = nil
 
@@ -43,7 +43,7 @@ final class RepliesViewModel: ObservableObject {
 
 struct HistoryView: View {
     let activeTab: TabSelection
-    @StateObject private var vm = RepliesViewModel()
+    @StateObject private var vm = HistoryViewModel()
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
     @State private var memoryContact: Contact? = nil
     @Environment(\.scenePhase) private var scenePhase
@@ -210,18 +210,12 @@ struct HistoryView: View {
     @ViewBuilder
     private func filterChip(label: String, id: UUID?) -> some View {
         let isSelected = vm.selectedContactID == id
-        let showSparkles = id.map { contactHasMemory(id: $0) && memoryEnabled } ?? false
         Chip(
             label: label,
             isSelected: isSelected,
-            icon: showSparkles ? "sparkles" : nil,
             action: { vm.selectedContactID = id }
         )
         .frame(maxWidth: 160)
-    }
-
-    private func contactHasMemory(id: UUID) -> Bool {
-        AppGroupService.shared.sessions(forContactID: id).contains { $0.llmSummary != nil }
     }
 
     private func rememberedCount(id: UUID) -> Int {

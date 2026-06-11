@@ -55,7 +55,9 @@ Build gate:
 cd Replr && xcodebuild -project Replr.xcodeproj -scheme Replr \
   -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' build
 ```
-Run tests from Xcode: ⌘U (scheme `ReplrTests`). SourceKit errors like "No such
+Run tests from Xcode: ⌘U (scheme `Replr`), or CLI:
+`xcodebuild test -scheme Replr … -only-testing:ReplrTests` (there is no separate
+ReplrTests scheme). SourceKit errors like "No such
 module 'UIKit'" or "Cannot find 'AppGroupService'" are false positives — xcodebuild
 is the source of truth.
 

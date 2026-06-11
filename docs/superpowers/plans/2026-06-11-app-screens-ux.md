@@ -2030,6 +2030,8 @@ git commit -m "docs: HANDOFF — app-screens redesign built, pending device pass
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
 
+Final review follow-ups: filter-chip sparkles actually dropped (was missed in Task 7), RepliesViewModel→HistoryViewModel rename completed, CLAUDE.md test-scheme line corrected.
+
 - [ ] **Step 5: Manual device pass (owner)**
 
 Hand back for the on-device review against the UX-taste checklist — no clipping,
