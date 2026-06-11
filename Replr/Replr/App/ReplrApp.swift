@@ -152,7 +152,7 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            RepliesView()
+            HistoryView()
                 .opacity(selectedTab == .replies ? 1 : 0)
                 .allowsHitTesting(selectedTab == .replies)
             MemoryView()

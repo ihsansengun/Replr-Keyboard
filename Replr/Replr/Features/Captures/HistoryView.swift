@@ -39,55 +39,19 @@ final class RepliesViewModel: ObservableObject {
     }
 }
 
-// MARK: - Replies tab
+// MARK: - History tab
 
-struct RepliesView: View {
+struct HistoryView: View {
     @StateObject private var vm = RepliesViewModel()
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
     @State private var memoryContact: Contact? = nil
     @Environment(\.scenePhase) private var scenePhase
-    @State private var backTapSkipped = AppGroupService.shared.backTapSkipped
-    @State private var showSetupSheet = false
     @State private var showClearConfirm = false
+    @State private var showTutorial = false
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Back-tap setup banner
-                if backTapSkipped {
-                    HStack(spacing: 12) {
-                        Image(systemName: "hand.tap")
-                            .font(.system(size: 15))
-                            .foregroundStyle(ReplrTheme.Color.accent)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Finish setup")
-                                .font(.system(size: 13, weight: .semibold))
-                            Text("Set up Back Tap for one-gesture capture")
-                                .font(.system(size: 12))
-                                .foregroundStyle(ReplrTheme.Color.textSecondary)
-                        }
-                        Spacer()
-                        Button("Set up") { showSetupSheet = true }
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(ReplrTheme.Color.accent)
-                        Button {
-                            AppGroupService.shared.backTapSkipped = false
-                            backTapSkipped = false
-                        } label: {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 11))
-                                .foregroundStyle(ReplrTheme.Color.textSecondary)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(ReplrTheme.Color.accentSubtle)
-                    .overlay(alignment: .bottom) {
-                        ReplrTheme.Color.glassBorder.frame(height: 0.5)
-                    }
-                }
-
                 if vm.sessions.isEmpty {
                     emptyState
                 } else {
@@ -133,18 +97,27 @@ struct RepliesView: View {
                         ReplrTheme.Color.glassBorder.frame(height: 0.5)
                     }
 
-                    // Session cards
+                    // Session cards, grouped by day
                     ScrollView {
-                        LazyVStack(spacing: 10) {
-                            ForEach(vm.filteredSessions) { session in
-                                NavigationLink(destination: CaptureDetailView(session: session)) {
-                                    CaptureRowView(session: session)
-                                }
-                                .buttonStyle(.plain)
-                                .brandCard()
-                                .contextMenu {
-                                    Button(role: .destructive) { vm.deleteSession(session) } label: {
-                                        Label("Delete", systemImage: "trash")
+                        LazyVStack(alignment: .leading, spacing: 10) {
+                            ForEach(HistoryLogic.dayGroups(vm.filteredSessions, date: \.timestamp),
+                                    id: \.day) { group in
+                                Text(group.label.uppercased())
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .tracking(1.0)
+                                    .foregroundStyle(ReplrTheme.Color.textSecondary)
+                                    .padding(.horizontal, 4)
+                                    .padding(.top, 6)
+                                ForEach(group.items) { session in
+                                    NavigationLink(destination: CaptureDetailView(session: session)) {
+                                        CaptureRowView(session: session)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .brandCard()
+                                    .contextMenu {
+                                        Button(role: .destructive) { vm.deleteSession(session) } label: {
+                                            Label("Delete", systemImage: "trash")
+                                        }
                                     }
                                 }
                             }
@@ -154,24 +127,20 @@ struct RepliesView: View {
                 }
             }
             .background(ReplrTheme.Color.bg.ignoresSafeArea())
-            .navigationTitle("Replies")
+            .navigationTitle("History")
             .navigationBarTitleDisplayMode(.inline)
             .tint(ReplrTheme.Color.accent)
             .toolbar {
                 if !vm.sessions.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showClearConfirm = true
+                        Menu {
+                            Button(role: .destructive) { showClearConfirm = true } label: {
+                                Label("Clear all history", systemImage: "trash")
+                            }
                         } label: {
-                            Text("Clear all")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(ReplrTheme.Color.textSecondary)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Capsule().fill(ReplrTheme.Color.textPrimary.opacity(0.06)))
-                                .overlay(Capsule().strokeBorder(ReplrTheme.Color.textPrimary.opacity(0.14), lineWidth: 1))
+                            Image(systemName: "ellipsis.circle")
+                                .foregroundStyle(ReplrTheme.Color.accent)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -181,15 +150,11 @@ struct RepliesView: View {
             } message: {
                 Text("This deletes all captured replies and conversation history. Memory paragraphs are kept.")
             }
-            .sheet(isPresented: $showSetupSheet) {
-                BackTapSetupFullView(isPresented: $showSetupSheet)
-            }
         }
         .onAppear {
             AppGroupService.shared.synchronize()
             vm.load()
             memoryEnabled = AppGroupService.shared.memoryEnabled
-            backTapSkipped = AppGroupService.shared.backTapSkipped
         }
         .onChange(of: scenePhase) { phase in
             guard phase == .active else { return }
@@ -206,54 +171,32 @@ struct RepliesView: View {
                 })
             }
         }
+        .fullScreenCover(isPresented: $showTutorial) {
+            UsageTutorialView(onDone: { showTutorial = false })
+        }
     }
 
     // MARK: - Empty state
 
     private var emptyState: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             Spacer()
             ZStack {
                 Circle()
                     .fill(ReplrTheme.Color.accentSubtle)
                     .frame(width: 72, height: 72)
-                Image(systemName: "camera.viewfinder")
-                    .font(.system(size: 32))
+                Image(systemName: "clock")
+                    .font(.system(size: 30))
                     .foregroundStyle(ReplrTheme.Color.accent)
             }
-            VStack(spacing: 6) {
-                Text("Ready for your first reply")
-                    .font(ReplrTheme.Font.heading)
-                    .foregroundStyle(ReplrTheme.Color.textPrimary)
-                Text("Here's how to capture a chat:")
-                    .font(ReplrTheme.Font.callout)
-                    .foregroundStyle(ReplrTheme.Color.textSecondary)
-            }
-            VStack(alignment: .leading, spacing: 14) {
-                emptyHowToRow("1", "Open a chat and switch to the Replr keyboard (🌐).")
-                emptyHowToRow("2", "Tap \u{201C}Start\u{201D}, then screenshot the chat.")
-                emptyHowToRow("3", "Your replies show up here, and in the keyboard to tap in.")
-            }
-            .padding(.horizontal, 28)
+            Text("Replies you generate show up here")
+                .font(ReplrTheme.Font.headline)
+                .foregroundStyle(ReplrTheme.Color.textPrimary)
+            TertiaryButton(label: "See how it works") { showTutorial = true }
             Spacer()
             Spacer()
         }
         .frame(maxWidth: .infinity)
-    }
-
-    private func emptyHowToRow(_ n: String, _ text: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Text(n)
-                .font(.system(size: 13, weight: .bold).monospacedDigit())
-                .foregroundStyle(ReplrTheme.Color.onAccent)
-                .frame(width: 24, height: 24)
-                .background(Circle().fill(ReplrTheme.Color.accent))
-            Text(text)
-                .font(.system(size: 14))
-                .foregroundStyle(ReplrTheme.Color.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
-        }
     }
 
     // MARK: - Filter chip
