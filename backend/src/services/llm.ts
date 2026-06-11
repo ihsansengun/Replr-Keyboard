@@ -431,7 +431,9 @@ function buildContextBlock(summary?: string, previousContext?: string): string {
     parts.push(`MEMORY — PREVIOUS CONVERSATIONS WITH THIS CONTACT (oldest first, for context only):\n${previousContext}`)
   }
   if (summary) {
-    parts.push(`REPLY DIRECTION — what the user wants to say or the angle they want to take (this is not part of the chat — it is an instruction from the person generating replies). Build your replies around this intent. If it conflicts with the obvious response, follow this direction:\n${summary}`)
+    parts.push(`USER'S INSTRUCTION — the user typed this to steer the replies. It is NOT part of the conversation; it is a direct order from the person you are writing for:
+"${summary}"
+Every reply MUST carry out this instruction — the same intent in all options, varied only in wording and energy. It outranks the conversation's obvious next move, the tone's habits, and anything else in this prompt's context. If it names specific content (a plan, an answer, a question to ask, a thing to mention), that content must appear in every reply.`)
   }
   return parts.length > 0 ? parts.join('\n\n') + '\n\n' : ''
 }
