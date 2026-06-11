@@ -164,7 +164,7 @@ backend/src/
     session.ts        # Bearer token → authenticatedUserID (non-blocking)
   routes/
     reply.ts          # POST /reply — gate, charge, generate, refund
-    auth.ts           # POST /auth/apple — Sign in with Apple → session token (D1)
+    auth.ts           # POST /auth/apple — SIWA → session token (D1); DELETE /account — atomic wipe (5.1.1(v))
     credits.ts        # GET /, POST /migrate, POST /redeem (all require session)
     config.ts         # GET /config — shortcut URL + model catalog
     health.ts         # GET /health

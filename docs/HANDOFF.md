@@ -149,6 +149,51 @@ Remaining (user-triggered):
 
 Detail: `docs/superpowers/plans/2026-06-09-architecture-fixes.md`.
 
+### App Review compliance pass (2026-06-11 — code DONE; deploy + ASC items pending)
+
+Audited the keyboard against guideline 4.4.1 (+ 4.4 umbrella, 5.1.1(v)).
+Verdict: **no QWERTY needed** — "input functionality (e.g. typed characters)"
+is satisfied by tap-to-insert replies (emoji/AI-keyboard precedent: Bitmoji,
+Giphy, Rizz, YourMove). Globe handling, sticker rules, key repurposing, data
+collection: already clean. Three gaps fixed on `main`:
+
+- **Globe key in every state** (`4298f8f`): was only in ToneRow → paywall/
+  disambiguate (tone row hidden) and the collapsed strip left iPads +
+  home-button iPhones with no way to switch keyboards. `GlobeKeyButton` now
+  renders in the header when the tone row is hidden, and beside the capture
+  card in the strip.
+- **Full Access setup card** (`5383d99`): without Full Access the App Group is
+  unreadable → balance read 0 → a reviewer who skipped the toggle got a bogus
+  "out of credits" paywall + raw network errors. Now `needsFullAccessSetup`
+  (set in `viewDidAppear`, the first reliable `hasFullAccess` read) swaps the
+  whole keyboard for a setup card (Settings link — the one allowed app to
+  open — globe still reachable, height pinned 260); the App Group poll and the
+  paywall check are suppressed while it's up.
+- **Account deletion, 5.1.1(v)** (`dcc7c7e` backend + `e38e583` iOS):
+  `DELETE /auth/account` — session-authed atomic wipe of credit_ledger,
+  credits, paywall_events, sessions, users (3 tests; 113/113 green). Settings
+  → Account → red "Delete account" row (signed-in only) → confirmation
+  ("forfeits remaining credits") → clears Keychain + local balance via
+  signOut. Expired session says "sign in again", doesn't fake success.
+
+**⚠️ Deploy order: the backend must be deployed before the next app build
+ships** — the Settings row calls `DELETE /auth/account`; against the old
+worker it 404s (user sees a connection error). Not deployed yet (no ask).
+
+**ASC checklist for submission (user actions):**
+- **App Privacy labels**: disclose screenshots/user content sent to the server
+  for reply generation (linked to identity when signed in) and stored chat
+  summaries (match memory).
+- **App description** must mention the keyboard extension (4.4: "clearly and
+  accurately disclose what extensions are made available").
+- Keep the **in-keyboard paywall informational** — no prices/purchase UI inside
+  the keyboard (4.4 bans IAP/marketing in extensions). The "Open Replr →" deep
+  link is the accepted industry pattern; if a reviewer ever cites "launch other
+  apps besides Settings", fall back to instruction-only copy (10-min change).
+- Review runs universal apps on **iPad** (`TARGETED_DEVICE_FAMILY = 1,2`):
+  open the keyboard on an iPad simulator during the device pass — or decide to
+  ship iPhone-only.
+
 ---
 
 ## 2. Standing constraints (from the user — keep following)
