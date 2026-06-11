@@ -89,8 +89,9 @@ Blocks, top to bottom (each hidden when not applicable):
    - **About you**: caption "About you", value "Added ✓" / "Add". Opens the new
      `AboutYouView` editor (see Settings).
 
-Data refresh mirrors today's tab behavior: reload on `onAppear` + `scenePhase == .active`
-(`AppGroupService.synchronize()` first).
+Data refresh: reload on `onAppear`, `scenePhase == .active`, and own-tab activation
+(the tab shell keeps roots alive, so `onAppear` alone is not enough);
+`AppGroupService.synchronize()` first.
 
 ## Screen: History (rework of RepliesView)
 
@@ -124,6 +125,9 @@ Rename tab + title "Replies" → **"History"**. The type and file are renamed to
 - **Empty state**: simplified — icon, "Replies you generate show up here",
   "See how it works" tertiary button → tutorial. (Home teaches the steps now.)
 - **Back Tap banner**: removed (moved to Home, block 2).
+- **Tab-activation refresh**: the root reloads when the History tab becomes selected
+  (same reason as Home — the opacity ZStack shell keeps roots alive, so `onAppear`
+  fires only once per launch).
 
 ### CaptureDetailView (session detail)
 

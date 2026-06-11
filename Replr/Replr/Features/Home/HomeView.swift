@@ -28,7 +28,7 @@ final class HomeViewModel: ObservableObject {
 
 /// Mission control: setup state, credits, recent replies, personalization.
 struct HomeView: View {
-    var onSeeAll: () -> Void = {}
+    @Binding var selectedTab: TabSelection
     @StateObject private var vm = HomeViewModel()
     @ObservedObject private var credits = CreditsManager.shared
     @State private var showSetup = false
@@ -65,6 +65,9 @@ struct HomeView: View {
         .onAppear { vm.refresh() }
         .onChange(of: scenePhase) { phase in
             if phase == .active { vm.refresh() }
+        }
+        .onChange(of: selectedTab) { tab in
+            if tab == .home { vm.refresh() }
         }
         .sheet(isPresented: $showSetup) {
             OnboardingView(
@@ -243,7 +246,7 @@ struct HomeView: View {
                     .tracking(1.0)
                     .foregroundStyle(ReplrTheme.Color.textSecondary)
                 Spacer()
-                Button { onSeeAll() } label: {
+                Button { selectedTab = .history } label: {
                     Text("See all →")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(ReplrTheme.Color.accent)

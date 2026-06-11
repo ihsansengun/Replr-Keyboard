@@ -148,17 +148,17 @@ struct ReplrApp: App {
 }
 
 struct ContentView: View {
-    @State private var selectedTab: TabSelection = .replies
+    @State private var selectedTab: TabSelection = .home
 
     var body: some View {
         ZStack {
-            HistoryView()
-                .opacity(selectedTab == .replies ? 1 : 0)
-                .allowsHitTesting(selectedTab == .replies)
-            MemoryView()
-                .opacity(selectedTab == .memory ? 1 : 0)
-                .allowsHitTesting(selectedTab == .memory)
-            SettingsView()
+            HomeView(selectedTab: $selectedTab)
+                .opacity(selectedTab == .home ? 1 : 0)
+                .allowsHitTesting(selectedTab == .home)
+            HistoryView(activeTab: selectedTab)
+                .opacity(selectedTab == .history ? 1 : 0)
+                .allowsHitTesting(selectedTab == .history)
+            SettingsView(activeTab: selectedTab)
                 .opacity(selectedTab == .settings ? 1 : 0)
                 .allowsHitTesting(selectedTab == .settings)
         }

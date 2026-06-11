@@ -42,6 +42,7 @@ final class RepliesViewModel: ObservableObject {
 // MARK: - History tab
 
 struct HistoryView: View {
+    let activeTab: TabSelection
     @StateObject private var vm = RepliesViewModel()
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
     @State private var memoryContact: Contact? = nil
@@ -146,6 +147,12 @@ struct HistoryView: View {
         }
         .onChange(of: scenePhase) { phase in
             guard phase == .active else { return }
+            AppGroupService.shared.synchronize()
+            vm.load()
+            memoryEnabled = AppGroupService.shared.memoryEnabled
+        }
+        .onChange(of: activeTab) { tab in
+            guard tab == .history else { return }
             AppGroupService.shared.synchronize()
             vm.load()
             memoryEnabled = AppGroupService.shared.memoryEnabled

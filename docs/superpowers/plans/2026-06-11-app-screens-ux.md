@@ -1847,14 +1847,21 @@ Review carry-forward folded in (applied in separate review-fix commit):
 
 ---
 
-### Task 9: Tab wiring — Home in, Memory out
+### Task 9: Tab wiring — Home in, Memory out ✅ 2026-06-11
 
 **Files:**
 - Modify: `Replr/Replr/App/CustomTabBar.swift`
-- Modify: `Replr/Replr/App/ReplrApp.swift:150-167` (ContentView)
+- Modify: `Replr/Replr/App/ReplrApp.swift` (ContentView)
+- Modify: `Replr/Replr/Features/Home/HomeView.swift`
+- Modify: `Replr/Replr/Features/Captures/HistoryView.swift`
+- Modify: `Replr/Replr/Features/Settings/SettingsView.swift`
 - Delete: `Replr/Replr/Features/Memory/MemoryView.swift`
 
-- [ ] **Step 1: Update the enum and tab bar**
+**Carry-forward fixed here:** the opacity-ZStack shell keeps tab roots alive, so
+`onAppear` fires only once per launch. Each root now refreshes when its own tab becomes
+selected (binding/value param + `onChange`), in addition to `onAppear`/`scenePhase`.
+
+- [x] **Step 1: Update the enum and tab bar**
 
 In `CustomTabBar.swift`:
 
@@ -1865,14 +1872,14 @@ enum TabSelection: Hashable { case home, history, settings }
 and the three buttons:
 
 ```swift
-            tabButton(.home,     icon: "house",     activeIcon: "house.fill",      label: "Home")
-            tabButton(.history,  icon: "clock",     activeIcon: "clock.fill",      label: "History")
-            tabButton(.settings, icon: "gearshape", activeIcon: "gearshape.fill",  label: "Settings")
+            tabButton(.home,     icon: "house",     activeIcon: "house.fill",     label: "Home")
+            tabButton(.history,  icon: "clock",     activeIcon: "clock.fill",     label: "History")
+            tabButton(.settings, icon: "gearshape", activeIcon: "gearshape.fill", label: "Settings")
 ```
 
-- [ ] **Step 2: Rewire ContentView**
+- [x] **Step 2: Rewire ContentView**
 
-In `ReplrApp.swift`, `ContentView` becomes:
+In `ReplrApp.swift`, `ContentView` becomes (`.task` blocks byte-identical to prior):
 
 ```swift
 struct ContentView: View {
@@ -1880,13 +1887,13 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            HomeView(onSeeAll: { selectedTab = .history })
+            HomeView(selectedTab: $selectedTab)
                 .opacity(selectedTab == .home ? 1 : 0)
                 .allowsHitTesting(selectedTab == .home)
-            HistoryView()
+            HistoryView(activeTab: selectedTab)
                 .opacity(selectedTab == .history ? 1 : 0)
                 .allowsHitTesting(selectedTab == .history)
-            SettingsView()
+            SettingsView(activeTab: selectedTab)
                 .opacity(selectedTab == .settings ? 1 : 0)
                 .allowsHitTesting(selectedTab == .settings)
         }
@@ -1906,7 +1913,39 @@ struct ContentView: View {
 }
 ```
 
-- [ ] **Step 3: Delete the Memory tab**
+- [x] **Step 3: HomeView — binding replaces closure + own-tab refresh**
+
+  a) `var onSeeAll: () -> Void = {}` → `@Binding var selectedTab: TabSelection`
+  b) "See all →" button action: `onSeeAll()` → `selectedTab = .history`
+  c) After `.onChange(of: scenePhase)` modifier, add:
+  ```swift
+          .onChange(of: selectedTab) { tab in
+              if tab == .home { vm.refresh() }
+          }
+  ```
+
+- [x] **Step 4: HistoryView — own-tab refresh**
+
+  a) First stored property (above `@StateObject`): `let activeTab: TabSelection`
+  b) After `.onChange(of: scenePhase)` modifier, add:
+  ```swift
+          .onChange(of: activeTab) { tab in
+              guard tab == .history else { return }
+              AppGroupService.shared.synchronize()
+              vm.load()
+              memoryEnabled = AppGroupService.shared.memoryEnabled
+          }
+  ```
+
+- [x] **Step 5: SettingsView — own-tab refresh**
+
+  a) First stored property (above `@AppStorage`): `let activeTab: TabSelection`
+  b) After `.onChange(of: scenePhase)` modifier, add:
+  ```swift
+          .onChange(of: activeTab) { tab in if tab == .settings { refresh() } }
+  ```
+
+- [x] **Step 6: Delete the Memory tab**
 
 ```bash
 git rm Replr/Replr/Features/Memory/MemoryView.swift
@@ -1915,20 +1954,31 @@ git rm Replr/Replr/Features/Memory/MemoryView.swift
 Then verify nothing else references it:
 
 ```bash
-grep -rn "MemoryView\b\|MemoryViewModel" --include="*.swift" Replr/Replr Replr/ReplrKeyboard Shared
+grep -rn "MemoryView\b\|MemoryViewModel\b" --include="*.swift" Replr/Replr Replr/ReplrKeyboard Shared | grep -v "MemorySettings"
 ```
-Expected: hits only in `MemorySettingsView.swift` (`MemorySettingsViewModel`,
-`MemorySettingsView`) — zero hits for the bare `MemoryView`/`MemoryViewModel` types.
+Expected: zero lines. ✓ Confirmed.
 
-- [ ] **Step 4: Build gate**
+- [x] **Step 7: Build gate**
 
-Run the build command. Expected: `** BUILD SUCCEEDED **`.
+Run the build command. Expected: `** BUILD SUCCEEDED **`. ✓ Confirmed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 8: Sanity greps**
+
+```bash
+grep -rn "case .replies\|case .memory\|\.replies\b\|\.memory\b\|onSeeAll" --include="*.swift" Replr/Replr Shared
+```
+Expected: zero hits for old TabSelection cases and closure. ✓ Confirmed (`.replies` hits
+in `ReplyResult` struct and `ReplyService` are unrelated `.replies` property names — not
+the `TabSelection` enum case).
+
+- [x] **Step 9: Commit**
 
 ```bash
 git add -A
 git commit -m "feat(ios): Home/History/Settings tabs — Home default, Memory tab retired
+
+Each tab root also refreshes on its own tab activation: the opacity
+ZStack shell keeps roots alive, so onAppear fires once per launch.
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```

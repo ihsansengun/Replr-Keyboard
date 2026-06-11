@@ -1,15 +1,15 @@
 import SwiftUI
 
-enum TabSelection: Hashable { case replies, memory, settings }
+enum TabSelection: Hashable { case home, history, settings }
 
 struct CustomTabBar: View {
     @Binding var selection: TabSelection
 
     var body: some View {
         HStack(spacing: 4) {
-            tabButton(.replies,  icon: "clock",     activeIcon: "clock.fill",      label: "Replies")
-            tabButton(.memory,   icon: "brain",     activeIcon: "brain.fill",       label: "Memory")
-            tabButton(.settings, icon: "gearshape", activeIcon: "gearshape.fill",   label: "Settings")
+            tabButton(.home,     icon: "house",     activeIcon: "house.fill",     label: "Home")
+            tabButton(.history,  icon: "clock",     activeIcon: "clock.fill",     label: "History")
+            tabButton(.settings, icon: "gearshape", activeIcon: "gearshape.fill", label: "Settings")
         }
         .padding(5)
         .background(
