@@ -276,7 +276,7 @@ gained an optional exclusive `onLongPress` — tap and hold never both fire.
    `docs/superpowers/specs/2026-06-11-app-screens-ux-design.md` (Home = setup +
    credits + recent + personalize; Memory tab folded into History's person
    header + Settings → Memory trust center; Settings root regrouped with
-   sub-screens; tab roots refresh on own-tab activation). Awaiting owner
+   sub-screens; tabs reset to their root on every switch). Awaiting owner
    device pass (dark + light) before merge — checklist in the spec's Testing
    section, plus: Back Tap row returns after re-running Finish setup
    (re-prompt by design), row needs manual ✕ after real Back Tap setup

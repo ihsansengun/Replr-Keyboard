@@ -151,16 +151,15 @@ struct ContentView: View {
     @State private var selectedTab: TabSelection = .home
 
     var body: some View {
-        ZStack {
-            HomeView(selectedTab: $selectedTab)
-                .opacity(selectedTab == .home ? 1 : 0)
-                .allowsHitTesting(selectedTab == .home)
-            HistoryView(activeTab: selectedTab)
-                .opacity(selectedTab == .history ? 1 : 0)
-                .allowsHitTesting(selectedTab == .history)
-            SettingsView(activeTab: selectedTab)
-                .opacity(selectedTab == .settings ? 1 : 0)
-                .allowsHitTesting(selectedTab == .settings)
+        // Recreate-on-select: each tab mounts fresh, so returning to a tab always
+        // lands on its root (owner device-pass call — never a stale pushed screen),
+        // and onAppear covers the per-activation data refresh.
+        Group {
+            switch selectedTab {
+            case .home:     HomeView(selectedTab: $selectedTab)
+            case .history:  HistoryView()
+            case .settings: SettingsView()
+            }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             CustomTabBar(selection: $selectedTab)

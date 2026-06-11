@@ -42,7 +42,6 @@ final class HistoryViewModel: ObservableObject {
 // MARK: - History tab
 
 struct HistoryView: View {
-    let activeTab: TabSelection
     @StateObject private var vm = HistoryViewModel()
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
     @State private var memoryContact: Contact? = nil
@@ -143,10 +142,6 @@ struct HistoryView: View {
         .onAppear(perform: refresh)
         .onChange(of: scenePhase) { phase in
             guard phase == .active else { return }
-            refresh()
-        }
-        .onChange(of: activeTab) { tab in
-            guard tab == .history else { return }
             refresh()
         }
         .sheet(item: $memoryContact) { contact in
@@ -438,41 +433,32 @@ struct CaptureDetailView: View {
                     }
                 }
 
-                detailSection("Generated Replies") {
-                    VStack(spacing: 0) {
-                        ForEach(Array(session.generatedReplies.enumerated()), id: \.offset) { idx, reply in
-                            if idx > 0 {
-                                ReplrTheme.Color.glassBorder.frame(height: 0.5).padding(.horizontal, 14)
-                            }
-                            HStack(alignment: .top, spacing: 12) {
-                                Text(reply)
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(ReplrTheme.Color.textPrimary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                VStack(spacing: 8) {
-                                    Button {
-                                        UIPasteboard.general.string = reply
-                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                        withAnimation(.spring(response: 0.25)) { copiedReply = reply }
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                            withAnimation { if copiedReply == reply { copiedReply = nil } }
-                                        }
-                                    } label: {
-                                        Image(systemName: copiedReply == reply ? "checkmark" : "doc.on.doc")
-                                            .font(.system(size: 14))
-                                            .foregroundStyle(ReplrTheme.Color.accent)
-                                            .animation(.spring(response: 0.25), value: copiedReply)
-                                    }
-                                    .buttonStyle(.plain)
-                                    if reply == session.selectedReply {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .font(.system(size: 14))
-                                            .foregroundStyle(ReplrTheme.Color.accent)
-                                    }
+                // Generated options live in the keyboard, where they're actionable.
+                // History records the conversation + the one reply that was used.
+                if let used = session.selectedReply {
+                    detailSection("Sent Reply") {
+                        HStack(alignment: .top, spacing: 12) {
+                            Text(used)
+                                .font(.system(size: 15))
+                                .foregroundStyle(ReplrTheme.Color.textPrimary)
+                                .lineSpacing(3)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Button {
+                                UIPasteboard.general.string = used
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                withAnimation(.spring(response: 0.25)) { copiedReply = used }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                    withAnimation { if copiedReply == used { copiedReply = nil } }
                                 }
+                            } label: {
+                                Image(systemName: copiedReply == used ? "checkmark" : "doc.on.doc")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(ReplrTheme.Color.accent)
+                                    .animation(.spring(response: 0.25), value: copiedReply)
                             }
-                            .padding(14)
+                            .buttonStyle(.plain)
                         }
+                        .padding(14)
                     }
                 }
             }

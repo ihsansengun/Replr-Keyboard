@@ -100,7 +100,6 @@ struct SetupStatusView: View {
 }
 
 struct SettingsView: View {
-    let activeTab: TabSelection
     @AppStorage(Constants.colorSchemeAppearanceKey) private var colorSchemeAppearance = "system"
     @State private var persistReplies = AppGroupService.shared.persistReplies
     @State private var memoryEnabled = AppGroupService.shared.memoryEnabled
@@ -152,7 +151,6 @@ struct SettingsView: View {
         }
         .onAppear(perform: refresh)
         .onChange(of: scenePhase) { phase in if phase == .active { refresh() } }
-        .onChange(of: activeTab) { tab in if tab == .settings { refresh() } }
     }
 
     private func refresh() {

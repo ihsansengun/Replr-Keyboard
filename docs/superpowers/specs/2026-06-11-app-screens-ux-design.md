@@ -89,9 +89,9 @@ Blocks, top to bottom (each hidden when not applicable):
    - **About you**: caption "About you", value "Added ✓" / "Add". Opens the new
      `AboutYouView` editor (see Settings).
 
-Data refresh: reload on `onAppear`, `scenePhase == .active`, and own-tab activation
-(the tab shell keeps roots alive, so `onAppear` alone is not enough);
-`AppGroupService.synchronize()` first.
+Data refresh: the tab shell recreates each root on selection (returning to a tab
+always lands on its root — owner device-pass call), so `onAppear` covers
+activation; plus `scenePhase == .active`. `AppGroupService.synchronize()` first.
 
 ## Screen: History (rework of RepliesView)
 
@@ -125,16 +125,18 @@ Rename tab + title "Replies" → **"History"**. The type and file are renamed to
 - **Empty state**: simplified — icon, "Replies you generate show up here",
   "See how it works" tertiary button → tutorial. (Home teaches the steps now.)
 - **Back Tap banner**: removed (moved to Home, block 2).
-- **Tab-activation refresh**: the root reloads when the History tab becomes selected
-  (same reason as Home — the opacity ZStack shell keeps roots alive, so `onAppear`
-  fires only once per launch).
+- **Tab reset**: switching tabs recreates the root — returning to History always
+  lands on the list, never a stale pushed detail (owner device-pass call).
 
 ### CaptureDetailView (session detail)
 
 - The `cpu` (model), `dollarsign` (cost), and token in/out chips render **only when
   `AppGroupService.devMode`** — users on quality tiers must never see vendor model
   names or dollar costs.
-- Otherwise unchanged (screenshot, summary, context note, memory fed, replies + copy).
+- The Generated Replies list is gone (owner device-pass call: reply options are
+  actionable in the keyboard; History records the conversation). A "Sent Reply"
+  section shows the one used reply, with copy.
+- Otherwise unchanged (screenshot, summary, context note, memory fed).
 
 ### ContactMemoryDetailView (memory sheet — kept, polished)
 

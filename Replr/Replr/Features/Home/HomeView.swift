@@ -66,9 +66,6 @@ struct HomeView: View {
         .onChange(of: scenePhase) { phase in
             if phase == .active { vm.refresh() }
         }
-        .onChange(of: selectedTab) { tab in
-            if tab == .home { vm.refresh() }
-        }
         .sheet(isPresented: $showSetup) {
             OnboardingView(
                 onComplete: { showSetup = false; vm.refresh() },
