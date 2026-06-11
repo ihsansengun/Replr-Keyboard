@@ -116,7 +116,9 @@ Rename tab + title "Replies" → **"History"**. The type and file are renamed to
   - Bottom line: tone name (accent, keeps waveform glyph) and, when a reply was
     used, a labeled `Used: "…"` fragment instead of today's bare checkmark.
   - Thumbnail stays; placeholder becomes a lighter surface with a bubble icon.
-  - Swipe-to-delete added (keeps the long-press context menu).
+  - Deletion stays on the long-press context menu. (Swipe actions require a `List`;
+    the rows are custom cards in a `ScrollView`, and converting isn't worth the
+    styling/scroll regression risk.)
 - **Toolbar**: "Clear all" pill replaced by a `⋯` menu containing "Clear all history"
   (destructive, same alert copy as today — memory paragraphs are kept).
 - **Empty state**: simplified — icon, "Replies you generate show up here",
@@ -196,7 +198,7 @@ About You inline textarea, Memory inline rows, Screenshots inline rows + paragra
   2. When on: "Time window" (7/30/90/All time) and "Chats per person" (5/10/20)
      menu pickers (renamed from "Conversations per contact").
   3. **PEOPLE** list: contacts that have ≥1 remembered summary, rows "name · N chats ›"
-     → `ContactMemoryDetailView`; swipe-to-clear per person.
+     → `ContactMemoryDetailView` (per-person clear lives there).
   4. "Clear all memory" destructive row + confirm (logic from old `MemoryViewModel.clearAll`).
   Presented pushed from Settings; also presentable as a sheet (History's memory-off hint).
 - **`ScreenshotSettingsView`** — "Auto-clear captured screenshots" toggle,
@@ -248,8 +250,8 @@ files are picked up automatically.
 
 - Build gate: `xcodebuild … -scheme Replr` per CLAUDE.md.
 - Unit (in `ReplrTests`): day-grouping function (Today/Yesterday/date buckets),
-  credits→replies math incl. zero/dev cases, Home block visibility rules
-  (setup/how-it-works/recent), person-header count strings.
+  credits→replies math incl. zero/dev cases, person-header count strings. (Home
+  block visibility is one-line view conditions on tested state — not unit-tested.)
 - Existing tests must stay green (⌘U scheme `ReplrTests`).
 - Manual device pass against the UX-taste checklist (clipping, containment,
   convention, air, stability, copy truth), dark **and** light.
