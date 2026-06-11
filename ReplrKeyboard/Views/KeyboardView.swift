@@ -875,8 +875,10 @@ struct KeyboardHeader: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.top, 8)
-            .padding(.bottom, 8)
+            // Breathing room: the host bar sits right above the keyboard's top
+            // edge, so a tight 8pt made the ?/mode/mark cluster read cramped.
+            .padding(.top, 14)
+            .padding(.bottom, 10)
             } // end if !isModeHidden
             if !isToneHidden {
                 // showCredits: when mode row is hidden the credits badge lives here instead,
