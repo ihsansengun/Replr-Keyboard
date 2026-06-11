@@ -176,9 +176,10 @@ collection: already clean. Three gaps fixed on `main`:
   ("forfeits remaining credits") → clears Keychain + local balance via
   signOut. Expired session says "sign in again", doesn't fake success.
 
-**⚠️ Deploy order: the backend must be deployed before the next app build
-ships** — the Settings row calls `DELETE /auth/account`; against the old
-worker it 404s (user sees a connection error). Not deployed yet (no ask).
+**Backend DEPLOYED 2026-06-11** (worker `8c276fc4`) — probed in production:
+`DELETE /auth/account` without auth → 401 "Sign in required" (was 404 on the
+old worker), bogus token → 401, `/health` ok. The Settings row works against
+production; full-wipe behavior is covered by the user's device pass.
 
 **ASC checklist for submission (user actions):**
 - **App Privacy labels**: disclose screenshots/user content sent to the server
