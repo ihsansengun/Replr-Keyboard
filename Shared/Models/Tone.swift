@@ -50,11 +50,15 @@ struct Tone: Codable, Identifiable, Equatable {
 
     /// Tone names that can appear in the EMAIL keyboard row.
     static let emailToneNames: Set<String> = [
-        "Warm Professional", "Professional", "Diplomatic", "Assertive",
-        "Enthusiastic", "Concise", "Formal",
+        "Warm Professional", "Professional", "Follow-Up", "Diplomatic", "Assertive",
+        "Enthusiastic", "Concise", "Grateful", "Formal",
         // Cross-mode tones also available in email:
         "Confident", "Direct", "Empathetic", "Friendly",
     ]
+
+    /// Names that ONLY exist in email mode — drives the Settings "Email" section
+    /// and the email row's leading group.
+    static let emailOnlyToneNames: Set<String> = emailToneNames.subtracting(chatToneNames)
 
     /// Whether this tone is available for the chat keyboard row.
     var availableInChat: Bool {
@@ -69,8 +73,8 @@ struct Tone: Codable, Identifiable, Equatable {
     /// Tone names that can appear in the DATING keyboard row.
     /// 11 dating-specific presets + 4 everyday tones shared from chat.
     static let datingToneNames: Set<String> = [
-        "Tease", "Smooth", "Bold", "Banter", "Intrigue", "Challenge",
-        "Closer", "Revive", "Recovery", "Slow Burn", "Spice",
+        "Tease", "Smooth", "Sincere", "Curious", "Bold", "Banter", "Intrigue",
+        "Challenge", "Closer", "Revive", "Recovery", "Slow Burn", "Spice",
         // Shared everyday tones:
         "Natural", "Casual", "Chill", "Confident",
     ]
@@ -228,6 +232,16 @@ struct Tone: Codable, Identifiable, Equatable {
              blurb: "Clear and businesslike — structured and to the point.",
              isPreset: true),
 
+        Tone(id: UUID(), name: "Follow-Up",
+             instruction: "Nudge a quiet thread without pressure. Reference the original ask in one line, then make responding easy — offer a default next step or an out. Brief and light; zero guilt-tripping. The goal is movement, not apology.",
+             blurb: "Revives a quiet thread — polite nudge, no pressure.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Grateful",
+             instruction: "Lead with specific thanks — name exactly what they did and the difference it made. Warm but not gushing; one genuine sentence beats three superlatives. Close forward-looking when it fits.",
+             blurb: "Says thank you like you mean it — specific and brief.",
+             isPreset: true),
+
         Tone(id: UUID(), name: "Diplomatic",
              instruction: "Acknowledge their position before presenting yours. Never dismiss the concern, even if you disagree. Find common ground first, then navigate toward your point. Preserve the relationship while holding your position. End on something constructive.",
              blurb: "Tactful — pushes back or declines without burning bridges.",
@@ -265,6 +279,16 @@ struct Tone: Codable, Identifiable, Equatable {
         Tone(id: UUID(), name: "Smooth",
              instruction: "Charm that looks effortless. Compliments must be specific and earned from their profile — never about generic beauty. Interest should read as good taste, not eagerness. Unhurried sentences; let one line do the work of three.",
              blurb: "Effortless charm — compliments with craft.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Sincere",
+             instruction: "Drop the game entirely. Genuine interest said plainly — pick the one real thing in their profile or message that actually lands and respond to it like a person, not a player. No lines, no negging, no performance. Specific beats smooth; honest beats clever.",
+             blurb: "No games — real interest, said plainly.",
+             isPreset: true),
+
+        Tone(id: UUID(), name: "Curious",
+             instruction: "Lead with the question they actually want to answer. Anchor every message to a concrete detail from their profile or chat and dig into the story behind it. One good question beats three compliments. Show you read, not that you scanned.",
+             blurb: "Asks the question they actually want to answer.",
              isPreset: true),
 
         Tone(id: UUID(), name: "Bold",

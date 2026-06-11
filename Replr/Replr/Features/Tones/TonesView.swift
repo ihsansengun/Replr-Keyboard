@@ -13,7 +13,7 @@ final class TonesViewModel: ObservableObject {
     /// Dating-only presets (the Settings "Dating" section).
     var datingPresets: [Tone] { tones.filter { $0.isPreset && Tone.datingOnlyToneNames.contains($0.name) } }
     /// Email-only presets — the professional register, strictly separate from chat.
-    var emailPresets: [Tone]  { tones.filter { $0.isPreset && Tone.emailToneNames.contains($0.name) && !Tone.chatToneNames.contains($0.name) } }
+    var emailPresets: [Tone]  { tones.filter { $0.isPreset && Tone.emailOnlyToneNames.contains($0.name) } }
 
     func load() { tones = AppGroupService.shared.readTones() }
 

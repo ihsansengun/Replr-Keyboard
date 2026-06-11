@@ -152,6 +152,20 @@ export const TONE_LIBRARY: Record<string, ToneSpec> = {
     "Thanks for flagging. Let's sync at 2pm to lock the details.",
   ] },
 
+  // "Revive a quiet thread" — movement without guilt-tripping
+  'Follow-Up':    { temperature: 0.6, examples: [
+    "Hi — just floating this back to the top of your inbox. Any thoughts on the proposal?",
+    "Quick nudge on the below. Happy to adjust the timeline if that would help.",
+    "Circling back in case this got buried — no rush, just keen to keep things moving.",
+  ] },
+
+  // "Specific thanks, said once and well" — warm, never gushing
+  'Grateful':     { temperature: 0.6, examples: [
+    "Thank you for turning this around so quickly — it genuinely saved the week.",
+    "Really appreciate you flagging that before the deadline. You spared us a headache.",
+    "Thanks again for the intro — we've already set up a call for Thursday.",
+  ] },
+
   'Formal':       { temperature: 0.55, examples: [
     "Thank you for the update. I will confirm the details shortly.",
     "Understood — I appreciate you letting me know in advance.",
@@ -172,6 +186,20 @@ export const TONE_LIBRARY: Record<string, ToneSpec> = {
     "okay the hiking photo sold me — anyone who climbs that far for a view has taste. dinner views are easier though",
     "you have the kind of smile that makes someone forget their opener. i had one. it's gone",
     "see, now you're just showing off. keep going",
+  ] },
+
+  // "Drop the game, say the real thing" — disarming honesty as the move
+  'Sincere':   { temperature: 0.85, examples: [
+    "ok honest answer: your profile actually made me stop scrolling and i don't say that",
+    "no line for this one. you just seem like a genuinely interesting person",
+    "the bit about your grandmother's recipes got me. which one would you make first",
+  ] },
+
+  // "The question they actually want to answer" — profile-anchored curiosity
+  'Curious':   { temperature: 0.90, examples: [
+    "23 countries is a flex but i need to know which one you'd never go back to",
+    "important question: is the dog in pic 3 yours or borrowed for the photo",
+    "ok the fire spinning needs a backstory. how does someone even get into that",
   ] },
 
   'Bold':      { temperature: 0.80, examples: [

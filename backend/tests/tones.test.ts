@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { toneSpecFor, TONE_LIBRARY } from '../src/services/tones'
 
 describe('dating tones', () => {
-  const DATING = ['Tease', 'Smooth', 'Bold', 'Banter', 'Intrigue', 'Challenge',
-                  'Closer', 'Revive', 'Recovery', 'Slow Burn', 'Spice']
+  const DATING = ['Tease', 'Smooth', 'Sincere', 'Curious', 'Bold', 'Banter', 'Intrigue',
+                  'Challenge', 'Closer', 'Revive', 'Recovery', 'Slow Burn', 'Spice']
 
   it('resolves every dating tone with examples and a temperature', () => {
     for (const name of DATING) {
