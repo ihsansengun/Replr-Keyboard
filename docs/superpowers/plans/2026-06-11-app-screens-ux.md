@@ -1838,7 +1838,12 @@ git commit -m "feat(ios): Home tab — setup card, credits with low state, recen
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
 
-Review carry-forward folded in: BackTapOnboardingStep's skip path now writes `backTapSkipped = true` (the old writer was lost in a previous onboarding redesign; without it the Home row never shows for fresh installs). One-line sanctioned deviation from the spec's 'no onboarding changes' non-goal.
+Review carry-forward folded in (applied in separate review-fix commit):
+
+- `BackTapOnboardingStep.swift` was already orphaned by commit 299e3a1 (no call sites). The file is now deleted via `git rm`. The `backTapSkipped = true` writer was moved to `OnboardingView`'s single completion path — the `SampleDemoStep(onFinish:)` closure in case 6 — so Home's suggestion row works for all fresh installs.
+- Animated row dismissal: the ✕ button's `vm.backTapSkipped = false` is wrapped in `withAnimation(ReplrTheme.Motion.quick)` to prevent layout jumps.
+- Credits card single source of truth: `lowBalance` and `creditsSubline` now read `credits.balance` (the `@ObservedObject`-published value) instead of directly calling `AppGroupService.shared.effectiveCreditBalance`, eliminating the one-frame disagreement between the big number and the sub-line/border.
+- Tones sheet refresh: `.sheet(isPresented: $showTones)` gains `onDismiss: { vm.refresh() }` so the Tone tile value updates after the sheet closes.
 
 ---
 

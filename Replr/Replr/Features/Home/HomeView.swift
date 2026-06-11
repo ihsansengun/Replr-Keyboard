@@ -40,7 +40,7 @@ struct HomeView: View {
     private var costPerReply: Int { AppGroupService.shared.creditsRequired }
     private var devMode: Bool { AppGroupService.shared.devMode }
     private var lowBalance: Bool {
-        HomeLogic.isLowBalance(balance: AppGroupService.shared.effectiveCreditBalance,
+        HomeLogic.isLowBalance(balance: credits.balance,
                                costPerReply: costPerReply, devMode: devMode)
     }
 
@@ -79,7 +79,7 @@ struct HomeView: View {
         .fullScreenCover(isPresented: $showTutorial) {
             UsageTutorialView(onDone: { showTutorial = false })
         }
-        .sheet(isPresented: $showTones) {
+        .sheet(isPresented: $showTones, onDismiss: { vm.refresh() }) {
             TonesView()
         }
     }
@@ -132,7 +132,7 @@ struct HomeView: View {
                 .buttonStyle(.plain)
             Button {
                 AppGroupService.shared.backTapSkipped = false
-                vm.backTapSkipped = false
+                withAnimation(ReplrTheme.Motion.quick) { vm.backTapSkipped = false }
             } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 11))
@@ -189,7 +189,7 @@ struct HomeView: View {
 
     private var creditsSubline: String {
         if devMode { return "Dev mode — replies are free" }
-        let n = HomeLogic.approxReplies(balance: AppGroupService.shared.effectiveCreditBalance,
+        let n = HomeLogic.approxReplies(balance: credits.balance,
                                         costPerReply: costPerReply)
         if n == 0 { return "Not enough for a reply" }
         return "≈ \(n) repl\(n == 1 ? "y" : "ies")"

@@ -615,7 +615,13 @@ struct OnboardingView: View {
             case 5:
                 ReadyStep(onDone: { step = 6 })
             case 6:
-                SampleDemoStep(onFinish: { step = 0; onComplete() })
+                SampleDemoStep(onFinish: {
+                    // Onboarding no longer offers Back Tap, so completing it means "not set up yet" —
+                    // lets Home surface the one-time suggestion row.
+                    AppGroupService.shared.backTapSkipped = true
+                    step = 0
+                    onComplete()
+                })
             default:
                 WelcomeStep(onNext: { step = 1 })
             }

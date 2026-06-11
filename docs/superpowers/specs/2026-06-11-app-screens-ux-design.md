@@ -34,7 +34,7 @@ chosen: **A — Home + History + Settings** (over B "People-led" and C "in-place
 - No keyboard-extension changes, no backend changes, no new App Group keys or data
   migrations (everything reads existing `AppGroupService` / `CreditsManager` state).
 - No paywall/product changes (entry points only).
-- No onboarding changes (Home reuses the existing setup/tutorial flows). (One sanctioned exception, found during build: the onboarding Back Tap step's 'Set up later' regains its one-line backTapSkipped writer so Home's suggestion row can ever appear.)
+- No onboarding changes (Home reuses the existing setup/tutorial flows). (One sanctioned exception, applied post-build: `BackTapOnboardingStep.swift` was already orphaned by commit 299e3a1 and has been deleted. The `backTapSkipped = true` writer now lives at onboarding completion in `OnboardingView`'s `SampleDemoStep(onFinish:)` closure — the single completion path — so Home's suggestion row appears for all fresh installs.)
 - Visual identity unchanged — all styling via existing `ReplrTheme` tokens.
 
 ## Information architecture
