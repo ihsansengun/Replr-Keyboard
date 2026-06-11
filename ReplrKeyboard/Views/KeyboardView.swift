@@ -956,8 +956,8 @@ struct FullAccessSetupView: View {
                 // needs Full Access; see infoSlide in IdlePanelView). Device-verified.
                 // Numbered manual steps instead — the Bitmoji/Gboard pattern.
                 VStack(alignment: .leading, spacing: 8) {
-                    setupStep(1, "Open Settings, scroll to Replr")
-                    setupStep(2, "Tap Keyboards")
+                    setupStep(1, "Open Settings, tap Apps")
+                    setupStep(2, "Find Replr, tap Keyboards")
                     setupStep(3, "Turn on Allow Full Access")
                 }
                 .padding(.horizontal, 14)

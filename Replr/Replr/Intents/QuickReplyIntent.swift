@@ -26,7 +26,7 @@ struct QuickReplyIntent: AppIntent {
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         guard status == .authorized || status == .limited else {
             NSLog("[Replr][QuickReply] No Photos access")
-            AppGroupService.shared.saveError("Allow photo access in Settings → Replr → Photos, then try again.")
+            AppGroupService.shared.saveError("Allow photo access in Settings → Apps → Replr → Photos, then try again.")
             return .result()
         }
 
