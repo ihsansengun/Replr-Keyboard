@@ -99,7 +99,7 @@ final class KeyboardViewController: UIInputViewController {
             .combineLatest(model.$isCollapsed)
             .combineLatest(model.$detectedScreenshotID)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] combined, detectedID in
+            .sink { [weak self] combined, _ in
                 guard let self else { return }
                 // Setup card owns the keyboard while Full Access is off — pin its
                 // height so the (invisible) state churn below can't resize it.
@@ -107,7 +107,7 @@ final class KeyboardViewController: UIInputViewController {
                     self.setHeight(260)
                     return
                 }
-                let (((state, isCaptureMode), inputMode), isCollapsed) = combined
+                let (((state, isCaptureMode), _), isCollapsed) = combined
                 if isCaptureMode {
                     self.setHeight(0, duration: 0.15)
                     return
@@ -122,13 +122,11 @@ final class KeyboardViewController: UIInputViewController {
                 let height: CGFloat
                 switch state {
                 case .idle:
-                    if detectedID != nil {
-                        height = 300
-                    } else {
-                        // 308 = content (~164px) + spacer room (~36px) + header (~90px) + card padding (16px) + margin (2px).
-                        // Spacer(minLength: 0) flanking the content distributes the surplus equally → equal gutters.
-                        height = inputMode == .email ? 308 : 300
-                    }
+                    // One height for every mode AND the screenshot-ready variant.
+                    // All idle interiors flex via Spacer(minLength: 0) gutters, and
+                    // a uniform value means switching Chat/Dating/Email never
+                    // resizes the keyboard (the old 300-vs-308 split flicked).
+                    height = 308
                 case .loading:      height = 265 // mode control hidden → ~44 px shorter than old 310
                 case .error:        height = 240
                 case .paywall:      height = 280
