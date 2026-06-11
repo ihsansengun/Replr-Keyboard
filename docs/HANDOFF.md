@@ -196,9 +196,10 @@ Tier price is independent of the vendor model's cost — **repointing a tier is
 a backend-only deploy and never changes what users pay.** Raw model ids stay
 valid for dev mode; legacy persisted vendor ids migrate to tiers on read
 (`AppGroupService.userModel`). No vendor name remains user-facing (Settings,
-paywall, PrivacyView all scrubbed). **⚠️ Deploy order: the tier backend
-(`cf20642`) must be live before any app build containing `0c1d992` ships —
-the old worker 400s on `balanced`.**
+paywall, PrivacyView all scrubbed). **Backend DEPLOYED 2026-06-11 (worker
+`e9c28bbe`)**, probe-verified: /config serves balanced/max first; a real
+`model:"balanced"` generation returned 3 replies. (The deploy-order rule —
+backend before app build — bit once: the user rebuilt first and got 400s.)
 
 **ASC checklist for submission (user actions):**
 - **App Privacy labels**: disclose screenshots/user content sent to the server
