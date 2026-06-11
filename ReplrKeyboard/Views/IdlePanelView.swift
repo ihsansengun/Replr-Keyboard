@@ -367,7 +367,9 @@ struct IdlePanelView: View {
             }
             .padding(.horizontal, 8)
 
-            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+            // app-settings: URLs are ignored from keyboard extensions, so this
+            // bounces through the app (replr://fullaccess → app opens Settings).
+            if let settingsURL = URL(string: "replr://fullaccess") {
                 Link(destination: settingsURL) {
                     HStack(spacing: 6) {
                         Image(systemName: "gear").font(.system(size: 13, weight: .semibold))

@@ -923,19 +923,10 @@ struct FullAccessSetupView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                ReplrMark(size: 16)
-                Spacer()
-                if model.needsGlobeKey {
-                    GlobeKeyButton(model: model)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-
-            Spacer(minLength: 0)
-
+        ZStack(alignment: .top) {
+            // Info block centered in the FULL card height — the brand/globe row
+            // overlays the top corners instead of stacking above, so the card
+            // reads centered rather than bottom-weighted.
             VStack(spacing: 10) {
                 ZStack {
                     Circle()
@@ -964,8 +955,10 @@ struct FullAccessSetupView: View {
                 }
                 .padding(.horizontal, 8)
 
-                if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-                    Link(destination: settingsURL) {
+                // app-settings: URLs are ignored from keyboard extensions, so this
+                // bounces through the app (replr://fullaccess → app opens Settings).
+                if let bounceURL = URL(string: "replr://fullaccess") {
+                    Link(destination: bounceURL) {
                         HStack(spacing: 6) {
                             Image(systemName: "gear").font(.system(size: 13, weight: .semibold))
                             Text("Open Settings →").font(.system(size: 14, weight: .semibold))
@@ -987,8 +980,17 @@ struct FullAccessSetupView: View {
                 }
             }
             .padding(.horizontal, 20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            Spacer(minLength: 0)
+            HStack {
+                ReplrMark(size: 16)
+                Spacer()
+                if model.needsGlobeKey {
+                    GlobeKeyButton(model: model)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ReplrTheme.Color.bg)

@@ -88,6 +88,13 @@ struct ReplrApp: App {
                                 showTutorial = true
                             case "paywall":
                                 showPaywall = true
+                            case "fullaccess":
+                                // The keyboard can't open the Settings app itself
+                                // (app-settings: is ignored from extensions), so its
+                                // setup cards deep-link here and the app bounces on.
+                                if let settings = URL(string: UIApplication.openSettingsURLString) {
+                                    UIApplication.shared.open(settings)
+                                }
                             default:
                                 break
                             }
