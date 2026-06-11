@@ -197,8 +197,11 @@ About You inline textarea, Memory inline rows, Screenshots inline rows + paragra
   1. "Use memory" toggle (`memoryEnabled`) + explainer line (same copy as memory sheet).
   2. When on: "Time window" (7/30/90/All time) and "Chats per person" (5/10/20)
      menu pickers (renamed from "Conversations per contact").
-  3. **PEOPLE** list: contacts that have ≥1 remembered summary, rows "name · N chats ›"
-     → `ContactMemoryDetailView` (per-person clear lives there).
+  3. **PEOPLE** list — always visible while anything is stored, even with the
+     toggle off (it's the trust center; turning memory off must not hide what's
+     already remembered). Rows "name · N chats ›" → `ContactMemoryDetailView`
+     (per-person clear lives there). When off, a one-line hint explains nothing
+     new is being saved.
   4. "Clear all memory" destructive row + confirm (logic from old `MemoryViewModel.clearAll`).
   Presented pushed from Settings; also presentable as a sheet (History's memory-off hint).
 - **`ScreenshotSettingsView`** — "Auto-clear captured screenshots" toggle,

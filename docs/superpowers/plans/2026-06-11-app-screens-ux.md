@@ -438,6 +438,7 @@ struct MemorySettingsView: View {
     @State private var memoryWindowDays = AppGroupService.shared.memoryWindowDays
     @State private var memoryDepth = AppGroupService.shared.memoryDepth
     @State private var showClearAllConfirm = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         ScrollView {
@@ -478,49 +479,58 @@ struct MemorySettingsView: View {
                             }
                         }
                     }
-
-                    if !vm.people.isEmpty {
-                        SettingsCard(title: "People") {
-                            ForEach(Array(vm.people.enumerated()), id: \.element.id) { idx, contact in
-                                if idx > 0 { CardDivider() }
-                                NavigationLink(destination: ContactMemoryDetailView(
-                                    contact: contact,
-                                    onClearMemory: { vm.clearMemory(for: contact) }
-                                )) {
-                                    SettingsRow {
-                                        Circle()
-                                            .fill(ReplrTheme.Color.accentSubtle)
-                                            .frame(width: 28, height: 28)
-                                            .overlay(
-                                                Text(String(contact.displayName.prefix(1)).uppercased())
-                                                    .font(.system(size: 12, weight: .semibold))
-                                                    .foregroundStyle(ReplrTheme.Color.accent)
-                                            )
-                                        Text(contact.displayName)
-                                            .font(.system(size: 17))
-                                            .lineLimit(1)
-                                        Spacer()
-                                        let n = vm.rememberedCount(for: contact)
-                                        RowValue(text: "\(n) chat\(n == 1 ? "" : "s")")
-                                        RowChevron()
-                                    }
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-
-                        Button { showClearAllConfirm = true } label: {
-                            Text("Clear all memory")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundStyle(ReplrTheme.Color.danger)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                        }
-                        .buttonStyle(.plain)
-                    }
                 }
+
+                if !vm.people.isEmpty {
+                    if !memoryEnabled {
+                        Text("Memory is off — Replr isn't saving new conversations. What's below is still stored until you clear it.")
+                            .font(.system(size: 12))
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
+                            .padding(.horizontal, 4)
+                    }
+
+                    SettingsCard(title: "People") {
+                        ForEach(Array(vm.people.enumerated()), id: \.element.id) { idx, contact in
+                            if idx > 0 { CardDivider() }
+                            NavigationLink(destination: ContactMemoryDetailView(
+                                contact: contact,
+                                onClearMemory: { vm.clearMemory(for: contact) }
+                            )) {
+                                SettingsRow {
+                                    Circle()
+                                        .fill(ReplrTheme.Color.accentSubtle)
+                                        .frame(width: 28, height: 28)
+                                        .overlay(
+                                            Text(String(contact.displayName.prefix(1)).uppercased())
+                                                .font(.system(size: 12, weight: .semibold))
+                                                .foregroundStyle(ReplrTheme.Color.accent)
+                                        )
+                                    Text(contact.displayName)
+                                        .font(.system(size: 17))
+                                        .lineLimit(1)
+                                    Spacer()
+                                    let n = vm.rememberedCount(for: contact)
+                                    RowValue(text: "\(n) chat\(n == 1 ? "" : "s")")
+                                    RowChevron()
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
+                    Button { showClearAllConfirm = true } label: {
+                        Text("Clear all memory")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(ReplrTheme.Color.danger)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                    }
+                    .buttonStyle(.plain)
+                }
+
                 Spacer(minLength: 110)
             }
+            .animation(ReplrTheme.Motion.quick, value: memoryEnabled)
             .padding(20)
         }
         .background(ReplrTheme.Color.bg.ignoresSafeArea())
@@ -529,18 +539,25 @@ struct MemorySettingsView: View {
         .tint(ReplrTheme.Color.accent)
         .confirmationDialog("Clear memory for everyone?",
                             isPresented: $showClearAllConfirm, titleVisibility: .visible) {
-            Button("Clear all memory", role: .destructive) { vm.clearAll() }
+            Button("Clear all memory", role: .destructive) {
+                withAnimation(ReplrTheme.Motion.quick) { vm.clearAll() }
+            }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Replr forgets every remembered conversation. Reply history is kept.")
         }
-        .onAppear {
-            AppGroupService.shared.synchronize()
-            vm.load()
-            memoryEnabled = AppGroupService.shared.memoryEnabled
-            memoryWindowDays = AppGroupService.shared.memoryWindowDays
-            memoryDepth = AppGroupService.shared.memoryDepth
+        .onAppear(perform: refresh)
+        .onChange(of: scenePhase) { phase in
+            if phase == .active { refresh() }
         }
+    }
+
+    private func refresh() {
+        AppGroupService.shared.synchronize()
+        vm.load()
+        memoryEnabled = AppGroupService.shared.memoryEnabled
+        memoryWindowDays = AppGroupService.shared.memoryWindowDays
+        memoryDepth = AppGroupService.shared.memoryDepth
     }
 }
 ```
