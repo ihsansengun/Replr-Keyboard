@@ -78,7 +78,7 @@ struct GenerateReplyIntent: AppIntent {
             let resolvedContactID = resolved.id
             let resolvedContactName = resolved.name
 
-            let thumbnail = makeThumbnail(image)
+            let thumbnail = CaptureThumbnail.make(image)
             var session = CaptureSession(
                 id: UUID(),
                 timestamp: Date(),
@@ -117,15 +117,4 @@ struct GenerateReplyIntent: AppIntent {
         return .result()
     }
 
-    private func makeThumbnail(_ image: UIImage) -> Data? {
-        let targetWidth: CGFloat = 80
-        guard image.size.width > 0 else { return nil }
-        let scale = targetWidth / image.size.width
-        let size = CGSize(width: targetWidth, height: image.size.height * scale)
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = 1.0
-        let renderer = UIGraphicsImageRenderer(size: size, format: format)
-        let thumb = renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
-        return thumb.jpegData(compressionQuality: 0.4)
-    }
 }

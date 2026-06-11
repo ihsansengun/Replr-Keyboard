@@ -249,7 +249,7 @@ final class KeyboardModel: ObservableObject {
                 let resolved = resolveContact(from: result)
                 self.contactName = resolved.name
                 var session = CaptureSession(
-                    id: UUID(), timestamp: Date(), thumbnailData: nil,
+                    id: UUID(), timestamp: Date(), thumbnailData: CaptureThumbnail.make(image),
                     contextHint: context.isEmpty ? nil : context,
                     generatedReplies: result.replies, selectedReply: nil,
                     llmSummary: result.summary, contactID: resolved.id, contactName: resolved.name

@@ -892,3 +892,21 @@ enum KeyboardTipCoordinator {
         return .none
     }
 }
+
+// MARK: - Capture thumbnail (shared by intents + keyboard capture paths)
+
+/// 80pt-wide JPEG used as a session's History-card preview. One implementation for
+/// every screenshot path — Back Tap intent, Quick Reply, and in-keyboard capture —
+/// so previews don't depend on which path generated the reply.
+enum CaptureThumbnail {
+    static func make(_ image: UIImage, targetWidth: CGFloat = 80) -> Data? {
+        guard image.size.width > 0 else { return nil }
+        let scale = targetWidth / image.size.width
+        let size = CGSize(width: targetWidth, height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
+        let thumb = renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
+        return thumb.jpegData(compressionQuality: 0.4)
+    }
+}
