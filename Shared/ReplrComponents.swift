@@ -462,3 +462,28 @@ struct BrandToggle: View {
         }
     }
 }
+
+// MARK: - InitialAvatar
+
+/// Small initial-letter avatar — History rows, Home recents, people lists.
+/// Shows "?" when the contact isn't known yet.
+struct InitialAvatar: View {
+    let name: String?
+    var size: CGFloat = 30
+
+    var body: some View {
+        Circle()
+            .fill(ReplrTheme.Color.accentSubtle)
+            .frame(width: size, height: size)
+            .overlay(
+                Text(initial)
+                    .font(.system(size: size * 0.44, weight: .semibold))
+                    .foregroundStyle(ReplrTheme.Color.accent)
+            )
+    }
+
+    private var initial: String {
+        guard let first = name?.trimmingCharacters(in: .whitespaces).first else { return "?" }
+        return String(first).uppercased()
+    }
+}

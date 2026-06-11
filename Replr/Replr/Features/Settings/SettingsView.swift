@@ -139,7 +139,7 @@ struct SettingsView: View {
                 }
                 .padding(20)
             }
-            .background(ReplrTheme.Color.bg.ignoresSafeArea())
+            .brandScreenBackground()
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
         }

@@ -144,7 +144,10 @@ Body & UI: system font (SF Pro), `design: .default`. Scale (size / weight / trac
 
 - `.elevatedSurface(.level1)` — standard card lift (soft, larger blur in light).
 - `.elevatedSurface(.primaryAction)` — stronger lift + faint top glow.
-- `.brandCard()` — surface + `rounded.md` + adaptive hairline border + lift.
+- `.brandCard()` — app card material: vertical sheen (surfaceRaised→surface; collapses
+  to flat white in light), `Radius.card`, rose-tinted hairline + 1px top-light, lift.
+- `.brandScreenBackground()` — tab-root background: bg + faint rose radial wash
+  behind the header (the dead-ceiling fix). App screens only.
 - Primary actions also carry an **accent glow** (`accentGlow`, radius ~18).
 - Depth = soft shadow + a 1px inner top highlight (white ~30%, the "kit signature").
 
@@ -153,9 +156,9 @@ Body & UI: system font (SF Pro), `design: .default`. Scale (size / weight / trac
 - Continuous-corner rounded rects everywhere: `RoundedRectangle(cornerRadius:
   …, style: .continuous)`.
 - Radius scale: `xs 4` (chips/keys) · `sm 8` (small buttons/keyboard CTA) ·
-  `md 12` (cards — default) · `lg 16` / `xl 20` (large surfaces) · `full 999`
-  (pills, primary buttons, tone chips).
-- **Primary CTAs are capsules** (`full`); **cards are `md`**.
+  `md 12` (keyboard cards) · `lg 16` / `xl 20` (large surfaces) · `card 18`
+  (app cards via `brandCard()`) · `full 999` (pills, primary buttons, tone chips).
+- **Primary CTAs are capsules** (`full`); **app cards are `card`**, keyboard keeps `md`.
 
 ## Components
 
@@ -172,6 +175,8 @@ Lightweight summary — full implementations are the source of truth in
   it confused testers when overused on the keyboard).
 - **Tone chips** — rounded pills; selected = gradient fill with `onAccent` (white) text,
   unselected = surface + border.
+- **InitialAvatar** — initial-letter circle (`accentSubtle` fill, accent letter, "?"
+  when contactless) — History rows, Home recents, people lists.
 - **ShimmerOverlay** — moving light sweep on accent CTAs (premium cue); clipped
   to the button's corner radius.
 - **Lottie animations** — embedded raw-string JSON + `LottieView`; see

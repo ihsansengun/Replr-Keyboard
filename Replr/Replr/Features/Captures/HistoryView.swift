@@ -89,12 +89,17 @@ struct HistoryView: View {
                         LazyVStack(alignment: .leading, spacing: 10) {
                             ForEach(HistoryLogic.dayGroups(vm.filteredSessions, date: \.timestamp),
                                     id: \.day) { group in
-                                Text(group.label.uppercased())
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .tracking(1.0)
-                                    .foregroundStyle(ReplrTheme.Color.textSecondary)
-                                    .padding(.horizontal, 4)
-                                    .padding(.top, 6)
+                                HStack(spacing: 6) {
+                                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                                        .fill(ReplrTheme.Color.brandGradient)
+                                        .frame(width: 7, height: 7)
+                                    Text(group.label.uppercased())
+                                        .font(.system(size: 11, weight: .semibold))
+                                        .tracking(1.0)
+                                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                                }
+                                .padding(.horizontal, 4)
+                                .padding(.top, 6)
                                 ForEach(group.items) { session in
                                     NavigationLink(destination: CaptureDetailView(session: session)) {
                                         CaptureRowView(session: session,
@@ -114,7 +119,7 @@ struct HistoryView: View {
                     }
                 }
             }
-            .background(ReplrTheme.Color.bg.ignoresSafeArea())
+            .brandScreenBackground()
             .navigationTitle("History")
             .navigationBarTitleDisplayMode(.inline)
             .tint(ReplrTheme.Color.accent)
@@ -283,27 +288,9 @@ struct CaptureRowView: View {
     var showsContactName: Bool = true
 
     var body: some View {
-        HStack(spacing: 14) {
-            // Thumbnail
-            Group {
-                if let data = session.thumbnailData, let img = UIImage(data: data) {
-                    Image(uiImage: img)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 48, height: 82)
-                        .clipped()
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                } else {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(ReplrTheme.Color.accentSubtle.opacity(0.5))
-                        .frame(width: 48, height: 82)
-                        .overlay(
-                            Image(systemName: "text.bubble")
-                                .font(.system(size: 18))
-                                .foregroundStyle(ReplrTheme.Color.textTertiary)
-                        )
-                }
-            }
+        HStack(alignment: .top, spacing: 12) {
+            // The person leads the row; the screenshot demotes to a corner thumb.
+            InitialAvatar(name: session.contactName, size: 30)
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .center, spacing: 6) {
@@ -355,9 +342,18 @@ struct CaptureRowView: View {
                 }
             }
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(ReplrTheme.Color.textTertiary)
+            if let data = session.thumbnailData, let img = UIImage(data: data) {
+                Image(uiImage: img)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 26, height: 42)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                    )
+            }
         }
         .padding(14)
     }

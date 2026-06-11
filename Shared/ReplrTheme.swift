@@ -165,6 +165,8 @@ enum ReplrTheme {
         static let md:   CGFloat = 12
         static let lg:   CGFloat = 16
         static let xl:   CGFloat = 20
+        /// App cards (brandCard) — softer than `md`; the keyboard keeps its own radii.
+        static let card: CGFloat = 18
         static let full: CGFloat = 999
     }
 
@@ -233,14 +235,39 @@ struct BrandCard: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(ReplrTheme.Color.surface)
-            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+            .background(
+                // Soft vertical sheen — raised at the top, settling into surface, so
+                // cards read as lit objects instead of flat cutouts. In light mode
+                // surfaceRaised == surface, so this collapses to a plain fill.
+                LinearGradient(
+                    stops: [
+                        .init(color: ReplrTheme.Color.surfaceRaised, location: 0),
+                        .init(color: ReplrTheme.Color.surface, location: 0.45),
+                    ],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
+            .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.card, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.card, style: .continuous)
                     .strokeBorder(
                         scheme == .dark
-                            ? ReplrTheme.Color.glassBorder
+                            ? ReplrTheme.Color.accent.opacity(0.10)
                             : ReplrTheme.Color.accent.opacity(0.28),
+                        lineWidth: 1
+                    )
+            )
+            .overlay(
+                // Kit signature: hairline top-light, fading out by a third of the card.
+                RoundedRectangle(cornerRadius: ReplrTheme.Radius.card, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            stops: [
+                                .init(color: .white.opacity(scheme == .dark ? 0.14 : 0), location: 0),
+                                .init(color: .white.opacity(0), location: 0.35),
+                            ],
+                            startPoint: .top, endPoint: .bottom
+                        ),
                         lineWidth: 1
                     )
             )
@@ -255,8 +282,38 @@ struct BrandCard: ViewModifier {
     }
 }
 
+// MARK: - Brand screen background (app tab roots)
+
+/// Screen background with a faint rose radial wash behind the header area —
+/// warms the dead ceiling above the first card. The opaque nav bar crops the
+/// brightest zone, so what shows is a soft falloff under the title.
+struct BrandScreenBackground: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+
+    func body(content: Content) -> some View {
+        content
+            .background(alignment: .top) {
+                RadialGradient(
+                    colors: [
+                        ReplrTheme.Color.accent.opacity(scheme == .dark ? 0.16 : 0.10),
+                        .clear,
+                    ],
+                    center: .top, startRadius: 0, endRadius: 300
+                )
+                .frame(height: 280)
+                .ignoresSafeArea(edges: .top)
+                .allowsHitTesting(false)
+            }
+            .background(ReplrTheme.Color.bg.ignoresSafeArea())
+    }
+}
+
 extension View {
     func brandCard() -> some View {
         modifier(BrandCard())
+    }
+
+    func brandScreenBackground() -> some View {
+        modifier(BrandScreenBackground())
     }
 }

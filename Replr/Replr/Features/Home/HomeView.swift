@@ -11,7 +11,7 @@ final class HomeViewModel: ObservableObject {
     @Published var aboutAdded = false
 
     var setupComplete: Bool { fullAccess && photosOK }
-    var recent: [CaptureSession] { Array(sessions.prefix(3)) }
+    var recent: [CaptureSession] { Array(sessions.prefix(4)) }
 
     func refresh() {
         AppGroupService.shared.synchronize()
@@ -51,13 +51,13 @@ struct HomeView: View {
                     if !vm.setupComplete { setupCard }
                     if vm.setupComplete && vm.backTapSkipped { backTapRow }
                     creditsCard
-                    if vm.sessions.isEmpty { howItWorksCard } else { recentSection }
                     personalizeTiles
+                    if vm.sessions.isEmpty { howItWorksCard } else { recentSection }
                     Spacer(minLength: 110) // clearance for floating tab pill
                 }
                 .padding(20)
             }
-            .background(ReplrTheme.Color.bg.ignoresSafeArea())
+            .brandScreenBackground()
             .navigationTitle("Replr")
             .navigationBarTitleDisplayMode(.inline)
             .tint(ReplrTheme.Color.accent)
@@ -168,14 +168,14 @@ struct HomeView: View {
             }
             Spacer()
             NavigationLink(destination: CreditPacksView()) {
+                // The one gradient moment on Home — the system's hero-CTA treatment.
                 Text(lowBalance ? "Top up" : "Get more")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(lowBalance ? ReplrTheme.Color.onAccent : ReplrTheme.Color.accent)
+                    .foregroundStyle(ReplrTheme.Color.onAccent)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
-                    .background(
-                        Capsule().fill(lowBalance ? ReplrTheme.Color.accent : ReplrTheme.Color.accentSubtle)
-                    )
+                    .background(Capsule().fill(ReplrTheme.Color.brandGradient))
+                    .shadow(color: ReplrTheme.Color.accentGlow, radius: 8, x: 0, y: 2)
             }
             .buttonStyle(.plain)
         }
@@ -255,6 +255,7 @@ struct HomeView: View {
             ForEach(vm.recent) { session in
                 NavigationLink(destination: CaptureDetailView(session: session)) {
                     HStack(spacing: 10) {
+                        InitialAvatar(name: session.contactName, size: 26)
                         VStack(alignment: .leading, spacing: 3) {
                             HStack(spacing: 6) {
                                 Text(session.contactName ?? recentTime(session.timestamp))
@@ -275,9 +276,6 @@ struct HomeView: View {
                             }
                         }
                         Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(ReplrTheme.Color.textTertiary)
                     }
                     .padding(12)
                 }
