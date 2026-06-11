@@ -387,6 +387,7 @@ struct CaptureDetailView: View {
                             .font(.system(size: 15))
                             .foregroundStyle(ReplrTheme.Color.textPrimary)
                             .lineSpacing(3)
+                            .padding(14)
                     }
                 }
 
@@ -417,6 +418,7 @@ struct CaptureDetailView: View {
                         Text(hint)
                             .font(.system(size: 15))
                             .foregroundStyle(ReplrTheme.Color.textSecondary)
+                            .padding(14)
                     }
                 }
 
@@ -426,6 +428,7 @@ struct CaptureDetailView: View {
                             .font(.system(size: 14))
                             .foregroundStyle(ReplrTheme.Color.textSecondary)
                             .lineSpacing(4)
+                            .padding(14)
                     }
                 }
 
