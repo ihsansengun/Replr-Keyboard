@@ -8,10 +8,12 @@ final class TonesViewModel: ObservableObject {
     var custom: [Tone]  { tones.filter { !$0.isPreset } }
     var enabledCount: Int { tones.filter(\.isEnabled).count }
 
-    /// Chat/email presets — everything except the dating-only set.
-    var generalPresets: [Tone] { tones.filter { $0.isPreset && !Tone.datingOnlyToneNames.contains($0.name) } }
+    /// Chat presets — the everyday set. Some also appear in Dating/Email (tagged in the row).
+    var chatPresets: [Tone]   { tones.filter { $0.isPreset && Tone.chatToneNames.contains($0.name) } }
     /// Dating-only presets (the Settings "Dating" section).
-    var datingPresets: [Tone]  { tones.filter { $0.isPreset && Tone.datingOnlyToneNames.contains($0.name) } }
+    var datingPresets: [Tone] { tones.filter { $0.isPreset && Tone.datingOnlyToneNames.contains($0.name) } }
+    /// Email-only presets — the professional register, strictly separate from chat.
+    var emailPresets: [Tone]  { tones.filter { $0.isPreset && Tone.emailToneNames.contains($0.name) && !Tone.chatToneNames.contains($0.name) } }
 
     func load() { tones = AppGroupService.shared.readTones() }
 
@@ -26,23 +28,29 @@ final class TonesViewModel: ObservableObject {
     func add(_ tone: Tone) { tones.append(tone); save() }
 
     /// Reorder presets within a section (drag-to-reorder in Settings). Order persists
-    /// and drives the keyboard row order. Storage layout: general presets, then
-    /// dating presets, then custom tones.
-    private func stitch(general: [Tone], dating: [Tone]) {
-        tones = general + dating + custom
+    /// and drives the keyboard row order. Storage layout: chat presets, then dating,
+    /// then email, then custom tones.
+    private func stitch(chat: [Tone], dating: [Tone], email: [Tone]) {
+        tones = chat + dating + email + custom
         save()
     }
 
-    func moveGeneralPresets(from source: IndexSet, to destination: Int) {
-        var g = generalPresets
-        g.move(fromOffsets: source, toOffset: destination)
-        stitch(general: g, dating: datingPresets)
+    func moveChatPresets(from source: IndexSet, to destination: Int) {
+        var c = chatPresets
+        c.move(fromOffsets: source, toOffset: destination)
+        stitch(chat: c, dating: datingPresets, email: emailPresets)
     }
 
     func moveDatingPresets(from source: IndexSet, to destination: Int) {
         var d = datingPresets
         d.move(fromOffsets: source, toOffset: destination)
-        stitch(general: generalPresets, dating: d)
+        stitch(chat: chatPresets, dating: d, email: emailPresets)
+    }
+
+    func moveEmailPresets(from source: IndexSet, to destination: Int) {
+        var e = emailPresets
+        e.move(fromOffsets: source, toOffset: destination)
+        stitch(chat: chatPresets, dating: datingPresets, email: e)
     }
 
     func delete(at offsets: IndexSet) {
@@ -61,15 +69,16 @@ struct TonesView: View {
         NavigationStack {
             List {
                 Section {
-                    ForEach(vm.generalPresets) { tone in
-                        PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) }, showDragHandle: true)
+                    ForEach(vm.chatPresets) { tone in
+                        PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) },
+                                      showDragHandle: true, modeTags: sharedTags(for: tone))
                             .listRowBackground(ReplrTheme.Color.surface)
                             .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                     }
-                    .onMove { vm.moveGeneralPresets(from: $0, to: $1) }
+                    .onMove { vm.moveChatPresets(from: $0, to: $1) }
                 } header: {
                     HStack {
-                        Text("Presets")
+                        Text("Chat")
                             .foregroundStyle(ReplrTheme.Color.textSecondary)
                         Spacer()
                         Text("\(vm.enabledCount) on keyboard")
@@ -77,7 +86,7 @@ struct TonesView: View {
                             .foregroundStyle(ReplrTheme.Color.accent)
                     }
                 } footer: {
-                    Text("Tap the toggle to add or remove a tone from your keyboard. Drag the ≡ handle to reorder.")
+                    Text("Tap the toggle to add or remove a tone from your keyboard. Drag the ≡ handle to reorder. Tones tagged Dating or Email also appear in those modes.")
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
 
@@ -96,16 +105,35 @@ struct TonesView: View {
                         .foregroundStyle(ReplrTheme.Color.textSecondary)
                 }
 
+                Section {
+                    ForEach(vm.emailPresets) { tone in
+                        PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) }, showDragHandle: true)
+                            .listRowBackground(ReplrTheme.Color.surface)
+                            .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
+                    }
+                    .onMove { vm.moveEmailPresets(from: $0, to: $1) }
+                } header: {
+                    Text("Email")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                } footer: {
+                    Text("Only shown in the keyboard's Email mode — the professional register.")
+                        .foregroundStyle(ReplrTheme.Color.textSecondary)
+                }
+
                 if !vm.custom.isEmpty {
                     Section {
                         ForEach(vm.custom) { tone in
-                            PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) })
+                            PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) },
+                                          modeTags: sharedTags(for: tone))
                                 .listRowBackground(ReplrTheme.Color.surface)
                                 .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                         }
                         .onDelete { vm.delete(at: $0) }
                     } header: {
                         Text("Custom")
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
+                    } footer: {
+                        Text("Your tones appear in the modes you picked when creating them. Swipe to delete.")
                             .foregroundStyle(ReplrTheme.Color.textSecondary)
                     }
                 }
@@ -128,12 +156,29 @@ struct TonesView: View {
             .onAppear { vm.load() }
         }
     }
+
+    /// Mode tags shown on a row. Chat presets that ALSO appear in Dating/Email get
+    /// tagged (their home section is Chat); custom tones always show their picked
+    /// modes so it's clear where each one lives.
+    private func sharedTags(for tone: Tone) -> [String] {
+        guard tone.isPreset else {
+            let order = ["chat": 0, "dating": 1, "email": 2]
+            return tone.modes.sorted { (order[$0] ?? 9) < (order[$1] ?? 9) }.map(\.capitalized)
+        }
+        guard Tone.chatToneNames.contains(tone.name) else { return [] }
+        var tags: [String] = []
+        if Tone.datingToneNames.contains(tone.name) { tags.append("Dating") }
+        if Tone.emailToneNames.contains(tone.name) { tags.append("Email") }
+        return tags
+    }
 }
 
 struct PresetToneRow: View {
     let tone: Tone
     let onToggle: () -> Void
     var showDragHandle: Bool = false
+    /// Extra modes this tone appears in (capsule tags after the name).
+    var modeTags: [String] = []
 
     var body: some View {
         HStack(spacing: 12) {
@@ -150,6 +195,15 @@ struct PresetToneRow: View {
                             .padding(.horizontal, 5)
                             .padding(.vertical, 2)
                             .background(ReplrTheme.Color.accentSubtle)
+                            .clipShape(Capsule())
+                    }
+                    ForEach(modeTags, id: \.self) { tag in
+                        Text(tag)
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(ReplrTheme.Color.surfaceRaised)
                             .clipShape(Capsule())
                     }
                 }

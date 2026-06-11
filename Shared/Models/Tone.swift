@@ -7,8 +7,12 @@ struct Tone: Codable, Identifiable, Equatable {
     var blurb: String            // concise, human-readable line shown in Settings → Tones
     var isPreset: Bool
     var isEnabled: Bool
+    /// CUSTOM tones only: which keyboard modes show this tone ("chat"/"dating"/"email").
+    /// Picked in the tone builder. Presets ignore it — their availability comes from
+    /// the per-mode name sets below.
+    var modes: Set<String>
 
-    // Custom decode so old saved tones (missing isEnabled / blurb keys) migrate cleanly.
+    // Custom decode so old saved tones (missing isEnabled / blurb / modes keys) migrate cleanly.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id          = try c.decode(UUID.self,   forKey: .id)
@@ -17,15 +21,19 @@ struct Tone: Codable, Identifiable, Equatable {
         blurb       = try c.decodeIfPresent(String.self, forKey: .blurb) ?? ""
         isPreset    = try c.decode(Bool.self,   forKey: .isPreset)
         isEnabled   = try c.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true
+        // Pre-mode custom tones appeared everywhere — keep that on migrate.
+        modes       = try c.decodeIfPresent(Set<String>.self, forKey: .modes) ?? ["chat", "dating", "email"]
     }
 
-    init(id: UUID, name: String, instruction: String, blurb: String = "", isPreset: Bool, isEnabled: Bool = true) {
+    init(id: UUID, name: String, instruction: String, blurb: String = "", isPreset: Bool,
+         isEnabled: Bool = true, modes: Set<String> = ["chat", "dating", "email"]) {
         self.id          = id
         self.name        = name
         self.instruction = instruction
         self.blurb       = blurb
         self.isPreset    = isPreset
         self.isEnabled   = isEnabled
+        self.modes       = modes
     }
 
     // MARK: - Mode availability
@@ -50,12 +58,12 @@ struct Tone: Codable, Identifiable, Equatable {
 
     /// Whether this tone is available for the chat keyboard row.
     var availableInChat: Bool {
-        !isPreset || Tone.chatToneNames.contains(name)
+        isPreset ? Tone.chatToneNames.contains(name) : modes.contains("chat")
     }
 
     /// Whether this tone is available for the email keyboard row.
     var availableInEmail: Bool {
-        !isPreset || Tone.emailToneNames.contains(name)
+        isPreset ? Tone.emailToneNames.contains(name) : modes.contains("email")
     }
 
     /// Tone names that can appear in the DATING keyboard row.
@@ -72,7 +80,7 @@ struct Tone: Codable, Identifiable, Equatable {
 
     /// Whether this tone is available for the dating keyboard row.
     var availableInDating: Bool {
-        !isPreset || Tone.datingToneNames.contains(name)
+        isPreset ? Tone.datingToneNames.contains(name) : modes.contains("dating")
     }
 
     // MARK: - Presets (30 tones, all enabled, ordered by category)
