@@ -14,6 +14,12 @@ struct ContactMemoryDetailView: View {
 
     var body: some View {
         List {
+            Text("Replr remembers a short summary of each chat so future replies stay in context. Summaries only, stored on your phone.")
+                .font(.system(size: 13))
+                .foregroundStyle(ReplrTheme.Color.textSecondary)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+
             ForEach(sessions) { session in
                 VStack(alignment: .leading, spacing: 5) {
                     Text(formattedTimestamp(session.timestamp))
@@ -28,17 +34,18 @@ struct ContactMemoryDetailView: View {
                 .listRowBackground(ReplrTheme.Color.surface)
                 .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
             }
+
+            Button(role: .destructive) { showClearConfirm = true } label: {
+                Text("Clear memory for \(contact.displayName)")
+                    .frame(maxWidth: .infinity)
+            }
+            .listRowBackground(Color.clear)
         }
         .scrollContentBackground(.hidden)
         .background(ReplrTheme.Color.bg.ignoresSafeArea())
         .tint(ReplrTheme.Color.accent)
         .navigationTitle(contact.displayName)
         .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            Button(role: .destructive) { showClearConfirm = true } label: {
-                Text("Clear Memory")
-            }
-        }
         .confirmationDialog(
             "Clear all memory for \(contact.displayName)?",
             isPresented: $showClearConfirm,
