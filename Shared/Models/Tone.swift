@@ -53,7 +53,8 @@ struct Tone: Codable, Identifiable, Equatable {
         "Warm Professional", "Professional", "Follow-Up", "Diplomatic", "Assertive",
         "Enthusiastic", "Concise", "Grateful", "Formal",
         // Cross-mode tones also available in email:
-        "Confident", "Direct", "Empathetic", "Friendly",
+        // Natural is the no-overlay baseline — present in every mode.
+        "Natural", "Confident", "Direct", "Empathetic", "Friendly",
     ]
 
     /// Names that ONLY exist in email mode — drives the Settings "Email" section

@@ -683,16 +683,21 @@ struct ModeSegmentedControl: View {
     /// and the Email row on Friendly — the mode's identity tones sat off-screen.
     static func rowTones(_ tones: [Tone], for mode: KeyboardInputMode) -> [Tone] {
         let available = tones.filter { $0.isEnabled && toneAvailable($0, in: mode) }
+        // Natural is the no-overlay baseline — always present, pinned first in
+        // every mode (readTones keeps it enabled).
+        let isNatural: (Tone) -> Bool = { $0.isPreset && $0.name == "Natural" }
+        let natural = available.filter(isNatural)
+        let rest = available.filter { !isNatural($0) }
         let isPrimary: (Tone) -> Bool
         switch mode {
         case .chat:
-            return available
+            return natural + rest
         case .dating:
             isPrimary = { $0.isPreset && Tone.datingOnlyToneNames.contains($0.name) }
         case .email:
             isPrimary = { $0.isPreset && Tone.emailOnlyToneNames.contains($0.name) }
         }
-        return available.filter(isPrimary) + available.filter { !isPrimary($0) }
+        return natural + rest.filter(isPrimary) + rest.filter { !isPrimary($0) }
     }
 
     @ViewBuilder

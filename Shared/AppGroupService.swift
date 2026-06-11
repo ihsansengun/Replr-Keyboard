@@ -408,7 +408,9 @@ final class AppGroupService {
                                            uniquingKeysWith: { a, _ in a })
             let fresh = Tone.presets.map { p in
                 Tone(id: p.id, name: p.name, instruction: p.instruction, blurb: p.blurb,
-                     isPreset: true, isEnabled: enabledByName[p.name] ?? p.isEnabled)
+                     isPreset: true,
+                     // Natural is the always-on baseline — never disableable.
+                     isEnabled: p.name == "Natural" ? true : (enabledByName[p.name] ?? p.isEnabled))
             }
             let merged = fresh + custom
             try? writeTones(merged)
@@ -421,7 +423,9 @@ final class AppGroupService {
         var presets: [Tone] = savedPresets.compactMap { s in
             guard let p = presetByName[s.name] else { return nil }
             return Tone(id: s.id, name: p.name, instruction: p.instruction, blurb: p.blurb,
-                        isPreset: true, isEnabled: s.isEnabled)
+                        isPreset: true,
+                        // Natural is the always-on baseline — never disableable.
+                        isEnabled: p.name == "Natural" ? true : s.isEnabled)
         }
         let savedNames = Set(savedPresets.map(\.name))
         presets.append(contentsOf: Tone.presets.filter { !savedNames.contains($0.name) })

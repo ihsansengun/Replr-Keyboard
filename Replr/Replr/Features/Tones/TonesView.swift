@@ -71,7 +71,8 @@ struct TonesView: View {
                 Section {
                     ForEach(vm.chatPresets) { tone in
                         PresetToneRow(tone: tone, onToggle: { vm.toggle(tone) },
-                                      showDragHandle: true, modeTags: sharedTags(for: tone))
+                                      showDragHandle: true, modeTags: sharedTags(for: tone),
+                                      lockedOn: tone.name == "Natural")
                             .listRowBackground(ReplrTheme.Color.surface)
                             .listRowSeparatorTint(ReplrTheme.Color.glassBorder)
                     }
@@ -179,6 +180,8 @@ struct PresetToneRow: View {
     var showDragHandle: Bool = false
     /// Extra modes this tone appears in (capsule tags after the name).
     var modeTags: [String] = []
+    /// Natural: the always-on baseline — no toggle, can't be disabled.
+    var lockedOn: Bool = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -213,9 +216,15 @@ struct PresetToneRow: View {
                     .lineLimit(2)
             }
             Spacer()
-            Toggle("", isOn: Binding(get: { tone.isEnabled }, set: { _ in onToggle() }))
-                .labelsHidden()
-                .tint(ReplrTheme.Color.accent)
+            if lockedOn {
+                Text("Always on")
+                    .font(.caption)
+                    .foregroundStyle(ReplrTheme.Color.textTertiary)
+            } else {
+                Toggle("", isOn: Binding(get: { tone.isEnabled }, set: { _ in onToggle() }))
+                    .labelsHidden()
+                    .tint(ReplrTheme.Color.accent)
+            }
             if showDragHandle {
                 Image(systemName: "line.3.horizontal")
                     .font(.system(size: 13, weight: .medium))
