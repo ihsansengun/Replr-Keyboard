@@ -142,6 +142,9 @@ struct SettingsView: View {
     @State private var preferredCapture = AppGroupService.shared.preferredCapture
     @State private var aboutUser = AppGroupService.shared.aboutUser
     @ObservedObject private var auth = AuthService.shared
+    @State private var showDeleteAccountConfirm = false
+    @State private var isDeletingAccount = false
+    @State private var deleteAccountError: String?
     @FocusState private var aboutFocused: Bool
     #if DEBUG
     // Dev-only: re-trigger the onboarding flow for previewing (it's first-launch-gated).
@@ -585,6 +588,57 @@ struct SettingsView: View {
                 }
             }
             .buttonStyle(.plain)
+
+            // Delete account — App Review 5.1.1(v): apps with account creation
+            // must offer in-app account deletion.
+            if auth.isSignedIn {
+                cardDivider
+                Button {
+                    showDeleteAccountConfirm = true
+                } label: {
+                    settingsRow {
+                        Image(systemName: "trash")
+                            .foregroundStyle(ReplrTheme.Color.danger)
+                            .frame(width: 28)
+                        Text("Delete account")
+                            .font(.system(size: 17))
+                            .foregroundStyle(ReplrTheme.Color.danger)
+                        Spacer()
+                        if isDeletingAccount { ProgressView() }
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(isDeletingAccount)
+            }
+        }
+        .confirmationDialog("Delete your account?",
+                            isPresented: $showDeleteAccountConfirm,
+                            titleVisibility: .visible) {
+            Button("Delete account", role: .destructive) { performDeleteAccount() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This permanently deletes your account and any remaining credits. It can't be undone.")
+        }
+        .alert("Couldn't delete account",
+               isPresented: Binding(
+                   get: { deleteAccountError != nil },
+                   set: { if !$0 { deleteAccountError = nil } }
+               )) {
+            Button("OK", role: .cancel) { deleteAccountError = nil }
+        } message: {
+            Text(deleteAccountError ?? "")
+        }
+    }
+
+    private func performDeleteAccount() {
+        isDeletingAccount = true
+        Task {
+            do {
+                try await AuthService.shared.deleteAccount()
+            } catch {
+                deleteAccountError = error.localizedDescription
+            }
+            isDeletingAccount = false
         }
     }
 

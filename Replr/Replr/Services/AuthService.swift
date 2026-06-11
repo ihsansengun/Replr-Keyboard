@@ -134,6 +134,39 @@ final class AuthService: NSObject, ObservableObject {
         }
     }
 
+    // MARK: - Delete Account
+
+    /// App Review 5.1.1(v): permanently deletes the server account — user row,
+    /// sessions, credit balance, and ledger — then clears local state exactly
+    /// like sign-out. Remaining credits are forfeited; callers warn the user
+    /// first. Signing in with Apple again later creates a fresh account.
+    func deleteAccount() async throws {
+        guard let token = sessionToken else {
+            signOut()   // no server session — nothing remote to delete
+            return
+        }
+
+        let url = URL(string: Constants.backendURL + "/auth/account")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 20
+
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw AuthError.serverError }
+        guard http.statusCode == 200 else {
+            // The 30-day session can lapse before the user gets here. Deletion
+            // needs a live session, so ask for a fresh sign-in instead of
+            // pretending the account is gone.
+            throw http.statusCode == 401 ? AuthError.sessionExpired : AuthError.serverError
+        }
+
+        // The server account (and its credit ledger) is gone — forfeit the local
+        // mirror too, so the legacy offline path can't keep spending ghost credits.
+        AppGroupService.shared.creditBalance = 0
+        signOut()
+    }
+
     // MARK: - Sign Out
 
     func signOut() {
@@ -153,11 +186,13 @@ final class AuthService: NSObject, ObservableObject {
     enum AuthError: LocalizedError {
         case invalidIdentityToken
         case serverError
+        case sessionExpired
 
         var errorDescription: String? {
             switch self {
             case .invalidIdentityToken: return "Apple sign-in failed. Please try again."
             case .serverError:          return "Couldn't connect to Replr. Check your connection and try again."
+            case .sessionExpired:       return "Your session has expired. Sign in again, then delete your account."
             }
         }
     }
