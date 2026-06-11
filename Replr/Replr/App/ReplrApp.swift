@@ -90,10 +90,14 @@ struct ReplrApp: App {
                                 showPaywall = true
                             case "fullaccess":
                                 // The keyboard can't open the Settings app itself
-                                // (app-settings: is ignored from extensions), so its
-                                // setup cards deep-link here and the app bounces on.
+                                // (app-settings: is ignored from extensions), so the
+                                // limited-Photos card deep-links here and the app
+                                // bounces on. Slight delay: an open() fired before the
+                                // scene is fully active (cold launch) is silently dropped.
                                 if let settings = URL(string: UIApplication.openSettingsURLString) {
-                                    UIApplication.shared.open(settings)
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                        UIApplication.shared.open(settings)
+                                    }
                                 }
                             default:
                                 break

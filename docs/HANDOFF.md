@@ -166,9 +166,15 @@ collection: already clean. Three gaps fixed on `main`:
   unreadable → balance read 0 → a reviewer who skipped the toggle got a bogus
   "out of credits" paywall + raw network errors. Now `needsFullAccessSetup`
   (set in `viewDidAppear`, the first reliable `hasFullAccess` read) swaps the
-  whole keyboard for a setup card (Settings link — the one allowed app to
-  open — globe still reachable, height pinned 260); the App Group poll and the
-  paywall check are suppressed while it's up.
+  whole keyboard for a setup card with **numbered manual steps** (globe still
+  reachable, height pinned 260); the App Group poll and the paywall check are
+  suppressed while it's up. **No button is possible on this card** —
+  device-verified: iOS blocks ALL launching from a keyboard running without
+  Full Access (even the SwiftUI `Link` trick that powers the other keyboard
+  deep links — see `infoSlide` in IdlePanelView). The limited-Photos card
+  (Full Access ON) keeps its working button via `replr://fullaccess` → the
+  app bounces to `UIApplication.openSettingsURLString` after a 0.5 s
+  activation delay.
 - **Account deletion, 5.1.1(v)** (`dcc7c7e` backend + `e38e583` iOS):
   `DELETE /auth/account` — session-authed atomic wipe of credit_ledger,
   credits, paywall_events, sessions, users (3 tests; 113/113 green). Settings

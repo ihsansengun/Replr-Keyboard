@@ -948,36 +948,26 @@ struct FullAccessSetupView: View {
                         .foregroundColor(ReplrTheme.Color.textSecondary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
-                    Text("Settings → Replr → Keyboards → Allow Full Access")
-                        .font(.system(size: 11.5, weight: .medium))
-                        .foregroundColor(ReplrTheme.Color.textTertiary)
-                        .multilineTextAlignment(.center)
                 }
                 .padding(.horizontal, 8)
 
-                // app-settings: URLs are ignored from keyboard extensions, so this
-                // bounces through the app (replr://fullaccess → app opens Settings).
-                if let bounceURL = URL(string: "replr://fullaccess") {
-                    Link(destination: bounceURL) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "gear").font(.system(size: 13, weight: .semibold))
-                            Text("Open Settings →").font(.system(size: 14, weight: .semibold))
-                        }
-                        .foregroundColor(ReplrTheme.Color.onAccent)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                        .background(
-                            Capsule(style: .continuous)
-                                .fill(ReplrTheme.Color.brandGradient)
-                                .overlay(ShimmerOverlay(cornerRadius: 22))
-                        )
-                        .shadow(
-                            color: colorScheme == .dark ? ReplrTheme.Color.accent.opacity(0.45) : .black.opacity(0.10),
-                            radius: colorScheme == .dark ? 14 : 6, x: 0, y: colorScheme == .dark ? 5 : 3
-                        )
-                    }
-                    .padding(.horizontal, 18)
+                // No button: iOS gives a keyboard WITHOUT Full Access no way to launch
+                // anything — not Settings, not even its own app (the SwiftUI Link path
+                // needs Full Access; see infoSlide in IdlePanelView). Device-verified.
+                // Numbered manual steps instead — the Bitmoji/Gboard pattern.
+                VStack(alignment: .leading, spacing: 8) {
+                    setupStep(1, "Open Settings, scroll to Replr")
+                    setupStep(2, "Tap Keyboards")
+                    setupStep(3, "Turn on Allow Full Access")
                 }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(ReplrTheme.Color.surface)
+                .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: ReplrTheme.Radius.md, style: .continuous)
+                        .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                )
             }
             .padding(.horizontal, 20)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -994,6 +984,20 @@ struct FullAccessSetupView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(ReplrTheme.Color.bg)
+    }
+
+    private func setupStep(_ number: Int, _ text: String) -> some View {
+        HStack(spacing: 10) {
+            Text("\(number)")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(ReplrTheme.Color.accent)
+                .frame(width: 22, height: 22)
+                .background(Circle().fill(ReplrTheme.Color.accent.opacity(0.12)))
+            Text(text)
+                .font(.system(size: 13.5, weight: .medium))
+                .foregroundColor(ReplrTheme.Color.textPrimary)
+            Spacer(minLength: 0)
+        }
     }
 }
 
