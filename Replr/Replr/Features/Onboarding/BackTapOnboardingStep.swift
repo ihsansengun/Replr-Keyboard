@@ -25,7 +25,10 @@ struct BackTapOnboardingStep: View {
                     openedSetup = true
                     showSetup = true
                 }
-                TertiaryButton(label: openedSetup ? "Continue →" : "Set up later →", action: onNext)
+                TertiaryButton(label: openedSetup ? "Continue →" : "Set up later →") {
+                    AppGroupService.shared.backTapSkipped = true
+                    onNext()
+                }
             }
         }
         .sheet(isPresented: $showSetup) {

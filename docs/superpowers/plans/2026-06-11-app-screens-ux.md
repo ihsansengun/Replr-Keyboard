@@ -1494,7 +1494,7 @@ Compiles unused until Task 9 wires it in. `TabSelection` still has the old cases
 the tab binding is introduced in Task 9 — here `HomeView` takes an `onSeeAll` closure
 instead, keeping this task independent of the enum change.
 
-- [ ] **Step 1: Create HomeView + view model**
+- [x] **Step 1: Create HomeView + view model**
 
 Create `Replr/Replr/Features/Home/HomeView.swift`:
 
@@ -1825,11 +1825,11 @@ struct HomeView: View {
 }
 ```
 
-- [ ] **Step 2: Build gate**
+- [x] **Step 2: Build gate**
 
-Run the build command. Expected: `** BUILD SUCCEEDED **`.
+Run the build command. Expected: `** BUILD SUCCEEDED **`. ✅ 2026-06-11
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Replr/Replr/Features/Home/HomeView.swift
@@ -1837,6 +1837,8 @@ git commit -m "feat(ios): Home tab — setup card, credits with low state, recen
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
+
+Review carry-forward folded in: BackTapOnboardingStep's skip path now writes `backTapSkipped = true` (the old writer was lost in a previous onboarding redesign; without it the Home row never shows for fresh installs). One-line sanctioned deviation from the spec's 'no onboarding changes' non-goal.
 
 ---
 
