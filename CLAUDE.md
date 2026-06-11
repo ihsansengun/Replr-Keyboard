@@ -190,6 +190,18 @@ The LLM prompt always outputs: `CONTACT: …`, `SUMMARY: …`, then numbered rep
 `parseLlmOutput()` in `llm.ts` parses this format — keep it in sync if you change
 the prompt format.
 
+### Quality tiers (what users see) vs models (what dev mode sees)
+
+Users never see vendor model names. The app sends a tier id — `balanced` or
+`max` — as `model`; `TIERS` in `backend/src/services/models.ts` maps each tier
+to today's vendor model and carries the tier's own credit price (4/6), which is
+**deliberately independent** of the underlying model's catalog cost.
+**Repointing a tier to a different model = edit `TIERS` + deploy** — no app
+release, no user-visible change, price unchanged. Raw model ids remain valid
+for dev mode only. App side: `ReplrModel.balanced/.max` are the only
+production cases; `AppGroupService.userModel` migrates legacy persisted vendor
+ids on read.
+
 ### Adding a model
 
 Add it to `backend/src/services/models.ts` (catalog → validity + credit cost +
@@ -198,6 +210,7 @@ Add it to `backend/src/services/models.ts` (catalog → validity + credit cost +
 and the fallback tables in `AppGroupService` (`creditsRequired`,
 `selectedModelShortLabel`). The App Group catalog cache means costs/labels
 update without an app release, but the app enums gate which models users can pick.
+To put the new model in front of users, point a tier at it (see above).
 
 ## Key design constraints
 

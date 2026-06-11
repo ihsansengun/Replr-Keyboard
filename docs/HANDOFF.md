@@ -187,6 +187,19 @@ collection: already clean. Three gaps fixed on `main`:
 old worker), bogus token → 401, `/health` ok. The Settings row works against
 production; full-wipe behavior is covered by the user's device pass.
 
+### Quality tiers (2026-06-11 — vendor models hidden behind Balanced/Max)
+
+Users pick **Balanced (4 cr)** or **Max (6 cr)** in Settings → Reply Quality;
+the app sends the tier id and `TIERS` (`backend/src/services/models.ts`) maps
+it to today's vendor model (balanced→gemini-3.5-flash, max→gemini-3.1-pro).
+Tier price is independent of the vendor model's cost — **repointing a tier is
+a backend-only deploy and never changes what users pay.** Raw model ids stay
+valid for dev mode; legacy persisted vendor ids migrate to tiers on read
+(`AppGroupService.userModel`). No vendor name remains user-facing (Settings,
+paywall, PrivacyView all scrubbed). **⚠️ Deploy order: the tier backend
+(`cf20642`) must be live before any app build containing `0c1d992` ships —
+the old worker 400s on `balanced`.**
+
 **ASC checklist for submission (user actions):**
 - **App Privacy labels**: disclose screenshots/user content sent to the server
   for reply generation (linked to identity when signed in) and stored chat
