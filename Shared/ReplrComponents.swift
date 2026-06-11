@@ -182,19 +182,23 @@ struct Chip: View {
     let isSelected: Bool
     let icon: String?
     let action: () -> Void
+    /// Optional press-and-hold action (e.g. tone chips show their blurb).
+    /// Tap and hold are exclusive gestures — holding never triggers `action`.
+    let onLongPress: (() -> Void)?
 
     @Environment(\.colorScheme) private var scheme
 
-    init(label: String, isSelected: Bool, icon: String? = nil, action: @escaping () -> Void) {
+    init(label: String, isSelected: Bool, icon: String? = nil,
+         action: @escaping () -> Void, onLongPress: (() -> Void)? = nil) {
         self.label = label
         self.isSelected = isSelected
         self.icon = icon
         self.action = action
+        self.onLongPress = onLongPress
     }
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
+        HStack(spacing: 4) {
                 if let icon {
                     Image(systemName: icon)
                         .font(.system(size: 9))
@@ -226,8 +230,10 @@ struct Chip: View {
                     : .clear,
                 radius: isSelected ? 6 : 2, x: 0, y: isSelected ? 3 : 1
             )
-        }
-        .buttonStyle(.plain)
+            .contentShape(Capsule())
+            .onTapGesture(perform: action)
+            .onLongPressGesture(minimumDuration: 0.35) { onLongPress?() }
+            .accessibilityAddTraits(.isButton)
         .frame(height: 34)
         .animation(ReplrTheme.Motion.expressive, value: isSelected)
     }

@@ -12,6 +12,7 @@ struct ReplrApp: App {
     @State private var showPaywall = false
     @State private var showTutorial = false
     @State private var tutorialTopic: String? = nil
+    @State private var showTones = false
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -77,6 +78,9 @@ struct ReplrApp: App {
                         .sheet(isPresented: $showTutorial) {
                             UsageTutorialView(startTopic: tutorialTopic, onDone: { showTutorial = false })
                         }
+                        .sheet(isPresented: $showTones) {
+                            TonesView()   // self-contained (own NavigationStack + VM)
+                        }
                         .onOpenURL { url in
                             guard url.scheme == "replr" else { return }
                             switch url.host {
@@ -88,6 +92,9 @@ struct ReplrApp: App {
                                 showTutorial = true
                             case "paywall":
                                 showPaywall = true
+                            case "tones":
+                                // Keyboard teaching panel: "Browse all tones →"
+                                showTones = true
                             case "fullaccess":
                                 // The keyboard can't open the Settings app itself
                                 // (app-settings: is ignored from extensions), so the

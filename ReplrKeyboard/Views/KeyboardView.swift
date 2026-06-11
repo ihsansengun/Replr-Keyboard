@@ -43,6 +43,9 @@ final class KeyboardModel: ObservableObject {
     /// replaces every state — without Full Access the keyboard can't reach the
     /// network or the App Group, so anything else it could show is broken.
     @Published var needsFullAccessSetup: Bool = false
+    /// Tone a user is press-and-holding to learn about — ToneInfoCard overlays
+    /// the keyboard with its blurb while non-nil.
+    @Published var toneInfo: Tone? = nil
     @Published var pendingContext: String = ""
     @Published var currentReplies: [String] = []
     @Published var contactName: String? = nil
@@ -428,6 +431,15 @@ struct KeyboardRootView: View {
                     PaywallCardView(model: model).transition(.opacity)
                 }
             }
+
+            // Tone education — press-and-hold on any tone chip (works in every
+            // state that shows the tone row).
+            if let tone = model.toneInfo {
+                ToneInfoCard(tone: tone) {
+                    withAnimation(.easeInOut(duration: 0.15)) { model.toneInfo = nil }
+                }
+                .transition(.opacity)
+            }
         }
         .animation(.easeInOut(duration: 0.2), value: model.isCollapsed)
         .animation(.easeInOut(duration: 0.2), value: stateTag)
@@ -718,7 +730,10 @@ struct ToneRow: View {
                         Chip(
                             label: tone.name,
                             isSelected: tone.name == model.selectedTone.name,
-                            action: { model.selectTone(tone) }
+                            action: { model.selectTone(tone) },
+                            onLongPress: {
+                                withAnimation(.easeInOut(duration: 0.15)) { model.toneInfo = tone }
+                            }
                         )
                     }
                 }
@@ -909,6 +924,74 @@ struct GlobeKeyButton: View {
                 .frame(width: 36, height: 30)
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Tone Info Card
+
+/// Tone education in place: press-and-hold a tone chip and this overlays the
+/// keyboard with the tone's blurb — what it sounds like and when to use it.
+/// Tap anywhere to dismiss; auto-dismisses after a few seconds.
+struct ToneInfoCard: View {
+    let tone: Tone
+    let onDismiss: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+                .onTapGesture(perform: onDismiss)
+
+            VStack(spacing: 8) {
+                HStack(spacing: 6) {
+                    Text(tone.name)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(ReplrTheme.Color.textPrimary)
+                    if !tone.isPreset {
+                        Text("CUSTOM")
+                            .font(.system(size: 9, weight: .bold))
+                            .tracking(0.8)
+                            .foregroundColor(ReplrTheme.Color.accent)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(ReplrTheme.Color.accentSubtle))
+                    }
+                }
+                Text(blurbText)
+                    .font(.system(size: 13))
+                    .foregroundColor(ReplrTheme.Color.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("Tap the chip to use it — replies come back in this voice.")
+                    .font(.system(size: 11))
+                    .foregroundColor(ReplrTheme.Color.textTertiary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .frame(maxWidth: 300)
+            .background(
+                ReplrTheme.Color.surface
+                    .clipShape(RoundedRectangle(cornerRadius: ReplrTheme.Radius.lg, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: ReplrTheme.Radius.lg, style: .continuous)
+                            .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                    )
+            )
+            .elevatedSurface(.level1)
+            .padding(.horizontal, 24)
+        }
+        // Re-arm the auto-dismiss when the user holds a different chip.
+        .task(id: tone.id) {
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            onDismiss()
+        }
+    }
+
+    private var blurbText: String {
+        if !tone.blurb.isEmpty { return tone.blurb }
+        // Custom tones carry the user's own instruction instead of a blurb.
+        return "Replies follow your instruction: \u{201C}\(tone.instruction)\u{201D}"
     }
 }
 

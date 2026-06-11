@@ -42,7 +42,7 @@ struct IdlePanelView: View {
 
     private var pageDots: some View {
         HStack(spacing: 6) {
-            ForEach(0..<2, id: \.self) { i in
+            ForEach(0..<3, id: \.self) { i in
                 Circle()
                     .fill(i == teachingPage ? ReplrTheme.Color.accent
                                             : ReplrTheme.Color.textSecondary.opacity(0.30))
@@ -62,8 +62,9 @@ struct IdlePanelView: View {
             // so it reads as a compact landscape card rather than a near-full-height square.
             VStack(spacing: 10) {
                 TabView(selection: $teachingPage) {
-                    steerSlide.tag(0)
-                    backTapSlide.tag(1)
+                    tonesSlide.tag(0)
+                    steerSlide.tag(1)
+                    backTapSlide.tag(2)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .frame(height: 160)
@@ -230,6 +231,15 @@ struct IdlePanelView: View {
         }
         .padding(.top, 12)
         .padding(.bottom, 8)
+    }
+
+    /// Slide 1 — Tones (what they are, how to learn each one).
+    private var tonesSlide: some View {
+        infoSlide(icon: "theatermasks.fill",
+                  title: "Pick a tone",
+                  body: "Same chat, different voice — the tone rewrites Replr's replies, not your message. Hold any tone chip to see what it's for.",
+                  cta: "Browse all tones →",
+                  url: "replr://tones")
     }
 
     /// Slide 2 — Back Tap (opens the app to set it up).

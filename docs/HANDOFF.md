@@ -201,6 +201,14 @@ paywall, PrivacyView all scrubbed). **Backend DEPLOYED 2026-06-11 (worker
 `model:"balanced"` generation returned 3 replies. (The deploy-order rule —
 backend before app build — bit once: the user rebuilt first and got 400s.)
 
+### Tone education in the keyboard (2026-06-11)
+
+Press-and-hold any tone chip → `ToneInfoCard` overlays the tone's `blurb`
+(custom tones show the user's own instruction). The teaching popup (sliders
+button) gained a first "Pick a tone" slide whose CTA deep-links
+`replr://tones` → the app opens TonesView as a sheet. Chip (shared component)
+gained an optional exclusive `onLongPress` — tap and hold never both fire.
+
 **ASC checklist for submission (user actions):**
 - **App Privacy labels**: disclose screenshots/user content sent to the server
   for reply generation (linked to identity when signed in) and stored chat
