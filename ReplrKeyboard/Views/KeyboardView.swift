@@ -677,6 +677,24 @@ struct ModeSegmentedControl: View {
         }
     }
 
+    /// Row order for a mode: the mode's OWN tones lead (in the user's saved
+    /// order), shared everyday tones and custom tones trail. Without this,
+    /// storage order (chat block first) opened the Dating row on Natural/Casual
+    /// and the Email row on Friendly — the mode's identity tones sat off-screen.
+    static func rowTones(_ tones: [Tone], for mode: KeyboardInputMode) -> [Tone] {
+        let available = tones.filter { $0.isEnabled && toneAvailable($0, in: mode) }
+        let isPrimary: (Tone) -> Bool
+        switch mode {
+        case .chat:
+            return available
+        case .dating:
+            isPrimary = { $0.isPreset && Tone.datingOnlyToneNames.contains($0.name) }
+        case .email:
+            isPrimary = { $0.isPreset && Tone.emailOnlyToneNames.contains($0.name) }
+        }
+        return available.filter(isPrimary) + available.filter { !isPrimary($0) }
+    }
+
     @ViewBuilder
     private func modeButton(_ mode: KeyboardInputMode, label: String, icon: String) -> some View {
         let isSelected = model.inputMode == mode
@@ -723,10 +741,7 @@ struct ToneRow: View {
         HStack(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
-                    ForEach(model.tones.filter { tone in
-                        guard tone.isEnabled else { return false }
-                        return ModeSegmentedControl.toneAvailable(tone, in: model.inputMode)
-                    }) { tone in
+                    ForEach(ModeSegmentedControl.rowTones(model.tones, for: model.inputMode)) { tone in
                         Chip(
                             label: tone.name,
                             isSelected: tone.name == model.selectedTone.name,
