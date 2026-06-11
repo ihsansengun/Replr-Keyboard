@@ -25,8 +25,8 @@ describe('GET /config', () => {
       defaultModel: string
       models: Array<{ id: string; label: string; creditCost: number; production: boolean }>
     }
-    expect(body.defaultModel).toBe('gemini-3.5-flash')
-    expect(body.models).toHaveLength(15)
+    expect(body.defaultModel).toBe('balanced')
+    expect(body.models).toHaveLength(17)   // 2 tiers + 15 raw vendor models
     for (const m of body.models) {
       expect(typeof m.id).toBe('string')
       expect(typeof m.label).toBe('string')

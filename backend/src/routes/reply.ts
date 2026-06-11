@@ -4,7 +4,7 @@ import { generateReplies, generateRepliesFromEmail, type GenerationMode } from '
 import type { Env, Model } from '../types'
 import { sessionMiddleware, SESSION_USER_ID_KEY, SessionVariables } from '../middleware/session'
 import { checkRateLimit } from '../services/rateLimit'
-import { VALID_MODELS, creditCostFor } from '../services/models'
+import { VALID_MODELS, REQUESTABLE_MODELS, creditCostFor, resolveTier } from '../services/models'
 import { getAccessProfile, trySpend, grant } from '../services/credits'
 
 export const replyRoute = new Hono<{ Bindings: Env; Variables: SessionVariables }>()
@@ -67,17 +67,16 @@ interface SpendResult {
   creditsRemaining?: number
 }
 
-/** Charges the model's credit cost up-front for server-managed users (those with
- *  a credits row — created by the app via /credits/migrate or /redeem). Dev
+/** Charges `cost` credits up-front for server-managed users (those with a
+ *  credits row — created by the app via /credits/migrate or /redeem). Dev
  *  accounts (users.is_dev) are exempt — dev mode is test-only and must never
  *  spend real credits. Legacy and anonymous traffic passes through unchanged;
  *  rate limiting still applies. `access` comes from enforceAccess's lookup.
  *  Callers MUST refund via `refundIfCharged` on any failure after this. */
-async function chargeCredits(c: ReplyContext, model: string, access: AccessResult): Promise<SpendResult> {
+async function chargeCredits(c: ReplyContext, cost: number, access: AccessResult): Promise<SpendResult> {
   const authedUserID = c.get(SESSION_USER_ID_KEY)
   if (!authedUserID || access.isDev || access.managedBalance === null) return { charged: 0 }
 
-  const cost = creditCostFor(model)
   const newBalance = await trySpend(c.env.DB, authedUserID, cost)
   if (newBalance === null) {
     return { denied: c.json({ error: 'insufficient_credits' }, 402), charged: 0 }
@@ -114,22 +113,29 @@ replyRoute.post('/', async (c) => {
     return c.json({ error: 'Missing required fields: screenshotBase64 or emailText, tone, model, userId' }, 400)
   }
 
-  if (!VALID_MODELS.includes(model as Model)) {
-    return c.json({ error: `Invalid model. Must be one of: ${VALID_MODELS.join(', ')}` }, 400)
+  // Quality tiers: the app sends 'balanced'/'max'; the server decides which
+  // vendor model that means today, so repointing a tier is a backend-only
+  // deploy. Raw vendor ids stay valid for dev mode. The tier's own creditCost
+  // is charged — tier price is independent of the underlying model's cost.
+  const tier = resolveTier(model)
+  const effectiveModel = (tier?.model ?? model) as Model
+
+  if (!VALID_MODELS.includes(effectiveModel)) {
+    return c.json({ error: `Invalid model. Must be one of: ${REQUESTABLE_MODELS.join(', ')}` }, 400)
   }
 
   if (mode !== undefined && !['chat', 'email', 'dating'].includes(mode)) {
     return c.json({ error: 'Invalid mode. Must be one of: chat, email, dating' }, 400)
   }
 
-  const spend = await chargeCredits(c, model, access)
+  const spend = await chargeCredits(c, tier?.creditCost ?? creditCostFor(effectiveModel), access)
   if (spend.denied) return spend.denied
 
   try {
     const result = emailText
       ? await generateRepliesFromEmail({
           emailText, tone, toneName, summary, previousContext, aboutUser,
-          model: model as Model,
+          model: effectiveModel,
           anthropicKey: c.env.ANTHROPIC_API_KEY, xaiKey: c.env.XAI_API_KEY, googleKey: c.env.GOOGLE_API_KEY,
           openaiKey: c.env.OPENAI_API_KEY,
         })
@@ -137,7 +143,7 @@ replyRoute.post('/', async (c) => {
           screenshotBase64: screenshotBase64!,
           tone, toneName, summary, previousContext, aboutUser,
           mode: mode as GenerationMode | undefined,
-          model: model as Model,
+          model: effectiveModel,
           anthropicKey: c.env.ANTHROPIC_API_KEY, xaiKey: c.env.XAI_API_KEY, googleKey: c.env.GOOGLE_API_KEY,
           openaiKey: c.env.OPENAI_API_KEY,
         })

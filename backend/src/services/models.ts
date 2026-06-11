@@ -12,8 +12,8 @@ export interface CatalogModel {
  *  costs/labels/additions don't require an App Store release.
  *  (Provider API pricing lives separately in llm.ts PRICING.) */
 export const MODEL_CATALOG: CatalogModel[] = [
-  { id: 'gemini-3.5-flash',       label: '3.5 Flash',    creditCost: 4,  production: true  },
-  { id: 'gemini-3.1-pro-preview', label: 'Pro High',     creditCost: 6,  production: true  },
+  { id: 'gemini-3.5-flash',       label: '3.5 Flash',    creditCost: 4,  production: false },
+  { id: 'gemini-3.1-pro-preview', label: 'Pro High',     creditCost: 6,  production: false },
   { id: 'gemini-3.1-pro-low',     label: 'Pro Low',      creditCost: 6,  production: false },
   { id: 'gemini-3-flash-preview', label: 'Gemini Flash', creditCost: 3,  production: false },
   { id: 'gemini-3.1-flash-lite',  label: 'Flash Lite',   creditCost: 2,  production: false },
@@ -36,6 +36,55 @@ export const VALID_MODELS: Model[] = MODEL_CATALOG.map(m => m.id)
 /** Fallback 7 matches the app's AppGroupService.creditsRequired default. */
 export function creditCostFor(model: string): number {
   return MODEL_CATALOG.find(m => m.id === model)?.creditCost ?? 7
+}
+
+// ── Quality tiers ────────────────────────────────────────────────────────────
+
+/** User-facing quality tiers — the stable ids the app sends as `model`. The
+ *  server resolves which vendor model a tier means TODAY, so repointing a tier
+ *  (Gemini → Claude → whatever wins) is a backend-only deploy: no app release,
+ *  and users never see vendor churn. `creditCost` is the tier's PRICE and is
+ *  deliberately independent of the underlying model's catalog cost — swapping
+ *  vendors must never silently change what users pay. */
+export interface Tier {
+  id: string
+  label: string
+  creditCost: number
+  model: Model
+}
+
+export const TIERS: Tier[] = [
+  { id: 'balanced', label: 'Balanced', creditCost: 4, model: 'gemini-3.5-flash' },
+  { id: 'max',      label: 'Max',      creditCost: 6, model: 'gemini-3.1-pro-preview' },
+]
+
+export function resolveTier(id: string | undefined): Tier | undefined {
+  return TIERS.find(t => t.id === id)
+}
+
+/** Everything the app may send as `model`: tiers (user-facing) + raw vendor
+ *  ids (dev mode). Used for the 400 error message. */
+export const REQUESTABLE_MODELS: string[] = [...TIERS.map(t => t.id), ...VALID_MODELS]
+
+/** What new app builds should default to. (DEFAULT_MODEL above stays the raw
+ *  vendor default for internal use.) */
+export const DEFAULT_REQUEST_MODEL = 'balanced'
+
+/** Catalog as served by /config: tiers first (production = shown to users),
+ *  then the raw vendor models (dev-only). Same field shape as CatalogModel so
+ *  existing app builds keep decoding and can still look up raw-id costs. */
+export interface ServedModel {
+  id: string
+  label: string
+  creditCost: number
+  production: boolean
+}
+
+export function servedCatalog(): ServedModel[] {
+  return [
+    ...TIERS.map(t => ({ id: t.id, label: t.label, creditCost: t.creditCost, production: true })),
+    ...MODEL_CATALOG,
+  ]
 }
 
 /** StoreKit consumable product IDs → credits granted. Must match the packs in

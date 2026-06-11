@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import type { Env } from '../types'
-import { MODEL_CATALOG, DEFAULT_MODEL } from '../services/models'
+import { servedCatalog, DEFAULT_REQUEST_MODEL } from '../services/models'
 
 export const configRoute = new Hono<{ Bindings: Env }>()
 
@@ -16,7 +16,7 @@ const DEFAULT_SHORTCUT_INSTALL_URL =
 configRoute.get('/', (c) =>
   c.json({
     shortcutInstallURL: c.env.SHORTCUT_INSTALL_URL || DEFAULT_SHORTCUT_INSTALL_URL,
-    defaultModel: DEFAULT_MODEL,
-    models: MODEL_CATALOG,
+    defaultModel: DEFAULT_REQUEST_MODEL,
+    models: servedCatalog(),
   })
 )
