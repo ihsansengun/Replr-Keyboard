@@ -159,7 +159,9 @@ struct HistoryView: View {
                 })
             }
         }
-        .sheet(isPresented: $showMemorySettings) {
+        .sheet(isPresented: $showMemorySettings, onDismiss: {
+            memoryEnabled = AppGroupService.shared.memoryEnabled
+        }) {
             NavigationStack { MemorySettingsView() }
         }
         .fullScreenCover(isPresented: $showTutorial) {
@@ -246,11 +248,15 @@ struct HistoryView: View {
             if !memoryEnabled {
                 Button { showMemorySettings = true } label: {
                     memoryPill(label: "Memory settings")
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             } else if remembered > 0 {
                 Button { memoryContact = contact } label: {
                     memoryPill(label: "Memory")
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
@@ -392,12 +398,12 @@ struct CaptureDetailView: View {
                     }
                 }
 
-                if AppGroupService.shared.devMode {
-                    // Capture intelligence
-                    HStack(spacing: 10) {
-                        if let tone = session.toneName {
-                            infoChip(icon: "waveform", label: tone)
-                        }
+                // Capture intelligence — tone is user-facing; model/cost/tokens are internals.
+                HStack(spacing: 10) {
+                    if let tone = session.toneName {
+                        infoChip(icon: "waveform", label: tone)
+                    }
+                    if AppGroupService.shared.devMode {
                         if let model = session.modelUsed {
                             infoChip(icon: "cpu", label: model)
                         }
@@ -405,11 +411,12 @@ struct CaptureDetailView: View {
                             infoChip(icon: "dollarsign.circle", label: String(format: "$%.4f", cost))
                         }
                     }
-                    if let input = session.inputTokens, let output = session.outputTokens {
-                        HStack(spacing: 10) {
-                            infoChip(icon: "arrow.down.circle", label: "\(input) in")
-                            infoChip(icon: "arrow.up.circle", label: "\(output) out")
-                        }
+                }
+                if AppGroupService.shared.devMode,
+                   let input = session.inputTokens, let output = session.outputTokens {
+                    HStack(spacing: 10) {
+                        infoChip(icon: "arrow.down.circle", label: "\(input) in")
+                        infoChip(icon: "arrow.up.circle", label: "\(output) out")
                     }
                 }
 

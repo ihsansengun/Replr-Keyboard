@@ -1313,11 +1313,15 @@ Add below the `filterChip` helper:
             if !memoryEnabled {
                 Button { showMemorySettings = true } label: {
                     memoryPill(label: "Memory settings")
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             } else if remembered > 0 {
                 Button { memoryContact = contact } label: {
                     memoryPill(label: "Memory")
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
@@ -1347,7 +1351,9 @@ Add state and the sheet (next to the existing `memoryContact` sheet):
     @State private var showMemorySettings = false
 ```
 ```swift
-        .sheet(isPresented: $showMemorySettings) {
+        .sheet(isPresented: $showMemorySettings, onDismiss: {
+            memoryEnabled = AppGroupService.shared.memoryEnabled
+        }) {
             NavigationStack { MemorySettingsView() }
         }
 ```
@@ -1403,14 +1409,48 @@ d) At the call site in `HistoryView`, pass the flag:
 
 - [x] **Step 3: Dev-gate the internals chips in CaptureDetailView**
 
-Wrap both metric rows ("Capture intelligence" `HStack` and the tokens `if let input …`
-block) in:
+Tone chip is always user-facing; only model/cost/tokens are dev-only internals.
+Restructure so the outer `HStack` is unconditional, with only the cpu/cost chips inside a
+`devMode` check, and the tokens row separately gated:
 
 ```swift
-                if AppGroupService.shared.devMode {
-                    // … existing two chip rows move inside, unchanged …
+                // Capture intelligence — tone is user-facing; model/cost/tokens are internals.
+                HStack(spacing: 10) {
+                    if let tone = session.toneName {
+                        infoChip(icon: "waveform", label: tone)
+                    }
+                    if AppGroupService.shared.devMode {
+                        if let model = session.modelUsed {
+                            infoChip(icon: "cpu", label: model)
+                        }
+                        if let cost = session.costUsd {
+                            infoChip(icon: "dollarsign.circle", label: String(format: "$%.4f", cost))
+                        }
+                    }
+                }
+                if AppGroupService.shared.devMode,
+                   let input = session.inputTokens, let output = session.outputTokens {
+                    HStack(spacing: 10) {
+                        infoChip(icon: "arrow.down.circle", label: "\(input) in")
+                        infoChip(icon: "arrow.up.circle", label: "\(output) out")
+                    }
                 }
 ```
+
+- [x] **Step 3b: Code-review fixes (not in original plan)**
+
+Three review polish items applied after initial implementation:
+
+  a) `memoryEnabled` refresh: the `.sheet(isPresented: $showMemorySettings)` modifier gained
+  `onDismiss: { memoryEnabled = AppGroupService.shared.memoryEnabled }` so the person
+  header subtitle and pill update immediately after the Memory settings sheet closes.
+
+  b) Tone chip un-gated: the original dev-mode wrapper enclosed tone + model + cost + tokens.
+  Restructured to always show the tone chip (it is user-facing), while cpu/cost chips and the
+  tokens row remain dev-only (see Step 3 above).
+
+  c) HIG tap targets on memory pills: both pill `Button` labels gained
+  `.frame(minHeight: 44).contentShape(Rectangle())` so the tap area meets the 44 pt HIG minimum.
 
 - [x] **Step 4: Review follow-ups folded in (not in original plan)**
 
