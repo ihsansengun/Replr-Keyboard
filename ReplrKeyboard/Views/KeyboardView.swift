@@ -806,12 +806,22 @@ struct KeyboardHeader: View {
             if !isModeHidden {
                 HStack(spacing: 0) {
                 if let onOpenSettings {
-                    // Opens the how-to popup (tones/steer/Back Tap) — info, not settings.
+                    // Opens the how-to popup (tones/steer/Back Tap). Quiet squircle
+                    // in the chip/segment family — a bare accent glyph read as
+                    // off-brand here.
                     Button(action: onOpenSettings) {
-                        Image(systemName: "info.circle")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(ReplrTheme.Color.accent)
+                        Image(systemName: "questionmark")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(ReplrTheme.Color.textSecondary)
                             .frame(width: 30, height: 30)
+                            .background(
+                                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                                    .fill(ReplrTheme.Color.surface)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: ReplrTheme.Radius.sm, style: .continuous)
+                                    .strokeBorder(ReplrTheme.Color.glassBorder, lineWidth: 1)
+                            )
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
