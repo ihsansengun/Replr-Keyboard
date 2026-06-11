@@ -530,6 +530,9 @@ struct CollapsedStripView: View {
                 .padding(.bottom, 4)
 
             // Capture card — entire card is the tap target. Adapts to the watcher state.
+            // The globe rides alongside (4.4.1: switching keyboards must stay possible here —
+            // the strip is what's on screen right after a reply insert).
+            HStack(spacing: 8) {
             Button {
                 if model.detectedScreenshotID != nil {
                     model.generateFromScreenshot()
@@ -595,6 +598,10 @@ struct CollapsedStripView: View {
                 .shadow(color: .black.opacity(0.16), radius: 6, x: 0, y: 3)
             }
             .buttonStyle(.plain)
+            if model.needsGlobeKey {
+                GlobeKeyButton(model: model)
+            }
+            } // end capture-card HStack
             .padding(.horizontal, 16)
             .padding(.bottom, 8)
         }
@@ -729,13 +736,7 @@ struct ToneRow: View {
 
             if model.needsGlobeKey {
                 ReplrTheme.Color.glassBorder.frame(width: 0.5, height: 16)
-                Button { model.onSwitchKeyboard?() } label: {
-                    Image(systemName: "globe")
-                        .font(.system(size: 14))
-                        .foregroundColor(ReplrTheme.Color.textSecondary)
-                        .frame(width: 36, height: 30)
-                }
-                .buttonStyle(.plain)
+                GlobeKeyButton(model: model)
             }
         }
         .frame(height: 44)
@@ -832,6 +833,11 @@ struct KeyboardHeader: View {
                     ReplrMark(size: 16)
                         .opacity(isSegmentedDisabled ? 0.4 : 1.0)
                 }
+                // Tone row hidden (paywall/disambiguate) → it can't host the globe,
+                // so the switch-keyboard key moves up here (4.4.1: required in every state).
+                if isToneHidden && model.needsGlobeKey {
+                    GlobeKeyButton(model: model)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.top, 8)
@@ -875,6 +881,25 @@ struct SkeletonLine: View {
                     .delay(pulse ? 0.3 : 0)
                 ) { shimmer = true }
             }
+    }
+}
+
+// MARK: - Globe (next keyboard) key
+
+/// App Review 4.4.1: every keyboard state must offer a way to the next keyboard on
+/// devices without the system-provided globe (home-button iPhones, iPads). Render
+/// this wherever the tone row — the usual globe host — is absent.
+struct GlobeKeyButton: View {
+    @ObservedObject var model: KeyboardModel
+
+    var body: some View {
+        Button { model.onSwitchKeyboard?() } label: {
+            Image(systemName: "globe")
+                .font(.system(size: 14))
+                .foregroundColor(ReplrTheme.Color.textSecondary)
+                .frame(width: 36, height: 30)
+        }
+        .buttonStyle(.plain)
     }
 }
 
