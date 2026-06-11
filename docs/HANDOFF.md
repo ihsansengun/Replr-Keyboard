@@ -271,10 +271,16 @@ gained an optional exclusive `onLongPress` — tap and hold never both fire.
 
 ## 4. Pending / next tasks
 
-0. **Settings UX pass** — user's chosen next phase (2026-06-11). Settings is one
-   long scroll; rethink grouping/hierarchy. Same-day context: tones are now
-   mode-separated (Chat/Dating/Email sections + custom-tone mode picker +
-   Natural always-on), Reply Quality replaced AI Model, Delete Account added.
+0. ~~Settings UX pass~~ — DONE 2026-06-11 on `app-screens`: app restructured to
+   Home / History / Settings per
+   `docs/superpowers/specs/2026-06-11-app-screens-ux-design.md` (Home = setup +
+   credits + recent + personalize; Memory tab folded into History's person
+   header + Settings → Memory trust center; Settings root regrouped with
+   sub-screens; tab roots refresh on own-tab activation). Awaiting owner
+   device pass (dark + light) before merge — checklist in the spec's Testing
+   section, plus: Back Tap row returns after re-running Finish setup
+   (re-prompt by design), row needs manual ✕ after real Back Tap setup
+   (iOS exposes no signal).
 1. **Verify the replies-height fix on device** (section 1) — highest priority.
 2. **Memory wedge part 2** (approved, not built): proactive "I remember [Name] — tap to
    use" chip + auto-disambiguate when >1 contact matches a name.

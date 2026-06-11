@@ -140,22 +140,14 @@ struct HistoryView: View {
                 Text("This deletes your reply history. Memory is kept.")
             }
         }
-        .onAppear {
-            AppGroupService.shared.synchronize()
-            vm.load()
-            memoryEnabled = AppGroupService.shared.memoryEnabled
-        }
+        .onAppear(perform: refresh)
         .onChange(of: scenePhase) { phase in
             guard phase == .active else { return }
-            AppGroupService.shared.synchronize()
-            vm.load()
-            memoryEnabled = AppGroupService.shared.memoryEnabled
+            refresh()
         }
         .onChange(of: activeTab) { tab in
             guard tab == .history else { return }
-            AppGroupService.shared.synchronize()
-            vm.load()
-            memoryEnabled = AppGroupService.shared.memoryEnabled
+            refresh()
         }
         .sheet(item: $memoryContact) { contact in
             NavigationStack {
@@ -174,6 +166,14 @@ struct HistoryView: View {
         .fullScreenCover(isPresented: $showTutorial) {
             UsageTutorialView(onDone: { showTutorial = false })
         }
+    }
+
+    // MARK: - Refresh
+
+    private func refresh() {
+        AppGroupService.shared.synchronize()
+        vm.load()
+        memoryEnabled = AppGroupService.shared.memoryEnabled
     }
 
     // MARK: - Empty state
