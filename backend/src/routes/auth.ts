@@ -1,8 +1,12 @@
 import { Hono } from 'hono'
 import type { Env } from '../types'
 import { validateAppleToken } from '../services/auth'
+import { sessionMiddleware, SESSION_USER_ID_KEY, type SessionVariables } from '../middleware/session'
 
-export const authRoute = new Hono<{ Bindings: Env }>()
+export const authRoute = new Hono<{ Bindings: Env; Variables: SessionVariables }>()
+
+// Non-blocking — only resolves a Bearer token if present. /apple is unaffected.
+authRoute.use('*', sessionMiddleware)
 
 const APPLE_AUDIENCE = 'Theory-of-Web.Replr'
 const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60  // 30 days
@@ -74,4 +78,24 @@ authRoute.post('/apple', async (c) => {
     .run()
 
   return c.json({ token, expiresAt })
+})
+
+/** App Review 5.1.1(v): apps with account creation must offer in-app account
+ *  deletion. Wipes the user row and every row keyed to it in one atomic batch
+ *  (children first; doesn't lean on PRAGMA foreign_keys for the cascade).
+ *  Remaining credit balance is forfeited — the app warns before calling.
+ *  Signing in with Apple again later simply creates a fresh account. */
+authRoute.delete('/account', async (c) => {
+  const userID = c.get(SESSION_USER_ID_KEY)
+  if (!userID) return c.json({ error: 'Sign in required' }, 401)
+
+  await c.env.DB.batch([
+    c.env.DB.prepare('DELETE FROM credit_ledger WHERE user_id = ?').bind(userID),
+    c.env.DB.prepare('DELETE FROM credits WHERE user_id = ?').bind(userID),
+    c.env.DB.prepare('DELETE FROM paywall_events WHERE user_id = ?').bind(userID),
+    c.env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(userID),
+    c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(userID),
+  ])
+
+  return c.json({ ok: true })
 })

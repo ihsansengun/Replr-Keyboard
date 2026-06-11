@@ -16,6 +16,8 @@ export interface FakeState {
   isDev: boolean
   /** paywall_events rows captured by the fake DB. */
   paywallEvents: Array<{ userId: string; experiment: string; variant: string; event: string; productId: string | null }>
+  /** True once a batch containing DELETE FROM users ran — session lookups then fail. */
+  deleted: boolean
 }
 
 export function todayKey(key: string): string {
@@ -32,6 +34,7 @@ export function makeTestEnv(overrides: Partial<Env> = {}, init?: Partial<FakeSta
     ledgerRefs: new Set(init?.ledgerRefs ?? []),
     isDev: init?.isDev ?? false,
     paywallEvents: init?.paywallEvents ?? [],
+    deleted: init?.deleted ?? false,
   }
   if (init?.kv instanceof Map) state.kv = init.kv
 
@@ -49,7 +52,7 @@ export function makeTestEnv(overrides: Partial<Env> = {}, init?: Partial<FakeSta
       _args: args,
       async first() {
         if (sql.includes('FROM sessions')) {
-          return args[0] === TEST_SESSION_TOKEN ? { user_id: TEST_USER_ID } : null
+          return args[0] === TEST_SESSION_TOKEN && !state.deleted ? { user_id: TEST_USER_ID } : null
         }
         if (sql.includes('FROM users u LEFT JOIN credits')) {
           // getAccessProfile: one row per existing user; balance NULL without a credits row.
@@ -86,6 +89,9 @@ export function makeTestEnv(overrides: Partial<Env> = {}, init?: Partial<FakeSta
   const db = {
     prepare,
     batch: vi.fn(async (stmts: Array<{ _sql: string; _args: unknown[] }>) => {
+      if (stmts.some(s => s._sql.includes('DELETE FROM users'))) {
+        state.deleted = true
+      }
       const ledgerInsert = stmts.find(s => s._sql.includes('INSERT INTO credit_ledger'))
       if (ledgerInsert) {
         const ref = ledgerInsert._args[4] as string | null
