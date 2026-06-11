@@ -1,32 +1,6 @@
 import SwiftUI
 import Photos
 
-/// Deletes ONLY the screenshots Replr recorded (by localIdentifier). Never touches other photos.
-enum ScreenshotCleaner {
-    static func pendingCount() -> Int {
-        AppGroupService.shared.capturedScreenshotIDs().count
-    }
-
-    /// Batch-deletes recorded screenshots. iOS shows one confirmation. Clears the list on success.
-    static func clean(completion: ((Bool) -> Void)? = nil) {
-        let ids = AppGroupService.shared.capturedScreenshotIDs()
-        guard !ids.isEmpty else { completion?(true); return }
-        let assets = PHAsset.fetchAssets(withLocalIdentifiers: ids, options: nil)
-        guard assets.count > 0 else {
-            AppGroupService.shared.clearCapturedScreenshotIDs()   // all already gone
-            completion?(true); return
-        }
-        PHPhotoLibrary.shared().performChanges {
-            PHAssetChangeRequest.deleteAssets(assets)
-        } completionHandler: { success, _ in
-            DispatchQueue.main.async {
-                if success { AppGroupService.shared.clearCapturedScreenshotIDs() }
-                completion?(success)
-            }
-        }
-    }
-}
-
 // MARK: - Setup status (Settings → "Set up Replr")
 
 struct SetupStatusView: View {
